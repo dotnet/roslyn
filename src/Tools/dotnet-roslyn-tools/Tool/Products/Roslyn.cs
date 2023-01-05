@@ -9,6 +9,9 @@ internal class Roslyn : IProduct
     public string Name => "Roslyn";
 
     public string RepoBaseUrl => "https://github.com/dotnet/roslyn";
+    public string GitUserName => "dotnet bot";
+    public string GitEmail => "dotnet-bot@microsoft.com";
+
     public string ComponentJsonFileName => @".corext\Configs\dotnetcodeanalysis-components.json";
     public string ComponentName => "Microsoft.CodeAnalysis.LanguageServices";
     public string? PackageName => "VS.ExternalAPIs.Roslyn";

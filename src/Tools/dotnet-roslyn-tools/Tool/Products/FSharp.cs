@@ -9,6 +9,9 @@ internal class FSharp : IProduct
     public string Name => "F#";
 
     public string RepoBaseUrl => "https://github.com/dotnet/fsharp";
+    public string GitUserName => "";
+    public string GitEmail => "";
+
     public string ComponentJsonFileName => @".corext\Configs\components.json";
     public string ComponentName => "Microsoft.FSharp";
     public string? PackageName => null;

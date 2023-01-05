@@ -9,6 +9,9 @@ internal class TypeScript : IProduct
     public string Name => "TypeScript";
 
     public string RepoBaseUrl => "https://devdiv.visualstudio.com/DevDiv/_git/TypeScript-VS";
+    public string GitUserName => "";
+    public string GitEmail => "";
+
     public string ComponentJsonFileName => @".corext\Configs\components.json";
     public string ComponentName => "TypeScript_Tools";
     public string? PackageName => "VS.ExternalAPIs.TypeScript.SourceMapReader.dev15";

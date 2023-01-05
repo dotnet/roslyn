@@ -9,6 +9,9 @@ internal class Razor : IProduct
     public string Name => "Razor";
 
     public string RepoBaseUrl => "https://github.com/dotnet/razor";
+    public string GitUserName => "dotnet bot";
+    public string GitEmail => "dotnet-bot@microsoft.com";
+
     public string ComponentJsonFileName => @".corext\Configs\aspnet-components.json";
     public string ComponentName => "Microsoft.VisualStudio.RazorExtension";
     public string? PackageName => null;

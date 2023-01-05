@@ -9,6 +9,11 @@ internal interface IProduct
     string Name { get; }
 
     string RepoBaseUrl { get; }
+
+    // If commits need to be made against the repo, which user gets the credit
+    string GitUserName { get; }
+    string GitEmail { get; }
+
     string ComponentJsonFileName { get; }
     string ComponentName { get; }
     string? PackageName { get; }

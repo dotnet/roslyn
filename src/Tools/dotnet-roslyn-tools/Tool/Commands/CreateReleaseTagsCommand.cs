@@ -14,9 +14,10 @@ internal class CreateReleaseTagsCommand
 {
     private static readonly CreateReleaseTagsCommandDefaultHandler s_defaultHandler = new();
 
-    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()).ToArray();
+    // Filter the product to only those with git credentials, as we need to be able to commit to the repo to add tags
+    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Where(p => p.GitUserName.Length > 0).Select(p => p.Name.ToLower()).ToArray();
 
-    internal static readonly Option<string> ProductOption = new Option<string>(new[] { "--product", "-p" }, () => "roslyn", "Which product to get info for (roslyn or razor)").FromAmong(s_allProductNames);
+    internal static readonly Option<string> ProductOption = new Option<string>(new[] { "--product", "-p" }, () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
 
     public static Symbol GetCommand()
     {

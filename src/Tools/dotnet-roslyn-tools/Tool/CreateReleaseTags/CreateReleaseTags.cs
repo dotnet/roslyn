@@ -48,7 +48,7 @@ internal static class CreateReleaseTags
 
             logger.LogInformation("Tagging releases...");
 
-            foreach (var visualStudioRelease in visualStudioReleases.Reverse())
+            foreach (var visualStudioRelease in visualStudioReleases)
             {
                 var tagName = TryGetTagName(visualStudioRelease);
 
@@ -58,7 +58,7 @@ internal static class CreateReleaseTags
                     {
                         logger.LogInformation($"Tag '{tagName}' is missing.");
 
-                        RoslynBuildInformation? build = null;
+                        BuildInformation? build = null;
                         foreach (var connection in connections)
                         {
                             build = await TryGetBuildInfoForReleaseAsync(product, visualStudioRelease, devdivConnection, connection);
@@ -75,7 +75,7 @@ internal static class CreateReleaseTags
 
                             string message = $"Build Branch: {build.SourceBranch}\r\nInternal ID: {build.BuildId}\r\nInternal VS ID: {visualStudioRelease.BuildId}";
 
-                            repository.ApplyTag(tagName, build.CommitSha, new Signature("dotnet bot", "dotnet-bot@microsoft.com", when: visualStudioRelease.CreationTime), message);
+                            repository.ApplyTag(tagName, build.CommitSha, new Signature(product.GitUserName, product.GitEmail, when: visualStudioRelease.CreationTime), message);
                         }
                         else
                         {
@@ -105,7 +105,7 @@ internal static class CreateReleaseTags
         return 1;
     }
 
-    private static async Task<RoslynBuildInformation?> TryGetBuildInfoForReleaseAsync(IProduct product, VisualStudioVersion release, AzDOConnection vsConnection, AzDOConnection connection)
+    private static async Task<BuildInformation?> TryGetBuildInfoForReleaseAsync(IProduct product, VisualStudioVersion release, AzDOConnection vsConnection, AzDOConnection connection)
     {
         try
         {
@@ -127,7 +127,7 @@ internal static class CreateReleaseTags
                     {
                         if (!string.IsNullOrWhiteSpace(build.SourceBranch))
                         {
-                            return new RoslynBuildInformation(build.SourceVersion, build.SourceBranch, build.BuildNumber);
+                            return new BuildInformation(build.SourceVersion, build.SourceBranch, build.BuildNumber);
                         }
                     }
                 }
@@ -140,7 +140,7 @@ internal static class CreateReleaseTags
                 return null;
             }
 
-            var commitSha = await TryGetRoslynCommitShaFromBuildAsync(product, connection, buildNumber)
+            var commitSha = await TryGetCommitShaFromBuildAsync(product, connection, buildNumber)
                 ?? await TryGetRoslynCommitShaFromNuspecAsync(vsConnection, release);
             if (string.IsNullOrEmpty(commitSha))
             {
@@ -149,7 +149,7 @@ internal static class CreateReleaseTags
 
             var buildId = product.GetBuildPipelineName(connection.BuildProjectName) + "_" + buildNumber;
 
-            return new RoslynBuildInformation(commitSha, branchName, buildId);
+            return new BuildInformation(commitSha, branchName, buildId);
         }
         catch
         {
@@ -183,7 +183,7 @@ internal static class CreateReleaseTags
         }
     }
 
-    private static async Task<string?> TryGetRoslynCommitShaFromBuildAsync(
+    private static async Task<string?> TryGetCommitShaFromBuildAsync(
         IProduct product,
         AzDOConnection buildConnection,
         string buildNumber)
