@@ -341,13 +341,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
             Get
-                Return OriginalDefinition.AllRequiredMembers
+                ' Unbound Generic Types have only nested type members
+                Return ImmutableSegmentedDictionary(Of String, Symbol).Empty
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
             Get
-                Return OriginalDefinition.HasRequiredMembersError
+                Return False
             End Get
         End Property
 

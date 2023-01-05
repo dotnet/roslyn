@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsRequired As Boolean
             Get
-                Return False
+                Return _underlyingProperty.IsRequired
             End Get
         End Property
     End Class

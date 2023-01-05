@@ -899,10 +899,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim constraintError = ConstructorConstraintError.NoPublicParameterlessConstructor
 
                     If typeArgument.TypeKind = TypeKind.Class OrElse isStructure Then
-                        Dim classType = DirectCast(typeArgument, NamedTypeSymbol)
-                        constraintError = HasPublicParameterlessConstructor(classType, synthesizedIfMissing:=isStructure)
+                        Dim namedType = DirectCast(typeArgument, NamedTypeSymbol)
+                        constraintError = HasPublicParameterlessConstructor(namedType)
 
-                        If constraintError = ConstructorConstraintError.None AndAlso classType.IsMustInherit Then
+                        If constraintError = ConstructorConstraintError.None AndAlso namedType.IsMustInherit Then
                             constraintError = ConstructorConstraintError.MustInheritType
                         End If
                     End If
@@ -918,6 +918,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Case ConstructorConstraintError.HasRequiredMembers
                                 ' '{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
                                 diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_NewConstraintCannotHaveRequiredMembers, typeParameter.ContainingSymbol, typeParameter, typeArgument)))
+                            Case ConstructorConstraintError.None
+                            Case Else
+                                Throw ExceptionUtilities.UnexpectedValue(constraintError)
                         End Select
                     End If
 
@@ -1101,18 +1104,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Return true if the class type has a public parameterless constructor.
         ''' </summary>
-        Public Function HasPublicParameterlessConstructor(type As NamedTypeSymbol, synthesizedIfMissing As Boolean) As ConstructorConstraintError
+        Public Function HasPublicParameterlessConstructor(type As NamedTypeSymbol) As ConstructorConstraintError
             type = type.OriginalDefinition
             Debug.Assert(type.TypeKind = TypeKind.Class OrElse type.TypeKind = TypeKind.Structure)
 
-            Dim sourceNamedType = TryCast(type, SourceNamedTypeSymbol)
+            Dim sourceClass = If(type.TypeKind = TypeKind.Class, TryCast(type, SourceNamedTypeSymbol), Nothing)
 
-            If sourceNamedType IsNot Nothing AndAlso Not sourceNamedType.MembersHaveBeenCreated AndAlso sourceNamedType.TypeKind = TypeKind.Class Then
+            If sourceClass IsNot Nothing AndAlso Not sourceClass.MembersHaveBeenCreated Then
                 ' When we are dealing with group classes and synthetic entry points,
                 ' we can end up here while we are building the set of members for the type.
                 ' Using InstanceConstructors property will send us into an infinite loop.
-                Debug.Assert(sourceNamedType.TypeKind = TypeKind.Class)
-                If sourceNamedType.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() Then
+                If sourceClass.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() Then
                     Return ConstructorConstraintError.None
                 Else
                     Return ConstructorConstraintError.NoPublicParameterlessConstructor
@@ -1133,7 +1135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
-            If Not synthesizedIfMissing Then
+            If Not type.TypeKind = TypeKind.Structure Then
                 Return ConstructorConstraintError.NoPublicParameterlessConstructor
             ElseIf hasRequiredMembers Then
                 Return ConstructorConstraintError.HasRequiredMembers

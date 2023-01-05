@@ -268,11 +268,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             Return Me.UnderlyingMethod.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
-
-        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
-            Get
-                Return UnderlyingMethod.HasSetsRequiredMembers
-            End Get
-        End Property
     End Class
 End Namespace

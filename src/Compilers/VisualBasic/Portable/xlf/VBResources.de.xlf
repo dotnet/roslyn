@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSet">
-        <source>Required member '{0}' must be set in the object initializer or attribute constructor.</source>
-        <target state="new">Required member '{0}' must be set in the object initializer or attribute constructor.</target>
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="new">Required member '{0}' must be set in the object initializer or attribute arguments.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersInvalid">

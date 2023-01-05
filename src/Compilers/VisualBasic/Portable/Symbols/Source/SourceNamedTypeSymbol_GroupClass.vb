@@ -291,7 +291,7 @@ DoneWithBindingAttributes:
             ' Simply calling HasPublicParameterlessConstructor might get us in a cycle.
             Debug.Assert(candidate.TypeKind = TypeKind.Class)
             If candidate.MembersHaveBeenCreated Then
-                Return HasPublicParameterlessConstructor(candidate, synthesizedIfMissing:=False) = ConstructorConstraintError.None
+                Return HasPublicParameterlessConstructor(candidate) = ConstructorConstraintError.None
             Else
                 Return candidate.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor()
             End If
@@ -301,7 +301,7 @@ DoneWithBindingAttributes:
         Protected Overrides Sub VerifyMembers()
             If Me.TypeKind = TypeKind.Class Then
                 Debug.Assert(MembersHaveBeenCreated)
-                Dim constructorConstraintError As ConstructorConstraintError = HasPublicParameterlessConstructor(Me, synthesizedIfMissing:=False)
+                Dim constructorConstraintError As ConstructorConstraintError = HasPublicParameterlessConstructor(Me)
                 Debug.Assert(constructorConstraintError =
                              If(InferFromSyntaxIfClassWillHavePublicParameterlessConstructor(),
                                 ConstructorConstraintError.None,

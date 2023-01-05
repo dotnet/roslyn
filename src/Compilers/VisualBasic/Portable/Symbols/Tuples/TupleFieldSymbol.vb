@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property IsRequired As Boolean
             Get
-                Return False
+                Return _underlyingField.IsRequired
             End Get
         End Property
     End Class

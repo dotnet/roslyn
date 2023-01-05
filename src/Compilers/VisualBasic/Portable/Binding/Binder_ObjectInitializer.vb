@@ -90,7 +90,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' NOTE: in case the structure has a constructor with all optional parameters 
                         '       we don't catch it here; this matches Dev10 behavior
 
-                        Dim ctors = DirectCast(type0, NamedTypeSymbol).InstanceConstructors
+                        Dim namedType = DirectCast(type0, NamedTypeSymbol)
+                        Dim ctors = namedType.InstanceConstructors
 
                         If Not ctors.IsEmpty Then
                             For Each constructor In ctors
@@ -118,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                 asNewVariablePlaceholderOpt,
                                                                                 diagnostics)
 
-                        CheckRequiredMembersInObjectInitializer(constructorSymbol, If(initializerOpt?.Initializers, ImmutableArray(Of BoundExpression).Empty), typeNode, diagnostics)
+                        CheckRequiredMembersInObjectInitializer(constructorSymbol, namedType, If(initializerOpt?.Initializers, ImmutableArray(Of BoundExpression).Empty), typeNode, diagnostics)
 
                         Return New BoundObjectCreationExpression(
                                         node,
@@ -497,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         Dim constructorSymbol As MethodSymbol = DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol)
 
-                        CheckRequiredMembersInObjectInitializer(constructorSymbol, If(objectInitializerExpressionOpt?.Initializers, ImmutableArray(Of BoundExpression).Empty), typeNode, diagnostics)
+                        CheckRequiredMembersInObjectInitializer(constructorSymbol, constructorSymbol.ContainingType, If(objectInitializerExpressionOpt?.Initializers, ImmutableArray(Of BoundExpression).Empty), typeNode, diagnostics)
 
                         resultExpression = New BoundObjectCreationExpression(node,
                                                                              constructorSymbol,
@@ -518,20 +519,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Sub CheckRequiredMembersInObjectInitializer(
             constructor As MethodSymbol,
+            containingType As NamedTypeSymbol,
             initializers As ImmutableArray(Of BoundExpression),
             creationSyntax As SyntaxNode,
             diagnostics As BindingDiagnosticBag)
 
-            If constructor Is Nothing OrElse constructor.HasSetsRequiredMembers Then
+            ' The only time constructor will be null is if we're trying to invoke a parameterless struct ctor, and it's not accessible (such as being protected).
+            Debug.Assert((constructor IsNot Nothing AndAlso ReferenceEquals(constructor.ContainingType, containingType)) OrElse containingType.IsStructureType())
+
+            If constructor IsNot Nothing AndAlso constructor.HasSetsRequiredMembers Then
                 Return
             End If
 
-            If constructor.ContainingType.HasRequiredMembersError Then
+            If containingType.HasRequiredMembersError Then
                 ' A use-site diagnostic will be reported on the use, so we don't need to do any more checking here.
                 Return
             End If
 
-            Dim requiredMembers = constructor.ContainingType.AllRequiredMembers
+            Dim requiredMembers = containingType.AllRequiredMembers
 
             If requiredMembers.Count = 0 Then
                 Return
@@ -559,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
                     End If
 
-                    If Not memberSymbol.Equals(requiredMember, TypeCompareKind.ConsiderEverything) Then
+                    If Not memberSymbol.Equals(requiredMember, TypeCompareKind.AllIgnoreOptionsForVB) Then
                         Continue For
                     End If
 

@@ -45,7 +45,7 @@ BC37322: Cannot inherit from 'Derived' because it has required members.
 </expected>)
         End Sub
 
-        Private Function GetCDefinition(hasSetsRequiredMembers As Boolean, Optional typeKind As String = "class") As String
+        Private Shared Function GetCDefinition(hasSetsRequiredMembers As Boolean, Optional typeKind As String = "class") As String
             Return $"
 using System.Diagnostics.CodeAnalysis;
 public {typeKind} C
@@ -73,10 +73,10 @@ End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %>
                      ~
-BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %>
                      ~
                                         </expected>)
@@ -96,7 +96,7 @@ End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %> With { .Prop = 1 }
                      ~
                                         </expected>)
@@ -135,7 +135,7 @@ End Module"
             comp.AssertNoDiagnostics
         End Sub
 
-        Private Function GetBaseDerivedDefinition(hasSetsRequiredMembers As Boolean) As String
+        Private Shared Function GetBaseDerivedDefinition(hasSetsRequiredMembers As Boolean) As String
             Return $"
 using System.Diagnostics.CodeAnalysis;
 public class Base
@@ -175,16 +175,16 @@ End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public Field1 As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Field1 As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %>
                      ~~~~~~~~~~~~~~
-BC37321: Required member 'Public Field2 As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Field2 As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %>
                      ~~~~~~~~~~~~~~
-BC37321: Required member 'Public Overloads Property Prop1 As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overloads Property Prop1 As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %>
                      ~~~~~~~~~~~~~~
-BC37321: Required member 'Public Overloads Property Prop2 As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overloads Property Prop2 As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %>
                      ~~~~~~~~~~~~~~
                                         </expected>)
@@ -204,10 +204,10 @@ End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public Field1 As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Field1 As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %> With { .Prop1 = 1, .Field2 = 2 }
                      ~~~~~~~~~~~~~~
-BC37321: Required member 'Public Overloads Property Prop2 As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overloads Property Prop2 As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %> With { .Prop1 = 1, .Field2 = 2 }
                      ~~~~~~~~~~~~~~
                                         </expected>)
@@ -266,10 +266,10 @@ Module M
 End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageReference()})
 
             comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute arguments.
         Dim b As New Base() With { .C = New C() }
                                             ~
-BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute arguments.
         Dim b As New Base() With { .C = New C() }
                                             ~
                                         </expected>)
@@ -357,7 +357,7 @@ End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public Overrides Property Prop As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overrides Property Prop As Integer' must be set in the object initializer or attribute arguments.
         Dim t <%= constructor %>
                      ~~~~~~~
                                         </expected>)
@@ -540,7 +540,7 @@ Module M
 End Module", {cComp.EmitToImageReference()})
 
             comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute arguments.
         Dim i = New I()
                     ~
                                         </expected>)
@@ -572,7 +572,7 @@ Module M
 End Module", {cComp.EmitToImageReference()})
 
             comp.AssertTheseDiagnostics(<expected>
-BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute arguments.
         Dim i = New I() With { .P = 1 }
                     ~
                                         </expected>)
@@ -602,7 +602,7 @@ End Class"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertTheseDiagnostics(<expected><![CDATA[
-BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute constructor.
+BC37321: Required member 'Public Overloads Property P As Integer' must be set in the object initializer or attribute arguments.
 <Attr>
  ~~~~
 ]]></expected>)
@@ -682,6 +682,140 @@ End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub GenericSubstitution_NoneSet()
+            Dim cDef = "
+public class C<T>
+{
+    public required T Prop { get; set; }
+    public required T Field;
+}"
+
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(cDef)
+
+            Dim vbCode = "
+Module M
+    Sub Main()
+        Dim c = New C(Of Integer)()
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute arguments.
+        Dim c = New C(Of Integer)()
+                    ~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute arguments.
+        Dim c = New C(Of Integer)()
+                    ~~~~~~~~~~~~~
+                                        </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub GenericSubstitution_AllSet()
+            Dim cDef = "
+public class C<T>
+{
+    public required T Prop { get; set; }
+    public required T Field;
+}"
+
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(cDef)
+
+            Dim vbCode = "
+Module M
+    Sub Main()
+        Dim c = New C(Of Integer)() With { .Prop = 1, .Field = 2 }
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ProtectedParameterlessConstructorInStruct()
+            ' Equivalent to
+            ' public struct S
+            ' {
+            '     protected S() {}
+            '     public required int Prop { get; set; }
+            ' }
+            Dim il = "
+.class public sequential ansi sealed beforefieldinit S
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 f
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+            01 00 5f 43 6f 6e 73 74 72 75 63 74 6f 72 73 20
+            6f 66 20 74 79 70 65 73 20 77 69 74 68 20 72 65
+            71 75 69 72 65 64 20 6d 65 6d 62 65 72 73 20 61
+            72 65 20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64
+            20 69 6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e
+            20 6f 66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65
+            72 2e 01 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 0f 52 65 71 75 69 72 65 64 4d 65 6d 62 65
+            72 73 00 00
+        )
+        ret
+    }
+
+    .method public hidebysig specialname 
+        instance int32 get_Prop () cil managed 
+    {
+        ldarg.0
+        ldfld int32 S::f
+        ret
+    }
+
+    .method public hidebysig specialname 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 S::f
+        ret
+    }
+
+    .property instance int32 Prop()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 S::get_Prop()
+        .set instance void S::set_Prop(int32)
+    }
+}
+"
+
+            Dim ilAssembly = CompileIL(il)
+
+            Dim comp = CreateCompilation("
+Module M
+    Sub Main()
+        Dim s = New S()
+    End Sub
+End Module
+", {ilAssembly}, targetFramework:=TargetFramework.Net70)
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute arguments.
+        Dim s = New S()
+                    ~
+                                        </expected>)
         End Sub
     End Class
 End Namespace

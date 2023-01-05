@@ -5669,7 +5669,7 @@
     <value>Analyzer reference specified multiple times</value>
   </data>
   <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
-    <value>Required member '{0}' must be set in the object initializer or attribute constructor.</value>
+    <value>Required member '{0}' must be set in the object initializer or attribute arguments.</value>
   </data>
   <data name="ERR_CannotInheritFromTypeWithRequiredMembers" xml:space="preserve">
     <value>Cannot inherit from '{0}' because it has required members.</value>

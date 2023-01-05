@@ -24,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits TypeSymbol
         Implements INamedTypeSymbol, INamedTypeSymbolInternal
 
+        Protected Shared ReadOnly s_requiredMembersErrorSentinel As ImmutableSegmentedDictionary(Of String, Symbol) = ImmutableSegmentedDictionary(Of String, Symbol).Empty.Add("<error sentinel>", Nothing)
+
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
         ' Do not make any changes to the public interface without making the corresponding change

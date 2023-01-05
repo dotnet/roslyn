@@ -94,6 +94,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyIsExtensibleInterface As ThreeState = ThreeState.Unknown
 
+        ''' <summary>
+        ''' <see langword="Nothing" /> if uninitialized. <see cref="s_requiredMembersErrorSentinel"/> if there are errors.
+        ''' <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/> if there are no required members. Otherwise,
+        ''' the required members.
+        ''' </summary>
+        Private _lazyRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol) = Nothing
+
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
             containingNamespace As PENamespaceSymbol,
@@ -1564,14 +1571,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Private Shared ReadOnly s_requiredMembersErrorSentinel As ImmutableSegmentedDictionary(Of String, Symbol) = ImmutableSegmentedDictionary(Of String, Symbol).Empty.Add("<error sentinel>", Nothing)
-        ''' <summary>
-        ''' <see langword="Nothing" /> if uninitialized. <see cref="s_requiredMembersErrorSentinel"/> if there are errors.
-        ''' <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/> if there are no required members. Otherwise,
-        ''' the required members.
-        ''' </summary>
-        Private _lazyRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol) = Nothing
-
         Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
             Get
                 CalculateRequiredMembersIfRequired()
@@ -1624,14 +1623,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             For Each member In GetMembersUnordered()
-                If requiredMembersBuilder.ContainsKey(member.Name) Then
+                Dim existingMember As Symbol = Nothing
+                If requiredMembersBuilder.TryGetValue(member.Name, existingMember) Then
                     ' This is only permitted if the member is an override of a required member from a base type, and is required itself
                     Dim overriddenMember = TryCast(member, PropertySymbol)?.OverriddenProperty
 
                     If (Not member.IsRequired()) OrElse
-                       member.Kind = SymbolKind.Field OrElse
                        overriddenMember Is Nothing OrElse
-                       (Not overriddenMember.Equals(requiredMembersBuilder(member.Name), TypeCompareKind.ConsiderEverything)) Then
+                       (Not overriddenMember.Equals(existingMember, TypeCompareKind.AllIgnoreOptionsForVB)) Then
                         Return False
                     End If
                 End If

@@ -214,17 +214,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function GetGuidString(<Out()> ByRef guidString As String) As Boolean
             Return Me._underlyingType.GetGuidString(guidString)
         End Function
-
-        Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
-            Get
-                Return _underlyingType.AllRequiredMembers
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
-            Get
-                Return _underlyingType.HasRequiredMembersError
-            End Get
-        End Property
     End Class
 End Namespace
