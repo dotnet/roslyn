@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
-        <target state="new">Blank line not allowed after arrow expression clause token</target>
+        <target state="translated">Пустая строка недопустима после маркера предложения выражения со стрелкой</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_conditional_expression_token">
         <source>Blank line not allowed after conditional expression token</source>
-        <target state="new">Blank line not allowed after conditional expression token</target>
+        <target state="translated">Пустая строка недопустима после маркера условного выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
@@ -229,47 +229,47 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessor">
         <source>Use block body for accessor</source>
-        <target state="new">Use block body for accessor</target>
+        <target state="translated">Использовать тело блока для метода доступа</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_constructor">
         <source>Use block body for constructor</source>
-        <target state="new">Use block body for constructor</target>
+        <target state="translated">Использовать тело блока для конструктора</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_conversion_operator">
         <source>Use block body for conversion operator</source>
-        <target state="new">Use block body for conversion operator</target>
+        <target state="translated">Использовать текст блока для оператора преобразования</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexer">
         <source>Use block body for indexer</source>
-        <target state="new">Use block body for indexer</target>
+        <target state="translated">Использовать тело блока для индексатора</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expression">
         <source>Use block body for lambda expression</source>
-        <target state="new">Use block body for lambda expression</target>
+        <target state="translated">Использовать тело блока для лямбда-выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_function">
         <source>Use block body for local function</source>
-        <target state="new">Use block body for local function</target>
+        <target state="translated">Использовать тело блока для локальной функции</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_method">
         <source>Use block body for method</source>
-        <target state="new">Use block body for method</target>
+        <target state="translated">Использовать тело блока для метода</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_operator">
         <source>Use block body for operator</source>
-        <target state="new">Use block body for operator</target>
+        <target state="translated">Использовать тело блока для оператора</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_property">
         <source>Use block body for property</source>
-        <target state="new">Use block body for property</target>
+        <target state="translated">Использовать тело блока для свойства</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type">
@@ -284,47 +284,47 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_accessor">
         <source>Use expression body for accessor</source>
-        <target state="new">Use expression body for accessor</target>
+        <target state="translated">Использовать тело выражения для метода доступа</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_constructor">
         <source>Use expression body for constructor</source>
-        <target state="new">Use expression body for constructor</target>
+        <target state="translated">Использовать тело выражения для конструктора</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_conversion_operator">
         <source>Use expression body for conversion operator</source>
-        <target state="new">Use expression body for conversion operator</target>
+        <target state="translated">Использовать тело выражения для оператора преобразования</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexer">
         <source>Use expression body for indexer</source>
-        <target state="new">Use expression body for indexer</target>
+        <target state="translated">Использовать тело выражения для индексатора</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expression">
         <source>Use expression body for lambda expression</source>
-        <target state="new">Use expression body for lambda expression</target>
+        <target state="translated">Использовать тело выражения для лямбда-выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_function">
         <source>Use expression body for local function</source>
-        <target state="new">Use expression body for local function</target>
+        <target state="translated">Использовать тело выражения для локальной функции</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_method">
         <source>Use expression body for method</source>
-        <target state="new">Use expression body for method</target>
+        <target state="translated">Использовать тело выражения для метода</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_operator">
         <source>Use expression body for operator</source>
-        <target state="new">Use expression body for operator</target>
+        <target state="translated">Использовать тело выражения для оператора</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_property">
         <source>Use expression body for property</source>
-        <target state="new">Use expression body for property</target>
+        <target state="translated">Использовать тело выражения для свойства</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_implicit_type">
