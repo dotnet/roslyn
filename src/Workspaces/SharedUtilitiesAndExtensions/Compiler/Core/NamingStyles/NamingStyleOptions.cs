@@ -15,12 +15,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class NamingStyleOptions
     {
+        public const string NamingPreferencesOptionName = "SimplificationOptions_NamingPreferences";
+
         /// <summary>
         /// This option describes the naming rules that should be applied to specified categories of symbols, 
         /// and the level to which those rules should be enforced.
         /// </summary>
         internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new(
-            "SimplificationOptions_NamingPreferences",
+            NamingPreferencesOptionName,
             defaultValue: NamingStylePreferences.Default,
             isEditorConfigOption: true);
     }
