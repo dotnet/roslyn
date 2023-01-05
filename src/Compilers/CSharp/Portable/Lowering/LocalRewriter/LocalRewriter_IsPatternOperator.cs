@@ -17,7 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag = node.GetDecisionDagForLowering(_factory.Compilation);
             bool negated = node.IsNegated;
             BoundExpression result;
-            if (IsFailureNode(decisionDag.RootNode, node.WhenFalseLabel))
+            if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
+            {
+                // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
+                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
+                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
+                isPatternRewriter.Free();
+            }
+            else if (IsFailureNode(decisionDag.RootNode, node.WhenFalseLabel))
             {
                 // If the given pattern always fails due to a constant input (see comments on BoundDecisionDag.SimplifyDecisionDagIfConstantInput),
                 // we build a linear test sequence with the whenTrue and whenFalse labels swapped and then negate the result, to keep the result a constant.
@@ -26,13 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 negated = !negated;
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
                 result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
-                isPatternRewriter.Free();
-            }
-            else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
-            {
-                // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
-                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
                 isPatternRewriter.Free();
             }
             else
