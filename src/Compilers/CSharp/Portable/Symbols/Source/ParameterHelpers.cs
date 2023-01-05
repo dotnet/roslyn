@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameterCreationFunc: (Binder context, Symbol owner, TypeWithAnnotations parameterType,
                                         ParameterSyntax syntax, RefKind refKind, int ordinal,
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
-                                        DeclarationScope scope,
+                                        ScopedKind scope,
                                         BindingDiagnosticBag declarationDiagnostics) =>
                 {
                     return SourceParameterSymbol.Create(
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameterCreationFunc: (Binder binder, FunctionPointerMethodSymbol owner, TypeWithAnnotations parameterType,
                                         FunctionPointerParameterSyntax syntax, RefKind refKind, int ordinal,
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
-                                        DeclarationScope scope,
+                                        ScopedKind scope,
                                         BindingDiagnosticBag diagnostics) =>
                 {
                     // Non-function pointer locations have other locations to encode in/ref readonly/outness. For function pointers,
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool addRefReadOnlyModifier,
             bool suppressUseSiteDiagnostics,
             int lastIndex,
-            Func<Binder, TOwningSymbol, TypeWithAnnotations, TParameterSyntax, RefKind, int, SyntaxToken, SyntaxToken, bool, DeclarationScope, BindingDiagnosticBag, TParameterSymbol> parameterCreationFunc,
+            Func<Binder, TOwningSymbol, TypeWithAnnotations, TParameterSyntax, RefKind, int, SyntaxToken, SyntaxToken, bool, ScopedKind, BindingDiagnosticBag, TParameterSymbol> parameterCreationFunc,
             bool parsingFunctionPointer = false)
             where TParameterSyntax : BaseParameterSyntax
             where TParameterSymbol : ParameterSymbol
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false, parsingAnonymousMethodParams: false);
 
-                var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope);
+                var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out ScopedKind scope);
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
-                DeclarationScope? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
+                ScopedKind? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
                 ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
                                       parameter.RefKind, declaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
@@ -298,13 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!parameter.IsThis);
 
             var scope = parameter.EffectiveScope;
-            if (scope == DeclarationScope.Unscoped)
+            if (scope == ScopedKind.None)
             {
                 return false;
             }
             if (IsRefScopedByDefault(parameter))
             {
-                return scope == DeclarationScope.ValueScoped;
+                return scope == ScopedKind.ScopedValue;
             }
             return true;
         }
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             TypeWithAnnotations typeWithAnnotations,
             RefKind refKind,
-            DeclarationScope? declaredScope,
+            ScopedKind? declaredScope,
             Symbol? containingSymbol,
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
             }
 
-            if (declaredScope == DeclarationScope.ValueScoped && !typeWithAnnotations.IsRefLikeType())
+            if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
             }
@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope)
+        internal static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out ScopedKind scope)
         {
             var refKind = RefKind.None;
             bool isScoped = false;
@@ -934,11 +934,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isScoped)
             {
-                scope = (refKind == RefKind.None) ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
+                scope = (refKind == RefKind.None) ? ScopedKind.ScopedValue : ScopedKind.ScopedRef;
             }
             else
             {
-                scope = DeclarationScope.Unscoped;
+                scope = ScopedKind.None;
             }
 
             return refKind;

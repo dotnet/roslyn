@@ -2,16 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RS0030 // Do not used banned APIs
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -109,5 +113,57 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public static IEnumerable<string?> GetApplicableLanguages(IOption option)
             => (option is IPerLanguageValuedOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+
+        public static object? GetDifferentValue(Type type, object? value)
+            => value switch
+            {
+                _ when type == typeof(bool) => !(bool)value!,
+                _ when type == typeof(string) => (string?)value == "X" ? "Y" : "X",
+                _ when type == typeof(int) => (int)value! == 0 ? 1 : 0,
+                _ when type == typeof(long) => (long)value! == 0 ? 1L : 0L,
+                _ when type.IsEnum => GetDifferentEnumValue(type, value!),
+                ICodeStyleOption codeStyle => codeStyle
+                    .WithValue(GetDifferentValue(codeStyle.GetType().GetGenericArguments()[0], codeStyle.Value!)!)
+                    .WithNotification((codeStyle.Notification == NotificationOption2.Error) ? NotificationOption2.Warning : NotificationOption2.Error),
+                NamingStylePreferences namingPreference => namingPreference.IsEmpty ? NamingStylePreferences.Default : NamingStylePreferences.Empty,
+                _ when type == typeof(bool?) => value is null ? true : null,
+                _ when type == typeof(int?) => value is null ? 1 : null,
+                _ when type == typeof(long?) => value is null ? 1L : null,
+                ImmutableArray<bool> array => array.IsEmpty ? ImmutableArray.Create("X") : ImmutableArray<bool>.Empty,
+                ImmutableArray<string> array => array.IsEmpty ? ImmutableArray.Create("X") : ImmutableArray<string>.Empty,
+                ImmutableArray<int> array => array.IsEmpty ? ImmutableArray.Create("X") : ImmutableArray<int>.Empty,
+                ImmutableArray<long> array => array.IsEmpty ? ImmutableArray.Create("X") : ImmutableArray<long>.Empty,
+
+                // Hit when a new option is introduced that uses type not handled above:
+                _ => throw ExceptionUtilities.UnexpectedValue(type)
+            };
+
+        private static object GetDifferentEnumValue(Type type, object defaultValue)
+        {
+            var zero = Enum.ToObject(type, 0);
+            return defaultValue.Equals(zero) ? Enum.ToObject(type, 1) : zero;
+        }
+
+        /// <summary>
+        /// True if the type is a type of an option value.
+        /// </summary>
+        public static bool IsOptionValueType(Type type)
+            => type == typeof(bool) ||
+               type == typeof(string) ||
+               type == typeof(int) ||
+               type == typeof(long) ||
+               type == typeof(bool?) ||
+               type == typeof(int?) ||
+               type == typeof(long?) ||
+               type.IsEnum ||
+               typeof(ICodeStyleOption).IsAssignableFrom(type) ||
+               type == typeof(NamingStylePreferences) ||
+               type == typeof(ImmutableArray<bool>) ||
+               type == typeof(ImmutableArray<string>) ||
+               type == typeof(ImmutableArray<int>) ||
+               type == typeof(ImmutableArray<long>);
+
+        public static Type GetNonNullableType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? type.GetGenericArguments()[0] : type;
     }
 }

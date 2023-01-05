@@ -8,12 +8,12 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 #if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.OrganizeImports;
 #endif
 

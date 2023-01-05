@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
 
-                If Not SymbolEqualityComparer.Default.Equals(currentType, typeParameter) Then
+                If Not SymbolEqualityComparer.Default.Equals(currentType, binding.ResolveType(typeParameter)) Then
                     Return New OperationStatus(OperationStatusFlag.BestEffort,
                         String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),

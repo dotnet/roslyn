@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
         <source>Solution Events</source>
-        <target state="new">Solution Events</target>
+        <target state="translated">解决方案事件</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_UnitTestingSearch">
         <source>Unit testing search</source>
-        <target state="new">Unit testing search</target>
+        <target state="translated">單元測試搜尋</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">

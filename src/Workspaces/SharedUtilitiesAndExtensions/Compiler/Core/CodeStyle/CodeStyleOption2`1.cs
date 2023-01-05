@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 #endif
     }
 
+    internal interface ICodeStyleOption2 : ICodeStyleOption
+    {
+    }
+
     /// <summary>
     /// Represents a code style option and an associated notification option.  Supports
     /// being instantiated with T as a <see cref="bool"/> or an <c>enum type</c>.
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// then those values will write back as false/true.
     /// </summary>
     [DataContract]
-    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption2, IEquatable<CodeStyleOption2<T>?>
     {
         public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 

@@ -5349,6 +5349,41 @@ unsafe ref struct S<T>
         }
 
         [Fact]
+        public void Constructors_02()
+        {
+            var source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                    public int this[R r] { get { return 0; } set { } }
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        int i = 0;
+                        R x = new R(ref i);
+                        R y = default;
+                        y = new R { [x] = 1 }; // 1
+                        y[x] = 1; // 2
+                        return y;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,22): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         y = new R { [x] = 1 }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(13, 22),
+                // (14,9): error CS8350: This combination of arguments to 'R.this[R]' is disallowed because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         y[x] = 1; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "y[x]").WithArguments("R.this[R]", "r").WithLocation(14, 9),
+                // (14,11): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         y[x] = 1; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(14, 11));
+        }
+
+        [Fact]
         public void DefiniteAssignment_01()
         {
             var source =
@@ -8825,6 +8860,7 @@ static class Program
         (x, (y, z1)) = s;
         R2 z2 = default;
         (x, (y, z2)) = s; // 1
+        (z2, (y, z1)) = s; // 2
     }
     static void Deconstruct(this Span<int> s, out R2 x, out R1 y) => throw null;
 }";
@@ -8835,7 +8871,13 @@ static class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z2)) = s").WithArguments("(x, (y, z2)) = s").WithLocation(20, 9),
                 // (20,24): error CS8350: This combination of arguments to 'R1.Deconstruct(out R2, out R2)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
                 //         (x, (y, z2)) = s; // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("R1.Deconstruct(out R2, out R2)", "this").WithLocation(20, 24));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("R1.Deconstruct(out R2, out R2)", "this").WithLocation(20, 24),
+                // (21,9): error CS8352: Cannot use variable '(z2, (y, z1)) = s' in this context because it may expose referenced variables outside of their declaration scope
+                //         (z2, (y, z1)) = s; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(z2, (y, z1)) = s").WithArguments("(z2, (y, z1)) = s").WithLocation(21, 9),
+                // (21,25): error CS8350: This combination of arguments to 'Program.Deconstruct(Span<int>, out R2, out R1)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         (z2, (y, z1)) = s; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("Program.Deconstruct(System.Span<int>, out R2, out R1)", "s").WithLocation(21, 25));
         }
 
         [Theory]
@@ -10420,20 +10462,20 @@ public static class A
             static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
             {
                 var parameters = comp.GetMember<MethodSymbol>("A.F1").Parameters;
-                VerifyParameterSymbol(parameters[0], "R x1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(parameters[1], "scoped R y1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(parameters[0], "R x1", RefKind.None, ScopedKind.None);
+                VerifyParameterSymbol(parameters[1], "scoped R y1", RefKind.None, ScopedKind.ScopedValue);
 
                 parameters = comp.GetMember<MethodSymbol>("A.F2").Parameters;
-                VerifyParameterSymbol(parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(parameters[1], "scoped ref R y2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[0], "ref R x2", RefKind.Ref, ScopedKind.None);
+                VerifyParameterSymbol(parameters[1], "scoped ref R y2", RefKind.Ref, ScopedKind.ScopedRef);
 
                 parameters = comp.GetMember<MethodSymbol>("A.F3").Parameters;
-                VerifyParameterSymbol(parameters[0], "in R x3", RefKind.In, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(parameters[1], "scoped in R y3", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[0], "in R x3", RefKind.In, ScopedKind.None);
+                VerifyParameterSymbol(parameters[1], "scoped in R y3", RefKind.In, ScopedKind.ScopedRef);
 
                 parameters = comp.GetMember<MethodSymbol>("A.F4").Parameters;
-                VerifyParameterSymbol(parameters[0], "out R x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                VerifyParameterSymbol(parameters[1], "out R y4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[0], "out R x4", RefKind.Out, useUpdatedEscapeRules ? ScopedKind.ScopedRef : ScopedKind.None);
+                VerifyParameterSymbol(parameters[1], "out R y4", RefKind.Out, ScopedKind.ScopedRef);
             }
         }
 
@@ -10469,8 +10511,8 @@ struct B<T>
 
             static void verify(CSharpCompilation comp)
             {
-                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("A").Constructors.Single(c => !c.IsImplicitlyDeclared).Parameters[0], "scoped ref T t", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(comp.GetMember<PropertySymbol>("A.this[]").GetMethod.Parameters[0], "scoped in System.Object o", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("A").Constructors.Single(c => !c.IsImplicitlyDeclared).Parameters[0], "scoped ref T t", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyParameterSymbol(comp.GetMember<PropertySymbol>("A.this[]").GetMethod.Parameters[0], "scoped in System.Object o", RefKind.In, ScopedKind.ScopedRef);
             }
         }
 
@@ -10529,20 +10571,20 @@ class Program
                 var decls = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
                 var localFunctions = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalFunctionSymbol>()).ToArray();
 
-                VerifyParameterSymbol(localFunctions[0].Parameters[0], "R x1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[0].Parameters[1], "scoped R y1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(localFunctions[1].Parameters[0], "ref System.Int32 x2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[1].Parameters[1], "scoped ref System.Int32 y2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[2].Parameters[0], "in System.Int32 x3", RefKind.In, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[2].Parameters[1], "scoped in System.Int32 y3", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[3].Parameters[0], "out System.Int32 x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[3].Parameters[1], "out System.Int32 y4", RefKind.Out, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[4].Parameters[0], "ref R x5", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[4].Parameters[1], "scoped ref R y5", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[5].Parameters[0], "in R x6", RefKind.In, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[5].Parameters[1], "scoped in R y6", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[6].Parameters[0], "out R x7", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[6].Parameters[1], "out R y7", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[0].Parameters[0], "R x1", RefKind.None, ScopedKind.None);
+                VerifyParameterSymbol(localFunctions[0].Parameters[1], "scoped R y1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyParameterSymbol(localFunctions[1].Parameters[0], "ref System.Int32 x2", RefKind.Ref, ScopedKind.None);
+                VerifyParameterSymbol(localFunctions[1].Parameters[1], "scoped ref System.Int32 y2", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyParameterSymbol(localFunctions[2].Parameters[0], "in System.Int32 x3", RefKind.In, ScopedKind.None);
+                VerifyParameterSymbol(localFunctions[2].Parameters[1], "scoped in System.Int32 y3", RefKind.In, ScopedKind.ScopedRef);
+                VerifyParameterSymbol(localFunctions[3].Parameters[0], "out System.Int32 x4", RefKind.Out, useUpdatedEscapeRules ? ScopedKind.ScopedRef : ScopedKind.None);
+                VerifyParameterSymbol(localFunctions[3].Parameters[1], "out System.Int32 y4", RefKind.Out, ScopedKind.ScopedRef);
+                VerifyParameterSymbol(localFunctions[4].Parameters[0], "ref R x5", RefKind.Ref, ScopedKind.None);
+                VerifyParameterSymbol(localFunctions[4].Parameters[1], "scoped ref R y5", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyParameterSymbol(localFunctions[5].Parameters[0], "in R x6", RefKind.In, ScopedKind.None);
+                VerifyParameterSymbol(localFunctions[5].Parameters[1], "scoped in R y6", RefKind.In, ScopedKind.ScopedRef);
+                VerifyParameterSymbol(localFunctions[6].Parameters[0], "out R x7", RefKind.Out, useUpdatedEscapeRules ? ScopedKind.ScopedRef : ScopedKind.None);
+                VerifyParameterSymbol(localFunctions[6].Parameters[1], "out R y7", RefKind.Out, ScopedKind.ScopedRef);
             }
         }
 
@@ -10599,23 +10641,23 @@ class Program
                 var model = comp.GetSemanticModel(tree);
                 var delegateTypesAndLambdas = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => getDelegateTypeAndLambda(model, d)).ToArray();
 
-                verifyParameter(delegateTypesAndLambdas[0], 0, "R", "x1", RefKind.None, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[0], 1, "scoped R", "y1", RefKind.None, DeclarationScope.ValueScoped);
-                verifyParameter(delegateTypesAndLambdas[1], 0, "ref System.Int32", "x2", RefKind.Ref, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[1], 1, "scoped ref System.Int32", "y2", RefKind.Ref, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[2], 0, "in System.Int32", "x3", RefKind.In, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[2], 1, "scoped in System.Int32", "y3", RefKind.In, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[3], 0, "out System.Int32", "x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[3], 1, "out System.Int32", "y4", RefKind.Out, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[4], 0, "ref R", "x5", RefKind.Ref, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[4], 1, "scoped ref R", "y5", RefKind.Ref, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[5], 0, "in R", "x6", RefKind.In, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[5], 1, "scoped in R", "y6", RefKind.In, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[6], 0, "out R", "x7", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[6], 1, "out R", "y7", RefKind.Out, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[0], 0, "R", "x1", RefKind.None, ScopedKind.None);
+                verifyParameter(delegateTypesAndLambdas[0], 1, "scoped R", "y1", RefKind.None, ScopedKind.ScopedValue);
+                verifyParameter(delegateTypesAndLambdas[1], 0, "ref System.Int32", "x2", RefKind.Ref, ScopedKind.None);
+                verifyParameter(delegateTypesAndLambdas[1], 1, "scoped ref System.Int32", "y2", RefKind.Ref, ScopedKind.ScopedRef);
+                verifyParameter(delegateTypesAndLambdas[2], 0, "in System.Int32", "x3", RefKind.In, ScopedKind.None);
+                verifyParameter(delegateTypesAndLambdas[2], 1, "scoped in System.Int32", "y3", RefKind.In, ScopedKind.ScopedRef);
+                verifyParameter(delegateTypesAndLambdas[3], 0, "out System.Int32", "x4", RefKind.Out, useUpdatedEscapeRules ? ScopedKind.ScopedRef : ScopedKind.None);
+                verifyParameter(delegateTypesAndLambdas[3], 1, "out System.Int32", "y4", RefKind.Out, ScopedKind.ScopedRef);
+                verifyParameter(delegateTypesAndLambdas[4], 0, "ref R", "x5", RefKind.Ref, ScopedKind.None);
+                verifyParameter(delegateTypesAndLambdas[4], 1, "scoped ref R", "y5", RefKind.Ref, ScopedKind.ScopedRef);
+                verifyParameter(delegateTypesAndLambdas[5], 0, "in R", "x6", RefKind.In, ScopedKind.None);
+                verifyParameter(delegateTypesAndLambdas[5], 1, "scoped in R", "y6", RefKind.In, ScopedKind.ScopedRef);
+                verifyParameter(delegateTypesAndLambdas[6], 0, "out R", "x7", RefKind.Out, useUpdatedEscapeRules ? ScopedKind.ScopedRef : ScopedKind.None);
+                verifyParameter(delegateTypesAndLambdas[6], 1, "out R", "y7", RefKind.Out, ScopedKind.ScopedRef);
             }
 
-            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
+            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, ScopedKind expectedScope)
             {
                 var (delegateType, lambda) = delegateTypeAndLambda;
                 VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], $"{expectedDisplayType} arg{parameterIndex + 1}", expectedRefKind, expectedScope);
@@ -10655,8 +10697,8 @@ delegate void D2(scoped ref R r2);
 
             static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
             {
-                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D1").DelegateInvokeMethod.Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D2").DelegateInvokeMethod.Parameters[0], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D1").DelegateInvokeMethod.Parameters[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D2").DelegateInvokeMethod.Parameters[0], "scoped ref R r2", RefKind.Ref, ScopedKind.ScopedRef);
             }
         }
 
@@ -10721,10 +10763,10 @@ class Program
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var methods = decls.Select(d => ((FunctionPointerTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).Signature).ToArray();
 
-                VerifyParameterSymbol(methods[0].Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(methods[1].Parameters[0], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(methods[1].Parameters[1], "ref System.Int32", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(methods[2].Parameters[0], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(methods[0].Parameters[0], "R", RefKind.None, ScopedKind.None);
+                VerifyParameterSymbol(methods[1].Parameters[0], "ref R", RefKind.Ref, ScopedKind.None);
+                VerifyParameterSymbol(methods[1].Parameters[1], "ref System.Int32", RefKind.Ref, ScopedKind.None);
+                VerifyParameterSymbol(methods[2].Parameters[0], "ref R", RefKind.Ref, ScopedKind.None);
             }
         }
 
@@ -10743,10 +10785,10 @@ class Program
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F0").Parameters[0], "scoped R r", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "scoped ref R r", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F6").Parameters[0], "scoped in R r", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F9").Parameters[0], "out R r", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F0").Parameters[0], "scoped R r", RefKind.None, ScopedKind.ScopedValue);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "scoped ref R r", RefKind.Ref, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F6").Parameters[0], "scoped in R r", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F9").Parameters[0], "out R r", RefKind.Out, ScopedKind.ScopedRef);
         }
 
         [Fact]
@@ -10853,14 +10895,14 @@ class Program
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F0").Parameters[0], "scoped s", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "scoped scoped s", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref scoped s", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "scoped ref scoped s", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "in scoped s", RefKind.In, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F7").Parameters[0], "scoped in scoped s", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F8").Parameters[0], "out scoped s", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.FA").Parameters[0], "out scoped s", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F0").Parameters[0], "scoped s", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "scoped scoped s", RefKind.None, ScopedKind.ScopedValue);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref scoped s", RefKind.Ref, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "scoped ref scoped s", RefKind.Ref, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "in scoped s", RefKind.In, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F7").Parameters[0], "scoped in scoped s", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F8").Parameters[0], "out scoped s", RefKind.Out, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.FA").Parameters[0], "out scoped s", RefKind.Out, ScopedKind.ScopedRef);
         }
 
         [WorkItem(62080, "https://github.com/dotnet/roslyn/issues/62080")]
@@ -10889,8 +10931,8 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var lambdas = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
 
-            VerifyParameterSymbol(lambdas[0].Parameters[0], "R r1", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(lambdas[1].Parameters[0], "R r2", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(lambdas[0].Parameters[0], "R r1", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(lambdas[1].Parameters[0], "R r2", RefKind.None, ScopedKind.None);
         }
 
         [Fact]
@@ -10935,7 +10977,7 @@ class Program
             var comp = CreateCompilation(source1, references: new[] { ref0 });
             comp.VerifyDiagnostics();
 
-            VerifyParameterSymbol(comp.GetMember<PEMethodSymbol>("A.F1").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<PEMethodSymbol>("A.F1").Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.ScopedRef);
         }
 
         [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
@@ -10969,10 +11011,10 @@ public class A
             comp.VerifyEmitDiagnostics();
 
             var parameters = comp.GetMember<MethodSymbol>("A.F").Parameters;
-            VerifyParameterSymbol(parameters[0], "R a", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(parameters[1], "ref R b", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(parameters[2], "in R c", RefKind.In, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(parameters[3], "out R d", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(parameters[0], "R a", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(parameters[1], "ref R b", RefKind.Ref, ScopedKind.None);
+            VerifyParameterSymbol(parameters[2], "in R c", RefKind.In, ScopedKind.None);
+            VerifyParameterSymbol(parameters[3], "out R d", RefKind.Out, ScopedKind.ScopedRef);
         }
 
         [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
@@ -10991,25 +11033,22 @@ class Program
     {
         int i = 42;
         var r1 = new R(ref i);
-        return ref ReturnRef(ref r1); // 1
+        return ref ReturnRef(ref r1);
     }
     static ref R F2(ref int i)
     {
         var r2 = new R(ref i);
         return ref ReturnRef(ref r2);
     }
+    
+    // NB: there is actually no valid implementation here except to throw.
+    // With this signature, we will never be able to return any ref struct by reference.
     static ref R ReturnRef(scoped ref R r) => throw null;
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(
-                // (12,20): error CS8347: Cannot use a result of 'Program.ReturnRef(scoped ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
-                //         return ref ReturnRef(ref r1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnRef(ref r1)").WithArguments("Program.ReturnRef(scoped ref R)", "r").WithLocation(12, 20),
-                // (12,34): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
-                //         return ref ReturnRef(ref r1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 34));
+            comp.VerifyDiagnostics();
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.ReturnRef").Parameters[0], "scoped ref R r", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.ReturnRef").Parameters[0], "scoped ref R r", RefKind.Ref, ScopedKind.ScopedRef);
         }
 
         [Theory]
@@ -11050,24 +11089,24 @@ readonly ref struct R2
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics();
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C..ctor").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C.F1").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1..ctor").ThisParameter, "out S1 this", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F2").ThisParameter, "in S1 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1..ctor").ThisParameter, "out R1 this", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F1").ThisParameter, "ref R1 this", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F2").ThisParameter, "in R1 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2..ctor").ThisParameter, "out S2 this", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F1").ThisParameter, "in S2 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2..ctor").ThisParameter, "out R2 this", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F1").ThisParameter, "in R2 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F2").ThisParameter, "in R2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C..ctor").ThisParameter, "C this", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C.F1").ThisParameter, "C this", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1..ctor").ThisParameter, "out S1 this", RefKind.Out, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F2").ThisParameter, "in S1 this", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1..ctor").ThisParameter, "out R1 this", RefKind.Out, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F1").ThisParameter, "ref R1 this", RefKind.Ref, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F2").ThisParameter, "in R1 this", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2..ctor").ThisParameter, "out S2 this", RefKind.Out, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F1").ThisParameter, "in S2 this", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2..ctor").ThisParameter, "out R2 this", RefKind.Out, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F1").ThisParameter, "in R2 this", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F2").ThisParameter, "in R2 this", RefKind.In, ScopedKind.ScopedRef);
 
             var type = comp.GetMember<NamedTypeSymbol>("S1");
             var thisParameter = new ThisParameterSymbol(forMethod: null, type); // "this" parameter for property for instance.
-            VerifyParameterSymbol(thisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(thisParameter, "ref S1 this", RefKind.Ref, ScopedKind.ScopedRef);
 
             bool useUpdatedEscapeRules = languageVersion == LanguageVersion.CSharp11;
             Assert.Equal(useUpdatedEscapeRules, thisParameter.UseUpdatedEscapeRules);
@@ -11103,10 +11142,10 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("F2").WithLocation(6, 30)
                 );
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F0").Parameters[0], "R<System.Object> r", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F1").Parameters[0], "scoped R<System.Object> r", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F2").Parameters[0], "scoped", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F3").Parameters[0], "scoped ref T t", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F0").Parameters[0], "R<System.Object> r", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F1").Parameters[0], "scoped R<System.Object> r", RefKind.None, ScopedKind.ScopedValue);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F2").Parameters[0], "scoped", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F3").Parameters[0], "scoped ref T t", RefKind.Ref, ScopedKind.ScopedRef);
         }
 
         [Fact]
@@ -11124,7 +11163,7 @@ static class Extensions
                 //     static void F2(params scoped object[] args) { }
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "params scoped object[] args").WithLocation(4, 20));
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "scoped params System.Object[] args", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "scoped params System.Object[] args", RefKind.None, ScopedKind.ScopedValue);
         }
 
         [Theory]
@@ -11386,11 +11425,11 @@ ref struct R2
 
             static void verify(CSharpCompilation comp)
             {
-                verifyValueParameter(comp.GetMember<PropertySymbol>("R2.P2"), "R1 value", RefKind.None, DeclarationScope.Unscoped);
-                verifyValueParameter(comp.GetMember<PropertySymbol>("R2.P3"), "R1 value", RefKind.None, DeclarationScope.Unscoped);
+                verifyValueParameter(comp.GetMember<PropertySymbol>("R2.P2"), "R1 value", RefKind.None, ScopedKind.None);
+                verifyValueParameter(comp.GetMember<PropertySymbol>("R2.P3"), "R1 value", RefKind.None, ScopedKind.None);
             }
 
-            static void verifyValueParameter(PropertySymbol property, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
+            static void verifyValueParameter(PropertySymbol property, string expectedDisplayString, RefKind expectedRefKind, ScopedKind expectedScope)
             {
                 Assert.Equal(expectedRefKind, property.RefKind);
                 VerifyParameterSymbol(property.SetMethod.Parameters[0], expectedDisplayString, expectedRefKind, expectedScope);
@@ -11413,8 +11452,8 @@ class B : A<int>
             comp.VerifyEmitDiagnostics();
 
             var method = (MethodSymbol)comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics.GetMember("F");
-            VerifyParameterSymbol(method.Parameters[0], "scoped R<System.Int32> x", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(method.Parameters[1], "scoped in System.Int32 y", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(method.Parameters[0], "scoped R<System.Int32> x", RefKind.None, ScopedKind.ScopedValue);
+            VerifyParameterSymbol(method.Parameters[1], "scoped in System.Int32 y", RefKind.In, ScopedKind.ScopedRef);
         }
 
         [Fact]
@@ -11447,15 +11486,15 @@ public class A
             var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
             var method = model.GetSymbolInfo(expr).Symbol.GetSymbol<RetargetingMethodSymbol>();
 
-            VerifyParameterSymbol(method.Parameters[0], "scoped R x", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(method.Parameters[1], "scoped in System.Int32 y", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(method.Parameters[0], "scoped R x", RefKind.None, ScopedKind.ScopedValue);
+            VerifyParameterSymbol(method.Parameters[1], "scoped in System.Int32 y", RefKind.In, ScopedKind.ScopedRef);
         }
 
         private static readonly SymbolDisplayFormat displayFormatWithScoped = SymbolDisplayFormat.TestFormat.
             AddParameterOptions(SymbolDisplayParameterOptions.IncludeModifiers).
             AddLocalOptions(SymbolDisplayLocalOptions.IncludeModifiers);
 
-        private static void VerifyParameterSymbol(ParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope, bool expectedHasUnscopedRefAttribute = false)
+        private static void VerifyParameterSymbol(ParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, ScopedKind expectedScope, bool expectedHasUnscopedRefAttribute = false)
         {
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
             Assert.Equal(expectedRefKind, parameter.RefKind);
@@ -11468,10 +11507,10 @@ public class A
             VerifyParameterSymbol(parameter.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);
         }
 
-        private static void VerifyParameterSymbol(IParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
+        private static void VerifyParameterSymbol(IParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, ScopedKind expectedScope)
         {
             Assert.Equal(expectedRefKind, parameter.RefKind);
-            Assert.Equal(expectedScope.AsScopedKind(), parameter.ScopedKind);
+            Assert.Equal(expectedScope, parameter.ScopedKind);
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
         }
 
@@ -11527,12 +11566,12 @@ class Program
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[3], "scoped R r11", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped ref R r21", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[5], "scoped ref readonly R r51", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[3], "scoped R r11", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped ref R r21", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[5], "scoped ref readonly R r51", RefKind.RefReadOnly, ScopedKind.ScopedRef);
 
                 foreach (var decl in decls)
                 {
@@ -11664,9 +11703,9 @@ class Program
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, ScopedKind.ScopedRef);
 
                 foreach (var decl in decls)
                 {
@@ -11850,12 +11889,12 @@ class RR
 
                 Assert.Equal(6, locals.Length);
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped R r2", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[2], "scoped R r5", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "scoped R r11", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped R r21", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[5], "scoped R r51", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped R r2", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[2], "scoped R r5", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[3], "scoped R r11", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped R r21", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[5], "scoped R r51", RefKind.None, ScopedKind.ScopedValue);
 
                 foreach (var decl in decls)
                 {
@@ -12261,12 +12300,12 @@ class Program
 
                 Assert.Equal(6, locals.Length);
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped R r2", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[2], "scoped R r5", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "scoped R r11", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped R r21", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[5], "scoped R r51", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped R r2", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[2], "scoped R r5", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[3], "scoped R r11", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped R r21", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[5], "scoped R r51", RefKind.None, ScopedKind.ScopedValue);
 
                 foreach (var decl in decls)
                 {
@@ -12617,12 +12656,12 @@ ref struct @scoped { } // 5
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, ScopedKind.ScopedRef);
             }
         }
 
@@ -12672,12 +12711,12 @@ ref struct @scoped { } // 5
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, ScopedKind.ScopedRef);
             }
         }
 
@@ -12731,10 +12770,10 @@ class RR
                 var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "scoped s3", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[4], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[6], "scoped scoped s6", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[2], "scoped s3", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[4], "scoped scoped s4", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[6], "scoped scoped s6", RefKind.None, ScopedKind.ScopedValue);
             }
         }
 
@@ -12776,10 +12815,10 @@ ref struct @scoped { }
 
                 Assert.Equal(4, locals.Length);
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "scoped s3", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "scoped scoped s6", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[1], "scoped s3", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[2], "scoped scoped s4", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[3], "scoped scoped s6", RefKind.None, ScopedKind.ScopedValue);
             }
         }
 
@@ -12803,7 +12842,7 @@ scoped = true;
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, ScopedKind.None);
         }
 
         [Theory]
@@ -12828,7 +12867,7 @@ for (scoped = true;;) {break;}
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, ScopedKind.None);
         }
 
         [Theory]
@@ -12848,7 +12887,7 @@ for (scoped = true;;) {break;}
             var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, ScopedKind.None);
         }
 
         [Theory]
@@ -12870,7 +12909,7 @@ void M(out bool x) => throw null;
             var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, ScopedKind.None);
         }
 
         [Fact]
@@ -12911,8 +12950,8 @@ class Program
                     Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
                 }
 
-                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, ScopedKind.ScopedRef);
 
                 foreach (var decl in decls)
                 {
@@ -12975,8 +13014,8 @@ class Program
                     Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
                 }
 
-                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, ScopedKind.ScopedRef);
 
                 foreach (var decl in decls)
                 {
@@ -13051,8 +13090,8 @@ ref struct RR
                     Assert.Equal("R<System.Int32>", locals[i].Type.ToTestDisplayString());
                 }
 
-                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[2], "scoped R<System.Int32> r3", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[2], "scoped R<System.Int32> r3", RefKind.None, ScopedKind.ScopedValue);
 
                 for (int i = 0; i < 3; i += 2)
                 {
@@ -13122,8 +13161,8 @@ class Program
                     Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
                 }
 
-                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped R<System.Int32> r3", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped R<System.Int32> r3", RefKind.None, ScopedKind.ScopedValue);
 
                 foreach (var decl in decls)
                 {
@@ -13181,8 +13220,8 @@ class Program
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
             Assert.Equal(2, locals.Length);
-            VerifyLocalSymbol(locals[0], "ref System.Int32 a", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyLocalSymbol(locals[1], "ref System.Int32 b", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[0], "ref System.Int32 a", RefKind.Ref, ScopedKind.None);
+            VerifyLocalSymbol(locals[1], "ref System.Int32 b", RefKind.Ref, ScopedKind.None);
         }
 
         [Fact]
@@ -13821,8 +13860,8 @@ class Program
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R r5", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped ref R r2", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[1], "scoped ref R r5", RefKind.Ref, ScopedKind.ScopedRef);
 
                 var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
                 Assert.Null(model.GetTypeInfo(type).Type);
@@ -13863,8 +13902,8 @@ class Program
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R r5", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped ref R r2", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[1], "scoped ref R r5", RefKind.Ref, ScopedKind.ScopedRef);
 
                 var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
                 Assert.Null(model.GetTypeInfo(type).Type);
@@ -13988,19 +14027,19 @@ class Program
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "R r11", RefKind.None, DeclarationScope.Unscoped);
-            VerifyLocalSymbol(locals[1], "R r12", RefKind.None, DeclarationScope.Unscoped);
-            VerifyLocalSymbol(locals[2], "scoped R r21", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[3], "scoped R r22", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[0], "R r11", RefKind.None, ScopedKind.None);
+            VerifyLocalSymbol(locals[1], "R r12", RefKind.None, ScopedKind.None);
+            VerifyLocalSymbol(locals[2], "scoped R r21", RefKind.None, ScopedKind.ScopedValue);
+            VerifyLocalSymbol(locals[3], "scoped R r22", RefKind.None, ScopedKind.ScopedValue);
 
-            VerifyLocalSymbol(locals[4], "ref R r31", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyLocalSymbol(locals[5], "ref R r32", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyLocalSymbol(locals[6], "scoped ref R r41", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyLocalSymbol(locals[7], "scoped ref R r42", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyLocalSymbol(locals[4], "ref R r31", RefKind.Ref, ScopedKind.None);
+            VerifyLocalSymbol(locals[5], "ref R r32", RefKind.Ref, ScopedKind.None);
+            VerifyLocalSymbol(locals[6], "scoped ref R r41", RefKind.Ref, ScopedKind.ScopedRef);
+            VerifyLocalSymbol(locals[7], "scoped ref R r42", RefKind.Ref, ScopedKind.ScopedRef);
         }
 
         [Fact]
-        public void LocalScope_01_Foreach()
+        public void LocalScope_01_Foreach_01()
         {
             var source =
 @"#pragma warning disable 219
@@ -14064,9 +14103,9 @@ class Enumerator2
                 var decls = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, ScopedKind.ScopedRef);
 
                 foreach (var decl in decls)
                 {
@@ -14095,8 +14134,55 @@ class Enumerator2
             }
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void LocalScope_01_Foreach_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"#pragma warning disable 219
+ref struct R { }
+class Program
+{
+    static void F(ref R r)
+    {
+        foreach (var _ in new Enumerable1()) break;
+        foreach (R _ in new Enumerable1()) break;
+        foreach (ref var _ in new Enumerable2(ref r)) break;
+        foreach (ref readonly var _ in new Enumerable2(ref r)) break;
+        foreach (ref R _ in new Enumerable2(ref r)) break;
+    }
+}
+
+class Enumerable1
+{
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public R Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2
+{
+    public Enumerable2(ref R x) {}
+    public Enumerator2 GetEnumerator() => default;
+}
+
+class Enumerator2
+{
+    public ref R Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Fact]
-        public void LocalScope_01_Foreach_Deconstruction()
+        public void LocalScope_01_Foreach_Deconstruction_01()
         {
             var source =
 @"#pragma warning disable 219
@@ -14175,21 +14261,12 @@ class Enumerator2
                 // (9,52): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref readonly R r5, scoped ref readonly var _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(9, 52),
-                // (11,18): error CS8352: Cannot use variable '(scoped var r11, scoped R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped var r11, scoped R _)").WithArguments("(scoped var r11, scoped R _)").WithLocation(11, 18),
                 // (11,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(11, 19),
                 // (11,35): error CS9061: The 'scoped' modifier cannot be used with discard.
                 //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
                 Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(11, 35),
-                // (11,50): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable1()").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(11, 50),
-                // (12,18): error CS8352: Cannot use variable '(scoped ref var r21, scoped ref R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref var r21, scoped ref R _)").WithArguments("(scoped ref var r21, scoped ref R _)").WithLocation(12, 18),
                 // (12,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 19),
@@ -14202,12 +14279,6 @@ class Enumerator2
                 // (12,46): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(12, 46),
-                // (12,58): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(12, 58),
-                // (13,18): error CS8352: Cannot use variable '(scoped ref readonly var r51, scoped ref readonly R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref readonly var r51, scoped ref readonly R _)").WithArguments("(scoped ref readonly var r51, scoped ref readonly R _)").WithLocation(13, 18),
                 // (13,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(13, 19),
@@ -14219,12 +14290,8 @@ class Enumerator2
                 Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(13, 48),
                 // (13,55): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(13, 55),
-                // (13,76): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(13, 76)
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(13, 55)
                 );
-
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -14281,12 +14348,12 @@ class Enumerator2
                 var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped R r2", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[2], "scoped R r5", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "scoped R r11", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped R r21", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[5], "scoped R r51", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped R r2", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[2], "scoped R r5", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[3], "scoped R r11", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped R r21", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[5], "scoped R r51", RefKind.None, ScopedKind.ScopedValue);
 
                 foreach (var decl in decls)
                 {
@@ -14337,6 +14404,95 @@ class Enumerator2
                     Assert.Equal("R", model.GetTypeInfo(type).Type.ToTestDisplayString());
                 }
             }
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void LocalScope_01_Foreach_Deconstruction_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"#pragma warning disable 219
+
+class Program
+{
+    static void F0(ref R r)
+    {
+        foreach ((R r0, _) in new Enumerable1()) break;
+
+        foreach ((R r1, var _) in new Enumerable1()) break;
+        foreach ((ref R r2, ref var _) in new Enumerable2(ref r)) break;
+        foreach ((ref readonly R r5, ref readonly var _) in new Enumerable2(ref r)) break;
+
+        foreach ((var r11, R _) in new Enumerable1()) break;
+        foreach ((ref var r21, ref R _) in new Enumerable2(ref r)) break;
+        foreach ((ref readonly var r51, ref readonly R _) in new Enumerable2(ref r)) break;
+    }
+
+    static void F1()
+    {
+        var e1 = new Enumerable1().GetEnumerator();
+        e1.MoveNext();
+        e1.Current.Deconstruct(out R r0, out _);
+        e1.Current.Deconstruct(out R r1, out var _);
+        e1.Current.Deconstruct(out var r11, out R _);
+    }
+}
+
+ref struct R 
+{
+    public void Deconstruct(out R x, out R y) => throw null;
+}
+
+class Enumerable1
+{
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public R Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2
+{
+    public Enumerable2(ref R x) {}
+    public Enumerator2 GetEnumerator() => default;
+}
+
+class Enumerator2
+{
+    public ref R Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (10,19): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref R r2, ref var _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(10, 19),
+                // (10,29): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref R r2, ref var _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(10, 29),
+                // (11,19): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref readonly R r5, ref readonly var _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(11, 19),
+                // (11,38): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref readonly R r5, ref readonly var _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(11, 38),
+                // (14,19): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref var r21, ref R _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(14, 19),
+                // (14,32): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref var r21, ref R _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(14, 32),
+                // (15,19): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref readonly var r51, ref readonly R _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(15, 19),
+                // (15,41): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         foreach ((ref readonly var r51, ref readonly R _) in new Enumerable2(ref r)) break;
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(15, 41));
         }
 
         [Fact]
@@ -14400,12 +14556,12 @@ class Enumerator2
                 var decls = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, ScopedKind.ScopedRef);
             }
         }
 
@@ -14426,7 +14582,7 @@ class Enumerator2
             var decls = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, ScopedKind.None);
         }
 
         [Fact]
@@ -14487,8 +14643,8 @@ class Enumerator2<T>
                     Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
                 }
 
-                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, ScopedKind.ScopedRef);
 
                 foreach (var decl in decls)
                 {
@@ -15058,7 +15214,7 @@ class Enumerator1<T>
                 );
         }
 
-        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
+        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, ScopedKind expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
             Assert.Equal(expectedScope, local.Scope);
@@ -15067,10 +15223,10 @@ class Enumerator1<T>
             VerifyLocalSymbol(local.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);
         }
 
-        private static void VerifyLocalSymbol(ILocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
+        private static void VerifyLocalSymbol(ILocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, ScopedKind expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
-            Assert.Equal(expectedScope.AsScopedKind(), local.ScopedKind);
+            Assert.Equal(expectedScope, local.ScopedKind);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
         }
 
@@ -15107,7 +15263,7 @@ class Program
                 {
                     var method = module.GlobalNamespace.GetMember<PEMethodSymbol>("I.M");
                     // Attribute is not included for the parameter from the embedded method.
-                    VerifyParameterSymbol(method.Parameters[0], "ref System.Int32 i", RefKind.Ref, DeclarationScope.Unscoped);
+                    VerifyParameterSymbol(method.Parameters[0], "ref System.Int32 i", RefKind.Ref, ScopedKind.None);
                 });
         }
 
@@ -15883,7 +16039,10 @@ class Program
                 // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(D1)' and 'C.M2(D2)'
                 //         M2(r => r); // 1
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("C.M2(D1)", "C.M2(D2)").WithLocation(13, 9),
-                // (14,28): error CS8352: Cannot use variable 'scoped R r' in this context because it may expose referenced variables outside of their declaration scope
+                // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(D1)' and 'C.M2(D2)'
+                //         M2((scoped R r) => r); // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("C.M2(D1)", "C.M2(D2)").WithLocation(14, 9),
+                // (14,28): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2((scoped R r) => r); // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("scoped R r").WithLocation(14, 28),
                 // (15,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(D1)' and 'C.M2(D2)'
@@ -16182,10 +16341,86 @@ class C
                 // (18,36): error CS8352: Cannot use variable 'scoped R r8' in this context because it may expose referenced variables outside of their declaration scope
                 //         D1 d1_3 = (scoped R r8) => r8; // 7
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r8").WithArguments("scoped R r8").WithLocation(18, 36),
+                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
+                //         M((scoped R r9) => r9); // 8
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(19, 9),
                 // (19,28): error CS8352: Cannot use variable 'scoped R r9' in this context because it may expose referenced variables outside of their declaration scope
                 //         M((scoped R r9) => r9); // 8
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r9").WithArguments("scoped R r9").WithLocation(19, 28)
                 );
+        }
+
+        [Fact]
+        public void DelegateConversions_13()
+        {
+            var source = """
+                ref struct R { }
+
+                delegate R D1(R r);
+                delegate object D2(object o);
+
+                class Program
+                {
+                    static void M(D1 d1) { }
+                    static void M(D2 d2) { }
+
+                    static R F(R r, ref int i) => r;
+                    static object F(object o, ref int i) => o;
+                
+                    static void Main()
+                    {
+                        M(x =>
+                            {
+                                int i = 0;
+                                return F(x, ref i);
+                            });
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
+                //         M(x =>
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DelegateConversions_14(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+
+                ref struct R { }
+
+                delegate R D1(R r);
+                delegate object D2(object o);
+
+                class Program
+                {
+                    static void M(D1 d1) { }
+                    static void M(D2 d2) { }
+
+                    static void F(ref R x, ref Span<int> y) { }
+                    static void F(ref object x, ref Span<int> y) { }
+                
+                    static void Main()
+                    {
+                        M(x =>
+                            {
+                                Span<int> y = stackalloc int[1];
+                                F(ref x, ref y);
+                                return x;
+                            });
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
+                //         M(x =>
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(18, 9));
         }
 
         [Fact]
@@ -17161,9 +17396,9 @@ class Program
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "f").ToArray();
             var delegateInvokeMethods = decls.Select(d => ((ILocalSymbol)model.GetDeclaredSymbol(d)).Type.GetSymbol<NamedTypeSymbol>().DelegateInvokeMethod).ToArray();
 
-            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[0], "R arg1", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[1], "scoped R arg2", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "scoped ref System.Int32 arg2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[0], "R arg1", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[1], "scoped R arg2", RefKind.None, ScopedKind.ScopedValue);
+            VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "scoped ref System.Int32 arg2", RefKind.Ref, ScopedKind.ScopedRef);
         }
 
         [Fact]
@@ -19871,8 +20106,6 @@ ref struct R2
     public ref int _f;
 }
 ";
-            // Diagnostic is missing parameter name
-            // Tracked by https://github.com/dotnet/roslyn/issues/62096
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (7,31): error CS8331: Cannot assign to variable 'i' or use it as the right hand side of a ref assignment because it is a readonly variable
@@ -21941,13 +22174,13 @@ public ref struct R2<T>
 
             var type = types[0];
             Assert.Equal("R1<System.Int32>", type.ToTestDisplayString());
-            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
 
             type = types[1];
             Assert.Equal("R2<System.Int32>", type.ToTestDisplayString());
-            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22010,14 +22243,14 @@ public ref struct R2<T>
             var type = types[0];
             var underlyingType = (RetargetingNamedTypeSymbol)type.OriginalDefinition;
             Assert.Equal("R1<System.Int32>", type.ToTestDisplayString());
-            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
 
             type = types[1];
             underlyingType = (RetargetingNamedTypeSymbol)type.OriginalDefinition;
             Assert.Equal("R2<System.Int32>", type.ToTestDisplayString());
-            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22132,8 +22365,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(8, 24));
 
             var parameters = comp.GetMember<MethodSymbol>("Program.ReturnRefStructRef").Parameters;
-            VerifyParameterSymbol(parameters[1], "scoped ref R x", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(parameters[2], "ref R y", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(parameters[1], "scoped ref R x", RefKind.Ref, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(parameters[2], "ref R y", RefKind.Ref, ScopedKind.None);
         }
 
         [CombinatorialData]
@@ -22195,8 +22428,8 @@ public class A<T>
                 );
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B1").BaseTypeNoUseSiteDiagnostics;
-            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped ref R<System.Int32> r2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, ScopedKind.None);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped ref R<System.Int32> r2", RefKind.Ref, ScopedKind.ScopedRef);
 
             var sourceB2 =
 @"class B2 : A<int>
@@ -22284,10 +22517,10 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(22, 22));
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
-            VerifyParameterSymbol(type.GetMethod("F1").Parameters[0], "ref R<T> r1", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(type.GetMethod("F2").Parameters[0], "out T t2", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(type.GetMethod("F3").Parameters[0], "in R<T> t3", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(type.GetMethod("F4").Parameters[0], "R<T> t4", RefKind.None, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(type.GetMethod("F1").Parameters[0], "ref R<T> r1", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(type.GetMethod("F2").Parameters[0], "out T t2", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(type.GetMethod("F3").Parameters[0], "in R<T> t3", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(type.GetMethod("F4").Parameters[0], "R<T> t4", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
@@ -22368,7 +22601,7 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F4A").WithArguments("A<T>.F4A(ref R<T>)").WithLocation(7, 20));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
-            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22395,8 +22628,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(9, 24));
 
             var parameters = comp.GetMember<MethodSymbol>("Program.ReturnOut").Parameters;
-            VerifyParameterSymbol(parameters[1], "out System.Int32 x", RefKind.Out, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(parameters[2], "out System.Int32 y", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(parameters[1], "out System.Int32 x", RefKind.Out, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(parameters[2], "out System.Int32 y", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [CombinatorialData]
@@ -22454,9 +22687,9 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 28));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
-            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "out System.Int32 t1", RefKind.Out, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "out System.Int32 t2", RefKind.Out, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "out System.Int32 t3", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "out System.Int32 t1", RefKind.Out, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "out System.Int32 t2", RefKind.Out, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "out System.Int32 t3", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22519,10 +22752,10 @@ class B : A<int>
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(29, 28));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
-            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref System.Int32 t1", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped ref System.Int32 t2", RefKind.Ref, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "ref System.Int32 t3", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref System.Int32 t4", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref System.Int32 t1", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped ref System.Int32 t2", RefKind.Ref, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "ref System.Int32 t3", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref System.Int32 t4", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22585,10 +22818,10 @@ class B : A<int>
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(29, 27));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
-            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "in System.Int32 t1", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped in System.Int32 t2", RefKind.In, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "in System.Int32 t3", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "in System.Int32 t4", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "in System.Int32 t1", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped in System.Int32 t2", RefKind.In, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "in System.Int32 t3", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "in System.Int32 t4", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22675,10 +22908,10 @@ class B : A<int>
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(50, 24));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
-            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "R<System.Int32> r1", RefKind.None, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped R<System.Int32> r2", RefKind.None, DeclarationScope.ValueScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "R<System.Int32> r3", RefKind.None, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "R<System.Int32> r4", RefKind.None, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "R<System.Int32> r1", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped R<System.Int32> r2", RefKind.None, ScopedKind.ScopedValue, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "R<System.Int32> r3", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "R<System.Int32> r4", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22703,10 +22936,10 @@ class Program
                 //     static void F1<T>([UnscopedRef] R<T> r1) { } // 1
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 24));
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "R<T> r1", RefKind.None, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref R<T> r2", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "in R<T> r3", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "out R<T> r4", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "R<T> r1", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref R<T> r2", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "in R<T> r3", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "out R<T> r4", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22952,10 +23185,10 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
 
-            VerifyParameterSymbol(lambdas[0].Parameters[0], "out System.Int32 i1", RefKind.Out, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(lambdas[1].Parameters[0], "out System.Int32 i2", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(lambdas[2].Parameters[0], "out System.Object o1", RefKind.Out, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(lambdas[3].Parameters[0], "out System.Object o2", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(lambdas[0].Parameters[0], "out System.Int32 i1", RefKind.Out, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(lambdas[1].Parameters[0], "out System.Int32 i2", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(lambdas[2].Parameters[0], "out System.Object o1", RefKind.Out, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(lambdas[3].Parameters[0], "out System.Object o2", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -22988,10 +23221,10 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
 
-            VerifyParameterSymbol(lambdas[0].Parameters[0], "ref System.Int32 i1", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(lambdas[1].Parameters[0], "ref System.Int32 i2", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(lambdas[2].Parameters[0], "ref System.Object o1", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(lambdas[3].Parameters[0], "ref System.Object o2", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(lambdas[0].Parameters[0], "ref System.Int32 i1", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(lambdas[1].Parameters[0], "ref System.Int32 i2", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(lambdas[2].Parameters[0], "ref System.Object o1", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(lambdas[3].Parameters[0], "ref System.Object o2", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -23025,10 +23258,10 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
 
-            VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(lambdas[1].Parameters[0], "ref R<System.Int32> r2", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped ref R<System.Object> r1", RefKind.Ref, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(lambdas[3].Parameters[0], "ref R<System.Object> r2", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped ref R<System.Int32> r1", RefKind.Ref, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(lambdas[1].Parameters[0], "ref R<System.Int32> r2", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped ref R<System.Object> r1", RefKind.Ref, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(lambdas[3].Parameters[0], "ref R<System.Object> r2", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
         }
 
         [WorkItem(64569, "https://github.com/dotnet/roslyn/issues/64569")]
@@ -23449,10 +23682,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_BindToBogus, "ScopedRefAndUnscopedRef").WithArguments("A.ScopedRefAndUnscopedRef(out int)").WithLocation(21, 22));
 
             var typeA = comp.GetMember<NamedTypeSymbol>("A");
-            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [WorkItem(64778, "https://github.com/dotnet/roslyn/issues/64778")]
@@ -23551,10 +23784,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_BindToBogus, "ScopedRefAndUnscopedRef").WithArguments("A.ScopedRefAndUnscopedRef(ref R, ref R)").WithLocation(17, 11));
 
             var typeA = comp.GetMember<NamedTypeSymbol>("A");
-            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "scoped ref R x", RefKind.Ref, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "ref R x", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "scoped ref R x", RefKind.Ref, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "ref R x", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "ref R x", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         // As above, but with ref readonly parameters.
@@ -23659,10 +23892,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_BindToBogus, "ScopedRefAndUnscopedRef").WithArguments("A.ScopedRefAndUnscopedRef(in R, ref R)").WithLocation(17, 11));
 
             var typeA = comp.GetMember<NamedTypeSymbol>("A");
-            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "in R x", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "scoped in R x", RefKind.In, DeclarationScope.RefScoped, expectedHasUnscopedRefAttribute: false);
-            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "in R x", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "in R x", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "in R x", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "scoped in R x", RefKind.In, ScopedKind.ScopedRef, expectedHasUnscopedRefAttribute: false);
+            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "in R x", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "in R x", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Fact]
@@ -23717,11 +23950,11 @@ class A
 
             bool useUpdatedRules = languageVersion == LanguageVersion.CSharp11;
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "out System.Int32 i3", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "ref R r4", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[0], "in R r5", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "out System.Int32 i3", RefKind.Out, useUpdatedRules ? ScopedKind.ScopedRef : ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "ref R r4", RefKind.Ref, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[0], "in R r5", RefKind.In, ScopedKind.None);
         }
 
         [Theory]
@@ -23760,11 +23993,11 @@ public class A
 
             bool useUpdatedRules = languageVersionA == LanguageVersion.CSharp11;
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "out System.Int32 i3", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "ref R r4", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[0], "in R r5", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "out System.Int32 i3", RefKind.Out, useUpdatedRules ? ScopedKind.ScopedRef : ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "ref R r4", RefKind.Ref, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[0], "in R r5", RefKind.In, ScopedKind.None);
         }
 
         [Theory]
@@ -23794,13 +24027,13 @@ class Program
 
             bool useUpdatedRules = languageVersion == LanguageVersion.CSharp11;
 
-            verifyParameter(delegateTypesAndLambdas[0], 0, "out System.Int32", "i1", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-            verifyParameter(delegateTypesAndLambdas[1], 0, "R", "r2", RefKind.None, DeclarationScope.Unscoped);
-            verifyParameter(delegateTypesAndLambdas[2], 0, "ref R", "r3", RefKind.Ref, DeclarationScope.Unscoped);
-            verifyParameter(delegateTypesAndLambdas[3], 0, "in R", "r4", RefKind.In, DeclarationScope.Unscoped);
-            verifyParameter(delegateTypesAndLambdas[4], 0, "out R", "r5", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            verifyParameter(delegateTypesAndLambdas[0], 0, "out System.Int32", "i1", RefKind.Out, useUpdatedRules ? ScopedKind.ScopedRef : ScopedKind.None);
+            verifyParameter(delegateTypesAndLambdas[1], 0, "R", "r2", RefKind.None, ScopedKind.None);
+            verifyParameter(delegateTypesAndLambdas[2], 0, "ref R", "r3", RefKind.Ref, ScopedKind.None);
+            verifyParameter(delegateTypesAndLambdas[3], 0, "in R", "r4", RefKind.In, ScopedKind.None);
+            verifyParameter(delegateTypesAndLambdas[4], 0, "out R", "r5", RefKind.Out, useUpdatedRules ? ScopedKind.ScopedRef : ScopedKind.None);
 
-            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
+            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, ScopedKind expectedScope)
             {
                 var (delegateType, lambda) = delegateTypeAndLambda;
                 VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], $"{expectedDisplayType} arg", expectedRefKind, expectedScope);
@@ -23844,11 +24077,11 @@ unsafe public class A
 
             bool useUpdatedRules = languageVersionA == LanguageVersion.CSharp11;
 
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F1").Parameters[0], "out modreq(System.Runtime.InteropServices.OutAttribute) System.Int32", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F2").Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F3").Parameters[0], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F4").Parameters[0], "in modreq(System.Runtime.InteropServices.InAttribute) R", RefKind.In, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F5").Parameters[0], "out modreq(System.Runtime.InteropServices.OutAttribute) R", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F1").Parameters[0], "out modreq(System.Runtime.InteropServices.OutAttribute) System.Int32", RefKind.Out, useUpdatedRules ? ScopedKind.ScopedRef : ScopedKind.None);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F2").Parameters[0], "R", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F3").Parameters[0], "ref R", RefKind.Ref, ScopedKind.None);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F4").Parameters[0], "in modreq(System.Runtime.InteropServices.InAttribute) R", RefKind.In, ScopedKind.None);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F5").Parameters[0], "out modreq(System.Runtime.InteropServices.OutAttribute) R", RefKind.Out, useUpdatedRules ? ScopedKind.ScopedRef : ScopedKind.None);
 
             static MethodSymbol getFunctionPointerMethod(CSharpCompilation comp, string qualifiedName) =>
                 ((FunctionPointerTypeSymbol)comp.GetMember<FieldSymbol>(qualifiedName).Type).Signature;
@@ -23904,13 +24137,13 @@ class Program
                     Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 21));
             }
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S.F").ThisParameter, "ref S this", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<PropertySymbol>("S.P").GetMethod.ThisParameter, "ref S this", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "out System.Int32 i1", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "R r2", RefKind.None, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "ref R r3", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "in R r4", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "out R r5", RefKind.Out, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S.F").ThisParameter, "ref S this", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<PropertySymbol>("S.P").GetMethod.ThisParameter, "ref S this", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "out System.Int32 i1", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "R r2", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "ref R r3", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "in R r4", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "out R r5", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
         }
 
         [Theory]
@@ -24523,10 +24756,10 @@ public class A
 
             static void verifyParameters(NamedTypeSymbol typeA)
             {
-                VerifyParameterSymbol(typeA.GetMethod("F1").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-                VerifyParameterSymbol(typeA.GetMethod("F2").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
-                VerifyParameterSymbol(typeA.GetMethod("F3").Parameters[0], "in R x", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: false);
-                VerifyParameterSymbol(typeA.GetMethod("F4").Parameters[0], "in R x", RefKind.In, DeclarationScope.Unscoped, expectedHasUnscopedRefAttribute: true);
+                VerifyParameterSymbol(typeA.GetMethod("F1").Parameters[0], "ref R x", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+                VerifyParameterSymbol(typeA.GetMethod("F2").Parameters[0], "ref R x", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+                VerifyParameterSymbol(typeA.GetMethod("F3").Parameters[0], "in R x", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: false);
+                VerifyParameterSymbol(typeA.GetMethod("F4").Parameters[0], "in R x", RefKind.In, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
             }
         }
 
@@ -24568,7 +24801,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
-            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.ScopedRef);
 
             Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
         }
@@ -24618,7 +24851,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             }
 
             var method = comp.GetMember<MethodSymbol>("Program.F1");
-            VerifyParameterSymbol(method.Parameters[0], "out T t", RefKind.Out, expectedUseUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(method.Parameters[0], "out T t", RefKind.Out, expectedUseUpdatedEscapeRules ? ScopedKind.ScopedRef : ScopedKind.None);
 
             Assert.Equal(expectedUseUpdatedEscapeRules, method.UseUpdatedEscapeRules);
             Assert.Equal(expectedUseUpdatedEscapeRules, method.ContainingModule.UseUpdatedEscapeRules);
@@ -24854,7 +25087,7 @@ public class C
                 var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
                 Assert.True(type.IsImplicitlyDeclared);
                 Assert.True(type.IsAnonymousType);
-                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+                Assert.Equal(ScopedKind.None, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
             }
 
             Assert.Equal(3, count);
@@ -24906,7 +25139,7 @@ public class C
                 var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
                 Assert.True(type.IsImplicitlyDeclared);
                 Assert.True(type.IsAnonymousType);
-                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+                Assert.Equal(ScopedKind.None, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
             }
 
             Assert.Equal(3, count);
@@ -24958,7 +25191,7 @@ public class C1
                 var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
                 Assert.True(type.IsImplicitlyDeclared);
                 Assert.True(type.IsAnonymousType);
-                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+                Assert.Equal(ScopedKind.None, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
             }
 
             Assert.Equal(3, count);
@@ -25110,9 +25343,9 @@ ref struct R
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, ScopedKind.ScopedRef);
 
                 foreach (var decl in decls)
                 {
@@ -25200,9 +25433,9 @@ ref struct R
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, ScopedKind.ScopedRef);
 
                 foreach (var decl in decls)
                 {
@@ -25320,12 +25553,12 @@ ref struct @scoped
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, ScopedKind.ScopedRef);
             }
         }
 
@@ -25421,12 +25654,12 @@ ref struct @scoped
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, ScopedKind.None);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, ScopedKind.None);
+                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, ScopedKind.ScopedRef);
+                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, ScopedKind.ScopedRef);
             }
         }
 
@@ -25472,8 +25705,8 @@ ref struct R<T>
                     Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
                 }
 
-                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped R<System.Int32> r3", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped R<System.Int32> r3", RefKind.None, ScopedKind.ScopedValue);
 
                 foreach (var decl in decls)
                 {
@@ -25532,8 +25765,8 @@ ref struct R<T>
                     Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
                 }
 
-                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped R<System.Int32> r3", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped R<System.Int32> r3", RefKind.None, ScopedKind.ScopedValue);
 
                 foreach (var decl in decls)
                 {
@@ -25756,8 +25989,8 @@ ref struct R
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r2", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped R r5", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r2", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped R r5", RefKind.None, ScopedKind.ScopedValue);
 
                 var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
                 Assert.Null(model.GetTypeInfo(type).Type);
@@ -25804,8 +26037,8 @@ ref struct R
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r2", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped R r5", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r2", RefKind.None, ScopedKind.ScopedValue);
+                VerifyLocalSymbol(locals[1], "scoped R r5", RefKind.None, ScopedKind.ScopedValue);
 
                 var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
                 Assert.Null(model.GetTypeInfo(type).Type);
@@ -26356,6 +26589,37 @@ struct S<T> : System.IDisposable
             comp.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        public void ReturnOnlyScope_UnsafeStatement()
+        {
+            var source = """
+                #pragma warning disable 8321 // unused local function
+                static void M1(scoped ref S p1, ref S p2, ref S p3)
+                {
+                    unsafe
+                    {
+                        p2.refField = ref p1.field; // 1
+                    }
+                    {
+                        p3.refField = ref p1.field; // 2
+                    }
+                }
+                ref struct S
+                {
+                    public int field;
+                    public ref int refField;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS9085: This ref-assigns 'p1.field' to 'refField' but 'p1.field' has a narrower escape scope than 'refField'.
+                //         p2.refField = ref p1.field; // 1
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(6, 9),
+                // (9,9): error CS8374: Cannot ref-assign 'p1.field' to 'refField' because 'p1.field' has a narrower escape scope than 'refField'.
+                //         p3.refField = ref p1.field; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "p3.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(9, 9));
+        }
+
         /// <summary>
         /// Validate that this is properly represented as an out parameter in a constructor and
         /// can capture ref as ref.
@@ -26770,9 +27034,9 @@ ref struct R
                 // (4,37): error CS8347: Cannot use a result of 'R.F<int>(in Span<int>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc int[1])").WithArguments("R.F<int>(in System.Span<int>)", "s").WithLocation(4, 37),
-                // (4,39): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                // (4,39): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(4, 39));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "stackalloc int[1]").WithLocation(4, 39));
         }
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
@@ -27081,6 +27345,982 @@ Block[B2] - Exit
                 // (14,31): error CS9075: Cannot return a parameter by reference 'i4' because it is scoped to the current method
                 //             return new RS(ref i4); // 4
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i4").WithArguments("i4").WithLocation(14, 31));
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_ValEscape_01()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Repro
+                {
+                    private static void Bad1(int value)
+                    {
+                        RefStruct s1 = new RefStruct();
+                        s1.RefField = ref value; // 1
+                    }
+
+                    private static void Bad2(int value)
+                    {
+                        RefStruct s1 = new RefStruct();
+                        s1.RefProperty.RefField = ref value; // 2
+                    }
+
+                    private static void Bad3(int value)
+                    {
+                        RefStruct s1 = new RefStruct();
+                        s1.RefMethod().RefField = ref value; // 3
+                    }
+
+                    private ref struct RefStruct
+                    {
+                        public ref int RefField;
+                        [UnscopedRef] public ref RefStruct RefProperty => ref this;
+                        [UnscopedRef] public ref RefStruct RefMethod() => ref this;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefField = ref value; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefField = ref value").WithArguments("RefField", "value").WithLocation(8, 9),
+                // (14,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(14, 9),
+                // (20,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(20, 9));
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_ValEscape_02()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Repro
+                {
+                    private static void Bad1(scoped ref RefStruct s1, int value)
+                    {
+                        s1.RefField = ref value; // 1
+                    }
+
+                    private static void Bad2(scoped ref RefStruct s1, int value)
+                    {
+                        s1.RefProperty.RefField = ref value; // 2
+                    }
+
+                    private static void Bad3(scoped ref RefStruct s1, int value)
+                    {
+                        s1.RefMethod().RefField = ref value; // 3
+                    }
+
+                    private static void Bad4(scoped in RefStruct s1, int value)
+                    {
+                        s1.RefField = ref value; // 4
+                    }
+
+                    private static void Bad5(scoped in RefStruct s1, int value)
+                    {
+                        s1.RefProperty.RefField = ref value; // 5
+                    }
+
+                    private static void Bad6(scoped in RefStruct s1, int value)
+                    {
+                        s1.RefMethod().RefField = ref value; // 6
+                    }
+
+                    private static void Bad7(in RefStruct s1, int value)
+                    {
+                        s1.RefField = ref value; // 7
+                    }
+
+                    private static void Bad8(in RefStruct s1, int value)
+                    {
+                        s1.RefProperty.RefField = ref value; // 8
+                    }
+
+                    private static void Bad9(in RefStruct s1, int value)
+                    {
+                        s1.RefMethod().RefField = ref value; // 9
+                    }
+
+                    private ref struct RefStruct
+                    {
+                        public ref int RefField;
+                        [UnscopedRef] public ref RefStruct RefProperty => ref this;
+                        [UnscopedRef] public ref RefStruct RefMethod() => ref this;
+                    }
+                }
+                """;
+
+            // NB: 8 and 9 are not strictly necessary here because they are assigning to an implicit copy of a readonly variable, not to the original variable.
+            // However, it is not deeply problematic that an error is given here.
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefField = ref value; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefField = ref value").WithArguments("RefField", "value").WithLocation(7, 9),
+                // (12,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(12, 9),
+                // (17,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(17, 9),
+                // (22,9): error CS8332: Cannot assign to a member of variable 's1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         s1.RefField = ref value; // 4
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "s1.RefField").WithArguments("variable", "s1").WithLocation(22, 9),
+                // (27,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 5
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(27, 9),
+                // (32,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 6
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(32, 9),
+                // (37,9): error CS8332: Cannot assign to a member of variable 's1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         s1.RefField = ref value; // 7
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "s1.RefField").WithArguments("variable", "s1").WithLocation(37, 9),
+                // (42,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 8
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(42, 9),
+                // (47,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 9
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(47, 9));
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_ValEscape_03()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Repro
+                {
+                    private static void Bad1(ref RefStruct s1, int value)
+                    {
+                        s1 = new RefStruct(ref value); // 1
+                    }
+
+                    private static void Bad2(scoped ref RefStruct s1, int value)
+                    {
+                        s1.RefProperty = new RefStruct(ref value); // 2
+                    }
+
+                    private static void Bad3(scoped ref RefStruct s1, int value)
+                    {
+                        s1.RefMethod() = new RefStruct(ref value); // 3
+                    }
+
+                    private static void Bad4(scoped ref RefStruct s1, int value)
+                    {
+                        GetRef(ref s1) = new RefStruct(ref value); // 4
+                    }
+
+                    private static ref RefStruct GetRef(ref RefStruct s) => ref s;
+
+                    private ref struct RefStruct
+                    {
+                        public RefStruct(ref int i) => RefField = ref i;
+                        public ref int RefField;
+                        [UnscopedRef] public ref RefStruct RefProperty => ref this;
+                        [UnscopedRef] public ref RefStruct RefMethod() => ref this;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8347: Cannot use a result of 'Repro.RefStruct.RefStruct(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1 = new RefStruct(ref value); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(7, 14),
+                // (7,32): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1 = new RefStruct(ref value); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(7, 32),
+                // (12,26): error CS8347: Cannot use a result of 'Repro.RefStruct.RefStruct(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1.RefProperty = new RefStruct(ref value); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(12, 26),
+                // (12,44): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1.RefProperty = new RefStruct(ref value); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(12, 44),
+                // (17,26): error CS8347: Cannot use a result of 'Repro.RefStruct.RefStruct(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1.RefMethod() = new RefStruct(ref value); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(17, 26),
+                // (17,44): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1.RefMethod() = new RefStruct(ref value); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(17, 44),
+                // (22,26): error CS8347: Cannot use a result of 'Repro.RefStruct.RefStruct(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         GetRef(ref s1) = new RefStruct(ref value); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RefStruct(ref value)").WithArguments("Repro.RefStruct.RefStruct(ref int)", "i").WithLocation(22, 26),
+                // (22,44): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         GetRef(ref s1) = new RefStruct(ref value); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(22, 44));
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_ValEscape_04()
+        {
+            // test that the appropriate filtering of escape-values is occurring when the RTRS expression is on the RHS of an an assignment.
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Repro
+                {
+                    private static void M1(ref RefStruct s1, int value)
+                    {
+                        // 's2' only contributes STE, not RSTE, to the STE of 'RefMethod()' invocation.
+                        // STE is equal to RSTE for 's2', so it doesn't matter.
+                        var s2 = new RefStruct(ref value);
+                        s1 = s2.RefMethod(); // 1
+                    }
+                    
+                    private static void M2(ref RefStruct s1, ref RefStruct s2)
+                    {
+                        // 's2' only contributes STE, not RSTE, to the STE of 'RefMethod()' invocation.
+                        // RSTE of `s2` is narrower than STE of 's1', but STE of 's2' equals STE of 's1', so we expect no error here.
+                        s1 = s2.RefMethod();
+                    }
+
+                    private ref struct RefStruct
+                    {
+                        public RefStruct(ref int i) => RefField = ref i;
+                        public ref int RefField;
+                        [UnscopedRef] public ref RefStruct RefMethod() => ref this;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         s1 = s2.RefMethod(); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(10, 14));
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_RefEscape_01()
+        {
+            var source = """
+                public class Repro
+                {
+                    private static ref RefStruct M1(ref RefStruct s1, ref RefStruct s2)
+                    {
+                        bool b = false;
+                        return ref b ? ref s1 : ref s2;
+                    }
+
+                    private static ref RefStruct M2(ref RefStruct s1)
+                    {
+                        RefStruct s2 = default;
+                        // RSTE of s1 is ReturnOnly
+                        // RSTE of s2 is CurrentMethod
+                        return ref M1(ref s1, ref s2); // 1
+                    }
+                    
+                    private static ref RefStruct M3(ref RefStruct s1)
+                    {
+                        return ref M1(ref s1, ref s1);
+                    }
+
+                    private ref struct RefStruct { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (14,20): error CS8347: Cannot use a result of 'Repro.M1(ref Repro.RefStruct, ref Repro.RefStruct)' in this context because it may expose variables referenced by parameter 's2' outside of their declaration scope
+                //         return ref M1(ref s1, ref s2); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M1(ref s1, ref s2)").WithArguments("Repro.M1(ref Repro.RefStruct, ref Repro.RefStruct)", "s2").WithLocation(14, 20),
+                // (14,35): error CS8168: Cannot return local 's2' by reference because it is not a ref local
+                //         return ref M1(ref s1, ref s2); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s2").WithArguments("s2").WithLocation(14, 35)
+                );
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_RefEscape_BothScopedAndUnscopedRefParameters()
+        {
+            var source = """
+                public class Repro
+                {
+                    private static ref RefStruct M1(ref RefStruct s1, scoped ref RefStruct s2)
+                    {
+                        return ref s1;
+                    }
+
+                    private static ref RefStruct M2(ref RefStruct s1)
+                    {
+                        RefStruct s2 = default;
+                        // RSTE of s1 is ReturnOnly
+                        // RSTE of s2 is CurrentMethod, but it doesn't contribute to RSTE of the invocation.
+                        return ref M1(ref s1, ref s2);
+                    }
+                    
+                    private static ref RefStruct M3(ref RefStruct s1)
+                    {
+                        return ref M1(ref s1, ref s1);
+                    }
+
+                    private ref struct RefStruct { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_RefEscape_02()
+        {
+            var source = """
+                public class Repro
+                {
+                    private static ref RefStruct M1(ref RefStruct s1, RefStruct s2)
+                    {
+                        return ref s1;
+                    }
+
+                    private static ref RefStruct M2(ref RefStruct s1, int param)
+                    {
+                        RefStruct s2 = new RefStruct(ref param);
+                        // RSTE of s1 is ReturnOnly
+                        // STE of s2 is CurrentMethod, but this is not contributed to the call to M1.
+                        // We error due to arg mixing, not due to the return value.
+                        return ref M1(ref s1, s2);
+                    }
+
+                    private ref struct RefStruct
+                    {
+                        public RefStruct(ref int i) { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (14,20): error CS8350: This combination of arguments to 'Repro.M1(ref Repro.RefStruct, Repro.RefStruct)' is disallowed because it may expose variables referenced by parameter 's2' outside of their declaration scope
+                //         return ref M1(ref s1, s2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(ref s1, s2)").WithArguments("Repro.M1(ref Repro.RefStruct, Repro.RefStruct)", "s2").WithLocation(14, 20),
+                // (14,31): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref M1(ref s1, s2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(14, 31)
+                );
+        }
+
+        [Fact, WorkItem(65648, "https://github.com/dotnet/roslyn/issues/65648")]
+        public void ReturnRefToRefStruct_VariousInputAndOutputRefKinds()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Repro
+                {
+                    private static void Bad1(int value)
+                    {
+                        RefStruct s1 = new RefStruct();
+                        GetReference1(ref s1).RefField = ref value; // 1
+                        GetReference2(in s1).RefField = ref value; // 2
+                        GetReference3(out s1).RefField = ref value; // 3
+
+                        GetReadonlyReference1(ref s1).RefField = ref value; // 4
+                        GetReadonlyReference2(in s1).RefField = ref value; // 5
+                        GetReadonlyReference3(out s1).RefField = ref value; // 6
+                    }
+
+                    static ref RefStruct GetReference1(ref RefStruct rs) => throw null!;
+                    static ref RefStruct GetReference2(in RefStruct rs) => throw null!;
+                    static ref RefStruct GetReference3([UnscopedRef] out RefStruct rs) => throw null!;
+
+                    static ref readonly RefStruct GetReadonlyReference1(ref RefStruct rs) => throw null!;
+                    static ref readonly RefStruct GetReadonlyReference2(in RefStruct rs) => throw null!;
+                    static ref readonly RefStruct GetReadonlyReference3([UnscopedRef] out RefStruct rs) => throw null!;
+
+                    private ref struct RefStruct
+                    {
+                        public ref int RefField;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         GetReference1(ref s1).RefField = ref value; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "GetReference1(ref s1).RefField = ref value").WithArguments("RefField", "value").WithLocation(8, 9),
+                // (9,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         GetReference2(in s1).RefField = ref value; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "GetReference2(in s1).RefField = ref value").WithArguments("RefField", "value").WithLocation(9, 9),
+                // (10,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         GetReference3(out s1).RefField = ref value; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "GetReference3(out s1).RefField = ref value").WithArguments("RefField", "value").WithLocation(10, 9),
+                // (12,9): error CS8332: Cannot assign to a member of method 'GetReadonlyReference1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         GetReadonlyReference1(ref s1).RefField = ref value; // 4
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference1(ref s1).RefField").WithArguments("method", "GetReadonlyReference1").WithLocation(12, 9),
+                // (13,9): error CS8332: Cannot assign to a member of method 'GetReadonlyReference2' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         GetReadonlyReference2(in s1).RefField = ref value; // 5
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference2(in s1).RefField").WithArguments("method", "GetReadonlyReference2").WithLocation(13, 9),
+                // (14,9): error CS8332: Cannot assign to a member of method 'GetReadonlyReference3' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         GetReadonlyReference3(out s1).RefField = ref value; // 6
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference3(out s1).RefField").WithArguments("method", "GetReadonlyReference3").WithLocation(14, 9));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ConstructorInitializer_01(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+                class A
+                {
+                    public A(ref Span<int> x, Span<int> y) { }
+                    A(ref Span<int> s) : this(ref s, new Span<int>()) { }
+                    A(ref Span<int> s, int i) : this(ref s, stackalloc int[1]) { } // 1
+                }
+                class B : A
+                {
+                    B(ref Span<int> s) : base(ref s, new Span<int>()) { }
+                    B(ref Span<int> s, int i) : base(ref s, stackalloc int[2]) { } // 2
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,31): error CS8350: This combination of arguments to 'A.A(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //     A(ref Span<int> s, int i) : this(ref s, stackalloc int[1]) { } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ": this(ref s, stackalloc int[1])").WithArguments("A.A(ref System.Span<int>, System.Span<int>)", "y").WithLocation(6, 31),
+                // (6,45): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     A(ref Span<int> s, int i) : this(ref s, stackalloc int[1]) { } // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(6, 45),
+                // (11,31): error CS8350: This combination of arguments to 'A.A(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //     B(ref Span<int> s, int i) : base(ref s, stackalloc int[2]) { } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ": base(ref s, stackalloc int[2])").WithArguments("A.A(ref System.Span<int>, System.Span<int>)", "y").WithLocation(11, 31),
+                // (11,45): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     B(ref Span<int> s, int i) : base(ref s, stackalloc int[2]) { } // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[2]").WithArguments("System.Span<int>").WithLocation(11, 45));
+        }
+
+        [Fact]
+        public void ConstructorInitializer_02()
+        {
+            var source = """
+                ref struct R
+                {
+                    R(in int i) { }
+                    R(int x, int y) : this(x) { } // 1
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS8350: This combination of arguments to 'R.R(in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //     R(int x, int y) : this(x) { } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ": this(x)").WithArguments("R.R(in int)", "i").WithLocation(4, 21),
+                // (4,28): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     R(int x, int y) : this(x) { } // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 28));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void FunctionPointerInvocation_01(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void F0(ref Span<int> x, Span<int> y)
+                    {
+                    }
+                    static unsafe void F1(ref Span<int> s)
+                    {
+                        delegate*<ref Span<int>, Span<int>, void> f = &F0;
+                        f(ref s, new Span<int>());
+                        f(ref s, stackalloc int[1]); // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,18): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                //         f(ref s, stackalloc int[1]); // 1
+                Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(11, 18));
+        }
+
+        [Fact]
+        public void FunctionPointerInvocation_02()
+        {
+            var source = """
+                ref struct R
+                {
+                }
+                class Program
+                {
+                    static void F0(out R r, in int i)
+                    {
+                        r = default;
+                    }
+                    static unsafe void F1(out R r1, in int i1)
+                    {
+                        delegate*<out R, in int, void> f = &F0;
+                        f(out r1, i1);
+                    }
+                    static unsafe void F2(out R r1, int i2)
+                    {
+                        delegate*<out R, in int, void> f = &F0;
+                        f(out r1, i2); // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (18,19): warning CS9087: This returns a parameter by reference 'i2' but it is not a ref parameter
+                //         f(out r1, i2); // 1
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "i2").WithArguments("i2").WithLocation(18, 19));
+        }
+
+        [Fact]
+        public void PatternIndex_01()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R
+                {
+                    public int Length => 0;
+                    [UnscopedRef] public ref int this[int i] => throw null;
+                }
+                class Program
+                {
+                    static ref int F1(ref R r1)
+                    {
+                        ref int i1 = ref r1[^1];
+                        return ref i1;
+                    }
+                    static ref int F2(ref R r2, Index i)
+                    {
+                        ref int i2 = ref r2[i];
+                        return ref i2;
+                    }
+                    static ref int F3()
+                    {
+                        R r3 = new R();
+                        ref int i3 = ref r3[^3];
+                        return ref i3; // 1
+                    }
+                    static ref int F4(Index i)
+                    {
+                        R r4 = new R();
+                        ref int i4 = ref r4[i];
+                        return ref i4; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (24,20): error CS8157: Cannot return 'i3' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref i3; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "i3").WithArguments("i3").WithLocation(24, 20),
+                // (30,20): error CS8157: Cannot return 'i4' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref i4; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "i4").WithArguments("i4").WithLocation(30, 20));
+        }
+
+        [Fact]
+        public void PatternIndex_02()
+        {
+            string source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                    public int Length => 0;
+                    public R this[int i] => throw null;
+                }
+                class Program
+                {
+                    static R F1()
+                    {
+                        R r1 = new R();
+                        if (r1 is [.., var r]) return r;
+                        return r1;
+                    }
+                    static R F2()
+                    {
+                        int i2 = 2;
+                        R r2 = new R(ref i2);
+                        if (r2 is [.., var r]) return r; // 1
+                        return r2; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (19,39): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (r2 is [.., var r]) return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(19, 39),
+                // (20,16): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("r2").WithLocation(20, 16));
+        }
+
+        [Fact]
+        public void PatternIndex_03()
+        {
+            string source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                    public int Length => 0;
+                    public int this[int i] => 0;
+                    public R Slice(int x, int y) => this;
+                }
+                class Program
+                {
+                    static R F1()
+                    {
+                        R r1 = new R();
+                        if (r1 is [.. [> 0] r]) return r;
+                        return r1;
+                    }
+                    static R F2()
+                    {
+                        int i2 = 2;
+                        R r2 = new R(ref i2);
+                        if (r2 is [.. [> 0] r]) return r; // 1
+                        return r2; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (20,40): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (r2 is [.. [> 0] r]) return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(20, 40),
+                // (21,16): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("r2").WithLocation(21, 16));
+        }
+
+        [Fact]
+        public void TopLevelStatementLocal()
+        {
+            var source = """
+                int i = 0;
+                ref int r = ref i;
+                class C
+                {
+                    static void F1() { F2(ref r); }
+                    static ref int F2(ref int r) => ref r;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS8801: Cannot use local variable or local function 'r' declared in a top-level statement in this context.
+                //     static void F1() { F2(ref r); }
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "r").WithArguments("r").WithLocation(5, 31),
+                // (5,31): error CS0165: Use of unassigned local variable 'r'
+                //     static void F1() { F2(ref r); }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r").WithArguments("r").WithLocation(5, 31));
+        }
+
+        [Fact]
+        public void Discard_01()
+        {
+            var source = """
+                class Program
+                {
+                    static ref int F1()
+                    {
+                        return ref F2(out _);
+                    }
+                    static ref int F2(out int i)
+                    {
+                        i = 0;
+                        return ref i;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS8347: Cannot use a result of 'Program.F2(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return ref F2(out _);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F2(out _)").WithArguments("Program.F2(out int)", "i").WithLocation(5, 20),
+                // (5,27): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref F2(out _);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "_").WithLocation(5, 27));
+        }
+
+        [Fact]
+        public void Discard_02()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static ref int F1()
+                    {
+                        return ref F2(out _);
+                    }
+                    static ref int F2([UnscopedRef] out int i)
+                    {
+                        i = 0;
+                        return ref i;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8347: Cannot use a result of 'Program.F2(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return ref F2(out _);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F2(out _)").WithArguments("Program.F2(out int)", "i").WithLocation(6, 20),
+                // (6,27): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref F2(out _);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "_").WithLocation(6, 27));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_03(LanguageVersion languageVersion)
+        {
+            var source = """
+                ref struct R
+                {
+                    public void Deconstruct(out int x, out R y)
+                    {
+                        x = 0;
+                        y = default;
+                    }
+                }
+                class Program
+                {
+                    static R F1()
+                    {
+                        R r1 = default;
+                        int i;
+                        (i, _) = r1;
+                        return r1;
+                    }
+                    static R F2()
+                    {
+                        R r2 = default;
+                        int i;
+                        r2.Deconstruct(out i, out _);
+                        return r2;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SwitchExpression_Assignment()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void M()
+                    {
+                        Span<int> s;
+                        Span<int> outer = stackalloc int[100];
+                        s = outer switch
+                        {
+                            Span<int> inner => inner
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (10,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             Span<int> inner => inner
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(10, 32));
+        }
+
+        [Fact]
+        public void SwitchExpression_Argument()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static Span<int> F(Span<int> x, Span<int> y)
+                    {
+                        return x;
+                    }
+                    static void M()
+                    {
+                        Span<int> x = default;
+                        Span<int> y = stackalloc int[100];
+                        x = F(x, y switch { Span<int> inner => inner });
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8347: Cannot use a result of 'Program.F(Span<int>, Span<int>)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         x = F(x, y switch { Span<int> inner => inner });
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(x, y switch { Span<int> inner => inner })").WithArguments("Program.F(System.Span<int>, System.Span<int>)", "y").WithLocation(12, 13),
+                // (12,48): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         x = F(x, y switch { Span<int> inner => inner });
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(12, 48));
+        }
+
+        [Fact]
+        public void SwitchExpression_Return()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static Span<int> M()
+                    {
+                        Span<int> outer = stackalloc int[100];
+                        return outer switch
+                        {
+                            Span<int> inner => inner
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (9,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             Span<int> inner => inner
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(9, 32));
+        }
+
+        [Fact]
+        public void SwitchExpression_YieldReturn()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable<int> M()
+                    {
+                        Span<int> outer = stackalloc int[100];
+                        yield return (outer switch
+                        {
+                            Span<int> inner => inner
+                        })[0];
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SwitchExpression_FieldInitializer()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static int F = (new Span<int>() switch
+                        {
+                            Span<int> inner => inner
+                        })[0];
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnsafeContext_LocalFunction_01()
+        {
+            var source = """
+                #pragma warning disable 8321
+                class Program
+                {
+                    static ref int F0(ref int x, ref int y)
+                    {
+                        return ref x;
+                    }
+                    static void F1()
+                    {
+                        static ref int Local1(ref int x1, int y1)
+                        {
+                            return ref F0(ref x1, ref y1);
+                        }
+                        unsafe static ref int Local2(ref int x2, int y2)
+                        {
+                            return ref F0(ref x2, ref y2);
+                        }
+                        unsafe
+                        {
+                            static ref int Local3(ref int x3, int y3)
+                            {
+                                return ref F0(ref x3, ref y3);
+                            }
+                            unsafe static ref int Local4(ref int x4, int y4)
+                            {
+                                return ref F0(ref x4, ref y4);
+                            }
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (12,24): error CS8347: Cannot use a result of 'Program.F0(ref int, ref int)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //             return ref F0(ref x1, ref y1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F0(ref x1, ref y1)").WithArguments("Program.F0(ref int, ref int)", "y").WithLocation(12, 24),
+                // (12,39): error CS8166: Cannot return a parameter by reference 'y1' because it is not a ref parameter
+                //             return ref F0(ref x1, ref y1);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y1").WithArguments("y1").WithLocation(12, 39),
+                // (16,39): warning CS9087: This returns a parameter by reference 'y2' but it is not a ref parameter
+                //             return ref F0(ref x2, ref y2);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y2").WithArguments("y2").WithLocation(16, 39),
+                // (22,43): warning CS9087: This returns a parameter by reference 'y3' but it is not a ref parameter
+                //                 return ref F0(ref x3, ref y3);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y3").WithArguments("y3").WithLocation(22, 43),
+                // (26,43): warning CS9087: This returns a parameter by reference 'y4' but it is not a ref parameter
+                //                 return ref F0(ref x4, ref y4);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y4").WithArguments("y4").WithLocation(26, 43));
+        }
+
+        [Fact]
+        public void UnsafeContext_LocalFunction_02()
+        {
+            var source = """
+                #pragma warning disable 8321
+                class A
+                {
+                    internal static ref int F0(ref int x, ref int y)
+                    {
+                        return ref x;
+                    }
+                }
+                class B1 : A
+                {
+                    unsafe static void F1()
+                    {
+                        static ref int Local1(ref int x1, int y1)
+                        {
+                            return ref F0(ref x1, ref y1);
+                        }
+                }
+                unsafe class B2 : A
+                {
+                    static void F2()
+                    {
+                        static ref int Local2(ref int x2, int y2)
+                        {
+                            return ref F0(ref x2, ref y2);
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (15,39): warning CS9087: This returns a parameter by reference 'y1' but it is not a ref parameter
+                //             return ref F0(ref x1, ref y1);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y1").WithArguments("y1").WithLocation(15, 39),
+                // (24,39): warning CS9087: This returns a parameter by reference 'y2' but it is not a ref parameter
+                //             return ref F0(ref x2, ref y2);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "y2").WithArguments("y2").WithLocation(24, 39),
+                // (27,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
         }
     }
 }

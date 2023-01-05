@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
                 // we'll expand this set as we discover new symbols to search for in each project.
-                var symbolSet = await SymbolSet.CreateAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
+                var symbolSet = await SymbolSet.CreateAsync(
+                    this, unifiedSymbols, includeImplementationsThroughDerivedTypes: true, cancellationToken).ConfigureAwait(false);
 
                 // Report the initial set of symbols to the caller.
                 var allSymbols = symbolSet.GetAllSymbols();

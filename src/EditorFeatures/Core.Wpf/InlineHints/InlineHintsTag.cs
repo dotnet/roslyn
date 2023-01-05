@@ -16,7 +16,9 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -102,9 +104,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
                 if (!taggedText.IsDefaultOrEmpty)
                 {
+                    var classificationOptions = _taggerProvider.EditorOptionsService.GlobalOptions.GetClassificationOptions(document.Project.Language);
+                    var lineFormattingOptions = _span.Snapshot.TextBuffer.GetLineFormattingOptions(_taggerProvider.EditorOptionsService, explicitFormat: false);
+
                     var context = new IntellisenseQuickInfoBuilderContext(
                         document,
-                        _taggerProvider.GlobalOptions.GetClassificationOptions(document.Project.Language),
+                        classificationOptions,
+                        lineFormattingOptions,
                         _taggerProvider.ThreadingContext,
                         _taggerProvider.OperationExecutor,
                         _taggerProvider.AsynchronousOperationListener,

@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
             "UseConditionalExpressionOptions",
-            "ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength"));
+            "ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength);
     }
 }

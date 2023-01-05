@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -16,11 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string FeatureName = "DiagnosticOptions";
 
         public static readonly Option2<bool> LspPullDiagnosticsFeatureFlag = new(
-            FeatureName, nameof(LspPullDiagnosticsFeatureFlag), defaultValue: false,
-            new FeatureFlagStorageLocation("Lsp.PullDiagnostics"));
+            FeatureName, "LspPullDiagnosticsFeatureFlag", defaultValue: false);
 
         public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
-            FeatureName, nameof(LogTelemetryForBackgroundAnalyzerExecution), defaultValue: false,
-            new FeatureFlagStorageLocation($"Roslyn.LogTelemetryForBackgroundAnalyzerExecution"));
+            FeatureName, "LogTelemetryForBackgroundAnalyzerExecution", defaultValue: false);
     }
 }

@@ -100,6 +100,23 @@ class Program
         }
 
         [Fact]
+        public async Task InAsyncMethodReturnValueTask()
+        {
+            var markup =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    async ValueTask&lt;string&gt; M2Async()
+    {
+        return new $$;
+    }
+}";
+            await VerifyItemExistsAsync(MakeMarkup(markup), "string");
+        }
+
+        [Fact]
         public async Task IsCommitCharacterTest()
         {
             const string markup = @"
@@ -768,6 +785,19 @@ class Program
     private List<int> o = new List<int>();
 }";
             await VerifyProviderCommitAsync(markup, "List<int>", expectedMark, commitChar: ';');
+        }
+
+        private static string MakeMarkup(string source, string languageVersion = "Preview")
+        {
+            return $$"""
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly" CommonReferencesNet6="true" LanguageVersion="{{languageVersion}}">
+        <Document FilePath="Test.cs">
+{{source}}
+        </Document>
+    </Project>
+</Workspace>
+""";
         }
     }
 }
