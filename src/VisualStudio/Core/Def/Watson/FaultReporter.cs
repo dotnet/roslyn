@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             try
             {
                 var logPath = Path.Combine(Path.GetTempPath(), "VSLogs");
-                var logs = CollectFilePaths(logPath, "*.svclog", (name) => !name.Contains("Roslyn") && !name.Contains("LSPClient"));
+                var logs = CollectFilePaths(logPath, "*.svclog", shouldExcludeLogFile: (name) => !name.Contains("Roslyn") && !name.Contains("LSPClient"));
                 return logs;
             }
             catch (Exception)
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
                 // TODO: https://github.com/dotnet/roslyn/issues/42582 
                 // name our services more consistently to simplify filtering
-                var logs = CollectFilePaths(logPath, "*.log", (name) => !name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
+                var logs = CollectFilePaths(logPath, "*.log", shouldExcludeLogFile: (name) => !name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
                         !name.Contains("-CodeLens") &&
                         !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
                         !name.Contains("-hub"));
