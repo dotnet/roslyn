@@ -222,6 +222,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             try
             {
                 var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+
+                // TODO: https://github.com/dotnet/roslyn/issues/42582 
+                // name our services more consistently to simplify filtering
                 var logs = CollectFilePaths(logPath, "*.log", (name) => !name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
                         !name.Contains("-CodeLens") &&
                         !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
@@ -254,9 +257,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 try
                 {
                     var name = Path.GetFileNameWithoutExtension(path);
-
-                    // TODO: https://github.com/dotnet/roslyn/issues/42582 
-                    // name our services more consistently to simplify filtering
 
                     // filter logs that are not relevant to Roslyn investigation
                     if (shouldExcludeLogFile(name))
