@@ -9,6 +9,13 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
+    internal enum TaskListItemPriority
+    {
+        Low,
+        Medium,
+        High,
+    }
+
     /// <summary>
     /// Description of a TODO comment type to find in a user's comments.
     /// </summary>
@@ -18,9 +25,9 @@ namespace Microsoft.CodeAnalysis.TaskList
         [DataMember(Order = 0)]
         public string Text { get; }
         [DataMember(Order = 1)]
-        public int Priority { get; }
+        public TaskListItemPriority Priority { get; }
 
-        public TaskListItemDescriptor(string text, int priority)
+        public TaskListItemDescriptor(string text, TaskListItemPriority priority)
         {
             Text = text;
             Priority = priority;
@@ -34,8 +41,15 @@ namespace Microsoft.CodeAnalysis.TaskList
             {
                 if (item.Split(':') is [var token, var priorityString] &&
                     !string.IsNullOrWhiteSpace(token) &&
-                    int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
+                    int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var integer))
                 {
+                    var priority = integer switch
+                    {
+                        1 => TaskListItemPriority.Low,
+                        2 => TaskListItemPriority.Medium,
+                        3 => TaskListItemPriority.High,
+                        _ => TaskListItemPriority.Medium,
+                    };
                     result.Add(new TaskListItemDescriptor(token, priority));
                 }
             }
