@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
+#pragma warning disable RS0030 // Do not used banned APIs: DocumentOptionSet, Option<T>, PerLanguageOption<T>
 
 using System;
 using System.Collections.Generic;
@@ -90,9 +90,6 @@ namespace Microsoft.CodeAnalysis.Options
         public T GetOption<T>(PerLanguageOption<T> option)
             => GetOption(option, _language);
 
-        internal T GetOption<T>(PerLanguageOption2<T> option)
-            => GetOption(option, _language);
-
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
             => new DocumentOptionSet(_configOptions, _underlyingOptions, _language, _values.SetItem(optionAndLanguage, value));
 
@@ -100,12 +97,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
         /// </summary>
         public DocumentOptionSet WithChangedOption<T>(PerLanguageOption<T> option, T value)
-            => (DocumentOptionSet)WithChangedOption(option, _language, value);
-
-        /// <summary>
-        /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
-        /// </summary>
-        internal DocumentOptionSet WithChangedOption<T>(PerLanguageOption2<T> option, T value)
             => (DocumentOptionSet)WithChangedOption(option, _language, value);
 
         private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IEditorConfigOptionMappingService optionService, string? language)

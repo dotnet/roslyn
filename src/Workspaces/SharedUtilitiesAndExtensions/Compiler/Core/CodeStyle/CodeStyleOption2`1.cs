@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 #endif
     }
 
+    internal interface ICodeStyleOption2 : ICodeStyleOption
+    {
+    }
+
     /// <summary>
     /// Represents a code style option and an associated notification option.  Supports
     /// being instantiated with T as a <see cref="bool"/> or an <c>enum type</c>.
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// then those values will write back as false/true.
     /// </summary>
     [DataContract]
-    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption2, IEquatable<CodeStyleOption2<T>?>
     {
         public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
@@ -67,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
+#pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
 #if CODE_STYLE
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
 #else
@@ -74,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
 #endif
+#pragma warning restore
 
         private int EnumValueAsInt32 => (int)(object)Value!;
 

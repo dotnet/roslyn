@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, DeclarationScope.Unscoped, name)
+            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, ScopedKind.None, name)
             {
             }
 

@@ -8,9 +8,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class VisualStudioLoggingOptionsMetadata
     {
-        private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
-
-        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new("InternalDiagnosticsOptions", "EnableFileLoggingForDiagnostics", defaultValue: false,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "EnableFileLoggingForDiagnostics"));
+        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new("InternalDiagnosticsOptions", "EnableFileLoggingForDiagnostics", defaultValue: false);
     }
 }

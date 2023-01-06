@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 #if !NETCOREAPP
 using System;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 #if !CODE_STYLE
         public OptionSet ToOptionSet()
-            => new OptionValueSet(_options.ToImmutableDictionary(entry => new OptionKey(entry.Key.Option, entry.Key.Language), entry => entry.Value));
+            => new TestOptionSet(_options.ToImmutableDictionary(entry => new OptionKey(entry.Key.Option, entry.Key.Language), entry => entry.Value));
 
         public AnalyzerConfigOptions ToAnalyzerConfigOptions(LanguageServices languageServices)
         {
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             foreach (var (optionKey, value) in _options)
             {
-                globalOptions.SetGlobalOption((OptionKey)optionKey, value);
+                globalOptions.SetGlobalOption(optionKey, value);
             }
         }
 #endif

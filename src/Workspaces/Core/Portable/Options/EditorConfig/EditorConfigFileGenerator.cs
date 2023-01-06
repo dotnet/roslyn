@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Options
                 AppendOptionsToEditorConfig(optionSet, feature, options, language, editorconfig);
             }
 
-            var namingStylePreferences = optionSet.GetOption(NamingStyleOptions.NamingPreferences, language);
+            var namingStylePreferences = optionSet.GetOption((PerLanguageOption<NamingStylePreferences>)NamingStyleOptions.NamingPreferences, language);
             AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
 
             return editorconfig.ToString();
@@ -80,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Options
             string GetEditorConfigString(IOption option, IEditorConfigStorageLocation2 editorConfigLocation)
             {
                 var optionKey = new OptionKey(option, option.IsPerLanguage ? language : null);
-                var value = optionSet.GetOption(optionKey);
-                var editorConfigString = editorConfigLocation.GetEditorConfigString(value, optionSet);
+                var editorConfigString = editorConfigLocation.GetEditorConfigString(optionKey, optionSet);
                 Debug.Assert(!string.IsNullOrEmpty(editorConfigString));
                 return editorConfigString;
             }

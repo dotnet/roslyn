@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12019,6 +12018,14 @@ class C
 ref struct MyRefStruct { }
 ";
             await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task NoSymbolCompletionsInEnumBaseList()
+        {
+            var source = "enum E : $$";
+
+            await VerifyNoItemsExistAsync(source);
         }
 
         private static string MakeMarkup(string source, string languageVersion = "Preview")

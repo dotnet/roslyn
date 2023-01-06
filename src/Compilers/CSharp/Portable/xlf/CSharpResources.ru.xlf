@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
         <source>A deconstruction variable cannot be declared as a ref local</source>
-        <target state="new">A deconstruction variable cannot be declared as a ref local</target>
+        <target state="translated">Переменная деконструирования не может быть объявлена как локальная переменная ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -754,7 +754,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
+        <target state="translated">Неявно типизованный параметр "{0}" не может иметь значение по умолчанию.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1304,7 +1304,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">Не удается присвоить по ссылке "{1}" "{0}", потому что "{1}" имеет более широкую область выхода, чем "{0}", что позволяет присваивать через "{0}" значения с более узкими областями выхода, чем "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1429,7 +1429,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
         <source>The 'scoped' modifier cannot be used with discard.</source>
-        <target state="new">The 'scoped' modifier cannot be used with discard.</target>
+        <target state="translated">Модификатор "scoped" нельзя использовать с отменой.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1779,12 +1779,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaOptionalParameters">
         <source>lambda optional parameters</source>
-        <target state="new">lambda optional parameters</target>
+        <target state="translated">дополнительные параметры лямбды</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaParamsArray">
         <source>lambda params array</source>
-        <target state="new">lambda params array</target>
+        <target state="translated">массив лямбда-параметров</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1879,7 +1879,7 @@
       </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
-        <target state="new">&lt;missing&gt;</target>
+        <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2119,12 +2119,12 @@
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch">
         <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
-        <target state="new">Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</target>
+        <target state="translated">Параметр {0} имеет значение по умолчанию "{1:10}" в лямбде, но "{2:10}" в типе целевого делегата.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
         <source>The default parameter value does not match in the target delegate type.</source>
-        <target state="new">The default parameter value does not match in the target delegate type.</target>
+        <target state="translated">Значение параметра по умолчанию не совпадает с типом целевого делегата.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2149,12 +2149,12 @@
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly">
         <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter {0} has params modifier in lambda but not in target delegate type.</target>
+        <target state="translated">У параметра {0} есть модификатор params в лямбде, но не в типе целевого делегата.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter has params modifier in lambda but not in target delegate type.</target>
+        <target state="translated">У параметра есть модификатор params в лямбде, но не в типе целевого делегата.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2214,12 +2214,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">Это присваивает по ссылке "{1}" "{0}", но "{1}" имеет более широкую область выхода, чем "{0}", что позволяет присваивать через "{0}" значения с более узкими областями выхода, чем "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
         <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
-        <target state="new">This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</target>
+        <target state="translated">Это присваивает по ссылке значение, которое имеет более широкую область выхода, чем цель, что позволяет присваивать через цель значения с более узкими областями выхода.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -5303,7 +5303,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
-        <target state="needs-review-translation">Свойство или индексатор не могут передаваться как параметр out или ref.</target>
+        <target state="translated">Свойство или индексатор, не возвращающие значения, не могут использоваться в качестве значения out или ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8511,7 +8511,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
-        <target state="translated">Поскольку данный метод является асинхронным, возвращаемое выражение должно относиться к типу "{0}", а не типу "{1}".</target>
+        <target state="translated">Поскольку данный метод является асинхронным, возвращаемое выражение должно относиться к типу "{0}", а не к типу "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9674,7 +9674,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
         <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
-        <target state="new">Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</target>
+        <target state="translated">Поскольку "{0}" является асинхронным методом, возвращающим "{1}", за ключевым словом return не может следовать выражение объекта</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11104,7 +11104,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
         <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
-        <target state="new">Async lambda expression converted to a '{0}' returning delegate cannot return a value</target>
+        <target state="translated">Асинхронное лямбда-выражение, преобразованное в делегата, возвращающего "{0}", не может возвращать значение</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

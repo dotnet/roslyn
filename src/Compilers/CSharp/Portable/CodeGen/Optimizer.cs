@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _context = context;
 
             // Do not recurse into constant expressions. Their children do not push any values.
-            var result = node.ConstantValue == null ?
+            var result = node.ConstantValueOpt == null ?
                 node = (BoundExpression)base.Visit(node) :
                 node;
 
@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.InitializerExpressionOpt == null);
 
             return node.Update(constructor, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
-                node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValue, initializerExpressionOpt: null, node.Type);
+                node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValueOpt, initializerExpressionOpt: null, node.Type);
         }
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
@@ -1401,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = node.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 return VisitBinaryOperatorSimple(node);
             }
@@ -1417,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValue, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EnsureStackState(cookie);   // implicit label here
 
-                return node.Update(node.OperatorKind, node.ConstantValue, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
+                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
             }
 
             return base.VisitBinaryOperator(node);
@@ -1964,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // so we will not go into constant nodes. 
             // CodeGen will not do that either.
             var asExpression = node as BoundExpression;
-            if (asExpression != null && asExpression.ConstantValue != null)
+            if (asExpression != null && asExpression.ConstantValueOpt != null)
             {
                 result = node;
             }
@@ -1982,7 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = node.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 return base.VisitBinaryOperator(node);
             }
@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -2013,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValue, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -2279,18 +2279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return RefKind.None; }
         }
 
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable();
-
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable();
-
-        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal override ScopedKind Scope => ScopedKind.None;
     }
 }

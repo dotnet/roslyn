@@ -227,6 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
 
+            if (!hasBody)
+                modifiers -= DeclarationModifiers.Async;
+
             return SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
                 modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
@@ -573,6 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
+                SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
+                SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier),
                 _ => declaration,
@@ -591,16 +596,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (declaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    var method = (MethodDeclarationSyntax)declaration;
-                    return (method.Body == null) ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
-
-                case SyntaxKind.OperatorDeclaration:
-                    var op = (OperatorDeclarationSyntax)declaration;
-                    return (op.Body == null) ? op.WithSemicolonToken(default).WithBody(CreateBlock()) : op;
-
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    var cop = (ConversionOperatorDeclarationSyntax)declaration;
-                    return (cop.Body == null) ? cop.WithSemicolonToken(default).WithBody(CreateBlock()) : cop;
+                case SyntaxKind.OperatorDeclaration:
+                    var method = (BaseMethodDeclarationSyntax)declaration;
+                    return (method.Body == null && method.ExpressionBody == null) ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
 
                 case SyntaxKind.PropertyDeclaration:
                     var prop = (PropertyDeclarationSyntax)declaration;
@@ -623,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax accessor)
         {
-            if (accessor.Body == null)
+            if (accessor.Body == null && accessor.ExpressionBody == null)
             {
                 return accessor.WithSemicolonToken(default).WithBody(CreateBlock(null));
             }

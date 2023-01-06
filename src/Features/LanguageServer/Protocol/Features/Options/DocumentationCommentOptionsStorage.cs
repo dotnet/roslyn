@@ -20,7 +20,6 @@ internal static class DocumentationCommentOptionsStorage
       };
 
     public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(
-        "DocumentationCommentOptions", "AutoXmlDocCommentGeneration", DocumentationCommentOptions.Default.AutoXmlDocCommentGeneration,
-        storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
+        "DocumentationCommentOptions", "AutoXmlDocCommentGeneration", DocumentationCommentOptions.Default.AutoXmlDocCommentGeneration);
 
 }

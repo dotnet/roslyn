@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
         <source>A deconstruction variable cannot be declared as a ref local</source>
-        <target state="new">A deconstruction variable cannot be declared as a ref local</target>
+        <target state="translated">분해 변수는 참조 로컬로 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -754,7 +754,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
+        <target state="translated">암시적 형식 람다 매개 변수 '{0}'은(는) 기본값을 가질 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1304,7 +1304,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">'{0}'에 '{1}'을(를) ref-assign할 수 없습니다. '{1}'은(는) '{0}'보다 더 넓은 값 이스케이프 범위를 가지며 '{1}'보다 좁은 이스케이프 범위가 있는 값의 '{0}'을(를) 통한 할당을 허용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1429,7 +1429,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
         <source>The 'scoped' modifier cannot be used with discard.</source>
-        <target state="new">The 'scoped' modifier cannot be used with discard.</target>
+        <target state="translated">'scoped' 한정자는 무시 항목과 함께 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1779,12 +1779,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaOptionalParameters">
         <source>lambda optional parameters</source>
-        <target state="new">lambda optional parameters</target>
+        <target state="translated">람다 선택적 매개 변수</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaParamsArray">
         <source>lambda params array</source>
-        <target state="new">lambda params array</target>
+        <target state="translated">람다 매개 변수 배열</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1879,7 +1879,7 @@
       </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
-        <target state="new">&lt;missing&gt;</target>
+        <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2119,12 +2119,12 @@
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch">
         <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
-        <target state="new">Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</target>
+        <target state="translated">{0} 매개 변수는 람다에서 '{1:10}' 기본값을 가지지만 대상 대리자 형식에서는 '{2:10}'을 가집니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
         <source>The default parameter value does not match in the target delegate type.</source>
-        <target state="new">The default parameter value does not match in the target delegate type.</target>
+        <target state="translated">기본 매개 변수 값이 대상 대리자 형식과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2149,12 +2149,12 @@
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly">
         <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter {0} has params modifier in lambda but not in target delegate type.</target>
+        <target state="translated">{0} 매개 변수에 람다의 매개 변수 한정자가 있지만 대상 대리자 형식에는 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter has params modifier in lambda but not in target delegate type.</target>
+        <target state="translated">매개 변수에 람다의 매개 변수 한정자가 있지만 대상 대리자 형식에는 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2214,12 +2214,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">이는 '{0}'에 '{1}'을(를) ref-assign하지만 '{1}'은(는) '{0}'보다 더 넓은 값 이스케이프 범위를 가지며 '{1}'보다 좁은 이스케이프 범위가 있는 값의 '{0}'을(를) 통한 할당을 허용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
         <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
-        <target state="new">This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</target>
+        <target state="translated">이는 대상보다 더 넓은 값 이스케이프 범위를 가지는 값을 ref-assign하며 더 좁은 이스케이프 범위가 있는 값의 대상을 통한 할당을 허용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -5302,7 +5302,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
-        <target state="needs-review-translation">속성 또는 인덱서는 out 또는 ref 매개 변수로 전달할 수 없습니다.</target>
+        <target state="translated">참조를 반환하지 않는 속성 또는 인덱서는 out 또는 ref 값으로 사용할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8510,7 +8510,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
-        <target state="translated">비동기 메서드이기 때문에 이 메서드의 반환 식은 '{1}' 형식이 아니라 '{0}' 형식이어야 합니다.</target>
+        <target state="translated">비동기 메서드이므로 반환 식이 '{1}' 형식이 아니라 '{0}' 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9673,7 +9673,7 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
         <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
-        <target state="new">Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</target>
+        <target state="translated">'{0}'은(는) '{1}'을(를) 반환하는 비동기 메서드이므로 반환 키워드 뒤에 개체 식이 있으면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11103,7 +11103,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
         <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
-        <target state="new">Async lambda expression converted to a '{0}' returning delegate cannot return a value</target>
+        <target state="translated">'{0}' 반환 대리자로 변환된 비동기 람다 식은 값을 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

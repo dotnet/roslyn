@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal static class DiagnosticTaggingOptions
 {
     public static readonly Option2<bool> PullDiagnosticTagging = new(
-        "DiagnosticTaggingOptions", "PullDiagnosticTagging", defaultValue: true,
-        new FeatureFlagStorageLocation("Roslyn.PullDiagnosticTagging"));
+        "DiagnosticTaggingOptions", "PullDiagnosticTagging", defaultValue: true);
 }
 
 /// <summary>

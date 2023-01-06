@@ -53,5 +53,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         public TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
             => this.GetLanguageServices(language).GetRequiredService<TLanguageService>();
+
+        internal IEnumerable<T> FindLanguageServices<T>(HostWorkspaceServices.MetadataFilter filter)
+            => _services.FindLanguageServices<T>(filter);
     }
 }
