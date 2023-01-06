@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: result,
                     whenNullOpt: null,
                     id: conditionalLeft.Id,
-                    conditionalLeft.ForceCopyOfNullableValueType,
+                    forceCopyOfNullableValueType: conditionalLeft.ForceCopyOfNullableValueType,
                     type: result.Type
                 );
             }
