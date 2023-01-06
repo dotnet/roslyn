@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Experimental
+namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
 {
-    public static partial class ExperimentalApis
+    internal static partial class GeneratorExtensions
     {
         public static void RegisterHostOutput<TSource>(ref this IncrementalGeneratorInitializationContext @this, IncrementalValuesProvider<TSource> source, Action<HostProductionContext, TSource, CancellationToken> action)
         {
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Experimental
         public static ImmutableArray<(string Key, string Value)> GetHostOutputs(this GeneratorRunResult runResult) => runResult.HostOutputs;
     }
 
-    public readonly struct HostProductionContext
+    internal readonly struct HostProductionContext
     {
         internal readonly ArrayBuilder<(string, string)> Outputs;
 

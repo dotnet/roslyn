@@ -165,8 +165,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestDiscoveryWorker", "src\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj", "{FB617466-C4A1-4289-A512-A06182FC779F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Experimental", "src\Compilers\Core\Experimental\Microsoft.CodeAnalysis.Experimental.csproj", "{C5968646-6AFF-4414-928C-2524CC43FABE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -425,10 +423,6 @@ Global
 		{FB617466-C4A1-4289-A512-A06182FC779F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB617466-C4A1-4289-A512-A06182FC779F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB617466-C4A1-4289-A512-A06182FC779F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5968646-6AFF-4414-928C-2524CC43FABE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5968646-6AFF-4414-928C-2524CC43FABE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5968646-6AFF-4414-928C-2524CC43FABE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5968646-6AFF-4414-928C-2524CC43FABE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -505,7 +499,6 @@ Global
 		{48C93F90-8776-4847-96D8-127B896D6C80} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{F3D9264A-7CAE-4265-AF48-0C863301F51E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{FB617466-C4A1-4289-A512-A06182FC779F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
-		{C5968646-6AFF-4414-928C-2524CC43FABE} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

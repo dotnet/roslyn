@@ -8,12 +8,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Experimental;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using TOutput = System.Collections.Immutable.ImmutableArray<(string, string)>;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
 {
     internal sealed class HostOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<TOutput>
     {
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis
         {
             // get our own state table
             Debug.Assert(context.TableBuilder is not null);
-            var table = context.TableBuilder.GetLatestStateTableForNode(this);
+            var table = context.TableBuilder!.GetLatestStateTableForNode(this);
 
             // add each non-removed entry to the context
             foreach (var (list, state, _, _) in table)
