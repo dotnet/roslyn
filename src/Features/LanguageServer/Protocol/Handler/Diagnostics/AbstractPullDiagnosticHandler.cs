@@ -141,8 +141,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // the updated diagnostics are.
             var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, out var removedResults);
 
-            throw new Exception("test");
-
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
             HandleRemovedDocuments(context, removedResults, progress);
