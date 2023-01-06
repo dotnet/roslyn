@@ -3465,7 +3465,7 @@ Si le spécificateur de format "d" est utilisé sans autres spécificateurs de f
       </trans-unit>
       <trans-unit id="else_statement">
         <source>else statement</source>
-        <target state="new">else statement</target>
+        <target state="translated">instruction else</target>
         <note />
       </trans-unit>
       <trans-unit id="embedded">

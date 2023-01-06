@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_solution">
         <source>Enable nullable reference types in solution</source>
-        <target state="new">Enable nullable reference types in solution</target>
+        <target state="translated">Çözümdeki null atanabilir başvuru türlerini etkinleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Global_using_directives">

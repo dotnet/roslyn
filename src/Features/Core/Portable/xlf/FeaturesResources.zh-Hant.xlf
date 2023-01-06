@@ -3465,7 +3465,7 @@ If the "d" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="else_statement">
         <source>else statement</source>
-        <target state="new">else statement</target>
+        <target state="translated">else 陳述式</target>
         <note />
       </trans-unit>
       <trans-unit id="embedded">
