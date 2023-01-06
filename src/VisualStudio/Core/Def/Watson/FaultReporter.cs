@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
@@ -130,6 +131,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                             {
                                 faultUtility.AddFile(path);
                             }
+
+                            foreach (var loghubPath in CollectLogHubFilePaths())
+                            {
+                                faultUtility.AddFile(loghubPath);
+                            }
                         }
 
                         // Returning "0" signals that, if sampled, we should send data to Watson. 
@@ -195,14 +201,48 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return exception.Message;
         }
 
-        private static List<string> CollectServiceHubLogFilePaths()
+        private static IList<string> CollectLogHubFilePaths()
+        {
+            try
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), "VSLogs");
+                var logs = CollectFilePaths(logPath, "*.svclog", (name) => !name.Contains("Roslyn") && !name.Contains("LSPClient"));
+                return logs;
+            }
+            catch (Exception)
+            {
+                // ignore failures
+            }
+
+            return SpecializedCollections.EmptyList<string>();
+        }
+
+        private static IList<string> CollectServiceHubLogFilePaths()
+        {
+            try
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+                var logs = CollectFilePaths(logPath, "*.log", (name) => !name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
+                        !name.Contains("-CodeLens") &&
+                        !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
+                        !name.Contains("-hub"));
+                return logs;
+            }
+            catch (Exception)
+            {
+                // ignore failures
+            }
+
+            return SpecializedCollections.EmptyList<string>();
+        }
+
+        private static List<string> CollectFilePaths(string logDirectoryPath, string logFileExtension, Func<string, bool> shouldExcludeLogFile)
         {
             var paths = new List<string>();
 
             try
             {
-                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
-                if (!Directory.Exists(logPath))
+                if (!Directory.Exists(logDirectoryPath))
                 {
                     return paths;
                 }
@@ -211,7 +251,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 var now = DateTime.UtcNow;
                 var oneDay = TimeSpan.FromDays(1);
 
-                foreach (var path in Directory.EnumerateFiles(logPath, "*.log"))
+                foreach (var path in Directory.EnumerateFiles(logDirectoryPath, logFileExtension))
                 {
                     try
                     {
@@ -221,10 +261,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // name our services more consistently to simplify filtering
 
                         // filter logs that are not relevant to Roslyn investigation
-                        if (!name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
-                            !name.Contains("-CodeLens") &&
-                            !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
-                            !name.Contains("-hub"))
+                        if (shouldExcludeLogFile(name))
                         {
                             continue;
                         }
