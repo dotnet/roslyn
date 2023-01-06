@@ -41,7 +41,7 @@ if ($reports) {
 
     $Inputs = $reports |% { Resolve-Path -relative $_.FullName }
 
-    if (Split-Path $OutputFile) {
+    if ((Split-Path $OutputFile) -and -not (Test-Path (Split-Path $OutputFile))) {
         New-Item -Type Directory -Path (Split-Path $OutputFile) | Out-Null
     }
 
