@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     foreach (var perLanguageValuedOption in group)
                     {
-                        Debug.Assert(perLanguageValuedOption is IPerLanguageValuedOption);
+                        Debug.Assert(perLanguageValuedOption.IsPerLanguage);
                         multipleLanguagesOptionsBuilder.Add(perLanguageValuedOption);
                     }
                 }

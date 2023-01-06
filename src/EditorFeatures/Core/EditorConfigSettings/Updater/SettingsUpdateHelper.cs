@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                         _ => throw ExceptionUtilities.UnexpectedValue(singleValuedOption.LanguageName),
                     };
                 }
-                else if (option is IPerLanguageValuedOption perLanguageValuedOption)
+                else if (option.IsPerLanguage)
                 {
                     language = Language.CSharp | Language.VisualBasic;
                 }

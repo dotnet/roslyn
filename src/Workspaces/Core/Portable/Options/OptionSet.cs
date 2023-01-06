@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             var result = GetInternalOptionValue(optionKey);
-            Debug.Assert(!IsInternalOptionValue(result));
+            Debug.Assert(IsPublicOptionValue(result));
             return result;
         }
 
@@ -78,9 +78,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return WithChangedOptionInternal(mappedOptionKey, mapping.UpdateInternalOptionValue(currentValue, value));
             }
 
-            var result = WithChangedOptionInternal(optionAndLanguage, value);
-            Debug.Assert(!IsInternalOptionValue(result));
-            return result;
+            return WithChangedOptionInternal(optionAndLanguage, value);
         }
 
         internal virtual OptionSet WithChangedOptionInternal(OptionKey optionKey, object? internalValue)
@@ -97,5 +95,11 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         internal static bool IsInternalOptionValue(object? value)
             => value is not ICodeStyleOption codeStyle || ReferenceEquals(codeStyle, codeStyle.AsInternalCodeStyleOption());
+
+        /// <summary>
+        /// Checks if the value is an public representation -- does not cover all cases, just code style options.
+        /// </summary>
+        internal static bool IsPublicOptionValue(object? value)
+            => value is not ICodeStyleOption codeStyle || ReferenceEquals(codeStyle, codeStyle.AsPublicCodeStyleOption());
     }
 }
