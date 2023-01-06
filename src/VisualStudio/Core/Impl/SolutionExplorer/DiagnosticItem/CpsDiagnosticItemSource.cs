@@ -37,7 +37,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 if (workspace.CurrentSolution.ContainsProject(projectId))
                 {
                     Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
+                    item.PropertyChanged += IVsHierarchyItem_PropertyChanged;
                 }
+            }
+        }
+
+        private void UnsubscribeFromEvents()
+        {
+            Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+            _item.PropertyChanged -= IVsHierarchyItem_PropertyChanged;
+        }
+
+        private void IVsHierarchyItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // IVsHierarchyItem implements ISupportDisposalNotification, which allows us to know when it's been removed
+            if (e.PropertyName == nameof(ISupportDisposalNotification.IsDisposed))
+            {
+                UnsubscribeFromEvents();
             }
         }
 
@@ -52,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // If the project has gone away in this change, it's not coming back, so we can stop looking at this point
             if (!e.NewSolution.ContainsProject(ProjectId))
             {
-                Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                UnsubscribeFromEvents();
                 return;
             }
 
@@ -63,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
                 if (_analyzerReference != null)
                 {
-                    Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                    UnsubscribeFromEvents();
 
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
                 }
