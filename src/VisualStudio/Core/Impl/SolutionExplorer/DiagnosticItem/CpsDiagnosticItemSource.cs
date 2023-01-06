@@ -31,9 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _analyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
             if (_analyzerReference == null)
             {
-                // The workspace doesn't know about the project and/or the analyzer yet.
-                // Hook up an event handler so we can update when it does.
-                Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
+                // The ProjectId that was given to us was found by enumerating the list of projects in the solution, thus the project must have already
+                // been added to the workspace at some point. As long as the project is still there, we're going to assume the reason we don't have the reference
+                // yet is because while we have a project, we don't have all the references added yet. We'll wait until we see the reference and then connect to it.
+                if (workspace.CurrentSolution.ContainsProject(projectId))
+                {
+                    Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
+                }
             }
         }
 
@@ -45,13 +49,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
         {
-            if (e.Kind is WorkspaceChangeKind.SolutionCleared or
-                WorkspaceChangeKind.SolutionReloaded or
-                WorkspaceChangeKind.SolutionRemoved)
+            // If the project has gone away in this change, it's not coming back, so we can stop looking at this point
+            if (!e.NewSolution.ContainsProject(ProjectId))
             {
                 Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                return;
             }
-            else if (e.Kind == WorkspaceChangeKind.SolutionAdded)
+
+            // Was this a change to our project, or a global change?
+            if (e.ProjectId == ProjectId ||
+                e.Kind == WorkspaceChangeKind.SolutionChanged)
             {
                 _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
                 if (_analyzerReference != null)
@@ -59,24 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
 
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
-                }
-            }
-            else if (e.ProjectId == ProjectId)
-            {
-                if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
-                {
-                    Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
-                }
-                else if (e.Kind is WorkspaceChangeKind.ProjectAdded
-                         or WorkspaceChangeKind.ProjectChanged)
-                {
-                    _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
-                    if (_analyzerReference != null)
-                    {
-                        Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
-
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
-                    }
                 }
             }
         }
