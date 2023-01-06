@@ -10600,13 +10600,13 @@ class Program
         var f1 = (R x1, scoped R y1) => { };
         var f2 = (ref int x2, scoped ref int y2) => { };
         var f3 = (in int x3, scoped in int y3) => { };
-        var f4 = (out int x4, scoped out int y4) => { x4 = 0; y4 = 0; };
+        var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
         var f5 = (ref R x5, scoped ref R y5) => { };
         var f6 = (in R x6, scoped in R y6) => { };
         var f7 = (out R x7, scoped out R y7) => { x7 = default; y7 = default; };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (6,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f1 = (R x1, scoped R y1) => { };
@@ -10618,8 +10618,11 @@ class Program
                 //         var f3 = (in int x3, scoped in int y3) => { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 30),
                 // (9,31): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                //         var f4 = (out int x4, scoped out int y4) => { x4 = 0; y4 = 0; };
+                //         var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 31),
+                // (9,51): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
+                //         var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(9, 51),
                 // (10,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f5 = (ref R x5, scoped ref R y5) => { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 29),
@@ -10631,7 +10634,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 29));
             verify(comp, useUpdatedEscapeRules: false);
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics();
             verify(comp, useUpdatedEscapeRules: true);
 
@@ -10641,27 +10644,28 @@ class Program
                 var model = comp.GetSemanticModel(tree);
                 var delegateTypesAndLambdas = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => getDelegateTypeAndLambda(model, d)).ToArray();
 
-                verifyParameter(delegateTypesAndLambdas[0], 0, "R", "x1", RefKind.None, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[0], 1, "scoped R", "y1", RefKind.None, DeclarationScope.ValueScoped);
-                verifyParameter(delegateTypesAndLambdas[1], 0, "ref System.Int32", "x2", RefKind.Ref, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[1], 1, "scoped ref System.Int32", "y2", RefKind.Ref, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[2], 0, "in System.Int32", "x3", RefKind.In, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[2], 1, "scoped in System.Int32", "y3", RefKind.In, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[3], 0, "out System.Int32", "x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[3], 1, "out System.Int32", "y4", RefKind.Out, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[4], 0, "ref R", "x5", RefKind.Ref, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[4], 1, "scoped ref R", "y5", RefKind.Ref, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[5], 0, "in R", "x6", RefKind.In, DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[5], 1, "scoped in R", "y6", RefKind.In, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[6], 0, "out R", "x7", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[6], 1, "out R", "y7", RefKind.Out, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[0], 0, "R", "x1", RefKind.None, DeclarationScope.Unscoped, false);
+                verifyParameter(delegateTypesAndLambdas[0], 1, "scoped R", "y1", RefKind.None, DeclarationScope.ValueScoped, false);
+                verifyParameter(delegateTypesAndLambdas[1], 0, "ref System.Int32", "x2", RefKind.Ref, DeclarationScope.Unscoped, false);
+                verifyParameter(delegateTypesAndLambdas[1], 1, "scoped ref System.Int32", "y2", RefKind.Ref, DeclarationScope.RefScoped, false);
+                verifyParameter(delegateTypesAndLambdas[2], 0, "in System.Int32", "x3", RefKind.In, DeclarationScope.Unscoped, false);
+                verifyParameter(delegateTypesAndLambdas[2], 1, "scoped in System.Int32", "y3", RefKind.In, DeclarationScope.RefScoped, false);
+                verifyParameter(delegateTypesAndLambdas[3], 0, "out System.Int32", "x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped, false);
+                verifyParameter(delegateTypesAndLambdas[3], 1, "out System.Int32", "y4", RefKind.Out, DeclarationScope.RefScoped, false);
+                verifyParameter(delegateTypesAndLambdas[3], 2, "out System.Int32", "z4", RefKind.Out, DeclarationScope.Unscoped, true);
+                verifyParameter(delegateTypesAndLambdas[4], 0, "ref R", "x5", RefKind.Ref, DeclarationScope.Unscoped, false);
+                verifyParameter(delegateTypesAndLambdas[4], 1, "scoped ref R", "y5", RefKind.Ref, DeclarationScope.RefScoped, false);
+                verifyParameter(delegateTypesAndLambdas[5], 0, "in R", "x6", RefKind.In, DeclarationScope.Unscoped, false);
+                verifyParameter(delegateTypesAndLambdas[5], 1, "scoped in R", "y6", RefKind.In, DeclarationScope.RefScoped, false);
+                verifyParameter(delegateTypesAndLambdas[6], 0, "out R", "x7", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped, false);
+                verifyParameter(delegateTypesAndLambdas[6], 1, "out R", "y7", RefKind.Out, DeclarationScope.RefScoped, false);
             }
 
-            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
+            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope, bool expectedHasUnscopedRefAttribute)
             {
                 var (delegateType, lambda) = delegateTypeAndLambda;
-                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], $"{expectedDisplayType} arg{parameterIndex + 1}", expectedRefKind, expectedScope);
-                VerifyParameterSymbol(lambda.Parameters[parameterIndex], $"{expectedDisplayType} {expectedDisplayName}", expectedRefKind, expectedScope);
+                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], $"{expectedDisplayType} arg{parameterIndex + 1}", expectedRefKind, expectedScope, expectedHasUnscopedRefAttribute);
+                VerifyParameterSymbol(lambda.Parameters[parameterIndex], $"{expectedDisplayType} {expectedDisplayName}", expectedRefKind, expectedScope, expectedHasUnscopedRefAttribute);
             }
 
             static (NamedTypeSymbol, LambdaSymbol) getDelegateTypeAndLambda(SemanticModel model, VariableDeclaratorSyntax decl)
@@ -28092,6 +28096,104 @@ Block[B2] - Exit
     Statements (0)
 ",
                 controlFlowGraph, symbol);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefAttribute_DelegateConversion_01()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R { }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var a = ([UnscopedRef] ref int x1, ref int y1) => ref y1;
+                        var b = ([UnscopedRef] ref int x2, R y2) => y2;
+                        var c = ([UnscopedRef] ref int x3, ref R y3) => { };
+                        var d = ([UnscopedRef] out int x4) => { x4 = 0; return ref x4; };
+                        var e = ([UnscopedRef] ref int x5) => x5;
+                        var f = ([UnscopedRef] ref int x6) => ref x6;
+                        var g = ref readonly int ([UnscopedRef] in int x7) => ref x7;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefAttribute_DelegateConversion_02()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R { }
+                class Program
+                {
+                    static ref int F1(ref int y1, [UnscopedRef] ref int x1) => ref y1;
+                    static R F2(R y2, [UnscopedRef] ref int x2) => y2;
+                    static void F3(ref R y3, [UnscopedRef] ref int x3) { }
+                    static ref int F4([UnscopedRef] out int x4) { x4 = 0; return ref x4; }
+                    static int F5([UnscopedRef] ref int x5) => x5;
+                    static ref int F6([UnscopedRef] ref int x6) => ref x6;
+                    static ref readonly int F7([UnscopedRef] in int x7) => ref x7;
+                    static void Main()
+                    {
+                        var a = F1;
+                        var b = F2;
+                        var c = F3;
+                        var d = F4;
+                        var e = F5;
+                        var f = F6;
+                        var g = F7;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefAttribute_DelegateConversion_03()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static ref int F1(ref int x, ref int y) => ref x;
+                    static ref int F2(ref int x, [UnscopedRef] ref int y) => ref x;
+                    static ref int F3([UnscopedRef] ref int x, [UnscopedRef] ref int y) => ref x;
+                    static void Main()
+                    {
+                        var d1 = F1;
+                        var d2 = F2;
+                        var d3 = F3;
+                        d1 = F2; // 1
+                        d1 = F3; // 2, 3
+                        d2 = F1;
+                        d2 = F3; // 4
+                        d3 = F1;
+                        d2 = F2;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (12,14): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target '<anonymous delegate>'.
+                //         d1 = F2; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F2").WithArguments("y", "<anonymous delegate>").WithLocation(12, 14),
+                // (13,14): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target '<anonymous delegate>'.
+                //         d1 = F3; // 2, 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F3").WithArguments("x", "<anonymous delegate>").WithLocation(13, 14),
+                // (13,14): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target '<anonymous delegate>'.
+                //         d1 = F3; // 2, 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F3").WithArguments("y", "<anonymous delegate>").WithLocation(13, 14),
+                // (15,14): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target '<anonymous delegate>'.
+                //         d2 = F3; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F3").WithArguments("x", "<anonymous delegate>").WithLocation(15, 14));
         }
 
         [Fact, WorkItem(64045, "https://github.com/dotnet/roslyn/issues/64045")]
