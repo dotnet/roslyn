@@ -43,6 +43,16 @@ namespace Microsoft.CodeAnalysis.TaskList
                     !string.IsNullOrWhiteSpace(token) &&
                     int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var integer))
                 {
+                    // From:
+                    // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Shims/TaskListOptions.cs&version=GBmain&line=133&lineEnd=134&lineStartColumn=1&lineEndColumn=98&lineStyle=plain&_a=contents
+#if false
+                    // I've no idea why the strange conversion (legacy mapping from __VSERRORCATEGORY?).
+                    private static int EncodedValueFromPriority(CommentTaskPriority p) { return 3 - (int)p; }
+                    private static CommentTaskPriority PriorityFromEncodedValue(int v) { return (CommentTaskPriority)(3 - v); }
+#endif
+                    // In other words, the actual VS enum here goes from high-to-low priority, but the values are
+                    // encoded low-to-high. So we undo this conversion to map from the encoded priority values to what
+                    // they represent.
                     var priority = integer switch
                     {
                         1 => TaskListItemPriority.Low,
