@@ -249,14 +249,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        var parameterType = (expanded && parameter is { IsParams: true, Type: ArrayTypeSymbol { IsSZArray: true } arrayType }) ? arrayType.ElementType : parameter.Type;
-
-                        // An enum constant as an object attribute argument triggers serialization of the enum's type.
+                        // An enum constant as an object or object[] attribute argument triggers serialization of the enum's type.
                         // This would fail for enums nested in a type referencing a function pointer, because
                         // function pointer serialization is not supported, see https://github.com/dotnet/roslyn/issues/48765.
-                        if (parameterType.IsObjectType() &&
-                            boundConstructorArguments[i] is BoundConversion conv &&
-                            conv.Operand.Type is { } type && type.IsEnumType() && type.ContainsFunctionPointer())
+                        if (InvalidAttributeConstructorArgument.ContainsInvalidConstant(boundConstructorArguments[i]))
                         {
                             diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, boundConstructorArguments[i].Syntax.Location);
                         }
@@ -289,6 +285,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind,
                 attributeType,
                 hasErrors: resultKind != LookupResultKind.Viable);
+        }
+
+        /// <summary>
+        /// Finds enum constant converted to object or object[] with function pointer in the enum's type.
+        /// </summary>
+        private sealed class InvalidAttributeConstructorArgument : BoundTreeWalker
+        {
+            public bool FoundInvalidConstant { get; private set; }
+
+            public static bool ContainsInvalidConstant(BoundExpression expression)
+            {
+                var walker = new InvalidAttributeConstructorArgument();
+                walker.Visit(expression);
+                return walker.FoundInvalidConstant;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            public override BoundNode? Visit(BoundNode node)
+            {
+                if (FoundInvalidConstant)
+                {
+                    return null;
+                }
+
+                return base.Visit(node);
+            }
+
+            public override BoundNode? VisitConversion(BoundConversion node)
+            {
+                if ((node.Type.IsObjectType() || (node.Type is ArrayTypeSymbol arrayType && arrayType.ElementType.IsObjectType())) &&
+                    node.Operand.Type is { } type && type.ContainsEnumWithFunctionPointer())
+                {
+                    FoundInvalidConstant = true;
+                    return null;
+                }
+
+                return base.VisitConversion(node);
+            }
+        }
+
+        /// <summary>
+        /// Finds enum constant with function pointer in the enum's type.
+        /// </summary>
+        private sealed class InvalidAttributeNamedArgument : BoundTreeWalker
+        {
+            public bool FoundInvalidConstant { get; private set; }
+
+            public static bool ContainsInvalidConstant(BoundExpression expression)
+            {
+                var walker = new InvalidAttributeNamedArgument();
+                walker.Visit(expression);
+                return walker.FoundInvalidConstant;
+            }
+
+            protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            public override BoundNode? Visit(BoundNode node)
+            {
+                if (FoundInvalidConstant)
+                {
+                    return null;
+                }
+
+                if (node is BoundExpression { Type: { } type } && type.ContainsEnumWithFunctionPointer())
+                {
+                    FoundInvalidConstant = true;
+                    return null;
+                }
+
+                return base.Visit(node);
+            }
         }
 
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, BindingDiagnosticBag diagnostics)
@@ -560,17 +634,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // BindRValue just binds the expression without doing any validation (if its a valid expression for attribute argument).
             // Validation is done later by AttributeExpressionVisitor
             BoundExpression namedArgumentValue = this.BindValue(namedArgument.Expression, diagnostics, BindValueKind.RValue);
+            namedArgumentValue = GenerateConversionForAssignment(namedArgumentType, namedArgumentValue, diagnostics);
 
             // An enum constant as a named attribute argument triggers serialization of the enum's type.
             // This would fail for enums nested in a type referencing a function pointer, because
             // function pointer serialization is not supported, see https://github.com/dotnet/roslyn/issues/48765.
-            var valueType = namedArgumentValue.Type ?? namedArgumentType;
-            if (valueType.IsEnumType() && valueType.ContainsFunctionPointer())
+            if (InvalidAttributeNamedArgument.ContainsInvalidConstant(namedArgumentValue))
             {
                 diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, namedArgument.Expression.Location);
             }
-
-            namedArgumentValue = GenerateConversionForAssignment(namedArgumentType, namedArgumentValue, diagnostics);
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;

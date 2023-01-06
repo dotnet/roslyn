@@ -1191,6 +1191,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
         /// <summary>
+        /// Returns true if the type contains any enum which contains any function pointer in its type,
+        /// for example <c><![CDATA[Class<delegate*<void>>.Enum[]]]></c>
+        /// </summary>
+        internal static bool ContainsEnumWithFunctionPointer(this TypeSymbol type) =>
+            type.VisitType((TypeSymbol t, object? _, bool _) => t.IsEnumType() && t.ContainsFunctionPointer(), null) is not null;
+
+        /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
         /// If the type itself is not an error type, then it will be returned.
         /// Otherwise, the underlying type (if any) of the error type will be
