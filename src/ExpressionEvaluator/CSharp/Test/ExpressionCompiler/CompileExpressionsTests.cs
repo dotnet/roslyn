@@ -1060,12 +1060,20 @@ class Program
                 """,
                 format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
 
-            WithRuntimeInstance(
-                comp,
-                references: null,
-                includeLocalSignatures: true,
-                includeIntrinsicAssembly: false,
-                validator: runtime =>
+            // Disable testing with DebugInformationFormat.Pdb format for now (see https://github.com/dotnet/roslyn/issues/66260).
+            //WithRuntimeInstance(
+            //    comp,
+            //    references: null,
+            //    includeLocalSignatures: true,
+            //    includeIntrinsicAssembly: false,
+            //    validator: runtime =>
+            {
+                using (var runtime = RuntimeInstance.Create(
+                    comp,
+                    references: null,
+                    Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb,
+                    includeLocalSignatures: true,
+                    includeIntrinsicAssembly: false))
                 {
                     GetContextState(runtime, "Program..ctor", out var blocks, out var moduleVersionId, out var symReader, out var methodToken, out var localSignatureToken);
 
@@ -1106,11 +1114,11 @@ class Program
                     Assert.Equal(2, locals.Count);
                     VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt: """
                         {
-                          // Code size        2 (0x2)
-                          .maxstack  1
-                          .locals init (int V_0) //z
-                          IL_0000:  ldarg.0
-                          IL_0001:  ret
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldarg.0
+                            IL_0001:  ret
                         }
                         """);
                     VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt: """
@@ -1122,7 +1130,8 @@ class Program
                             IL_0001:  ret
                         }
                         """);
-                });
+                }
+            }
         }
     }
 }

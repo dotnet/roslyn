@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Use_nameof">
         <source>Use 'nameof'</source>
-        <target state="new">Use 'nameof'</target>
+        <target state="translated">Usar 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_new">

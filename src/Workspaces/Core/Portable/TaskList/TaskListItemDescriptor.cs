@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             {
                 if (item.Split(':') is [var token, var priorityString] &&
                     !string.IsNullOrWhiteSpace(token) &&
-                    int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var integer))
+                    int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var encoded))
                 {
                     // From:
                     // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Shims/TaskListOptions.cs&version=GBmain&line=133&lineEnd=134&lineStartColumn=1&lineEndColumn=98&lineStyle=plain&_a=contents
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.TaskList
                     // In other words, the actual VS enum here goes from high-to-low priority, but the values are
                     // encoded low-to-high. So we undo this conversion to map from the encoded priority values to what
                     // they represent.
-                    var priority = integer switch
+                    var priority = encoded switch
                     {
                         1 => TaskListItemPriority.Low,
                         2 => TaskListItemPriority.Medium,
