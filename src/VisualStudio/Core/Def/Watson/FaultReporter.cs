@@ -240,49 +240,42 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             var paths = new List<string>();
 
-            try
+            if (!Directory.Exists(logDirectoryPath))
             {
-                if (!Directory.Exists(logDirectoryPath))
-                {
-                    return paths;
-                }
-
-                // attach all log files that are modified less than 1 day before.
-                var now = DateTime.UtcNow;
-                var oneDay = TimeSpan.FromDays(1);
-
-                foreach (var path in Directory.EnumerateFiles(logDirectoryPath, logFileExtension))
-                {
-                    try
-                    {
-                        var name = Path.GetFileNameWithoutExtension(path);
-
-                        // TODO: https://github.com/dotnet/roslyn/issues/42582 
-                        // name our services more consistently to simplify filtering
-
-                        // filter logs that are not relevant to Roslyn investigation
-                        if (shouldExcludeLogFile(name))
-                        {
-                            continue;
-                        }
-
-                        var lastWrite = File.GetLastWriteTimeUtc(path);
-                        if (now - lastWrite > oneDay)
-                        {
-                            continue;
-                        }
-
-                        paths.Add(path);
-                    }
-                    catch
-                    {
-                        // ignore file that can't be accessed
-                    }
-                }
+                return paths;
             }
-            catch (Exception)
+
+            // attach all log files that are modified less than 1 day before.
+            var now = DateTime.UtcNow;
+            var oneDay = TimeSpan.FromDays(1);
+
+            foreach (var path in Directory.EnumerateFiles(logDirectoryPath, logFileExtension))
             {
-                // ignore failures
+                try
+                {
+                    var name = Path.GetFileNameWithoutExtension(path);
+
+                    // TODO: https://github.com/dotnet/roslyn/issues/42582 
+                    // name our services more consistently to simplify filtering
+
+                    // filter logs that are not relevant to Roslyn investigation
+                    if (shouldExcludeLogFile(name))
+                    {
+                        continue;
+                    }
+
+                    var lastWrite = File.GetLastWriteTimeUtc(path);
+                    if (now - lastWrite > oneDay)
+                    {
+                        continue;
+                    }
+
+                    paths.Add(path);
+                }
+                catch
+                {
+                    // ignore file that can't be accessed
+                }
             }
 
             return paths;
