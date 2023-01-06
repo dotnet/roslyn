@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal sealed override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal sealed override ScopedKind Scope => ScopedKind.None;
 
         internal sealed override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {

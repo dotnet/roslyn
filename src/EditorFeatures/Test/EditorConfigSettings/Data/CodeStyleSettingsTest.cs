@@ -97,14 +97,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
                 => _dictionary.TryGetValue(key, out value);
         }
-
-        private class TestOptionSet<T> : OptionSet
-        {
-            private readonly object? _value;
-            public TestOptionSet(CodeStyleOption2<T> value) => _value = value;
-            public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value) => this;
-            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet) => Array.Empty<OptionKey>();
-            private protected override object? GetOptionCore(OptionKey optionKey) => _value;
-        }
     }
 }

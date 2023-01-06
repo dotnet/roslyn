@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return rewrittenRight;
                 }
 
-                if (rewrittenLeft.ConstantValue != null)
+                if (rewrittenLeft.ConstantValueOpt != null)
                 {
-                    Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
+                    Debug.Assert(!rewrittenLeft.ConstantValueOpt.IsNull);
 
                     return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftPlaceholder, leftConversion, rewrittenResultType);
                 }
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenType: rewrittenResultType,
                 isRef: false);
 
-            Debug.Assert(conditionalExpression.ConstantValue == null); // we shouldn't have hit this else case otherwise
+            Debug.Assert(conditionalExpression.ConstantValueOpt == null); // we shouldn't have hit this else case otherwise
             Debug.Assert(conditionalExpression.Type!.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             return new BoundSequence(

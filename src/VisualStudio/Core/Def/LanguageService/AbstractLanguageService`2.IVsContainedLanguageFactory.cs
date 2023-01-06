@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -14,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsContainedLanguageFactory
     {
-        private VisualStudioProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
+        private ProjectSystemProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
         {
             // Here we must determine the project that this file's document is to be a part of.
             // Venus creates a separate Project for a .aspx or .ascx file, and so we must associate

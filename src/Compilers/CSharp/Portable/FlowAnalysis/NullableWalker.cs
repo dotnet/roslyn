@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (pendingReturn.IsConditionalState)
                 {
-                    if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                    if (returnStatement.ExpressionOpt is { ConstantValueOpt: { IsBoolean: true, BooleanValue: bool value } })
                     {
                         enforceMemberNotNullWhen(returnStatement.Syntax, sense: value, pendingReturn.State);
                         return;
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                else if (returnStatement.ExpressionOpt is { ConstantValueOpt: { IsBoolean: true, BooleanValue: bool value } })
                 {
                     enforceMemberNotNullWhen(returnStatement.Syntax, sense: value, pendingReturn.State);
                 }
@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (pendingReturn.IsConditionalState)
                 {
-                    if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                    if (returnStatement.ExpressionOpt is { ConstantValueOpt: { IsBoolean: true, BooleanValue: bool value } })
                     {
                         EnforceParameterNotNullWhenOnExit(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
                         return;
@@ -1131,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                else if (returnStatement.ExpressionOpt is { ConstantValueOpt: { IsBoolean: true, BooleanValue: bool value } })
                 {
                     // example: return (bool)true;
                     EnforceParameterNotNullWhenOnExit(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
@@ -2209,7 +2209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (value.ConstantValue?.IsNull == true && !useLegacyWarnings)
+            if (value.ConstantValueOpt?.IsNull == true && !useLegacyWarnings)
             {
                 // Report warning converting null literal to non-nullable reference type.
                 // target (e.g.: `object F() => null;` or calling `void F(object y)` with `F(null)`).
@@ -4450,7 +4450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftType, rightOperand, rightConversion, rightType, binary);
                 if (isKnownNullOrNotNull(rightOperand, rightType))
                 {
-                    var isNullConstant = rightOperand.ConstantValue?.IsNull == true;
+                    var isNullConstant = rightOperand.ConstantValueOpt?.IsNull == true;
                     SetConditionalState(isNullConstant == isEquals(binary)
                         ? (State, stateWhenNotNull)
                         : (stateWhenNotNull, State));
@@ -4492,7 +4492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isKnownNullOrNotNull(BoundExpression expr, TypeWithState resultType)
             {
                 return resultType.State.IsNotNull()
-                    || expr.ConstantValue is object;
+                    || expr.ConstantValueOpt is object;
             }
 
             LocalState getUnconditionalStateWhenNotNull(BoundExpression otherOperand, PossiblyConditionalState conditionalStateWhenNotNull)
@@ -4502,7 +4502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     stateWhenNotNull = conditionalStateWhenNotNull.State;
                 }
-                else if (isEquals(binary) && otherOperand.ConstantValue is { IsBoolean: true, BooleanValue: var boolValue })
+                else if (isEquals(binary) && otherOperand.ConstantValueOpt is { IsBoolean: true, BooleanValue: var boolValue })
                 {
                     // can preserve conditional state from `.TryGetValue` in `dict?.TryGetValue(key, out value) == true`,
                     // but not in `dict?.TryGetValue(key, out value) != false`
@@ -4534,7 +4534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftResult, rightOperand, rightConversion, rightType: ResultType, binary);
 
                     var stateWhenNotNull = getUnconditionalStateWhenNotNull(leftOperand, conditionalStateWhenNotNull);
-                    var isNullConstant = leftOperand.ConstantValue?.IsNull == true;
+                    var isNullConstant = leftOperand.ConstantValueOpt?.IsNull == true;
                     SetConditionalState(isNullConstant == isEquals(binary)
                         ? (State, stateWhenNotNull)
                         : (stateWhenNotNull, State));
@@ -4549,7 +4549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // `(x != null) == true`
-                if (IsConditionalState && binary.Right.ConstantValue is { IsBoolean: true } rightConstant)
+                if (IsConditionalState && binary.Right.ConstantValueOpt is { IsBoolean: true } rightConstant)
                 {
                     var (stateWhenTrue, stateWhenFalse) = (StateWhenTrue.Clone(), StateWhenFalse.Clone());
                     Unsplit();
@@ -4560,7 +4560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : (stateWhenFalse, stateWhenTrue));
                 }
                 // `true == (x != null)`
-                else if (binary.Left.ConstantValue is { IsBoolean: true } leftConstant)
+                else if (binary.Left.ConstantValueOpt is { IsBoolean: true } leftConstant)
                 {
                     Unsplit();
                     Visit(binary.Right);
@@ -4731,11 +4731,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // learn from null constant
                 BoundExpression? operandComparedToNull = null;
-                if (binary.Right.ConstantValue?.IsNull == true)
+                if (binary.Right.ConstantValueOpt?.IsNull == true)
                 {
                     operandComparedToNull = binary.Left;
                 }
-                else if (binary.Left.ConstantValue?.IsNull == true)
+                else if (binary.Left.ConstantValueOpt?.IsNull == true)
                 {
                     operandComparedToNull = binary.Right;
                 }
@@ -4940,7 +4940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void LearnFromNullTest(BoundExpression expression, ref LocalState state)
         {
             // nothing to learn about a constant
-            if (expression.ConstantValue != null)
+            if (expression.ConstantValueOpt != null)
                 return;
 
             // We should not blindly strip conversions here. Tracked by https://github.com/dotnet/roslyn/issues/36164
@@ -5094,7 +5094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Unsplit();
             LearnFromNullTest(leftOperand, ref this.State);
 
-            bool leftIsConstant = leftOperand.ConstantValue != null;
+            bool leftIsConstant = leftOperand.ConstantValueOpt != null;
             if (leftIsConstant)
             {
                 SetUnreachable();
@@ -5249,7 +5249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentConditionalReceiverVisitResult = _visitResult;
             var previousConditionalAccessSlot = _lastConditionalAccessSlot;
 
-            if (receiver.ConstantValue is { IsNull: false })
+            if (receiver.ConstantValueOpt is { IsNull: false })
             {
                 // Consider a scenario like `"a"?.M0(x = 1)?.M0(y = 1)`.
                 // We can "know" that `.M0(x = 1)` was evaluated unconditionally but not `M0(y = 1)`.
@@ -5806,13 +5806,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // comparing anything to a null literal gives maybe-null when true and not-null when false
                 // comparing a maybe-null to a not-null gives us not-null when true, nothing learned when false
-                if (left.ConstantValue?.IsNull == true)
+                if (left.ConstantValueOpt?.IsNull == true)
                 {
                     Split();
                     LearnFromNullTest(right, ref StateWhenTrue);
                     LearnFromNonNullTest(right, ref StateWhenFalse);
                 }
-                else if (right.ConstantValue?.IsNull == true)
+                else if (right.ConstantValueOpt?.IsNull == true)
                 {
                     Split();
                     LearnFromNullTest(left, ref StateWhenTrue);
@@ -5889,7 +5889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var comparand = compareExchangeInfo.Arguments[comparandIndex];
             var valueFlowState = compareExchangeInfo.Results[valueIndex].RValueType.State;
-            if (comparand.ConstantValue?.IsNull == true)
+            if (comparand.ConstantValueOpt?.IsNull == true)
             {
                 // If location contained a null, then the write `location = value` definitely occurred
             }
@@ -7062,7 +7062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DefaultLiteral:
                     case BoundKind.DefaultExpression:
                     case BoundKind.Literal:
-                        return expr.ConstantValue == ConstantValue.NotAvailable || !expr.ConstantValue.IsNull || expr.IsSuppressed ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+                        return expr.ConstantValueOpt == ConstantValue.NotAvailable || !expr.ConstantValueOpt.IsNull || expr.IsSuppressed ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
                     case BoundKind.ExpressionWithNullability:
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:
@@ -7257,7 +7257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            if (value.Type is null || value.Type.IsDynamic() || value.ConstantValue != null)
+            if (value.Type is null || value.Type.IsDynamic() || value.ConstantValueOpt != null)
             {
                 return true;
             }
@@ -10634,7 +10634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var result = base.VisitLiteral(node);
-            SetResultType(node, TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeDefault : NullableFlowState.NotNull));
+            SetResultType(node, TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValueOpt?.IsNull == true ? NullableFlowState.MaybeDefault : NullableFlowState.NotNull));
             return result;
         }
 
@@ -10738,7 +10738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             VisitRvalue(node.Argument);
             // https://github.com/dotnet/roslyn/issues/31018: Check for delegate mismatch.
-            if (node.Argument.ConstantValue?.IsNull != true
+            if (node.Argument.ConstantValueOpt?.IsNull != true
                 && MakeMemberSlot(receiverOpt, @event) is > 0 and var memberSlot)
             {
                 this.State[memberSlot] = node.IsAddition

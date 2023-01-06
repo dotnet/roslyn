@@ -241,11 +241,7 @@ internal partial class SolutionState
                 {
                     using var stream = SerializableBytes.CreateWritableStream();
 
-                    var optionsService = workspace.Services.GetService<IWorkspaceConfigurationService>();
-                    var doNotClone = optionsService != null && optionsService.Options.DisableCloneWhenProducingSkeletonReferences;
-
-                    var compilationToEmit = doNotClone ? compilation : compilation.Clone();
-                    var emitResult = compilationToEmit.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
+                    var emitResult = compilation.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
 
                     if (emitResult.Success)
                     {

@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 default:
-                    if (expr.ConstantValue != null)
+                    if (expr.ConstantValueOpt != null)
                     {
                         return expr;
                     }

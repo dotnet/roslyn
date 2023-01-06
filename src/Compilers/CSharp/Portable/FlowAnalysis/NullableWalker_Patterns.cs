@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (pattern)
             {
                 case BoundConstantPattern cp:
-                    bool isExplicitNullCheck = cp.Value.ConstantValue == ConstantValue.Null;
+                    bool isExplicitNullCheck = cp.Value.ConstantValueOpt == ConstantValue.Null;
                     if (isExplicitNullCheck)
                     {
                         // Since we're not branching on this null test here, we just infer the top level
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        if (w.WhenExpression != null && w.WhenExpression.ConstantValue != ConstantValue.True)
+                        if (w.WhenExpression != null && w.WhenExpression.ConstantValueOpt != ConstantValue.True)
                         {
                             VisitCondition(w.WhenExpression);
                             Debug.Assert(this.IsConditionalState);

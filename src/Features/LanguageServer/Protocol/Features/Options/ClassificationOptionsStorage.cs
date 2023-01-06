@@ -18,14 +18,11 @@ internal static class ClassificationOptionsStorage
         };
 
     public static PerLanguageOption2<bool> ClassifyReassignedVariables =
-        new("ClassificationOptions", "ClassifyReassignedVariables", ClassificationOptions.Default.ClassifyReassignedVariables,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyReassignedVariables"));
+        new("ClassificationOptions", "ClassifyReassignedVariables", ClassificationOptions.Default.ClassifyReassignedVariables);
 
     public static PerLanguageOption2<bool> ColorizeRegexPatterns =
-        new("RegularExpressionsOptions", "ColorizeRegexPatterns", ClassificationOptions.Default.ColorizeRegexPatterns,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
+        new("RegularExpressionsOptions", "ColorizeRegexPatterns", ClassificationOptions.Default.ColorizeRegexPatterns);
 
     public static PerLanguageOption2<bool> ColorizeJsonPatterns =
-        new("JsonFeatureOptions", "ColorizeJsonPatterns", ClassificationOptions.Default.ColorizeJsonPatterns,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeJsonPatterns"));
+        new("JsonFeatureOptions", "ColorizeJsonPatterns", ClassificationOptions.Default.ColorizeJsonPatterns);
 }

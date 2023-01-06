@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -98,7 +99,8 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
             var snapshot = documentSpanToTag.SnapshotSpan.Snapshot;
 
-            var workspace = document.Project.Solution.Workspace;
+            var project = document.Project;
+            var workspace = project.Solution.Workspace;
 
             // See if we've marked any spans as those we want to suppress diagnostics for.
             // This can happen for buffers used in the preview workspace where some feature
@@ -117,9 +119,12 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                 // correct project info to get reasonable results.
                 if (_diagnosticKind != DiagnosticKind.CompilerSyntax)
                 {
+                    var service = project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
+                    if (!await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                        return;
+
                     using var _ = PooledHashSet<Project>.GetInstance(out var seenProjects);
-                    var hasSuccessfullyLoaded = HasSuccessfullyLoaded(document.Project, seenProjects);
-                    if (!hasSuccessfullyLoaded)
+                    if (!HasSuccessfullyLoaded(document.Project, seenProjects))
                         return;
                 }
 

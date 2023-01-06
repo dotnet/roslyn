@@ -40,20 +40,17 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static PerLanguageOption2<bool> UseTabs =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
+                new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space")));
 
         public static PerLanguageOption2<int> TabSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), LineFormattingOptions.Default.TabSize,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                EditorConfigStorageLocation.ForInt32Option("tab_width"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Tab Size")));
+                EditorConfigStorageLocation.ForInt32Option("tab_width")));
 
         public static PerLanguageOption2<int> IndentationSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), LineFormattingOptions.Default.IndentationSize,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                EditorConfigStorageLocation.ForInt32Option("indent_size"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Size")));
+                EditorConfigStorageLocation.ForInt32Option("indent_size")));
 
         public static PerLanguageOption2<string> NewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), LineFormattingOptions.Default.NewLine,
@@ -79,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
         public static PerLanguageOption2<IndentStyle> SmartIndent { get; } =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle,
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Style"));
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle);
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(

@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
+        public Option2(string? feature, OptionGroup group, string? name, T defaultValue)
+            : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
+        {
+        }
+
         public Option2(string? feature, OptionGroup group, string? name, T defaultValue, OptionStorageLocation2 storageLocation)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
         {

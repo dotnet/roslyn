@@ -402,32 +402,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return false;
         }
 
-        internal static ImmutableArray<(OptionKey optionKey, IEditorConfigStorageLocation2 location)> GetCodeStyleOptionsForDiagnostic(
+        internal static ImmutableArray<(OptionKey2 optionKey, IEditorConfigStorageLocation2 location)> GetCodeStyleOptionsForDiagnostic(
             Diagnostic diagnostic,
             Project project)
         {
             if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
             {
-                using var _ = ArrayBuilder<(OptionKey, IEditorConfigStorageLocation2)>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<(OptionKey2, IEditorConfigStorageLocation2)>.GetInstance(out var builder);
 
                 foreach (var option in options.OrderBy(option => option.Name))
                 {
                     var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
                     if (editorConfigLocation != null && option.DefaultValue is ICodeStyleOption codeStyleOption)
                     {
-                        var optionKey = new OptionKey(option, option.IsPerLanguage ? project.Language : null);
+                        var optionKey = new OptionKey2(option, option.IsPerLanguage ? project.Language : null);
                         builder.Add((optionKey, editorConfigLocation));
                         continue;
                     }
 
                     // Did not find a match.
-                    return ImmutableArray<(OptionKey, IEditorConfigStorageLocation2)>.Empty;
+                    return ImmutableArray<(OptionKey2, IEditorConfigStorageLocation2)>.Empty;
                 }
 
                 return builder.ToImmutable();
             }
 
-            return ImmutableArray<(OptionKey, IEditorConfigStorageLocation2)>.Empty;
+            return ImmutableArray<(OptionKey2, IEditorConfigStorageLocation2)>.Empty;
         }
 
         private SourceText? GetNewAnalyzerConfigDocumentText(SourceText originalText, AnalyzerConfigDocument editorConfigDocument)

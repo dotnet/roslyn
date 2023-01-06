@@ -5,8 +5,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -21,9 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption2<NamingStylePreferences>(
             FeatureName, nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
-            new NamingStylePreferenceEditorConfigStorageLocation(),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences5"),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences"));
+            new NamingStylePreferenceEditorConfigStorageLocation());
 
         public static OptionKey2 GetNamingPreferencesOptionKey(string language)
             => new(NamingPreferences, language);

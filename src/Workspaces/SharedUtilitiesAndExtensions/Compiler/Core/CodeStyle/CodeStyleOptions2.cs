@@ -19,52 +19,23 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         internal static ImmutableArray<IOption2> AllOptions { get; }
 
-        private static PerLanguageOption2<T> CreateOption<T>(
-            OptionGroup group, string name, T defaultValue,
-            OptionStorageLocation2 storageLocation)
+        private static PerLanguageOption2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
         {
-            var option = new PerLanguageOption2<T>(
-                "CodeStyleOptions",
-                group, name, defaultValue,
-                ImmutableArray.Create(storageLocation));
-
+            var option = new PerLanguageOption2<T>("CodeStyleOptions", group, name, defaultValue, ImmutableArray.Create<OptionStorageLocation2>(storageLocation));
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
-        private static PerLanguageOption2<T> CreateOption<T>(
-            OptionGroup group, string name, T defaultValue,
-            OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
+        private static PerLanguageOption2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue)
         {
-            var option = new PerLanguageOption2<T>(
-                "CodeStyleOptions",
-                group, name, defaultValue,
-                ImmutableArray.Create(storageLocation1, storageLocation2));
-
+            var option = new PerLanguageOption2<T>("CodeStyleOptions", group, name, defaultValue);
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
-        private static Option2<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+        private static Option2<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigStorageLocation<T> storageLocation)
         {
-            var option = new Option2<T>(
-                "CodeStyleOptions",
-                group, name, defaultValue,
-                ImmutableArray.Create(storageLocation));
-
-            s_allOptionsBuilder.Add(option);
-            return option;
-        }
-
-        private static Option2<T> CreateCommonOption<T>(
-            OptionGroup group, string name, T defaultValue,
-            OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
-        {
-            var option = new Option2<T>(
-                "CodeStyleOptions",
-                group, name, defaultValue,
-                ImmutableArray.Create(storageLocation1, storageLocation2));
-
+            var option = new Option2<T>("CodeStyleOptions", group, name, defaultValue, ImmutableArray.Create<OptionStorageLocation2>(storageLocation));
             s_allOptionsBuilder.Add(option);
             return option;
         }
@@ -81,19 +52,17 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private static PerLanguageOption2<CodeStyleOption2<bool>> CreateOption(
             OptionGroup group, string name, CodeStyleOption2<bool> defaultValue,
-            string editorconfigKeyName, string roamingProfileStorageKeyName)
+            string editorconfigKeyName)
             => CreateOption(
                 group, name, defaultValue,
-                EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue),
-                new RoamingProfileStorageLocation(roamingProfileStorageKeyName));
+                EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue));
 
         private static PerLanguageOption2<CodeStyleOption2<bool>> CreateQualifyAccessOption(string optionName, string editorconfigKeyName)
             => CreateOption(
                 CodeStyleOptionGroups.ThisOrMe,
                 optionName,
                 defaultValue: SimplifierOptions.DefaultQualifyAccess,
-                editorconfigKeyName,
-                $"TextEditor.%LANGUAGE%.Specific.{optionName}");
+                editorconfigKeyName: editorconfigKeyName);
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
@@ -125,8 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = CreateOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage, nameof(PreferIntrinsicPredefinedTypeKeywordInDeclaration),
             defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
-            "dotnet_style_predefined_type_for_locals_parameters_members",
-            "TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInDeclaration.CodeStyle");
+            editorconfigKeyName: "dotnet_style_predefined_type_for_locals_parameters_members");
 
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Member Access Expression
@@ -134,26 +102,22 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = CreateOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage, nameof(PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
             defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
-            "dotnet_style_predefined_type_for_member_access",
-            "TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.CodeStyle");
+            editorconfigKeyName: "dotnet_style_predefined_type_for_member_access");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferObjectInitializer = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferObjectInitializer),
             IdeCodeStyleOptions.CommonOptions.Default.PreferObjectInitializer,
-            "dotnet_style_object_initializer",
-            "TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer");
+            "dotnet_style_object_initializer");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCollectionInitializer = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferCollectionInitializer),
             IdeCodeStyleOptions.CommonOptions.Default.PreferCollectionInitializer,
-            "dotnet_style_collection_initializer",
-            "TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer");
+            "dotnet_style_collection_initializer");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedBooleanExpressions = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedBooleanExpressions),
             IdeCodeStyleOptions.CommonOptions.Default.PreferSimplifiedBooleanExpressions,
-            "dotnet_style_prefer_simplified_boolean_expressions",
-            "TextEditor.%LANGUAGE%.Specific.PreferSimplifiedBooleanExpressions");
+            "dotnet_style_prefer_simplified_boolean_expressions");
 
         internal static readonly Option2<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
             CreateCommonOption(
@@ -168,69 +132,58 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCoalesceExpression = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferCoalesceExpression),
             IdeCodeStyleOptions.CommonOptions.Default.PreferCoalesceExpression,
-            "dotnet_style_coalesce_expression",
-            "TextEditor.%LANGUAGE%.Specific.PreferCoalesceExpression");
+            "dotnet_style_coalesce_expression");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNullPropagation = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNullPropagation),
             IdeCodeStyleOptions.CommonOptions.Default.PreferNullPropagation,
-            "dotnet_style_null_propagation",
-            "TextEditor.%LANGUAGE%.Specific.PreferNullPropagation");
+            "dotnet_style_null_propagation");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferExplicitTupleNames = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferExplicitTupleNames),
             IdeCodeStyleOptions.CommonOptions.Default.PreferExplicitTupleNames,
-            "dotnet_style_explicit_tuple_names",
-            "TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames");
+            "dotnet_style_explicit_tuple_names");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferAutoProperties = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferAutoProperties),
             IdeCodeStyleOptions.CommonOptions.Default.PreferAutoProperties,
-            "dotnet_style_prefer_auto_properties",
-            "TextEditor.%LANGUAGE%.Specific.PreferAutoProperties");
+            "dotnet_style_prefer_auto_properties");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferInferredTupleNames = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferInferredTupleNames),
             IdeCodeStyleOptions.CommonOptions.Default.PreferInferredTupleNames,
-            "dotnet_style_prefer_inferred_tuple_names",
-            $"TextEditor.%LANGUAGE%.Specific.{nameof(PreferInferredTupleNames)}");
+            "dotnet_style_prefer_inferred_tuple_names");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferInferredAnonymousTypeMemberNames = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferInferredAnonymousTypeMemberNames),
             IdeCodeStyleOptions.CommonOptions.Default.PreferInferredAnonymousTypeMemberNames,
-            "dotnet_style_prefer_inferred_anonymous_type_member_names",
-            $"TextEditor.%LANGUAGE%.Specific.PreferInferredAnonymousTypeMemberNames");
+            "dotnet_style_prefer_inferred_anonymous_type_member_names");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIsNullCheckOverReferenceEqualityMethod = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferIsNullCheckOverReferenceEqualityMethod),
             IdeCodeStyleOptions.CommonOptions.Default.PreferIsNullCheckOverReferenceEqualityMethod,
-            "dotnet_style_prefer_is_null_check_over_reference_equality_method",
-            $"TextEditor.%LANGUAGE%.Specific.PreferIsNullCheckOverReferenceEqualityMethod");
+            "dotnet_style_prefer_is_null_check_over_reference_equality_method");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferConditionalExpressionOverAssignment = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferConditionalExpressionOverAssignment),
             IdeCodeStyleOptions.CommonOptions.Default.PreferConditionalExpressionOverAssignment,
-            "dotnet_style_prefer_conditional_expression_over_assignment",
-            "TextEditor.%LANGUAGE%.Specific.PreferConditionalExpressionOverAssignment");
+            "dotnet_style_prefer_conditional_expression_over_assignment");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferConditionalExpressionOverReturn = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferConditionalExpressionOverReturn),
             IdeCodeStyleOptions.CommonOptions.Default.PreferConditionalExpressionOverReturn,
-            "dotnet_style_prefer_conditional_expression_over_return",
-            "TextEditor.%LANGUAGE%.Specific.PreferConditionalExpressionOverReturn");
+            "dotnet_style_prefer_conditional_expression_over_return");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCompoundAssignment = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             nameof(PreferCompoundAssignment),
             IdeCodeStyleOptions.CommonOptions.Default.PreferCompoundAssignment,
-            "dotnet_style_prefer_compound_assignment",
-            "TextEditor.%LANGUAGE%.Specific.PreferCompoundAssignment");
+            "dotnet_style_prefer_compound_assignment");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedInterpolation = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedInterpolation),
             IdeCodeStyleOptions.CommonOptions.Default.PreferSimplifiedInterpolation,
-            "dotnet_style_prefer_simplified_interpolation",
-            $"TextEditor.%LANGUAGE%.Specific.PreferSimplifiedInterpolation");
+            "dotnet_style_prefer_simplified_interpolation");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<UnusedParametersPreference>> UnusedParameters = CreateOption(
             CodeStyleOptionGroups.Parameter,
@@ -239,8 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             new EditorConfigStorageLocation<CodeStyleOption2<UnusedParametersPreference>>(
                     "dotnet_code_quality_unused_parameters",
                     s => ParseUnusedParametersPreference(s, IdeCodeStyleOptions.CommonOptions.Default.UnusedParameters),
-                    o => GetUnusedParametersPreferenceEditorConfigString(o, IdeCodeStyleOptions.CommonOptions.Default.UnusedParameters)),
-            new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference"));
+                    o => GetUnusedParametersPreferenceEditorConfigString(o, IdeCodeStyleOptions.CommonOptions.Default.UnusedParameters)));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<AccessibilityModifiersRequired>> AccessibilityModifiersRequired =
             CreateOption(
@@ -249,14 +201,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>(
                     "dotnet_style_require_accessibility_modifiers",
                     s => ParseAccessibilityModifiersRequired(s, IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired),
-                    v => GetAccessibilityModifiersRequiredEditorConfigString(v, IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired)),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RequireAccessibilityModifiers"));
+                    v => GetAccessibilityModifiersRequiredEditorConfigString(v, IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired)));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferReadonly = CreateOption(
             CodeStyleOptionGroups.Field, nameof(PreferReadonly),
             IdeCodeStyleOptions.CommonOptions.Default.PreferReadonly,
-            "dotnet_style_readonly_field",
-            "TextEditor.%LANGUAGE%.Specific.PreferReadonly");
+            "dotnet_style_readonly_field");
 
         internal static readonly Option2<string> FileHeaderTemplate = CreateCommonOption(
             CodeStyleOptionGroups.Usings, nameof(FileHeaderTemplate),
@@ -267,8 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOptionGroups.Suppressions,
             nameof(RemoveUnnecessarySuppressionExclusions),
             IdeCodeStyleOptions.CommonOptions.Default.RemoveUnnecessarySuppressionExclusions,
-            EditorConfigStorageLocation.ForStringOption("dotnet_remove_unnecessary_suppression_exclusions", emptyStringRepresentation: "none"),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveUnnecessarySuppressionExclusions"));
+            EditorConfigStorageLocation.ForStringOption("dotnet_remove_unnecessary_suppression_exclusions", emptyStringRepresentation: "none"));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new(new[]
@@ -306,8 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new EditorConfigStorageLocation<CodeStyleOption2<ParenthesesPreference>>(
                     styleName,
                     s => ParseParenthesesPreference(s, defaultValue),
-                    v => GetParenthesesPreferenceEditorConfigString(v, defaultValue)),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference"));
+                    v => GetParenthesesPreferenceEditorConfigString(v, defaultValue)));
         }
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> ArithmeticBinaryParentheses =
@@ -396,26 +344,22 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             nameof(PreferSystemHashCode),
-            IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode,
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode"));
+            IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode);
 
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceAndFolderMatchStructure),
             IdeCodeStyleOptions.CommonOptions.Default.PreferNamespaceAndFolderMatchStructure,
-            editorconfigKeyName: "dotnet_style_namespace_match_folder",
-            roamingProfileStorageKeyName: "TextEditor.%LANGUAGE%.Specific.PreferNamespaceAndFolderMatchStructure");
+            editorconfigKeyName: "dotnet_style_namespace_match_folder");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> AllowMultipleBlankLines = CreateOption(
             CodeStyleOptionGroups.NewLinePreferences, nameof(AllowMultipleBlankLines),
             IdeCodeStyleOptions.CommonOptions.Default.AllowMultipleBlankLines,
-            "dotnet_style_allow_multiple_blank_lines_experimental",
-            "TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines");
+            "dotnet_style_allow_multiple_blank_lines_experimental");
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> AllowStatementImmediatelyAfterBlock = CreateOption(
             CodeStyleOptionGroups.NewLinePreferences, nameof(AllowStatementImmediatelyAfterBlock),
             IdeCodeStyleOptions.CommonOptions.Default.AllowStatementImmediatelyAfterBlock,
-            "dotnet_style_allow_statement_immediately_after_block_experimental",
-            "TextEditor.%LANGUAGE%.Specific.AllowStatementImmediatelyAfterBlock");
+            "dotnet_style_allow_statement_immediately_after_block_experimental");
 
         static CodeStyleOptions2()
         {
