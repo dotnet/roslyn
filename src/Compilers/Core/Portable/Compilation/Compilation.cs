@@ -1764,8 +1764,8 @@ namespace Microsoft.CodeAnalysis
         /// The result is undefined if the compilation contains errors.
         ///
         /// Note that documentation must be processed for best results (<see cref="DocumentationMode"/>).
-        /// Since types in xml docs rely on usings, all usings are assumed to be used when the usage analysis
-        /// wasn't performed on doc comments.
+        /// Types referenced in xml docs are missed when documentation isn't processed.
+        /// Conversely, all usings are assumed to be used when the usage analysis wasn't performed on doc comments.
         /// </summary>
         public abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
 
