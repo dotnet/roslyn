@@ -14,14 +14,12 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
+using static PullDiagnosticConstants;
+
 internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSource<Document>
 {
-    public const string Priority = nameof(Priority);
-    public const string Low = nameof(Low);
-    public const string Medium = nameof(Medium);
-    public const string High = nameof(High);
+    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(TaskItemCustomTag);
 
-    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
     private static readonly ImmutableDictionary<string, string?> s_lowPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Low);
     private static readonly ImmutableDictionary<string, string?> s_mediumPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Medium);
     private static readonly ImmutableDictionary<string, string?> s_highPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, High);

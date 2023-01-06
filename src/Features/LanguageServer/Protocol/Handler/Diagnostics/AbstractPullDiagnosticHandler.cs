@@ -421,13 +421,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private static VSDiagnosticRank? ConvertRank(DiagnosticData diagnosticData)
         {
-            if (diagnosticData.Properties.TryGetValue(TaskListDiagnosticSource.Priority, out var priority))
+            if (diagnosticData.Properties.TryGetValue(PullDiagnosticConstants.Priority, out var priority))
             {
                 return priority switch
                 {
-                    TaskListDiagnosticSource.Low => VSDiagnosticRank.Low,
-                    TaskListDiagnosticSource.Medium => VSDiagnosticRank.Default,
-                    TaskListDiagnosticSource.High => VSDiagnosticRank.High,
+                    PullDiagnosticConstants.Low => VSDiagnosticRank.Low,
+                    PullDiagnosticConstants.Medium => VSDiagnosticRank.Default,
+                    PullDiagnosticConstants.High => VSDiagnosticRank.High,
                     _ => null,
                 };
             }
