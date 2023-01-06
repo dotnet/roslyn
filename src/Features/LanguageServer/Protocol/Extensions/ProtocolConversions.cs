@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
@@ -194,7 +195,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
             var linePositionSpan = RangeToLinePositionSpan(range);
-            return text.Lines.GetTextSpan(linePositionSpan);
+
+            try
+            {
+                return text.Lines.GetTextSpan(linePositionSpan);
+            }
+            // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            {
+                throw;
+            }
         }
 
         public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText oldText)
