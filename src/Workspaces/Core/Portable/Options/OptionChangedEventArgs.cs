@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Options
             Value = value;
         }
 
-        public IOption Option => OptionKey.Option;
+        public IOption2 Option => OptionKey.Option;
         public string? Language => OptionKey.Language;
     }
 }

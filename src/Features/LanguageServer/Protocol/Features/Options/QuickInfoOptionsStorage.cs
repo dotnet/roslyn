@@ -15,12 +15,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
               IncludeNavigationHintsInQuickInfo = globalOptions.GetOption(IncludeNavigationHintsInQuickInfo),
           };
 
-        private const string FeatureName = "QuickInfoOptions";
-
         public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
-            FeatureName, "ShowRemarksInQuickInfo", QuickInfoOptions.Default.ShowRemarksInQuickInfo);
+            "QuickInfoOptions_ShowRemarksInQuickInfo", QuickInfoOptions.Default.ShowRemarksInQuickInfo);
 
         public static readonly Option2<bool> IncludeNavigationHintsInQuickInfo = new(
-            FeatureName, "IncludeNavigationHintsInQuickInfo", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo);
+            "QuickInfoOptions_IncludeNavigationHintsInQuickInfo", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo);
     }
 }

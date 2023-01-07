@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
     {
-        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions", "Solution Crawler", defaultValue: true);
+        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions_Solution Crawler", defaultValue: true);
 
         /// <summary>
         /// nested class of <see cref="SolutionCrawlerRegistrationService"/> since it is tightly coupled with it.

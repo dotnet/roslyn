@@ -19,27 +19,27 @@ internal static class WorkspaceConfigurationOptionsStorage
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees));
 
     public static readonly Option2<StorageDatabase> Database = new(
-        "Storage", "Database", WorkspaceConfigurationOptions.Default.CacheStorage);
+        "Storage_Database", WorkspaceConfigurationOptions.Default.CacheStorage);
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
-        "Storage", "CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
+        "Storage_CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
 
     public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
-        "WorkspaceConfigurationOptions", "DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata);
+        "WorkspaceConfigurationOptions_DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata);
 
     public static readonly Option2<bool> DisableBackgroundCompilation = new(
-        "WorkspaceConfigurationOptions", "DisableBackgroundCompilation", WorkspaceConfigurationOptions.Default.DisableBackgroundCompilation);
+        "WorkspaceConfigurationOptions_DisableBackgroundCompilation", WorkspaceConfigurationOptions.Default.DisableBackgroundCompilation);
 
     public static readonly Option2<bool> DisableSharedSyntaxTrees = new(
-        "WorkspaceConfigurationOptions", "DisableSharedSyntaxTrees", WorkspaceConfigurationOptions.Default.DisableSharedSyntaxTrees);
+        "WorkspaceConfigurationOptions_DisableSharedSyntaxTrees", WorkspaceConfigurationOptions.Default.DisableSharedSyntaxTrees);
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
     /// surprised by this and we want some time to work through those issues.
     /// </summary>
     public static readonly Option2<bool?> EnableOpeningSourceGeneratedFilesInWorkspace = new(
-        "WorkspaceConfigurationOptions", "EnableOpeningSourceGeneratedFilesInWorkspace", defaultValue: null);
+        "WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace", defaultValue: null);
 
     public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
-        "WorkspaceConfigurationOptions", "EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
+        "WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
 }

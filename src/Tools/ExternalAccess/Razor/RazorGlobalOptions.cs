@@ -67,6 +67,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value) => throw new NotImplementedException();
             public void SetGlobalOption(OptionKey2 optionKey, object? value) => throw new NotImplementedException();
             public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options) => throw new NotImplementedException();
+
+            bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+            {
+                value = GetOption<T>(optionKey);
+                return true;
+            }
         }
     }
 }

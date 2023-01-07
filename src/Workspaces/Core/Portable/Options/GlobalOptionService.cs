@@ -101,6 +101,12 @@ namespace Microsoft.CodeAnalysis.Options
             return optionKey.Option.DefaultValue;
         }
 
+        bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+        {
+            value = GetOption<T>(optionKey);
+            return true;
+        }
+
         public T GetOption<T>(Option2<T> option)
             => GetOption<T>(new OptionKey2(option));
 
@@ -137,6 +143,9 @@ namespace Microsoft.CodeAnalysis.Options
 
         private object? GetOption_NoLock(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
         {
+            // The option must be internally defined and it can't be a legacy option whose value is mapped to another option:
+            Debug.Assert(optionKey.Option is IOption2 { Definition.StorageMapping: null });
+
             if (_currentValues.TryGetValue(optionKey, out var value))
             {
                 return value;

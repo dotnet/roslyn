@@ -39,13 +39,20 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
         foreach (var (configName, optionInfo) in optionsInfo)
         {
             var option = optionInfo.Option;
+
+            // skip public options:
+            if (option is IPublicOption)
+            {
+                continue;
+            }
+
+            if (!VisualStudioOptionStorage.Storages.TryGetValue(configName, out var storage))
+            {
+                continue;
+            }
+
             foreach (var language in option.IsPerLanguage ? allLanguages : noLanguages)
             {
-                if (!VisualStudioOptionStorage.Storages.TryGetValue(configName, out var storage))
-                {
-                    continue;
-                }
-
                 var key = new OptionKey2(option, language);
                 var currentValue = globalOptions.GetOption<object?>(key);
 

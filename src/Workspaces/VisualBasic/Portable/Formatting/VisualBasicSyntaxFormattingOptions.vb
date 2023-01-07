@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     <DataContract>
@@ -16,12 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Shared ReadOnly [Default] As New VisualBasicSyntaxFormattingOptions()
 
-        Public Shared Shadows Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSyntaxFormattingOptions) As VisualBasicSyntaxFormattingOptions
+        Public Shared Shadows Function Create(options As IOptionsReader, fallbackOptions As VisualBasicSyntaxFormattingOptions) As VisualBasicSyntaxFormattingOptions
             fallbackOptions = If(fallbackOptions, [Default])
 
             Return New VisualBasicSyntaxFormattingOptions() With
             {
-                .Common = options.GetCommonSyntaxFormattingOptions(fallbackOptions.Common)
+                .Common = options.GetCommonSyntaxFormattingOptions(LanguageNames.VisualBasic, fallbackOptions.Common)
             }
         End Function
 

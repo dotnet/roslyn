@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption<T>(Value, (NotificationOption)notification);
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
             => this is TCodeStyleOption ? this : _codeStyleOptionImpl;
+        ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => _codeStyleOptionImpl;
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => this;
 
         public NotificationOption Notification

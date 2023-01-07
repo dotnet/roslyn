@@ -8,14 +8,12 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteHostOptions
     {
-        private const string FeatureName = "InternalFeatureOnOffOptions";
-
         // use 64bit OOP
-        public static readonly Option2<bool> OOP64Bit = new(FeatureName, "OOP64Bit", defaultValue: true);
+        public static readonly Option2<bool> OOP64Bit = new("InternalFeatureOnOffOptions_OOP64Bit", defaultValue: true);
 
-        public static readonly Option2<bool> OOPServerGCFeatureFlag = new(FeatureName, "OOPServerGCFeatureFlag", defaultValue: false);
+        public static readonly Option2<bool> OOPServerGCFeatureFlag = new("InternalFeatureOnOffOptions_OOPServerGCFeatureFlag", defaultValue: false);
 
         // use coreclr host for OOP
-        public static readonly Option2<bool> OOPCoreClrFeatureFlag = new(FeatureName, "OOPCoreClrFeatureFlag", defaultValue: false);
+        public static readonly Option2<bool> OOPCoreClrFeatureFlag = new("InternalFeatureOnOffOptions_OOPCoreClrFeatureFlag", defaultValue: false);
     }
 }

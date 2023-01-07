@@ -26,8 +26,6 @@ public class LspOptionsTests : AbstractLanguageServerProtocolTests
     }
 
     protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocol
-        .AddAssemblies(Assembly.Load("Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol"))
-        .AddAssemblies(Assembly.Load("Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol"))
         .AddParts(typeof(TestDocumentTrackingService))
         .AddParts(typeof(TestWorkspaceRegistrationService));
 

@@ -9,6 +9,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Options;
 
 internal delegate Optional<object?> TryReadValueDelegate(string storageKey, Type storageType);
 
+/// <summary>
+/// Export an implementation of this interface to instruct <see cref="VisualStudioOptionPersister"/> to read option value
+/// from additional storage locations, if it is not found in the primary storage location specified in <see cref="VisualStudioOptionStorage"/>.
+/// This is only necessary for backward compatibility when an option changes the VS storage location or format.
+/// </summary>
 internal interface IVisualStudioStorageReadFallback
 {
     Optional<object?> TryRead(string? language, TryReadValueDelegate readValue);

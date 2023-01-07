@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     internal sealed class SymbolSearchGlobalOptions
     {
-        public static readonly Option2<bool> Enabled = new("SymbolSearchOptions", "Enabled", defaultValue: true);
+        public static readonly Option2<bool> Enabled = new("SymbolSearchOptions_Enabled", defaultValue: true);
     }
 }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             (CustomPublicOption, false));
 
         public static readonly ImmutableArray<(IOption, object)> PublicAutoFormattingOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
-            (FormattingOptions.SmartIndent, FormattingOptions2.IndentStyle.Block));
+            (FormattingOptions.SmartIndent, FormattingOptions.IndentStyle.Block));
 
         public static readonly ImmutableArray<(IOption, object)> PublicFormattingOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
             (FormattingOptions.UseTabs, true),
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public static IEnumerable<string?> GetApplicableLanguages(IOption option)
-            => (option is IPerLanguageValuedOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+            => option.IsPerLanguage ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
 
         public static object? GetDifferentValue(Type type, object? value)
             => value switch

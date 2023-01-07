@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             //     vsregedit delete local [hive name] HKCU Roslyn\Internal\Performance\FunctionId [function name]
             //
             // If you want to set it for the default hive, use "" as the hive name (i.e. an empty argument)
-            return new(nameof(FunctionIdOptions), name, defaultValue: false);
+            return new("FunctionIdOptions_" + name, defaultValue: false);
         }
 
         private static IEnumerable<FunctionId> GetFunctionIds()
             => Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
 
-        public static IEnumerable<IOption> GetOptions()
+        public static IEnumerable<IOption2> GetOptions()
             => GetFunctionIds().Select(GetOption);
 
         public static Option2<bool> GetOption(FunctionId id)

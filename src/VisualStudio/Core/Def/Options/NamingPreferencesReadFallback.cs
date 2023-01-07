@@ -8,10 +8,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
-[ExportVisualStudioStorageReadFallback("SimplificationOptions_NamingPreferences"), Shared]
+[ExportVisualStudioStorageReadFallback(NamingStyleOptions.NamingPreferencesOptionName), Shared]
 internal sealed class NamingPreferencesReadFallback : IVisualStudioStorageReadFallback
 {
     [ImportingConstructor]
