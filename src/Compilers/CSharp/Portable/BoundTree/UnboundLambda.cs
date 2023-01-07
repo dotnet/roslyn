@@ -711,6 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _unboundLambda.Syntax,
                 lambdaSymbol,
                 parameterScopesBuilder.ToImmutableAndFree(),
+                lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute),
                 returnRefKind,
                 returnType);
         }
