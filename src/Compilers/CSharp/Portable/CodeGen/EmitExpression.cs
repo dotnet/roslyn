@@ -408,7 +408,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // or if we have a ref-constrained T (to do box just once) 
             // or if we deal with stack local (reads are destructive)
             // or if we have default(T) (to do box just once)
-            var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
+            var nullCheckOnCopy = (expression.ForceCopyOfNullableValueType && notConstrained &&
+                                   ((TypeParameterSymbol)receiverType).EffectiveInterfacesNoUseSiteDiagnostics.IsEmpty) || // This could be a nullable value type, which must be copied in order to not mutate the original value
+                                   LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
                                    (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
 
