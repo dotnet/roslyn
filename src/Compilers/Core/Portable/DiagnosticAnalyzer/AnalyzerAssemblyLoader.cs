@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using Roslyn.Utilities;
 
@@ -23,18 +25,40 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly object _guard = new();
 
-        // lock _guard to read/write
-        private readonly Dictionary<string, Assembly> _loadedAssembliesByPath = new();
+        /// <summary>
+        /// Set of analyzer dependencies original full paths to the data calculated for that path
+        /// </summary>
+        /// <remarks>
+        /// Access must be guaraded by <see cref="_guard"/>
+        /// </remarks>
+        private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?> _analyzerAssemblyInfoMap = new();
 
-        // maps file name to a full path (lock _guard to read/write):
+        /// <summary>
+        /// Maps analyzer dependency simple names to the set of original full paths it was loaded from. This _only_ 
+        /// tracks the paths provided to the analyzer as it's a place to look for indirect loads. 
+        /// </summary>
+        /// <remarks>
+        /// Access must be guaraded by <see cref="_guard"/>
+        /// </remarks>
         private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// Implemented by derived types to actually perform the load for an assembly that doesn't have a cached result.
+        /// The implementation needs to load an <see cref="Assembly"/> with the specified <see cref="AssemblyName"/>. The
+        /// <paramref name="assemblyOriginalPath"/> parameter is the original path. It may be different than
+        /// <see cref="AssemblyName.CodeBase"/>
         /// </summary>
-        protected abstract Assembly LoadFromPathUncheckedImpl(string fullPath);
+        /// <remarks>
+        /// The implementation should return null on error, not throw an exception
+        /// </remarks>
+        protected abstract Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath);
 
-        #region Public API
+        protected bool IsAnalyzerDependencyPath(string fullPath)
+        {
+            lock (_guard)
+            {
+                return _analyzerAssemblyInfoMap.ContainsKey(fullPath);
+            }
+        }
 
         public void AddDependencyLocation(string fullPath)
         {
@@ -52,57 +76,153 @@ namespace Microsoft.CodeAnalysis
                 {
                     _knownAssemblyPathsBySimpleName[simpleName] = paths.Add(fullPath);
                 }
+
+                _ = _analyzerAssemblyInfoMap[fullPath] = null;
             }
         }
 
-        public Assembly LoadFromPath(string fullPath)
+        public Assembly LoadFromPath(string originalAnalyzerPath)
         {
-            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
-            return LoadFromPathUnchecked(fullPath);
+            CompilerPathUtilities.RequireAbsolutePath(originalAnalyzerPath, nameof(originalAnalyzerPath));
+
+            (AssemblyName? assemblyName, string realPath) = GetAssemblyInfoForPath(originalAnalyzerPath);
+
+            // Not a managed assembly, nothing else to do
+            if (assemblyName is null)
+            {
+                throw new ArgumentException("Not a valid assembly");
+            }
+
+            try
+            {
+                return Load(assemblyName, realPath);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Unable to load {assemblyName.Name}", ex);
+            }
         }
 
-        #endregion
-
         /// <summary>
-        /// Returns the cached assembly for fullPath if we've done a load for this path before, or calls <see cref="LoadFromPathUncheckedImpl"/> if
-        /// it needs to be loaded. This method skips the check in release builds that the path is an absolute path, hence the "Unchecked" in the name.
+        /// Get the <see cref="AssemblyName"/> and the path it should be loaded from for the given original 
+        /// analyzer path
         /// </summary>
-        protected Assembly LoadFromPathUnchecked(string fullPath)
+        /// <remarks>
+        /// This is used in the implementation of the loader instead of <see cref="AssemblyName.GetAssemblyName(string)"/>
+        /// because we only want information for registered paths. Using unregistered paths inside the
+        /// implementation should result in errors.
+        /// </remarks>
+        private (AssemblyName? AssemblyName, string RealAssemblyPath) GetAssemblyInfoForPath(string originalAnalyzerPath)
         {
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-
-            // Check if we have already loaded an assembly from the given path.
-            Assembly? loadedAssembly = null;
+            AssemblyName? assemblyName;
+            string realPath;
+            bool hasData;
             lock (_guard)
             {
-                if (_loadedAssembliesByPath.TryGetValue(fullPath, out var existingAssembly))
+                if (!_analyzerAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out var tuple))
                 {
-                    loadedAssembly = existingAssembly;
+                    throw new InvalidOperationException();
+                }
+
+                if (tuple is { } info)
+                {
+                    assemblyName = info.AssemblyName;
+                    realPath = info.RealAssemblyPath;
+                    hasData = true;
+                }
+                else
+                {
+                    assemblyName = null;
+                    realPath = "";
+                    hasData = false;
                 }
             }
 
-            // Otherwise, load the assembly.
-            if (loadedAssembly == null)
+            if (hasData)
             {
-                loadedAssembly = LoadFromPathUncheckedImpl(fullPath);
+                return (assemblyName, realPath);
             }
 
-            // Add the loaded assembly to the path cache.
-            lock (_guard)
+            try
             {
-                _loadedAssembliesByPath[fullPath] = loadedAssembly;
+                realPath = PreparePathToLoad(originalAnalyzerPath);
+                assemblyName = AssemblyName.GetAssemblyName(realPath);
+
+                lock (_guard)
+                {
+                    _analyzerAssemblyInfoMap[originalAnalyzerPath] = (assemblyName, realPath);
+                }
+
+            }
+            catch
+            {
+                // The above can fail with the assembly doesn't exist because it's corrupted, 
+                // doesn't exist on disk or is a native DLL. Those failures are handled when 
+                // the actual load is attempted. Just record the failure now.
             }
 
-            return loadedAssembly;
+            return (assemblyName, realPath);
         }
 
-        protected ImmutableHashSet<string>? GetPaths(string simpleName)
+        /// <summary>
+        /// Return the best path for loading an assembly with the specified <see cref="AssemblyName"/>. This
+        /// return is a real path to load, not an original path.
+        /// </summary>
+        protected string? GetBestPath(AssemblyName assemblyName)
         {
+            if (assemblyName.Name is null)
+            {
+                return null;
+
+            }
+
+            ImmutableHashSet<string>? paths;
             lock (_guard)
             {
-                _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths);
-                return paths;
+                if (!_knownAssemblyPathsBySimpleName.TryGetValue(assemblyName.Name, out paths))
+                {
+                    return null;
+                }
             }
+
+            // Sort the candidate paths by ordinal, to ensure determinism with the same inputs if you were to have
+            // multiple assemblies providing the same version.
+            string? bestPath = null;
+            AssemblyName? bestName = null;
+            foreach (var candidateOriginalPath in paths.OrderBy(StringComparer.Ordinal))
+            {
+                (AssemblyName? candidateName, string candidateRealPath) = GetAssemblyInfoForPath(candidateOriginalPath);
+                if (candidateName is null)
+                {
+                    continue;
+                }
+
+                bool isMatch;
+#if NETCOREAPP
+                isMatch = candidateName.Name == assemblyName.Name;
+#else
+                isMatch =
+                    candidateName.Name == assemblyName.Name &&
+                    candidateName.Version >= assemblyName.Version &&
+                    candidateName.GetPublicKeyToken().AsSpan().SequenceEqual(assemblyName.GetPublicKeyToken().AsSpan());
+#endif
+
+                if (isMatch)
+                {
+                    if (candidateName.Version == assemblyName.Version)
+                    {
+                        return candidateRealPath;
+                    }
+
+                    if (bestName is null || candidateName.Version > bestName.Version)
+                    {
+                        bestPath = candidateRealPath;
+                        bestName = candidateName;
+                    }
+                }
+            }
+
+            return bestPath;
         }
 
         /// <summary>
@@ -110,9 +230,12 @@ namespace Microsoft.CodeAnalysis
         /// identified the context to load an assembly in, but before the assembly is actually
         /// loaded from disk. This is used to substitute out the original path with the shadow-copied version.
         /// </summary>
-        protected virtual string GetPathToLoad(string fullPath)
-        {
-            return fullPath;
-        }
+        protected virtual string PreparePathToLoad(string fullPath) => fullPath;
+
+        /// <summary>
+        /// When <see cref="PreparePathToLoad(string)"/> is overriden this returns the most recent
+        /// real path calculated for the <paramref name="originalFullPath"/>
+        /// </summary>
+        internal virtual string GetRealLoadPath(string originalFullPath) => originalFullPath;
     }
 }

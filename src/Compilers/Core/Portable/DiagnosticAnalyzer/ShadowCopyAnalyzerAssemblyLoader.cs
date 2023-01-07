@@ -3,10 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if NETCOREAPP
+using System.Runtime.Loader;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
@@ -29,11 +34,27 @@ namespace Microsoft.CodeAnalysis
         private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
 
         /// <summary>
+        /// This is a map of the original full path to the _most recent_ shadow copy of that path. Useful
+        /// for tests to verify that we are loading from the correct places.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, string> _pathMap = new();
+
+        /// <summary>
         /// Used to generate unique names for per-assembly directories. Should be updated with <see cref="Interlocked.Increment(ref int)"/>.
         /// </summary>
         private int _assemblyDirectoryId;
 
+#if NETCOREAPP
         public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
+            : this(null, baseDirectory)
+        {
+        }
+
+        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string? baseDirectory = null)
+            : base(compilerLoadContext)
+#else
+        public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
+#endif
         {
             if (baseDirectory != null)
             {
@@ -95,11 +116,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override string GetPathToLoad(string fullPath)
+        protected override string PreparePathToLoad(string originalFullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
-            string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
+            string shadowCopyPath = CopyFileAndResources(originalFullPath, assemblyDirectory);
+            _pathMap[originalFullPath] = shadowCopyPath;
             return shadowCopyPath;
+        }
+
+        internal override string GetRealLoadPath(string originalFullPath)
+        {
+            if (!_pathMap.TryGetValue(originalFullPath, out var loadPath))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return loadPath;
         }
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
