@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly DebuggingSessionId Id;
 
         /// <summary>
-        /// Incremented on every emit update invacation. Used by logging.
+        /// Incremented on every emit update invocation. Used by logging.
         /// </summary>
         private int _updateOrdinal;
 
