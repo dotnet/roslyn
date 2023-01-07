@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // EnC: We need to insert a hidden sequence point to handle function remapping in case
                     // the containing method is edited while methods invoked in the expression are being executed.
                     var instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, loweredSwitchGoverningExpression, _factory);
-                    if (loweredSwitchGoverningExpression.ConstantValue == null)
+                    if (loweredSwitchGoverningExpression.ConstantValueOpt == null)
                     {
                         loweredSwitchGoverningExpression = instrumentedExpression;
                     }

@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // constants/literals are strictly RValues
             // void is not even an RValue
-            if ((expr.ConstantValue != null) || (expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void))
+            if ((expr.ConstantValueOpt != null) || (expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void))
             {
                 Error(diagnostics, GetStandardLvalueError(valueKind), node);
                 return false;
@@ -2825,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // constants/literals cannot ref-escape current scope
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return scopeOfTheContainingExpression;
             }
@@ -3069,7 +3069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // references to constants/literals cannot escape higher.
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
                 return false;
@@ -3377,7 +3377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // constants/literals cannot refer to local state
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return Binder.CallingMethodScope;
             }
@@ -3784,7 +3784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // constants/literals cannot refer to local state
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return true;
             }

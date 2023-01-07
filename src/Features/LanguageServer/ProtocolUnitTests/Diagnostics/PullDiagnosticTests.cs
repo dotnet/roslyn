@@ -213,7 +213,7 @@ class A {
             await OpenDocumentAsync(testLspServer, document);
 
             // Ensure we get no diagnostics when feature flag is off.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag), false);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, false);
 
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
@@ -231,7 +231,7 @@ class A {
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
             await OpenDocumentAsync(testLspServer, document);
 
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag), true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, true);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
@@ -699,7 +699,7 @@ class A
 }";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
             var firstLocation = testLspServer.GetLocations("first").Single().Range;
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp), true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp, true);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -738,7 +738,7 @@ class A
 }";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
             var firstLocation = testLspServer.GetLocations("first").Single().Range;
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp), false);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp, false);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 

@@ -2395,7 +2395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceType = operand.Type;
             if ((object)sourceType != null)
             {
-                GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, operand.ConstantValue);
+                GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, operand.ConstantValueOpt);
                 return;
             }
 
@@ -2584,7 +2584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (expr.Kind == BoundKind.AssignmentOperator)
                     {
                         var assignment = (BoundAssignmentOperator)expr;
-                        if (assignment.Right.Kind == BoundKind.Literal && assignment.Right.ConstantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean)
+                        if (assignment.Right.Kind == BoundKind.Literal && assignment.Right.ConstantValueOpt.Discriminator == ConstantValueTypeDiscriminator.Boolean)
                         {
                             Error(diagnostics, ErrorCode.WRN_IncorrectBooleanAssg, assignment.Syntax);
                         }
@@ -3252,11 +3252,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureExceptionFilter.CheckFeatureAvailability(diagnostics, filter, filter.WhenKeyword.GetLocation());
 
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
-            if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
+            if (boundFilter.ConstantValueOpt != ConstantValue.NotAvailable)
             {
                 // Depending on whether the filter constant is true or false, and whether there are other catch clauses,
                 // we suggest different actions
-                var errorCode = boundFilter.ConstantValue.BooleanValue
+                var errorCode = boundFilter.ConstantValueOpt.BooleanValue
                     ? ErrorCode.WRN_FilterIsConstantTrue
                     : (filter.Parent.Parent is TryStatementSyntax s && s.Catches.Count == 1 && s.Finally == null)
                         ? ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch

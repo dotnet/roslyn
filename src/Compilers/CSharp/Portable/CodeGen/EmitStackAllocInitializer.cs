@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(!(init is BoundArrayInitialization), "Nested initializers are not allowed for stackalloc");
 
                 initCount += 1;
-                if (init.ConstantValue != null)
+                if (init.ConstantValueOpt != null)
                 {
                     constInits += 1;
                 }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             int elementTypeSizeInBytes = elementType.SpecialType.SizeInBytes();
             foreach (BoundExpression init in inits)
             {
-                if (includeConstants || init.ConstantValue == null)
+                if (includeConstants || init.ConstantValueOpt == null)
                 {
                     _builder.EmitOpCode(ILOpCode.Dup);
                     EmitPointerElementAccess(init, elementType, elementTypeSizeInBytes, index);

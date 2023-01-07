@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityLevel
@@ -104,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static void VerifyConfigureSeverityCore(string expected, string languageName)
         {
             using var workspace = new TestWorkspace();
-            var optionSet = workspace.Options;
 
             var diagnosticIdAndOptions = GetIDEDiagnosticIdsAndOptions(languageName);
             var expectedMap = GetExpectedMap(expected, out var expectedLines);
@@ -661,479 +661,216 @@ dotnet_diagnostic.JSON002.severity = %value%
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
 
-        private static void VerifyConfigureCodeStyleOptionsCore(string expected, string languageName)
+        private static void VerifyConfigureCodeStyleOptionsCore((string diagnosticId, string optionName, string optionValue)[] expected, string languageName)
         {
             using var workspace = new TestWorkspace();
-            var optionSet = workspace.Options;
 
             var diagnosticIdAndOptions = GetIDEDiagnosticIdsAndOptions(languageName);
-            var expectedMap = GetExpectedMap(expected, out var expectedLines);
+            var expectedMap = expected.ToDictionary(entry => (entry.diagnosticId, entry.optionName), entry => entry.optionValue);
 
-            var baseline = new StringBuilder();
+            var baseline = new List<(string diagnosticId, string optionName, string optionValue)>();
             foreach (var (diagnosticId, options) in diagnosticIdAndOptions)
             {
                 var hasEditorConfigCodeStyleOptions = false;
-                foreach (var option in options.OrderBy(o => o.Name))
+                foreach (var option in options.OrderBy(o => o.Definition.ConfigName))
                 {
-                    var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
-                    if (editorConfigLocation == null)
-                    {
-                        continue;
-                    }
-
-                    var optionKey = new OptionKey(option, option.IsPerLanguage ? languageName : null);
-                    var editorConfigString = editorConfigLocation.GetEditorConfigString(optionKey, optionSet);
-
-                    ProcessDiagnosticIdAndOption(diagnosticId, option, editorConfigString);
+                    ProcessDiagnosticIdAndOption(diagnosticId, option);
                     hasEditorConfigCodeStyleOptions = true;
                 }
 
                 if (!hasEditorConfigCodeStyleOptions)
                 {
-                    ProcessDiagnosticIdAndOption(diagnosticId, optionOpt: null, editorConfigString: "No editorconfig based code style option");
+                    ProcessDiagnosticIdAndOption(diagnosticId, option: null);
                 }
             }
 
-            if (expectedLines.Length == 0)
+            if (expected.IsEmpty())
             {
-                Assert.False(true, $"Test Baseline:{baseline}");
+                Assert.False(true,
+                    "Test Baseline:" +
+                    Environment.NewLine +
+                    string.Join(Environment.NewLine, baseline.Select(Inspect)));
             }
 
             if (expectedMap.Count > 0)
             {
-                var extraEntitiesBuilder = new StringBuilder();
-                foreach (var kvp in expectedMap.OrderBy(kvp => kvp.Key))
+                var extraEntitiesBuilder = new List<(string diagnosticId, string optionName, string optionValue)>();
+                foreach (var entry in expectedMap.OrderBy(kvp => kvp.Key))
                 {
-                    extraEntitiesBuilder.AppendLine();
-                    extraEntitiesBuilder.AppendLine(kvp.Key);
-                    extraEntitiesBuilder.AppendLine(kvp.Value);
+                    extraEntitiesBuilder.Add((entry.Key.diagnosticId, entry.Key.optionName, entry.Value));
                 }
 
-                Assert.False(true, $@"Unexpected entries:{extraEntitiesBuilder.ToString()}");
+                Assert.False(true,
+                   "Unexpected entries:" +
+                    Environment.NewLine +
+                    string.Join(Environment.NewLine, extraEntitiesBuilder.Select(Inspect)));
             }
+
+            static string Inspect((string diagnosticId, string optionName, string optionValue) item)
+                => @$"(""{item.diagnosticId}"", {(item.optionName != null ? '"' + item.optionName + '"' : "null")}, {(item.optionValue != null ? '"' + item.optionValue + '"' : "null")})";
 
             return;
 
             // Local functions
-            void ProcessDiagnosticIdAndOption(string diagnosticId, IOption optionOpt, string editorConfigString)
+            void ProcessDiagnosticIdAndOption(string diagnosticId, IOption2 option)
             {
-                // Verify we have an entry for { diagnosticId, optionName }
-                var diagnosticIdString = $"# {diagnosticId}";
-                if (optionOpt != null)
-                {
-                    diagnosticIdString += $", {optionOpt.Name}";
-                }
+                var optionName = option?.Definition.ConfigName;
+                var optionValue = option?.Definition.Serializer.Serialize(option.DefaultValue);
 
-                if (expectedLines.Length == 0)
+                // Verify we have an entry for { diagnosticId, optionName }
+                if (expected.IsEmpty())
                 {
                     // Executing test to generate baseline
-                    baseline.AppendLine();
-                    baseline.AppendLine(diagnosticIdString);
-                    baseline.AppendLine(editorConfigString);
+                    baseline.Add((diagnosticId, optionName, optionValue));
                     return;
                 }
 
-                if (!expectedMap.TryGetValue(diagnosticIdString, out var expectedValue))
+                if (!expectedMap.TryGetValue((diagnosticId, optionName), out var expectedValue))
                 {
-                    Assert.False(true, $@"Missing entry:
-
-{diagnosticIdString}
-{editorConfigString}
-");
+                    Assert.False(true, $@"Missing entry: {diagnosticId}, {optionName}, {optionValue}");
                 }
 
                 // Verify entries match for diagnosticId
-                if (expectedValue != editorConfigString)
+                if (expectedValue != optionValue)
                 {
-                    Assert.False(true, $@"Mismatch for '{diagnosticId}'
-Expected: {expectedValue}
-Actual: {editorConfigString}
-");
+                    Assert.False(true, $@"Mismatch for: {diagnosticId}, {optionName}, {optionValue}");
                 }
 
-                expectedMap.Remove(diagnosticIdString);
+                expectedMap.Remove((diagnosticId, optionName));
             }
         }
 
         [Fact]
         public void CSharp_VerifyIDECodeStyleOptionsAreConfigurable()
         {
-            var expected = @"
-# IDE0001
-No editorconfig based code style option
-
-# IDE0002
-No editorconfig based code style option
-
-# IDE0003, QualifyEventAccess
-dotnet_style_qualification_for_event = false
-
-# IDE0003, QualifyFieldAccess
-dotnet_style_qualification_for_field = false
-
-# IDE0003, QualifyMethodAccess
-dotnet_style_qualification_for_method = false
-
-# IDE0003, QualifyPropertyAccess
-dotnet_style_qualification_for_property = false
-
-# IDE0004
-No editorconfig based code style option
-
-# IDE0005
-No editorconfig based code style option
-
-# IDE0007, VarElsewhere
-csharp_style_var_elsewhere = false
-
-# IDE0007, VarForBuiltInTypes
-csharp_style_var_for_built_in_types = false
-
-# IDE0007, VarWhenTypeIsApparent
-csharp_style_var_when_type_is_apparent = false
-
-# IDE0008, VarElsewhere
-csharp_style_var_elsewhere = false
-
-# IDE0008, VarForBuiltInTypes
-csharp_style_var_for_built_in_types = false
-
-# IDE0008, VarWhenTypeIsApparent
-csharp_style_var_when_type_is_apparent = false
-
-# IDE0009, QualifyEventAccess
-dotnet_style_qualification_for_event = false
-
-# IDE0009, QualifyFieldAccess
-dotnet_style_qualification_for_field = false
-
-# IDE0009, QualifyMethodAccess
-dotnet_style_qualification_for_method = false
-
-# IDE0009, QualifyPropertyAccess
-dotnet_style_qualification_for_property = false
-
-# IDE0010
-No editorconfig based code style option
-
-# IDE0011, PreferBraces
-csharp_prefer_braces = true
-
-# IDE0016, PreferThrowExpression
-csharp_style_throw_expression = true
-
-# IDE0017, PreferObjectInitializer
-dotnet_style_object_initializer = true
-
-# IDE0018, PreferInlinedVariableDeclaration
-csharp_style_inlined_variable_declaration = true
-
-# IDE0019, PreferPatternMatchingOverAsWithNullCheck
-csharp_style_pattern_matching_over_as_with_null_check = true
-
-# IDE0020, PreferPatternMatchingOverIsWithCastCheck
-csharp_style_pattern_matching_over_is_with_cast_check = true
-
-# IDE0021, PreferExpressionBodiedConstructors
-csharp_style_expression_bodied_constructors = false
-
-# IDE0022, PreferExpressionBodiedMethods
-csharp_style_expression_bodied_methods = false
-
-# IDE0023, PreferExpressionBodiedOperators
-csharp_style_expression_bodied_operators = false
-
-# IDE0024, PreferExpressionBodiedOperators
-csharp_style_expression_bodied_operators = false
-
-# IDE0025, PreferExpressionBodiedProperties
-csharp_style_expression_bodied_properties = true
-
-# IDE0026, PreferExpressionBodiedIndexers
-csharp_style_expression_bodied_indexers = true
-
-# IDE0027, PreferExpressionBodiedAccessors
-csharp_style_expression_bodied_accessors = true
-
-# IDE0028, PreferCollectionInitializer
-dotnet_style_collection_initializer = true
-
-# IDE0029, PreferCoalesceExpression
-dotnet_style_coalesce_expression = true
-
-# IDE0030, PreferCoalesceExpression
-dotnet_style_coalesce_expression = true
-
-# IDE0031, PreferNullPropagation
-dotnet_style_null_propagation = true
-
-# IDE0032, PreferAutoProperties
-dotnet_style_prefer_auto_properties = true
-
-# IDE0033, PreferExplicitTupleNames
-dotnet_style_explicit_tuple_names = true
-
-# IDE0034, PreferSimpleDefaultExpression
-csharp_prefer_simple_default_expression = true
-
-# IDE0035
-No editorconfig based code style option
-
-# IDE0036, PreferredModifierOrder
-csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
-
-# IDE0037, PreferInferredTupleNames
-dotnet_style_prefer_inferred_tuple_names = true
-
-# IDE0037, PreferInferredAnonymousTypeMemberNames
-dotnet_style_prefer_inferred_anonymous_type_member_names = true
-
-# IDE0038, PreferPatternMatchingOverIsWithCastCheck
-csharp_style_pattern_matching_over_is_with_cast_check = true
-
-# IDE0039, PreferLocalOverAnonymousFunction
-csharp_style_prefer_local_over_anonymous_function = true
-
-# IDE0040, RequireAccessibilityModifiers
-dotnet_style_require_accessibility_modifiers = for_non_interface_members
-
-# IDE0041, PreferIsNullCheckOverReferenceEqualityMethod
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true
-
-# IDE0042, PreferDeconstructedVariableDeclaration
-csharp_style_deconstructed_variable_declaration = true
-
-# IDE0043
-No editorconfig based code style option
-
-# IDE0044, PreferReadonly
-dotnet_style_readonly_field = true
-
-# IDE0045, PreferConditionalExpressionOverAssignment
-dotnet_style_prefer_conditional_expression_over_assignment = true
-
-# IDE0046, PreferConditionalExpressionOverReturn
-dotnet_style_prefer_conditional_expression_over_return = true
-
-# IDE0047, ArithmeticBinaryParentheses
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
-
-# IDE0047, OtherBinaryParentheses
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
-
-# IDE0047, OtherParentheses
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary
-
-# IDE0047, RelationalBinaryParentheses
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
-
-# IDE0048, ArithmeticBinaryParentheses
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
-
-# IDE0048, OtherBinaryParentheses
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
-
-# IDE0048, OtherParentheses
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary
-
-# IDE0048, RelationalBinaryParentheses
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
-
-# IDE0049, PreferIntrinsicPredefinedTypeKeywordInDeclaration
-dotnet_style_predefined_type_for_locals_parameters_members = true
-
-# IDE0049, PreferIntrinsicPredefinedTypeKeywordInMemberAccess
-dotnet_style_predefined_type_for_member_access = true
-
-# IDE0051
-No editorconfig based code style option
-
-# IDE0052
-No editorconfig based code style option
-
-# IDE0053, PreferExpressionBodiedLambdas
-csharp_style_expression_bodied_lambdas = true
-
-# IDE0054, PreferCompoundAssignment
-dotnet_style_prefer_compound_assignment = true
-
-# IDE0055
-No editorconfig based code style option
-
-# IDE0056, PreferIndexOperator
-csharp_style_prefer_index_operator = true
-
-# IDE0057, PreferRangeOperator
-csharp_style_prefer_range_operator = true
-
-# IDE0058, UnusedValueExpressionStatement
-csharp_style_unused_value_expression_statement_preference = discard_variable
-
-# IDE0059, UnusedValueAssignment
-csharp_style_unused_value_assignment_preference = discard_variable
-
-# IDE0060, UnusedParameters
-dotnet_code_quality_unused_parameters = all
-
-# IDE0061, PreferExpressionBodiedLocalFunctions
-csharp_style_expression_bodied_local_functions = false
-
-# IDE0062, PreferStaticLocalFunction
-csharp_prefer_static_local_function = true
-
-# IDE0063, PreferSimpleUsingStatement
-csharp_prefer_simple_using_statement = true
-
-# IDE0064
-No editorconfig based code style option
-
-# IDE0065, PreferredUsingDirectivePlacement
-csharp_using_directive_placement = outside_namespace
-
-# IDE0066, PreferSwitchExpression
-csharp_style_prefer_switch_expression = true
-
-# IDE0070
-No editorconfig based code style option
-
-# IDE0071, PreferSimplifiedInterpolation
-dotnet_style_prefer_simplified_interpolation = true
-
-# IDE0072
-No editorconfig based code style option
-
-# IDE0073, FileHeaderTemplate
-file_header_template = unset
-
-# IDE0074, PreferCompoundAssignment
-dotnet_style_prefer_compound_assignment = true
-
-# IDE0075, PreferSimplifiedBooleanExpressions
-dotnet_style_prefer_simplified_boolean_expressions = true
-
-# IDE0076
-No editorconfig based code style option
-
-# IDE0077
-No editorconfig based code style option
-
-# IDE0078, PreferPatternMatching
-csharp_style_prefer_pattern_matching = true
-
-# IDE0079
-No editorconfig based code style option
-
-# IDE0080
-No editorconfig based code style option
-
-# IDE0082
-No editorconfig based code style option
-
-# IDE0083, PreferNotPattern
-csharp_style_prefer_not_pattern = true
-
-# IDE0090, ImplicitObjectCreationWhenTypeIsApparent
-csharp_style_implicit_object_creation_when_type_is_apparent = true
-
-# IDE0100
-No editorconfig based code style option
-
-# IDE0110
-No editorconfig based code style option
-
-# IDE0120
-No editorconfig based code style option
-
-# IDE0130, PreferNamespaceAndFolderMatchStructure
-dotnet_style_namespace_match_folder = true
-
-# IDE0150, PreferNullCheckOverTypeCheck
-csharp_style_prefer_null_check_over_type_check = true
-
-# IDE0160, NamespaceDeclarations
-csharp_style_namespace_declarations = block_scoped
-
-# IDE0161, NamespaceDeclarations
-csharp_style_namespace_declarations = block_scoped
-
-# IDE0170, PreferExtendedPropertyPattern
-csharp_style_prefer_extended_property_pattern = true
-
-# IDE0180, PreferTupleSwap
-csharp_style_prefer_tuple_swap = true
-
-# IDE0200, PreferMethodGroupConversion
-csharp_style_prefer_method_group_conversion = true
-
-# IDE0210, PreferTopLevelStatements
-csharp_style_prefer_top_level_statements = true
-
-# IDE0211, PreferTopLevelStatements
-csharp_style_prefer_top_level_statements = true
-
-# IDE0220, ForEachExplicitCastInSource
-dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
-
-# IDE0230, PreferUtf8StringLiterals
-csharp_style_prefer_utf8_string_literals = true
-
-# IDE0240
-No editorconfig based code style option
-
-# IDE0241
-No editorconfig based code style option
-
-# IDE0250, PreferReadOnlyStruct
-csharp_style_prefer_readonly_struct = true
-
-# IDE0260, PreferPatternMatchingOverAsWithNullCheck
-csharp_style_pattern_matching_over_as_with_null_check = true
-
-# IDE0270, PreferCoalesceExpression
-dotnet_style_coalesce_expression = true
-
-# IDE0280
-No editorconfig based code style option
-
-# IDE1005, PreferConditionalDelegateCall
-csharp_style_conditional_delegate_call = true
-
-# IDE1006
-No editorconfig based code style option
-
-# IDE1007
-No editorconfig based code style option
-
-# IDE2000, AllowMultipleBlankLines
-dotnet_style_allow_multiple_blank_lines_experimental = true
-
-# IDE2001, AllowEmbeddedStatementsOnSameLine
-csharp_style_allow_embedded_statements_on_same_line_experimental = true
-
-# IDE2002, AllowBlankLinesBetweenConsecutiveBraces
-csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
-
-# IDE2003, AllowStatementImmediatelyAfterBlock
-dotnet_style_allow_statement_immediately_after_block_experimental = true
-
-# IDE2004, AllowBlankLineAfterColonInConstructorInitializer
-csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
-
-# IDE2005, AllowBlankLineAfterTokenInConditionalExpression
-csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true
-
-# IDE2006, AllowBlankLineAfterTokenInArrowExpressionClause
-csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
-
-# RE0001
-No editorconfig based code style option
-
-# JSON001
-No editorconfig based code style option
-
-# JSON002
-No editorconfig based code style option
-";
+            var expected = new[]
+            {
+                ("IDE0001", null, null),
+                ("IDE0002", null, null),
+                ("IDE0003", "dotnet_style_qualification_for_event", "false"),
+                ("IDE0003", "dotnet_style_qualification_for_field", "false"),
+                ("IDE0003", "dotnet_style_qualification_for_method", "false"),
+                ("IDE0003", "dotnet_style_qualification_for_property", "false"),
+                ("IDE0004", null, null),
+                ("IDE0005", null, null),
+                ("IDE0007", "csharp_style_var_elsewhere", "false"),
+                ("IDE0007", "csharp_style_var_for_built_in_types", "false"),
+                ("IDE0007", "csharp_style_var_when_type_is_apparent", "false"),
+                ("IDE0008", "csharp_style_var_elsewhere", "false"),
+                ("IDE0008", "csharp_style_var_for_built_in_types", "false"),
+                ("IDE0008", "csharp_style_var_when_type_is_apparent", "false"),
+                ("IDE0009", "dotnet_style_qualification_for_event", "false"),
+                ("IDE0009", "dotnet_style_qualification_for_field", "false"),
+                ("IDE0009", "dotnet_style_qualification_for_method", "false"),
+                ("IDE0009", "dotnet_style_qualification_for_property", "false"),
+                ("IDE0010", null, null),
+                ("IDE0011", "csharp_prefer_braces", "true"),
+                ("IDE0016", "csharp_style_throw_expression", "true"),
+                ("IDE0017", "dotnet_style_object_initializer", "true"),
+                ("IDE0018", "csharp_style_inlined_variable_declaration", "true"),
+                ("IDE0019", "csharp_style_pattern_matching_over_as_with_null_check", "true"),
+                ("IDE0020", "csharp_style_pattern_matching_over_is_with_cast_check", "true"),
+                ("IDE0021", "csharp_style_expression_bodied_constructors", "false"),
+                ("IDE0022", "csharp_style_expression_bodied_methods", "false"),
+                ("IDE0023", "csharp_style_expression_bodied_operators", "false"),
+                ("IDE0024", "csharp_style_expression_bodied_operators", "false"),
+                ("IDE0025", "csharp_style_expression_bodied_properties", "true"),
+                ("IDE0026", "csharp_style_expression_bodied_indexers", "true"),
+                ("IDE0027", "csharp_style_expression_bodied_accessors", "true"),
+                ("IDE0028", "dotnet_style_collection_initializer", "true"),
+                ("IDE0029", "dotnet_style_coalesce_expression", "true"),
+                ("IDE0030", "dotnet_style_coalesce_expression", "true"),
+                ("IDE0031", "dotnet_style_null_propagation", "true"),
+                ("IDE0032", "dotnet_style_prefer_auto_properties", "true"),
+                ("IDE0033", "dotnet_style_explicit_tuple_names", "true"),
+                ("IDE0034", "csharp_prefer_simple_default_expression", "true"),
+                ("IDE0035", null, null),
+                ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async"),
+                ("IDE0037", "dotnet_style_prefer_inferred_tuple_names", "true"),
+                ("IDE0037", "dotnet_style_prefer_inferred_anonymous_type_member_names", "true"),
+                ("IDE0038", "csharp_style_pattern_matching_over_is_with_cast_check", "true"),
+                ("IDE0039", "csharp_style_prefer_local_over_anonymous_function", "true"),
+                ("IDE0040", "dotnet_style_require_accessibility_modifiers", "for_non_interface_members"),
+                ("IDE0041", "dotnet_style_prefer_is_null_check_over_reference_equality_method", "true"),
+                ("IDE0042", "csharp_style_deconstructed_variable_declaration", "true"),
+                ("IDE0043", null, null),
+                ("IDE0044", "dotnet_style_readonly_field", "true"),
+                ("IDE0045", "dotnet_style_prefer_conditional_expression_over_assignment", "true"),
+                ("IDE0046", "dotnet_style_prefer_conditional_expression_over_return", "true"),
+                ("IDE0047", "dotnet_style_parentheses_in_arithmetic_binary_operators", "always_for_clarity"),
+                ("IDE0047", "dotnet_style_parentheses_in_other_binary_operators", "always_for_clarity"),
+                ("IDE0047", "dotnet_style_parentheses_in_other_operators", "never_if_unnecessary"),
+                ("IDE0047", "dotnet_style_parentheses_in_relational_binary_operators", "always_for_clarity"),
+                ("IDE0048", "dotnet_style_parentheses_in_arithmetic_binary_operators", "always_for_clarity"),
+                ("IDE0048", "dotnet_style_parentheses_in_other_binary_operators", "always_for_clarity"),
+                ("IDE0048", "dotnet_style_parentheses_in_other_operators", "never_if_unnecessary"),
+                ("IDE0048", "dotnet_style_parentheses_in_relational_binary_operators", "always_for_clarity"),
+                ("IDE0049", "dotnet_style_predefined_type_for_locals_parameters_members", "true"),
+                ("IDE0049", "dotnet_style_predefined_type_for_member_access", "true"),
+                ("IDE0051", null, null),
+                ("IDE0052", null, null),
+                ("IDE0053", "csharp_style_expression_bodied_lambdas", "true"),
+                ("IDE0054", "dotnet_style_prefer_compound_assignment", "true"),
+                ("IDE0055", null, null),
+                ("IDE0056", "csharp_style_prefer_index_operator", "true"),
+                ("IDE0057", "csharp_style_prefer_range_operator", "true"),
+                ("IDE0058", "csharp_style_unused_value_expression_statement_preference", "discard_variable"),
+                ("IDE0059", "csharp_style_unused_value_assignment_preference", "discard_variable"),
+                ("IDE0060", "dotnet_code_quality_unused_parameters", "all"),
+                ("IDE0061", "csharp_style_expression_bodied_local_functions", "false"),
+                ("IDE0062", "csharp_prefer_static_local_function", "true"),
+                ("IDE0063", "csharp_prefer_simple_using_statement", "true"),
+                ("IDE0064", null, null),
+                ("IDE0065", "csharp_using_directive_placement", "outside_namespace"),
+                ("IDE0066", "csharp_style_prefer_switch_expression", "true"),
+                ("IDE0070", null, null),
+                ("IDE0071", "dotnet_style_prefer_simplified_interpolation", "true"),
+                ("IDE0072", null, null),
+                ("IDE0073", "file_header_template", "unset"),
+                ("IDE0074", "dotnet_style_prefer_compound_assignment", "true"),
+                ("IDE0075", "dotnet_style_prefer_simplified_boolean_expressions", "true"),
+                ("IDE0076", null, null),
+                ("IDE0077", null, null),
+                ("IDE0078", "csharp_style_prefer_pattern_matching", "true"),
+                ("IDE0079", null, null),
+                ("IDE0080", null, null),
+                ("IDE0082", null, null),
+                ("IDE0083", "csharp_style_prefer_not_pattern", "true"),
+                ("IDE0090", "csharp_style_implicit_object_creation_when_type_is_apparent", "true"),
+                ("IDE0100", null, null),
+                ("IDE0110", null, null),
+                ("IDE0120", null, null),
+                ("IDE0130", "dotnet_style_namespace_match_folder", "true"),
+                ("IDE0150", "csharp_style_prefer_null_check_over_type_check", "true"),
+                ("IDE0160", "csharp_style_namespace_declarations", "block_scoped"),
+                ("IDE0161", "csharp_style_namespace_declarations", "block_scoped"),
+                ("IDE0170", "csharp_style_prefer_extended_property_pattern", "true"),
+                ("IDE0180", "csharp_style_prefer_tuple_swap", "true"),
+                ("IDE0200", "csharp_style_prefer_method_group_conversion", "true"),
+                ("IDE0210", "csharp_style_prefer_top_level_statements", "true"),
+                ("IDE0211", "csharp_style_prefer_top_level_statements", "true"),
+                ("IDE0220", "dotnet_style_prefer_foreach_explicit_cast_in_source", "when_strongly_typed"),
+                ("IDE0230", "csharp_style_prefer_utf8_string_literals", "true"),
+                ("IDE0240", null, null),
+                ("IDE0241", null, null),
+                ("IDE0250", "csharp_style_prefer_readonly_struct", "true"),
+                ("IDE0260", "csharp_style_pattern_matching_over_as_with_null_check", "true"),
+                ("IDE0270", "dotnet_style_coalesce_expression", "true"),
+                ("IDE0280", null, null),
+                ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
+                ("IDE1006", null, null),
+                ("IDE1007", null, null),
+                ("IDE2000", "dotnet_style_allow_multiple_blank_lines_experimental", "true"),
+                ("IDE2001", "csharp_style_allow_embedded_statements_on_same_line_experimental", "true"),
+                ("IDE2002", "csharp_style_allow_blank_lines_between_consecutive_braces_experimental", "true"),
+                ("IDE2003", "dotnet_style_allow_statement_immediately_after_block_experimental", "true"),
+                ("IDE2004", "csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", "true"),
+                ("IDE2005", "csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental", "true"),
+                ("IDE2006", "csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental", "true"),
+                ("RE0001", null, null),
+                ("JSON001", null, null),
+                ("JSON002", null, null),
+            };
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
         }
@@ -1141,208 +878,76 @@ No editorconfig based code style option
         [Fact]
         public void VisualBasic_VerifyIDECodeStyleOptionsAreConfigurable()
         {
-            var expected = @"
-# IDE0001
-No editorconfig based code style option
-
-# IDE0002
-No editorconfig based code style option
-
-# IDE0003, QualifyEventAccess
-dotnet_style_qualification_for_event = false
-
-# IDE0003, QualifyFieldAccess
-dotnet_style_qualification_for_field = false
-
-# IDE0003, QualifyMethodAccess
-dotnet_style_qualification_for_method = false
-
-# IDE0003, QualifyPropertyAccess
-dotnet_style_qualification_for_property = false
-
-# IDE0004
-No editorconfig based code style option
-
-# IDE0005
-No editorconfig based code style option
-
-# IDE0009, QualifyEventAccess
-dotnet_style_qualification_for_event = false
-
-# IDE0009, QualifyFieldAccess
-dotnet_style_qualification_for_field = false
-
-# IDE0009, QualifyMethodAccess
-dotnet_style_qualification_for_method = false
-
-# IDE0009, QualifyPropertyAccess
-dotnet_style_qualification_for_property = false
-
-# IDE0010
-No editorconfig based code style option
-
-# IDE0017, PreferObjectInitializer
-dotnet_style_object_initializer = true
-
-# IDE0028, PreferCollectionInitializer
-dotnet_style_collection_initializer = true
-
-# IDE0029, PreferCoalesceExpression
-dotnet_style_coalesce_expression = true
-
-# IDE0030, PreferCoalesceExpression
-dotnet_style_coalesce_expression = true
-
-# IDE0031, PreferNullPropagation
-dotnet_style_null_propagation = true
-
-# IDE0032, PreferAutoProperties
-dotnet_style_prefer_auto_properties = true
-
-# IDE0033, PreferExplicitTupleNames
-dotnet_style_explicit_tuple_names = true
-
-# IDE0036, PreferredModifierOrder
-visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator
-
-# IDE0037, PreferInferredTupleNames
-dotnet_style_prefer_inferred_tuple_names = true
-
-# IDE0037, PreferInferredAnonymousTypeMemberNames
-dotnet_style_prefer_inferred_anonymous_type_member_names = true
-
-# IDE0040, RequireAccessibilityModifiers
-dotnet_style_require_accessibility_modifiers = for_non_interface_members
-
-# IDE0041, PreferIsNullCheckOverReferenceEqualityMethod
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true
-
-# IDE0043
-No editorconfig based code style option
-
-# IDE0044, PreferReadonly
-dotnet_style_readonly_field = true
-
-# IDE0045, PreferConditionalExpressionOverAssignment
-dotnet_style_prefer_conditional_expression_over_assignment = true
-
-# IDE0046, PreferConditionalExpressionOverReturn
-dotnet_style_prefer_conditional_expression_over_return = true
-
-# IDE0047, ArithmeticBinaryParentheses
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
-
-# IDE0047, OtherBinaryParentheses
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
-
-# IDE0047, OtherParentheses
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary
-
-# IDE0047, RelationalBinaryParentheses
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
-
-# IDE0048, ArithmeticBinaryParentheses
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
-
-# IDE0048, OtherBinaryParentheses
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
-
-# IDE0048, OtherParentheses
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary
-
-# IDE0048, RelationalBinaryParentheses
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
-
-# IDE0049, PreferIntrinsicPredefinedTypeKeywordInDeclaration
-dotnet_style_predefined_type_for_locals_parameters_members = true
-
-# IDE0049, PreferIntrinsicPredefinedTypeKeywordInMemberAccess
-dotnet_style_predefined_type_for_member_access = true
-
-# IDE0051
-No editorconfig based code style option
-
-# IDE0052
-No editorconfig based code style option
-
-# IDE0054, PreferCompoundAssignment
-dotnet_style_prefer_compound_assignment = true
-
-# IDE0055
-No editorconfig based code style option
-
-# IDE0058, UnusedValueExpressionStatement
-visual_basic_style_unused_value_expression_statement_preference = unused_local_variable
-
-# IDE0059, UnusedValueAssignment
-visual_basic_style_unused_value_assignment_preference = unused_local_variable
-
-# IDE0060, UnusedParameters
-dotnet_code_quality_unused_parameters = all
-
-# IDE0070
-No editorconfig based code style option
-
-# IDE0071, PreferSimplifiedInterpolation
-dotnet_style_prefer_simplified_interpolation = true
-
-# IDE0073, FileHeaderTemplate
-file_header_template = unset
-
-# IDE0075, PreferSimplifiedBooleanExpressions
-dotnet_style_prefer_simplified_boolean_expressions = true
-
-# IDE0076
-No editorconfig based code style option
-
-# IDE0077
-No editorconfig based code style option
-
-# IDE0079
-No editorconfig based code style option
-
-# IDE0081
-No editorconfig based code style option
-
-# IDE0082
-No editorconfig based code style option
-
-# IDE0084, PreferIsNotExpression
-visual_basic_style_prefer_isnot_expression = true
-
-# IDE0100
-No editorconfig based code style option
-
-# IDE1006
-No editorconfig based code style option
-
-# IDE1007
-No editorconfig based code style option
-
-# IDE0120
-No editorconfig based code style option
-
-# IDE0140, PreferSimplifiedObjectCreation
-visual_basic_style_prefer_simplified_object_creation = true
-
-# IDE0270, PreferCoalesceExpression
-dotnet_style_coalesce_expression = true
-
-# IDE2000, AllowMultipleBlankLines
-dotnet_style_allow_multiple_blank_lines_experimental = true
-
-# IDE2003, AllowStatementImmediatelyAfterBlock
-dotnet_style_allow_statement_immediately_after_block_experimental = true
-
-# RE0001
-No editorconfig based code style option
-
-# JSON001
-No editorconfig based code style option
-
-# JSON002
-No editorconfig based code style option
-";
+            var expected = new[]
+            {
+                ("IDE0001", null, null),
+                ("IDE0002", null, null),
+                ("IDE0003", "dotnet_style_qualification_for_event", "false"),
+                ("IDE0003", "dotnet_style_qualification_for_field", "false"),
+                ("IDE0003", "dotnet_style_qualification_for_method", "false"),
+                ("IDE0003", "dotnet_style_qualification_for_property", "false"),
+                ("IDE0004", null, null),
+                ("IDE0005", null, null),
+                ("IDE0009", "dotnet_style_qualification_for_event", "false"),
+                ("IDE0009", "dotnet_style_qualification_for_field", "false"),
+                ("IDE0009", "dotnet_style_qualification_for_method", "false"),
+                ("IDE0009", "dotnet_style_qualification_for_property", "false"),
+                ("IDE0010", null, null),
+                ("IDE0017", "dotnet_style_object_initializer", "true"),
+                ("IDE0028", "dotnet_style_collection_initializer", "true"),
+                ("IDE0029", "dotnet_style_coalesce_expression", "true"),
+                ("IDE0030", "dotnet_style_coalesce_expression", "true"),
+                ("IDE0031", "dotnet_style_null_propagation", "true"),
+                ("IDE0032", "dotnet_style_prefer_auto_properties", "true"),
+                ("IDE0033", "dotnet_style_explicit_tuple_names", "true"),
+                ("IDE0036", "visual_basic_preferred_modifier_order", "partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator"),
+                ("IDE0037", "dotnet_style_prefer_inferred_anonymous_type_member_names", "true"),
+                ("IDE0037", "dotnet_style_prefer_inferred_tuple_names", "true"),
+                ("IDE0040", "dotnet_style_require_accessibility_modifiers", "for_non_interface_members"),
+                ("IDE0041", "dotnet_style_prefer_is_null_check_over_reference_equality_method", "true"),
+                ("IDE0043", null, null),
+                ("IDE0044", "dotnet_style_readonly_field", "true"),
+                ("IDE0045", "dotnet_style_prefer_conditional_expression_over_assignment", "true"),
+                ("IDE0046", "dotnet_style_prefer_conditional_expression_over_return", "true"),
+                ("IDE0047", "dotnet_style_parentheses_in_arithmetic_binary_operators", "always_for_clarity"),
+                ("IDE0047", "dotnet_style_parentheses_in_other_binary_operators", "always_for_clarity"),
+                ("IDE0047", "dotnet_style_parentheses_in_other_operators", "never_if_unnecessary"),
+                ("IDE0047", "dotnet_style_parentheses_in_relational_binary_operators", "always_for_clarity"),
+                ("IDE0048", "dotnet_style_parentheses_in_arithmetic_binary_operators", "always_for_clarity"),
+                ("IDE0048", "dotnet_style_parentheses_in_other_binary_operators", "always_for_clarity"),
+                ("IDE0048", "dotnet_style_parentheses_in_other_operators", "never_if_unnecessary"),
+                ("IDE0048", "dotnet_style_parentheses_in_relational_binary_operators", "always_for_clarity"),
+                ("IDE0049", "dotnet_style_predefined_type_for_locals_parameters_members", "true"),
+                ("IDE0049", "dotnet_style_predefined_type_for_member_access", "true"),
+                ("IDE0051", null, null),
+                ("IDE0052", null, null),
+                ("IDE0054", "dotnet_style_prefer_compound_assignment", "true"),
+                ("IDE0055", null, null),
+                ("IDE0058", "visual_basic_style_unused_value_expression_statement_preference", "unused_local_variable"),
+                ("IDE0059", "visual_basic_style_unused_value_assignment_preference", "unused_local_variable"),
+                ("IDE0060", "dotnet_code_quality_unused_parameters", "all"),
+                ("IDE0070", null, null),
+                ("IDE0071", "dotnet_style_prefer_simplified_interpolation", "true"),
+                ("IDE0073", "file_header_template", "unset"),
+                ("IDE0075", "dotnet_style_prefer_simplified_boolean_expressions", "true"),
+                ("IDE0076", null, null),
+                ("IDE0077", null, null),
+                ("IDE0079", null, null),
+                ("IDE0081", null, null),
+                ("IDE0082", null, null),
+                ("IDE0084", "visual_basic_style_prefer_isnot_expression", "true"),
+                ("IDE0100", null, null),
+                ("IDE0120", null, null),
+                ("IDE0140", "visual_basic_style_prefer_simplified_object_creation", "true"),
+                ("IDE0270", "dotnet_style_coalesce_expression", "true"),
+                ("IDE1006", null, null),
+                ("IDE1007", null, null),
+                ("IDE2000", "dotnet_style_allow_multiple_blank_lines_experimental", "true"),
+                ("IDE2003", "dotnet_style_allow_statement_immediately_after_block_experimental", "true"),
+                ("JSON001", null, null),
+                ("JSON002", null, null),
+                ("RE0001", null, null),
+            };
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.VisualBasic);
         }

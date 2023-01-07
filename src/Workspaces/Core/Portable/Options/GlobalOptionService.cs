@@ -8,15 +8,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -28,20 +22,16 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly IWorkspaceThreadingService? _workspaceThreadingService;
         private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders;
 
-        // access is interlocked
-        private ImmutableArray<Workspace> _registeredWorkspaces;
-
         private readonly object _gate = new();
-        private readonly Func<OptionKey, object?> _getOption;
 
         #region Guarded by _gate
 
         private ImmutableArray<IOptionPersister> _lazyOptionPersisters;
-
-        private ImmutableDictionary<OptionKey, object?> _currentValues;
-        private ImmutableHashSet<OptionKey> _changedOptionKeys;
+        private ImmutableDictionary<OptionKey2, object?> _currentValues;
 
         #endregion
+
+        public event EventHandler<OptionChangedEventArgs>? OptionChanged;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -49,14 +39,10 @@ namespace Microsoft.CodeAnalysis.Options
             [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
             [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters)
         {
-            _getOption = GetOption;
-
             _workspaceThreadingService = workspaceThreadingService;
             _optionPersisterProviders = optionPersisters.ToImmutableArray();
-            _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
 
-            _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
-            _changedOptionKeys = ImmutableHashSet<OptionKey>.Empty;
+            _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
         }
 
         private ImmutableArray<IOptionPersister> GetOptionPersisters()
@@ -100,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private static object? LoadOptionFromPersisterOrGetDefault(OptionKey optionKey, ImmutableArray<IOptionPersister> persisters)
+        private static object? LoadOptionFromPersisterOrGetDefault(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
         {
             foreach (var persister in persisters)
             {
@@ -115,24 +101,30 @@ namespace Microsoft.CodeAnalysis.Options
             return optionKey.Option.DefaultValue;
         }
 
+        bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+        {
+            value = GetOption<T>(optionKey);
+            return true;
+        }
+
         public T GetOption<T>(Option2<T> option)
-            => OptionsHelpers.GetOption(option, _getOption);
+            => GetOption<T>(new OptionKey2(option));
 
-        public T GetOption<T>(PerLanguageOption2<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, _getOption);
+        public T GetOption<T>(PerLanguageOption2<T> option, string language)
+            => GetOption<T>(new OptionKey2(option, language));
 
-        public object? GetOption(OptionKey optionKey)
+        public T GetOption<T>(OptionKey2 optionKey)
         {
             // Ensure the option persisters are available before taking the global lock
             var persisters = GetOptionPersisters();
 
             lock (_gate)
             {
-                return GetOption_NoLock(optionKey, persisters);
+                return (T)GetOption_NoLock(optionKey, persisters)!;
             }
         }
 
-        public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys)
+        public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys)
         {
             // Ensure the option persisters are available before taking the global lock
             var persisters = GetOptionPersisters();
@@ -149,8 +141,11 @@ namespace Microsoft.CodeAnalysis.Options
             return values.ToImmutableAndClear();
         }
 
-        private object? GetOption_NoLock(OptionKey optionKey, ImmutableArray<IOptionPersister> persisters)
+        private object? GetOption_NoLock(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
         {
+            // The option must be internally defined and it can't be a legacy option whose value is mapped to another option:
+            Debug.Assert(optionKey.Option is IOption2 { Definition.StorageMapping: null });
+
             if (_currentValues.TryGetValue(optionKey, out var value))
             {
                 return value;
@@ -160,93 +155,56 @@ namespace Microsoft.CodeAnalysis.Options
 
             _currentValues = _currentValues.Add(optionKey, value);
 
-            // Track options with non-default values from serializers as changed options.
-            if (!object.Equals(value, optionKey.Option.DefaultValue))
-            {
-                _changedOptionKeys = _changedOptionKeys.Add(optionKey);
-            }
-
             return value;
         }
 
-        private void SetOptionCore(OptionKey optionKey, object? newValue)
+        public void SetGlobalOption<T>(Option2<T> option, T value)
+            => SetGlobalOption(new OptionKey2(option), value);
+
+        public void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value)
+            => SetGlobalOption(new OptionKey2(option, language), value);
+
+        public void SetGlobalOption(OptionKey2 optionKey, object? value)
+            => SetGlobalOptions(OneOrMany.Create(KeyValuePairUtil.Create(optionKey, value)));
+
+        public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
+            => SetGlobalOptions(OneOrMany.Create(options));
+
+        private bool SetGlobalOptions(OneOrMany<KeyValuePair<OptionKey2, object?>> options)
         {
-            _currentValues = _currentValues.SetItem(optionKey, newValue);
-            _changedOptionKeys = _changedOptionKeys.Add(optionKey);
-        }
-
-        public void SetGlobalOption(OptionKey optionKey, object? value)
-            => SetGlobalOptions(ImmutableArray.Create(optionKey), ImmutableArray.Create(value));
-
-        public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values)
-        {
-            Contract.ThrowIfFalse(optionKeys.Length == values.Length);
-
             var changedOptions = new List<OptionChangedEventArgs>();
             var persisters = GetOptionPersisters();
 
             lock (_gate)
             {
-                for (var i = 0; i < optionKeys.Length; i++)
+                foreach (var (optionKey, value) in options)
                 {
-                    var optionKey = optionKeys[i];
-                    var value = values[i];
-
                     var existingValue = GetOption_NoLock(optionKey, persisters);
                     if (Equals(value, existingValue))
                     {
                         continue;
                     }
 
-                    // not updating _changedOptionKeys since that's only relevant for serializable options, not global ones
                     _currentValues = _currentValues.SetItem(optionKey, value);
                     changedOptions.Add(new OptionChangedEventArgs(optionKey, value));
                 }
             }
 
-            for (var i = 0; i < optionKeys.Length; i++)
+            if (changedOptions.Count == 0)
             {
-                PersistOption(persisters, optionKeys[i], values[i]);
+                return false;
             }
 
-            RaiseOptionChangedEvent(changedOptions);
-        }
-
-        public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
-        {
-            var changedOptions = new List<OptionChangedEventArgs>();
-
-            lock (_gate)
-            {
-                foreach (var optionKey in optionKeys)
-                {
-                    var newValue = optionSet.GetOption(optionKey);
-                    var currentValue = GetOption(optionKey);
-
-                    if (Equals(currentValue, newValue))
-                    {
-                        // Identical, so nothing is changing
-                        continue;
-                    }
-
-                    // The value is actually changing, so update
-                    changedOptions.Add(new OptionChangedEventArgs(optionKey, newValue));
-
-                    SetOptionCore(optionKey, newValue);
-                }
-            }
-
-            var persisters = GetOptionPersisters();
             foreach (var changedOption in changedOptions)
             {
                 PersistOption(persisters, changedOption.OptionKey, changedOption.Value);
             }
 
-            // Outside of the lock, raise the events on our task queue.
-            UpdateRegisteredWorkspacesAndRaiseEvents(changedOptions);
+            RaiseOptionChangedEvent(changedOptions);
+            return true;
         }
 
-        private static void PersistOption(ImmutableArray<IOptionPersister> persisters, OptionKey optionKey, object? value)
+        private static void PersistOption(ImmutableArray<IOptionPersister> persisters, OptionKey2 optionKey, object? value)
         {
             foreach (var persister in persisters)
             {
@@ -257,44 +215,31 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public void RefreshOption(OptionKey optionKey, object? newValue)
+        public bool RefreshOption(OptionKey2 optionKey, object? newValue)
         {
             lock (_gate)
             {
                 if (_currentValues.TryGetValue(optionKey, out var oldValue))
                 {
-                    if (object.Equals(oldValue, newValue))
+                    if (Equals(oldValue, newValue))
                     {
                         // Value is still the same, no reason to raise events
-                        return;
+                        return false;
                     }
                 }
 
-                SetOptionCore(optionKey, newValue);
+                _currentValues = _currentValues.SetItem(optionKey, newValue);
             }
 
-            UpdateRegisteredWorkspacesAndRaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) });
-        }
-
-        private void UpdateRegisteredWorkspacesAndRaiseEvents(List<OptionChangedEventArgs> changedOptions)
-        {
-            if (changedOptions.Count == 0)
-            {
-                return;
-            }
-
-            // Ensure that the Workspace's CurrentSolution snapshot is updated with new options for all registered workspaces
-            // prior to raising option changed event handlers.
-            foreach (var workspace in _registeredWorkspaces)
-            {
-                workspace.UpdateCurrentSolutionOnOptionsChanged();
-            }
-
+            var changedOptions = new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) };
             RaiseOptionChangedEvent(changedOptions);
+            return true;
         }
 
         private void RaiseOptionChangedEvent(List<OptionChangedEventArgs> changedOptions)
         {
+            Debug.Assert(changedOptions.Count > 0);
+
             // Raise option changed events.
             var optionChanged = OptionChanged;
             if (optionChanged != null)
@@ -305,13 +250,5 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
         }
-
-        public void RegisterWorkspace(Workspace workspace)
-            => ImmutableInterlocked.Update(ref _registeredWorkspaces, (workspaces, workspace) => workspaces.Add(workspace), workspace);
-
-        public void UnregisterWorkspace(Workspace workspace)
-            => ImmutableInterlocked.Update(ref _registeredWorkspaces, (workspaces, workspace) => workspaces.Remove(workspace), workspace);
-
-        public event EventHandler<OptionChangedEventArgs>? OptionChanged;
     }
 }

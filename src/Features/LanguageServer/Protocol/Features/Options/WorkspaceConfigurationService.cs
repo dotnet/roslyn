@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-[ExportWorkspaceService(typeof(IWorkspaceConfigurationService)), Shared]
+[ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
 internal sealed class WorkspaceConfigurationService : IWorkspaceConfigurationService
 {
     private readonly IGlobalOptionService _globalOptions;

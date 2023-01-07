@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var options = GeneratorOptions.Default;
 
             await logFile.WriteLineAsync($"Load completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
-            var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter);
+            var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter, logFile);
 
             var totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();
             var totalTimeInGenerationPhase = TimeSpan.Zero;
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Load of the project completed in {compilerInvocationLoadStopwatch.Elapsed.ToDisplayString()}.");
 
             var generationStopwatch = Stopwatch.StartNew();
-            var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter);
+            var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter, logFile);
 
             await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken);
             await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             await logFile.WriteLineAsync($"Load of the binlog complete; {msbuildInvocations.Length} invocations were found.");
 
-            var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter);
+            var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter, logFile);
 
             foreach (var msbuildInvocation in msbuildInvocations)
             {

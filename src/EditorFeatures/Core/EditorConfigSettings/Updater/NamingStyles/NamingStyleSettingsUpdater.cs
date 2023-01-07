@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles.EditorConfigNamingStylesParser;
 
@@ -18,9 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 {
     internal partial class NamingStyleSettingsUpdater : SettingsUpdaterBase<(Action<(object, object?)> onSettingChange, NamingStyleSetting option), object>
     {
-        public NamingStyleSettingsUpdater(Workspace workspace, string editorconfigPath)
+        public readonly IGlobalOptionService GlobalOptions;
+
+        public NamingStyleSettingsUpdater(Workspace workspace, IGlobalOptionService globalOptions, string editorconfigPath)
                 : base(workspace, editorconfigPath)
         {
+            GlobalOptions = globalOptions;
         }
 
         protected override SourceText? GetNewText(
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 // handle no naming style rules in the editorconfig file.
                 // The implementation does not allow naming style rules to layer meaning all rules are either 
                 // defined in Visual Studios settings or in an editorconfig file. 
-                analyzerConfigDocument = analyzerConfigDocument.WithNamingStyles(Workspace.Options);
+                analyzerConfigDocument = analyzerConfigDocument.WithNamingStyles(GlobalOptions);
                 result = Parse(analyzerConfigDocument, EditorconfigPath);
             }
 

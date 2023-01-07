@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = stackAllocNode.Type;
             Debug.Assert(type is { });
 
-            if (rewrittenCount.ConstantValue?.Int32Value == 0)
+            if (rewrittenCount.ConstantValueOpt?.Int32Value == 0)
             {
                 // either default(span) or nullptr
                 return _factory.Default(type);
@@ -116,14 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression sizeOfExpression = _factory.Sizeof(elementType);
 
-            var sizeConst = sizeOfExpression.ConstantValue;
+            var sizeConst = sizeOfExpression.ConstantValueOpt;
             if (sizeConst != null)
             {
                 int size = sizeConst.Int32Value;
                 Debug.Assert(size > 0);
 
                 // common case: stackalloc int[123]
-                var countConst = countExpression.ConstantValue;
+                var countConst = countExpression.ConstantValueOpt;
                 if (countConst != null)
                 {
                     var count = countConst.Int32Value;
