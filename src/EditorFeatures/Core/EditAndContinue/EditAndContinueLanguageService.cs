@@ -61,6 +61,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _sourceTextProvider = sourceTextProvider;
         }
 
+        public void SetFileLoggingDirectory(string? logDirectory)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var proxy = new RemoteEditAndContinueServiceProxy(WorkspaceProvider.Value.Workspace);
+                    await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // ignore
+                }
+            });
+        }
+
         private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
         {
             var workspace = WorkspaceProvider.Value.Workspace;
