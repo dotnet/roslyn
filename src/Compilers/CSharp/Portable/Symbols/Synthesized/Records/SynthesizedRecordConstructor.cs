@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var nodesOfInterest = node.DescendantNodesAndSelf(descendIntoChildren: childrenNeedChecking, descendIntoTrivia: false).Where(nodeNeedsChecking);
+                var nodesOfInterest = node.DescendantNodesAndSelf(descendIntoChildren: childrenNeedChecking, descendIntoTrivia: false);
 
                 foreach (var n in nodesOfInterest)
                 {
@@ -260,8 +260,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case IdentifierNameSyntax id:
 
-                            string name = id.Identifier.ValueText;
-                            Debug.Assert(namesToCheck.Contains(name));
+                            if (!namesToCheck.Contains(id.Identifier.ValueText))
+                            {
+                                continue;
+                            }
+
+                            switch (id.Parent)
+                            {
+                                case MemberAccessExpressionSyntax memberAccess:
+                                    if (memberAccess.Expression != id)
+                                    {
+                                        continue;
+                                    }
+                                    break;
+
+                                case QualifiedNameSyntax qualifiedName:
+                                    if (qualifiedName.Left != id)
+                                    {
+                                        continue;
+                                    }
+                                    break;
+
+                                case AssignmentExpressionSyntax assignment:
+                                    if (assignment.Left == id &&
+                                        assignment.Parent?.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
+                                    {
+                                        continue;
+                                    }
+                                    break;
+                            }
+
+                            if (SyntaxFacts.IsInTypeOnlyContext(id) &&
+                                !(id.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.IsExpression } isExpression &&
+                                    isExpression.Right == id))
+                            {
+                                continue;
+                            }
+
                             if (!checkIdentifier(enclosingBinder, id))
                             {
                                 return false;
@@ -276,9 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             break;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(n.Kind());
                     }
                 }
 
@@ -736,58 +768,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return true;
-            }
-
-            bool nodeNeedsChecking(SyntaxNode n)
-            {
-                switch (n)
-                {
-                    case AnonymousFunctionExpressionSyntax:
-                    case QueryExpressionSyntax:
-                        return true;
-
-                    case IdentifierNameSyntax id:
-
-                        switch (id.Parent)
-                        {
-                            case MemberAccessExpressionSyntax memberAccess:
-                                if (memberAccess.Expression != id)
-                                {
-                                    return false;
-                                }
-                                break;
-
-                            case QualifiedNameSyntax qualifiedName:
-                                if (qualifiedName.Left != id)
-                                {
-                                    return false;
-                                }
-                                break;
-
-                            case AssignmentExpressionSyntax assignment:
-                                if (assignment.Left == id &&
-                                    assignment.Parent?.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
-                                {
-                                    return false;
-                                }
-                                break;
-                        }
-
-                        if (SyntaxFacts.IsInTypeOnlyContext(id) &&
-                            !(id.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.IsExpression } isExpression &&
-                                isExpression.Right == id))
-                        {
-                            return false;
-                        }
-
-                        if (namesToCheck.Contains(id.Identifier.ValueText))
-                        {
-                            return true;
-                        }
-                        break;
-                }
-
-                return false;
             }
         }
     }

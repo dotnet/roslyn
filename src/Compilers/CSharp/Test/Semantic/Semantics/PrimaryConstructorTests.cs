@@ -21,27 +21,27 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    using static TestFlags;
-
-    [Flags]
-    public enum TestFlags
-    {
-        Success = 0,
-        Captured = 1 << 0,
-        BadReference = 1 << 1,
-        NotUsedWarning = 1 << 2,
-        BadAttributeValue = 1 << 3,
-        BadConstant = 1 << 4,
-        BadDefaultValue = 1 << 5,
-        TwoBodies = 1 << 6,
-        Shadows = 1 << 7,
-        InNestedMethod = 1 << 8,
-        AttributesNotAllowed = 1 << 9,
-        NotInScope = 1 << 10,
-    }
+    using static PrimaryConstructorTests.TestFlags;
 
     public class PrimaryConstructorTests : CompilingTestBase
     {
+        [Flags]
+        public enum TestFlags
+        {
+            Success = 0,
+            Captured = 1 << 0,
+            BadReference = 1 << 1,
+            NotUsedWarning = 1 << 2,
+            BadAttributeValue = 1 << 3,
+            BadConstant = 1 << 4,
+            BadDefaultValue = 1 << 5,
+            TwoBodies = 1 << 6,
+            Shadows = 1 << 7,
+            InNestedMethod = 1 << 8,
+            AttributesNotAllowed = 1 << 9,
+            NotInScope = 1 << 10,
+        }
+
         [Theory]
         [CombinatorialData]
         public void LanguageVersion_01([CombinatorialValues("class ", "struct")] string keyword)
@@ -2825,7 +2825,7 @@ public class C
 ";
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics(); ;
+            CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
         }
 
         [Theory]
@@ -4812,8 +4812,6 @@ struct C
                     case "C":
                         Interlocked.Increment(ref FireCount7);
                         break;
-                    case "System.Runtime.CompilerServices.IsExternalInit":
-                        break;
                     default:
                         Assert.True(false);
                         break;
@@ -4912,8 +4910,6 @@ readonly struct C
                         Assert.Equal(0, FireCount8);
 
                         context.RegisterSymbolEndAction(Handle6);
-                        break;
-                    case "System.Runtime.CompilerServices.IsExternalInit":
                         break;
                     default:
                         Assert.True(false);
@@ -6885,6 +6881,66 @@ struct Example()
                     ("2329", NotUsedWarning, "public C1() : this(() => { void local(string x = nameof(p1)){} local(); }) {} C1(System.Action x) : this(0) {}"),
                     ("2330", NotUsedWarning, "public C1() : this(0) { void local(string x = nameof(p1)){} local(); }"),
                     ("2335", NotUsedWarning, "class Nested() : NestedBase(() => { void local(string x = nameof(p1)){} local(); }) {} class NestedBase(System.Action x) { object F = x; } "),
+
+                    // References in nameof in members    
+                    ("2401", Success | Shadows, "public int F = nameof(p1).Length;"),
+                    ("2402", Success | Shadows, "public int P {get;} = nameof(p1).Length;"),
+                    ("2403", Success | Shadows, "public event System.Action E = () => nameof(p1).Length.ToString();"),
+                    ("2404", NotUsedWarning | Shadows, "public static int F = nameof(p1).Length;"),
+                    ("2405", NotUsedWarning | Shadows, "public const string F = nameof(p1);"),
+                    ("2406", NotUsedWarning | Shadows, "public static int P {get;} = nameof(p1).Length;"),
+                    ("2407", NotUsedWarning | Shadows, "public static event System.Action E = () => nameof(p1).Length.ToString();"),
+                    ("2408", NotUsedWarning, "static C1() { _ = nameof(p1); }"),
+                    ("2409", NotUsedWarning, "static void M() { _ = nameof(p1); }"),
+                    ("2411", NotUsedWarning, "static int P { get { return nameof(p1).Length; } }"),
+                    ("2412", NotUsedWarning, "static int P { set { _ = nameof(p1); } }"),
+                    ("2413", NotUsedWarning, "static int P { set {} get { return nameof(p1).Length; } }"),
+                    ("2414", NotUsedWarning, "static int P { get => 0; set { _ = nameof(p1); } }"),
+                    ("2415", NotUsedWarning, "static event System.Action E { add { _ = nameof(p1); } remove {} }"),
+                    ("2416", NotUsedWarning, "static event System.Action E { add {} remove { _ = nameof(p1); } }"),
+                    ("2417", NotUsedWarning, "void M() { _ = nameof(p1); }"),
+                    ("2418", NotUsedWarning, "int P { get { return nameof(p1).Length; } }"),
+                    ("2419", NotUsedWarning, "int P { set { _ = nameof(p1); } }"),
+                    ("2420", NotUsedWarning, "int P { set {} get { return nameof(p1).Length; } }"),
+                    ("2421", NotUsedWarning, "int P { get => 0; set { _ = nameof(p1); } }"),
+                    ("2422", NotUsedWarning, "event System.Action E { add { _ = nameof(p1); } remove {} }"),
+                    ("2423", NotUsedWarning, "event System.Action E { add {} remove { _ = nameof(p1); } }"),
+                    ("2424", NotUsedWarning, "int this[int x] { get { return nameof(p1).Length; } }"),
+                    ("2425", NotUsedWarning, "int this[int x] { set { _ = nameof(p1); } }"),
+                    ("2426", NotUsedWarning, "int this[int x] { set {} get { return nameof(p1).Length; } }"),
+                    ("2427", NotUsedWarning, "int this[int x] { get => 0; set { _ = nameof(p1); } }"),
+                    ("2428", NotUsedWarning, "~C1() { _ = nameof(p1); }"),
+                    ("2429", NotUsedWarning, "public C1() : this(nameof(p1).Length) {}"),
+
+                    // Same in a nested type
+                    ("2501", NotUsedWarning, "class Nested { public int F = nameof(p1).Length; }"),
+                    ("2502", NotUsedWarning, "class Nested { public int P {get;} = nameof(p1).Length; }"),
+                    ("2503", NotUsedWarning, "class Nested { public event System.Action E = () => nameof(p1).Length.ToString(); }"),
+                    ("2504", NotUsedWarning, "class Nested { public static int F = nameof(p1).Length; }"),
+                    ("2506", NotUsedWarning, "class Nested { public static int P {get;} = nameof(p1).Length; }"),
+                    ("2507", NotUsedWarning, "class Nested { public static event System.Action E = () => nameof(p1).Length.ToString(); }"),
+                    ("2508", NotUsedWarning, "class Nested { static Nested() { _ = nameof(p1); } }"),
+                    ("2509", NotUsedWarning, "class Nested { static void M() { _ = nameof(p1); } }"),
+                    ("2511", NotUsedWarning, "class Nested { static int P { get { return nameof(p1).Length; } } }"),
+                    ("2512", NotUsedWarning, "class Nested { static int P { set { _ = nameof(p1); } } }"),
+                    ("2513", NotUsedWarning, "class Nested { static int P { set {} get { return nameof(p1).Length; } } }"),
+                    ("2514", NotUsedWarning, "class Nested { static int P { get => 0; set { _ = nameof(p1); } } }"),
+                    ("2515", NotUsedWarning, "class Nested { static event System.Action E { add { _ = nameof(p1); } remove {} } }"),
+                    ("2516", NotUsedWarning, "class Nested { static event System.Action E { add {} remove { _ = nameof(p1); } } }"),
+                    ("2517", NotUsedWarning, "class Nested { void M() { _ = nameof(p1); } }"),
+                    ("2518", NotUsedWarning, "class Nested { int P { get { return nameof(p1).Length; } } }"),
+                    ("2519", NotUsedWarning, "class Nested { int P { set { _ = nameof(p1); } } }"),
+                    ("2520", NotUsedWarning, "class Nested { int P { set {} get { return nameof(p1).Length; } } }"),
+                    ("2521", NotUsedWarning, "class Nested { int P { get => 0; set { _ = nameof(p1); } } }"),
+                    ("2522", NotUsedWarning, "class Nested { event System.Action E { add { _ = nameof(p1); } remove {} } }"),
+                    ("2523", NotUsedWarning, "class Nested { event System.Action E { add {} remove { _ = nameof(p1); } } }"),
+                    ("2524", NotUsedWarning, "class Nested { int this[int x] { get { return nameof(p1).Length; } } }"),
+                    ("2525", NotUsedWarning, "class Nested { int this[int x] { set { _ = nameof(p1); } } }"),
+                    ("2526", NotUsedWarning, "class Nested { int this[int x] { set {} get { return nameof(p1).Length; } } }"),
+                    ("2527", NotUsedWarning, "class Nested { int this[int x] { get => 0; set { _ = nameof(p1); } } }"),
+                    ("2528", NotUsedWarning, "class Nested { ~Nested() { _ = nameof(p1); } }"),
+                    ("2529", NotUsedWarning, "class Nested { public Nested() : this(nameof(p1).Length) {} Nested(int x) {} }"),
+                    ("2530", NotUsedWarning, "class Nested { public Nested() { _ = nameof(p1); } }"),
                 };
 
             foreach (var keyword in new[] { "class", "struct" })
@@ -7492,6 +7548,35 @@ int p1 { get; set; }
 ";
 
             AssertParameterScope(keyword, shadow, isRecord, flags, source);
+        }
+
+        [Fact]
+        public void Nameof_01()
+        {
+            var src = @"
+using System;
+
+class C1 (int p1)
+{
+    bool M1(string x)
+    {
+        return x is nameof(p1);
+    }
+
+    public static void Main()
+    {
+        Console.Write(new C1(0).M1(""p1""));
+        Console.Write(new C1(0).M1(""p2""));
+    }
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"TrueFalse").VerifyDiagnostics(
+                // (4,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(4, 15)
+                );
+
+            Assert.Empty(((CSharpCompilation)verifier.Compilation).GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
         [Fact]
@@ -8765,6 +8850,11 @@ class C3 (System.Func<int, int> nameof)
     public int M3(int x) => nameof(x);
 }
 
+class C4 (System.Func<int, int> nameof, int p4)
+{
+    public int M4() => nameof(p4);
+}
+
 class Program
 {
     static void Main()
@@ -8775,12 +8865,14 @@ class Program
         System.Console.Write(c2.M2());
         var c3 = new C3(x => x);
         System.Console.Write(c3.M3(30));
+        var c4 = new C4(x => x, 40);
+        System.Console.Write(c4.M4());
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: @"p1x30").VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: @"p1x3040").VerifyDiagnostics(
                 // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
                 // class C1 (int p1)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
@@ -8789,6 +8881,7 @@ class Program
             Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
             Assert.Equal(1, comp.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
             Assert.Equal(1, comp.GetTypeByMetadataName("C3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+            Assert.Equal(2, comp.GetTypeByMetadataName("C4").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
         }
 
         [Fact]
@@ -10812,6 +10905,87 @@ class Program
         }
 
         [Fact]
+        public void ParameterCapturing_060_CaseDifferences()
+        {
+            var source1 = @"
+class C1 (int p1, string P1)
+{
+    public string M1() => P1;
+}
+
+class C2 (int p2, string P2)
+{
+    public int M2() => p2;
+}
+
+class C3 (int p3, string P3)
+{
+    public string M31() => P3;
+    public int M32() => p3;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(1, ""_10_"");
+        System.Console.Write(c1.M1());
+        var c2 = new C2(2, ""_20_"");
+        System.Console.Write(c2.M2());
+        var c3 = new C3(3, ""_30_"");
+        System.Console.Write(c3.M31());
+        System.Console.Write(c3.M32());
+    }
+}
+";
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp1, expectedOutput: @"_10_2_30_3").VerifyDiagnostics(
+                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15),
+                // (7,26): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // class C2 (int p2, string P2)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(7, 26)
+                );
+
+            Assert.Equal("System.String P1", comp1.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Single().Key.ToTestDisplayString());
+            Assert.Equal("System.Int32 p2", comp1.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Single().Key.ToTestDisplayString());
+            Assert.Equal(2, comp1.GetTypeByMetadataName("C3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+
+            var source2 = @"
+class C1 (int p1)
+{
+    public string M1() => P1;
+}
+
+class C2 (string P2)
+{
+    public int M2() => p2;
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyEmitDiagnostics(
+                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15),
+                // (4,27): error CS0103: The name 'P1' does not exist in the current context
+                //     public string M1() => P1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "P1").WithArguments("P1").WithLocation(4, 27),
+                // (7,18): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // class C2 (string P2)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(7, 18),
+                // (9,24): error CS0103: The name 'p2' does not exist in the current context
+                //     public int M2() => p2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 24)
+                );
+
+            Assert.Empty(comp2.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+            Assert.Empty(comp2.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute()
         {
             var source = @"
@@ -10959,14 +11133,11 @@ struct C1(int p1)
                 {
                     yield return new object[] { keyword, d.tag, d.flags, d.code };
                 }
+            }
 
-                if (keyword == "class")
-                {
-                    foreach (var d in data2)
-                    {
-                        yield return new object[] { keyword, d.tag, d.flags, d.code };
-                    }
-                }
+            foreach (var d in data2)
+            {
+                yield return new object[] { "class", d.tag, d.flags, d.code };
             }
         }
 
