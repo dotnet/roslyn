@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression GetValueExpressionIfTypeOrValueReceiver(BoundExpression receiver)
+        private static BoundExpression GetValueExpressionIfTypeOrValueReceiver(BoundExpression receiver)
         {
             if ((object)receiver == null)
             {

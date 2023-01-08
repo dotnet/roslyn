@@ -467,6 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return treatAsInstanceMemberAccess;
             }
 
+            // Follows the logic of BindQuery
             bool checkQuery(QueryExpressionSyntax query, Binder enclosingBinder)
             {
                 if (checkParameterReferencesInNode(query.FromClause.Expression, enclosingBinder))

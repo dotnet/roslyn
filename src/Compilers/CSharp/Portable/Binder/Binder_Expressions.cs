@@ -1924,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (primaryCtor is not null &&
                             (!IsInDeclaringTypeInstanceMember(primaryCtor) ||
-                             (this.ContainingMember() is MethodSymbol { MethodKind: MethodKind.Constructor } contaningMember && (object)contaningMember != primaryCtor)) && // We are in a non-primary instance constructor
+                             (this.ContainingMember() is MethodSymbol { MethodKind: MethodKind.Constructor } containingMember && (object)containingMember != primaryCtor)) && // We are in a non-primary instance constructor
                             !IsInsideNameof)
                         {
                             Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
@@ -2039,8 +2039,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return !(InParameterDefaultValue ||
                      InAttributeArgument ||
-                     this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } contaningMember || // We are not in an instance member
-                     (object)contaningMember.ContainingSymbol != primaryCtor.ContainingSymbol); // The member doesn't belong to our type, i.e. from nested type
+                     this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } containingMember || // We are not in an instance member
+                     (object)containingMember.ContainingSymbol != primaryCtor.ContainingSymbol); // The member doesn't belong to our type, i.e. from nested type
         }
 
         private bool ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics)
