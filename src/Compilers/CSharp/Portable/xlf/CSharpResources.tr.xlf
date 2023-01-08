@@ -8769,36 +8769,6 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <target state="translated">Bu uyarı, InternalsVisibleToAttribute gibi bir özniteliğin doğru belirtilmediğini gösterir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">'{1}' tarafından kullanılan '{0}' derleme başvurusunun '{3}' öğesinin '{2}' kimliğiyle eşleştiği varsayıldığında, çalışma zamanı ilkesi sağlamanız gerekebilir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Derleme başvurusunun kimlikle eşleştiği varsayılıyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">İki derlemenin sürümü ve/veya sürüm numarası farklı. Birleşmenin gerçekleşmesi için, uygulamanın .config dosyasındaki yönergeleri belirtmeniz ve derlemenin doğru güçlü adını sağlamanız gerekir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">'{1}' tarafından kullanılan '{0}' derleme başvurusunun '{3}' öğesinin '{2}' kimliğiyle eşleştiği varsayıldığında, çalışma zamanı ilkesi sağlamanız gerekebilir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Derleme başvurusunun kimlikle eşleştiği varsayılıyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">İki derlemenin sürümü ve/veya sürüm numarası farklı. Birleşmenin gerçekleşmesi için, uygulamanın .config dosyasındaki yönergeleri belirtmeniz ve derlemenin doğru güçlü adını sağlamanız gerekir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">Eşdeğer kimlikli birden çok derleme içeri aktarıldı: '{0}' ve '{1}'. Yinelenen başvurulardan birini kaldırın.</target>

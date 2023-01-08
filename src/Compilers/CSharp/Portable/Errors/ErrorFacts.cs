@@ -261,7 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BitwiseOrSignExtend:
                 case ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter:
                 case ErrorCode.WRN_InvalidAssemblyName:
-                case ErrorCode.WRN_UnifyReferenceBldRev:
                 case ErrorCode.WRN_AssignmentToSelf:
                 case ErrorCode.WRN_ComparisonToSelf:
                 case ErrorCode.WRN_IsDynamicIsConfusing:
@@ -297,7 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnmatchedParamTag:
                 case ErrorCode.WRN_UnprocessedXMLComment:
                 case ErrorCode.WRN_InvalidSearchPathDir:
-                case ErrorCode.WRN_UnifyReferenceMajMin:
                 case ErrorCode.WRN_DuplicateTypeParamTag:
                 case ErrorCode.WRN_UnmatchedTypeParamTag:
                 case ErrorCode.WRN_UnmatchedParamRefTag:
@@ -1273,8 +1271,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_EndOfPPLineExpected:
                 case ErrorCode.WRN_ConflictingChecksum:
                 case ErrorCode.WRN_InvalidAssemblyName:
-                case ErrorCode.WRN_UnifyReferenceMajMin:
-                case ErrorCode.WRN_UnifyReferenceBldRev:
                 case ErrorCode.ERR_DuplicateImport:
                 case ErrorCode.ERR_DuplicateImportSimple:
                 case ErrorCode.ERR_AssemblyMatchBadVersion:

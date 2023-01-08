@@ -8769,36 +8769,6 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <target state="translated">Questo avviso indica che un attributo, ad esempio InternalsVisibleToAttribute, non è stato specificato correttamente.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">Se il riferimento all'assembly '{0}' usato da '{1}' corrisponde all'identità '{2}' di '{3}', potrebbe essere necessario fornire i criteri di runtime</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Il riferimento all'assembly verrà considerato come corrispondente all'identità</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">I due assembly differiscono per versione e/o numero di versione. Per consentire l'unifocazione, è necessario specificare le direttive nel file config dell'applicazione e specificare il nome sicuro corretto di un assembly.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">Se il riferimento all'assembly '{0}' usato da '{1}' corrisponde all'identità '{2}' di '{3}', potrebbe essere necessario fornire i criteri di runtime</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Il riferimento all'assembly verrà considerato come corrispondente all'identità</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">I due assembly differiscono per versione e/o numero di versione. Per consentire l'unifocazione, è necessario specificare le direttive nel file config dell'applicazione e specificare il nome sicuro corretto di un assembly.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">Sono stati importati più assembly con identità equivalenti: '{0}' e '{1}'. Rimuovere uno dei riferimenti duplicati.</target>

@@ -8769,36 +8769,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">此警告指出未正確地指定屬性 (例如 InternalsVisibleToAttribute)。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">假設 '{1}' 所使用的組件參考 '{0}' 符合 '{3}' 的識別 '{2}'，您可能會需要提供執行階段原則</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">假設組件參考符合識別</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">兩個組件的版次和 (或) 版本號碼不同。若要進行統一，您必須在應用程式的 .config 檔案中指定指示詞，而且您必須提供組件的正確強式名稱。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">假設 '{1}' 所使用的組件參考 '{0}' 符合 '{3}' 的識別 '{2}'，您可能會需要提供執行階段原則</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">假設組件參考符合識別</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">兩個組件的版次和 (或) 版本號碼不同。若要進行統一，您必須在應用程式的 .config 檔案中指定指示詞，而且您必須提供組件的正確強式名稱。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">已匯入具有相同識別的多個組件: '{0}' 和 '{1}'。請移除其中一個重複的參考。</target>

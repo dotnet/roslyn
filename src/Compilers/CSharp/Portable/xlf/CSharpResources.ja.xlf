@@ -8769,36 +8769,6 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <target state="translated">この警告は、InternalsVisibleToAttribute などの属性が正しく指定されていないことを示します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">'{1}' によって使用されるアセンブリ参照 '{0}' が '{3}' の ID '{2}' と一致すると仮定して、実行時ポリシーを指定する必要がある可能性があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">アセンブリ参照が ID と一致すると仮定します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">2 つのアセンブリはリリースまたはバージョン番号が異なります。統一するには、アプリケーションの .config ファイルにディレクティブを指定するとともに、アセンブリの厳密な名前を正しく付ける必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">'{1}' によって使用されるアセンブリ参照 '{0}' が '{3}' の ID '{2}' と一致すると仮定して、実行時ポリシーを指定する必要がある可能性があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">アセンブリ参照が ID と一致すると仮定します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">2 つのアセンブリはリリースまたはバージョン番号が異なります。統一するには、アプリケーションの .config ファイルにディレクティブを指定するとともに、アセンブリの厳密な名前を正しく付ける必要があります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">ID が同一の複数のアセンブリ ('{0}' と '{1}') がインポートされました。重複している参照の一方を削除します。</target>

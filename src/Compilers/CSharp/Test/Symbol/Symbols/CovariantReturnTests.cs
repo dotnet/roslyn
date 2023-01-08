@@ -511,7 +511,7 @@ namespace System.Runtime.CompilerServices
                 assignments,
                 references: references,
                 targetFramework: TargetFramework.Empty,
-                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress),
+                options: TestOptions.ReleaseDll,
                 parseOptions: parseOptions);
 
             result.VerifyDiagnostics(expectedDiagnostics);

@@ -8769,36 +8769,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">Это предупреждение указывает, что атрибут, например InternalsVisibleToAttribute, был указан неправильно.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">При предположении, что ссылка на сборку "{0}", используемая "{1}", совпадает с удостоверением "{2}"для "{3}", возможно, потребуется задать политику среды выполнения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Предполагается, что ссылка на сборку совпадает с удостоверением</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">Две сборки отличаются номером выпуска или версии. Для унификации необходимо указать директивы в CONFIG-файле приложения и предоставить допустимое строгое имя сборки.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">При предположении, что ссылка на сборку "{0}", используемая "{1}", совпадает с удостоверением "{2}"для "{3}", возможно, потребуется задать политику среды выполнения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Предполагается, что ссылка на сборку совпадает с удостоверением</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">Две сборки отличаются номером выпуска или версии. Для унификации необходимо указать директивы в CONFIG-файле приложения и предоставить допустимое строгое имя сборки.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">Импортировано несколько сборок с одинаковыми удостоверениями: "{0}" и "{1}". Удалите одну из повторяющихся ссылок.</target>

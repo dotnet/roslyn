@@ -8769,36 +8769,6 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <target state="translated">Diese Warnung gibt an, dass ein Attribut, wie z. B. InternalsVisibleToAttribute, nicht richtig angegeben wurde.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">Es wird angenommen, dass der von "{1}" verwendete Assemblyverweis "{0}" mit "{2}" von "{3}" übereinstimmt. Möglicherweise müssen Sie eine Laufzeitrichtlinie bereitstellen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Es wird davon ausgegangen, dass der Assemblyverweis mit der Identität übereinstimmt</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">Die zwei Assemblys unterscheiden sich in Release- und/oder Versionsnummer. Damit eine Vereinheitlichung vorgenommen wird, müssen Sie in der Konfigurationsdatei der Anwendung Direktiven angeben. Zudem müssen Sie den korrekten starken Namen einer Assembly angeben.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">Es wird angenommen, dass der von "{1}" verwendete Assemblyverweis "{0}" mit "{2}" von "{3}" übereinstimmt. Möglicherweise müssen Sie eine Laufzeitrichtlinie bereitstellen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Es wird davon ausgegangen, dass der Assemblyverweis mit der Identität übereinstimmt</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">Die zwei Assemblys unterscheiden sich in Release- und/oder Versionsnummer. Damit eine Vereinheitlichung vorgenommen wird, müssen Sie in der Konfigurationsdatei der Anwendung Direktiven angeben. Zudem müssen Sie den korrekten starken Namen einer Assembly angeben.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">Mehrere Assemblys mit äquivalenter Identität wurden importiert: "{0}" und "{1}". Entfernen Sie einen der doppelten Verweise.</target>

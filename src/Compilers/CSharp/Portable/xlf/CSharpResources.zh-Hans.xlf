@@ -8774,36 +8774,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">此警告指示特性(如 InternalsVisibleToAttribute)未正确指定。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">假定“{1}”使用的程序集引用“{0}”与“{3}”的标识“{2}”匹配，您可能需要提供运行时策略</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">假定程序集引用与标识匹配</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">两个程序集的版本和/或版本号不同。为进行统一，必须在应用程序的 .config 文件中指定指令，并且必须提供程序集的正确强名称。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">假定“{1}”使用的程序集引用“{0}”与“{3}”的标识“{2}”匹配，您可能需要提供运行时策略</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">假定程序集引用与标识匹配</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">两个程序集的版本和/或版本号不同。为进行统一，必须在应用程序的 .config 文件中指定指令，并且必须提供程序集的正确强名称。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">导入了具有等效标识的多个程序集:“{0}”和“{1}”。请删除重复引用之一。</target>

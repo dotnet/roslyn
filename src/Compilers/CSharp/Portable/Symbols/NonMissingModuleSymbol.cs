@@ -99,32 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var definitionId = dependentAssembly.Identity;
                 var involvedAssemblies = ImmutableArray.Create<Symbol>(ownerAssembly, dependentAssembly);
 
-                DiagnosticInfo info;
-                if (definitionId.Version > referenceId.Version)
-                {
-                    // unified with a definition whose version is higher than the reference                    
-                    ErrorCode warning = (definitionId.Version.Major == referenceId.Version.Major && definitionId.Version.Minor == referenceId.Version.Minor) ?
-                                        ErrorCode.WRN_UnifyReferenceBldRev : ErrorCode.WRN_UnifyReferenceMajMin;
-
-                    // warning: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy.
-                    info = new CSDiagnosticInfo(
-                        warning,
-                        new object[]
-                        {
-                            referenceId.GetDisplayName(),
-                            ownerAssembly.Name, // TODO (tomat): should rather be MetadataReference.Display for the corresponding reference
-                            definitionId.GetDisplayName(),
-                            dependentAssembly.Name
-                        },
-                        involvedAssemblies,
-                        ImmutableArray<Location>.Empty);
-                }
-                else
+                if (definitionId.Version <= referenceId.Version)
                 {
                     // unified with a definition whose version is lower than the reference
 
                     // error: Assembly '{0}' with identity '{1}' uses '{2}' which has a higher version than referenced assembly '{3}' with identity '{4}'
-                    info = new CSDiagnosticInfo(
+                    DiagnosticInfo info = new CSDiagnosticInfo(
                         ErrorCode.ERR_AssemblyMatchBadVersion,
                         new object[]
                         {
@@ -136,11 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         },
                         involvedAssemblies,
                         ImmutableArray<Location>.Empty);
-                }
 
-                if (MergeUseSiteDiagnostics(ref result, info))
-                {
-                    return true;
+                        if (MergeUseSiteDiagnostics(ref result, info))
+                        {
+                            return true;
+                        }
                 }
             }
 
