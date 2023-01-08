@@ -110,17 +110,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     // PROTOTYPE(PrimaryConstructors): Move to a Binder specific file?
     partial class Binder
     {
-        internal sealed partial class CapturedParametersFinder : IdentifierUsedAsValueFinder
+        internal sealed class CapturedParametersFinder : IdentifierUsedAsValueFinder
         {
-            private readonly SynthesizedPrimaryConstructor primaryConstructor;
-            private readonly HashSet<string> namesToCheck;
-            private readonly ArrayBuilder<ParameterSymbol> captured;
+            private readonly SynthesizedPrimaryConstructor _primaryConstructor;
+            private readonly HashSet<string> _namesToCheck;
+            private readonly ArrayBuilder<ParameterSymbol> _captured;
 
             private CapturedParametersFinder(SynthesizedPrimaryConstructor primaryConstructor, HashSet<string> namesToCheck, ArrayBuilder<ParameterSymbol> captured)
             {
-                this.primaryConstructor = primaryConstructor;
-                this.namesToCheck = namesToCheck;
-                this.captured = captured;
+                this._primaryConstructor = primaryConstructor;
+                this._namesToCheck = namesToCheck;
+                this._captured = captured;
             }
 
             public static IReadOnlyDictionary<ParameterSymbol, FieldSymbol> GetCapturedParameters(SynthesizedPrimaryConstructor primaryConstructor)
@@ -230,38 +230,100 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (syntaxNode)
                     {
                         case ConstructorDeclarationSyntax s:
-                            return finder.checkParameterReferencesInNode(s.Initializer, bodyBinder) &&
-                                   finder.checkParameterReferencesInNode(s.Body, bodyBinder) &&
-                                   finder.checkParameterReferencesInNode(s.ExpressionBody, bodyBinder);
+                            return finder.CheckIdentifiersInNode(s.Initializer, bodyBinder) &&
+                                   finder.CheckIdentifiersInNode(s.Body, bodyBinder) &&
+                                   finder.CheckIdentifiersInNode(s.ExpressionBody, bodyBinder);
 
                         case BaseMethodDeclarationSyntax s:
-                            return finder.checkParameterReferencesInNode(s.Body, bodyBinder) &&
-                                   finder.checkParameterReferencesInNode(s.ExpressionBody, bodyBinder);
+                            return finder.CheckIdentifiersInNode(s.Body, bodyBinder) &&
+                                   finder.CheckIdentifiersInNode(s.ExpressionBody, bodyBinder);
 
                         case AccessorDeclarationSyntax s:
-                            return finder.checkParameterReferencesInNode(s.Body, bodyBinder) &&
-                                   finder.checkParameterReferencesInNode(s.ExpressionBody, bodyBinder);
+                            return finder.CheckIdentifiersInNode(s.Body, bodyBinder) &&
+                                   finder.CheckIdentifiersInNode(s.ExpressionBody, bodyBinder);
 
                         case ArrowExpressionClauseSyntax s:
-                            return finder.checkParameterReferencesInNode(s, bodyBinder);
+                            return finder.CheckIdentifiersInNode(s, bodyBinder);
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(syntaxNode);
                     }
                 }
             }
+
+            protected override bool IsIdentifierOfInterest(IdentifierNameSyntax id)
+            {
+                return _namesToCheck.Contains(id.Identifier.ValueText);
+            }
+
+            protected override bool CheckAndClearLookupResult(Binder enclosingBinder, IdentifierNameSyntax id, LookupResult lookupResult)
+            {
+                if (lookupResult.IsMultiViable)
+                {
+                    bool? isInsideNameof = null;
+                    bool detectedCapture = false;
+
+                    foreach (var candidate in lookupResult.Symbols)
+                    {
+                        if (candidate is ParameterSymbol parameter && parameter.ContainingSymbol == (object)_primaryConstructor)
+                        {
+                            isInsideNameof ??= enclosingBinder.IsInsideNameof;
+
+                            if (isInsideNameof.GetValueOrDefault())
+                            {
+                                break;
+                            }
+                            else if (lookupResult.IsSingleViable)
+                            {
+                                Debug.Assert(lookupResult.SingleSymbolOrDefault == (object)parameter);
+
+                                // Check for left of potential color color member access 
+                                if (isTypeOrValueReceiver(enclosingBinder, id, parameter.Type, out SyntaxNode? memberAccessNode, out string? memberName, out int targetMemberArity, out bool invoked))
+                                {
+                                    lookupResult.Clear();
+                                    if (TreatAsInstanceMemberAccess(enclosingBinder, parameter.Type, memberAccessNode, memberName, targetMemberArity, invoked, lookupResult))
+                                    {
+                                        _captured.Add(parameter);
+                                        detectedCapture = true;
+                                    }
+
+                                    // We cleared the lookupResult and the candidate list within it.
+                                    // Do not attempt to continue the enclosing foreach
+                                    break;
+                                }
+                            }
+
+                            _captured.Add(parameter);
+                            detectedCapture = true;
+                        }
+                    }
+
+                    if (detectedCapture)
+                    {
+                        _namesToCheck.Remove(id.Identifier.ValueText);
+
+                        if (_namesToCheck.Count == 0)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                lookupResult.Clear();
+                return true;
+            }
         }
 
-        internal abstract partial class IdentifierUsedAsValueFinder
+        internal abstract class IdentifierUsedAsValueFinder
         {
-            private LookupResult? lookupResult;
+            private LookupResult? _lookupResult;
 
             protected void Free()
             {
-                lookupResult?.Free();
+                _lookupResult?.Free();
             }
 
-            protected bool checkParameterReferencesInNode(CSharpSyntaxNode? node, Binder binder)
+            protected bool CheckIdentifiersInNode(CSharpSyntaxNode? node, Binder binder)
             {
                 if (node == null)
                 {
@@ -277,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (n)
                     {
                         case AnonymousFunctionExpressionSyntax lambdaSyntax:
-                            if (!checkLambda(lambdaSyntax, enclosingBinder))
+                            if (!CheckLambda(lambdaSyntax, enclosingBinder))
                             {
                                 return false;
                             }
@@ -323,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            if (!checkIdentifier(enclosingBinder, id))
+                            if (!CheckIdentifier(enclosingBinder, id))
                             {
                                 return false;
                             }
@@ -331,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case QueryExpressionSyntax query:
-                            if (!checkQuery(query, enclosingBinder))
+                            if (!CheckQuery(query, enclosingBinder))
                             {
                                 return false;
                             }
@@ -341,29 +403,79 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return true;
+
+                static Binder getEnclosingBinderForNode(CSharpSyntaxNode contextNode, Binder contextBinder, SyntaxNode targetNode)
+                {
+                    while (true)
+                    {
+                        Binder? enclosingBinder = contextBinder.GetBinder(targetNode);
+
+                        if (enclosingBinder is not null)
+                        {
+                            return enclosingBinder;
+                        }
+
+                        if (targetNode == contextNode)
+                        {
+                            return contextBinder;
+                        }
+
+                        Debug.Assert(targetNode.Parent is not null);
+                        targetNode = targetNode.Parent;
+                    }
+                }
+
+                static bool childrenNeedChecking(SyntaxNode n)
+                {
+                    switch (n)
+                    {
+                        case MemberBindingExpressionSyntax:
+                        case BaseExpressionColonSyntax:
+                        case NameEqualsSyntax:
+                        case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
+                        case TypeParameterConstraintClauseSyntax:
+                        case AliasQualifiedNameSyntax:
+                            // These nodes do not have anything interesting for us
+                            return false;
+
+                        case AttributeListSyntax:
+                            // References in attributes, if any, are errors
+                            // Skip them
+                            return false;
+
+                        case ParameterSyntax:
+                            // Same as attributes
+                            return false;
+
+                        case AnonymousFunctionExpressionSyntax:
+                        case QueryExpressionSyntax:
+                            // Lambdas need special handling
+                            return false;
+
+                        case ExpressionSyntax expression:
+                            if (SyntaxFacts.IsInTypeOnlyContext(expression) &&
+                                !(expression.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.IsExpression } isExpression &&
+                                    isExpression.Right == expression))
+                            {
+                                return false;
+                            }
+                            break;
+                    }
+
+                    return true;
+                }
             }
 
             protected abstract bool IsIdentifierOfInterest(IdentifierNameSyntax id);
-        }
 
-        partial class CapturedParametersFinder
-        {
-            protected override bool IsIdentifierOfInterest(IdentifierNameSyntax id)
-            {
-                return namesToCheck.Contains(id.Identifier.ValueText);
-            }
-        }
-
-        partial class IdentifierUsedAsValueFinder
-        {
-            bool checkLambda(AnonymousFunctionExpressionSyntax lambdaSyntax, Binder enclosingBinder)
+            private bool CheckLambda(AnonymousFunctionExpressionSyntax lambdaSyntax, Binder enclosingBinder)
             {
                 UnboundLambda unboundLambda = enclosingBinder.AnalyzeAnonymousFunction(lambdaSyntax, BindingDiagnosticBag.Discarded);
-                var lambdaBodyBinder = createLambdaBodyBinder(enclosingBinder, unboundLambda);
-                return checkParameterReferencesInNode(lambdaSyntax.Body, lambdaBodyBinder.GetBinder(lambdaSyntax.Body) ?? lambdaBodyBinder);
+                var lambdaBodyBinder = CreateLambdaBodyBinder(enclosingBinder, unboundLambda);
+                return CheckIdentifiersInNode(lambdaSyntax.Body, lambdaBodyBinder.GetBinder(lambdaSyntax.Body) ?? lambdaBodyBinder);
             }
 
-            static ExecutableCodeBinder createLambdaBodyBinder(Binder enclosingBinder, UnboundLambda unboundLambda)
+            private static ExecutableCodeBinder CreateLambdaBodyBinder(Binder enclosingBinder, UnboundLambda unboundLambda)
             {
                 unboundLambda.HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType);
                 var lambdaSymbol = new LambdaSymbol(
@@ -379,82 +491,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ExecutableCodeBinder(unboundLambda.Syntax, lambdaSymbol, unboundLambda.GetWithParametersBinder(lambdaSymbol, enclosingBinder));
             }
 
-            bool checkIdentifier(Binder enclosingBinder, IdentifierNameSyntax id)
+            private bool CheckIdentifier(Binder enclosingBinder, IdentifierNameSyntax id)
             {
-                Debug.Assert(lookupResult?.IsClear != false);
-                lookupResult ??= LookupResult.GetInstance();
+                Debug.Assert(_lookupResult?.IsClear != false);
+                _lookupResult ??= LookupResult.GetInstance();
 
                 var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                enclosingBinder.LookupIdentifier(lookupResult, id, SyntaxFacts.IsInvoked(id), ref useSiteInfo);
+                enclosingBinder.LookupIdentifier(_lookupResult, id, SyntaxFacts.IsInvoked(id), ref useSiteInfo);
 
-                return CheckAndClearLookupResult(enclosingBinder, id, lookupResult);
+                return CheckAndClearLookupResult(enclosingBinder, id, _lookupResult);
             }
 
             protected abstract bool CheckAndClearLookupResult(Binder enclosingBinder, IdentifierNameSyntax id, LookupResult lookupResult);
-        }
 
-        partial class CapturedParametersFinder
-        {
-            protected override bool CheckAndClearLookupResult(Binder enclosingBinder, IdentifierNameSyntax id, LookupResult lookupResult)
-            {
-                if (lookupResult.IsMultiViable)
-                {
-                    bool? isInsideNameof = null;
-                    bool detectedCapture = false;
-
-                    foreach (var candidate in lookupResult.Symbols)
-                    {
-                        if (candidate is ParameterSymbol parameter && parameter.ContainingSymbol == (object)primaryConstructor)
-                        {
-                            isInsideNameof ??= enclosingBinder.IsInsideNameof;
-
-                            if (isInsideNameof.GetValueOrDefault())
-                            {
-                                break;
-                            }
-                            else if (lookupResult.IsSingleViable)
-                            {
-                                Debug.Assert(lookupResult.SingleSymbolOrDefault == (object)parameter);
-
-                                // Check for left of potential color color member access 
-                                if (isTypeOrValueReceiver(enclosingBinder, id, parameter.Type, out SyntaxNode? memberAccessNode, out string? memberName, out int targetMemberArity, out bool invoked))
-                                {
-                                    lookupResult.Clear();
-                                    if (treatAsInstanceMemberAccess(enclosingBinder, parameter.Type, memberAccessNode, memberName, targetMemberArity, invoked, lookupResult))
-                                    {
-                                        captured.Add(parameter);
-                                        detectedCapture = true;
-                                    }
-
-                                    // We cleared the lookupResult and the candidate list within it.
-                                    // Do not attempt to continue the enclosing foreach
-                                    break;
-                                }
-                            }
-
-                            captured.Add(parameter);
-                            detectedCapture = true;
-                        }
-                    }
-
-                    if (detectedCapture)
-                    {
-                        namesToCheck.Remove(id.Identifier.ValueText);
-
-                        if (namesToCheck.Count == 0)
-                        {
-                            return false;
-                        }
-                    }
-                }
-
-                lookupResult.Clear();
-                return true;
-            }
-        }
-
-        partial class IdentifierUsedAsValueFinder
-        {
             protected static bool isTypeOrValueReceiver(
                 Binder enclosingBinder,
                 IdentifierNameSyntax id,
@@ -495,8 +544,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return memberAccessNode is not null && enclosingBinder.IsPotentialColorColorReceiver(id, type);
             }
 
-            // Follows the logic of BindInstanceMemberAccess
-            protected static bool treatAsInstanceMemberAccess(
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.BindInstanceMemberAccess"/> and <see cref="Binder.BindMemberOfType"/>
+            /// </summary>
+            protected static bool TreatAsInstanceMemberAccess(
                 Binder enclosingBinder,
                 TypeSymbol type,
                 SyntaxNode memberAccessNode,
@@ -552,14 +603,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return treatAsInstanceMemberAccess;
             }
 
-            // Follows the logic of BindQuery
-            bool checkQuery(QueryExpressionSyntax query, Binder enclosingBinder)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.BindQuery"/>
+            /// </summary>
+            private bool CheckQuery(QueryExpressionSyntax query, Binder enclosingBinder)
             {
-                if (checkParameterReferencesInNode(query.FromClause.Expression, enclosingBinder))
+                if (CheckIdentifiersInNode(query.FromClause.Expression, enclosingBinder))
                 {
                     (QueryTranslationState state, _) = enclosingBinder.MakeInitialQueryTranslationState(query, BindingDiagnosticBag.Discarded);
 
-                    bool result = bindQueryInternal(enclosingBinder, state);
+                    bool result = BindQueryInternal(enclosingBinder, state);
 
                     for (QueryContinuationSyntax? continuation = query.Body.Continuation; continuation != null && result; continuation = continuation.Body.Continuation)
                     {
@@ -568,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // is translated into
                         //     from x in ( from ... ) ...
                         enclosingBinder.PrepareQueryTranslationStateForContinuation(state, continuation, BindingDiagnosticBag.Discarded);
-                        result = bindQueryInternal(enclosingBinder, state);
+                        result = BindQueryInternal(enclosingBinder, state);
                     }
 
                     state.Free();
@@ -578,22 +631,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool bindQueryInternal(Binder enclosingBinder, QueryTranslationState state)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.BindQueryInternal2"/>
+            /// </summary>
+            private bool BindQueryInternal(Binder enclosingBinder, QueryTranslationState state)
             {
                 // we continue reducing the query until it is reduced away.
                 do
                 {
                     if (state.clauses.IsEmpty())
                     {
-                        return finalTranslation(enclosingBinder, state);
+                        return FinalTranslation(enclosingBinder, state);
                     }
                 }
-                while (reduceQuery(enclosingBinder, state));
+                while (ReduceQuery(enclosingBinder, state));
 
                 return false;
             }
 
-            bool finalTranslation(Binder enclosingBinder, QueryTranslationState state)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.FinalTranslation"/>
+            /// </summary>
+            private bool FinalTranslation(Binder enclosingBinder, QueryTranslationState state)
             {
                 Debug.Assert(state.clauses.IsEmpty());
                 switch (state.selectOrGroup.Kind())
@@ -607,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var selectClause = (SelectClauseSyntax)state.selectOrGroup;
                             var x = state.rangeVariable;
                             var v = selectClause.Expression;
-                            return makeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x, v);
+                            return MakeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x, v);
                         }
                     case SyntaxKind.GroupClause:
                         {
@@ -622,8 +681,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var v = groupClause.GroupExpression;
                             var k = groupClause.ByExpression;
 
-                            return makeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x, k) &&
-                                   makeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x, v);
+                            return MakeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x, k) &&
+                                   MakeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x, v);
                         }
                     default:
                         {
@@ -633,27 +692,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool reduceQuery(Binder enclosingBinder, QueryTranslationState state)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.ReduceQuery"/>
+            /// </summary>
+            private bool ReduceQuery(Binder enclosingBinder, QueryTranslationState state)
             {
                 var topClause = state.clauses.Pop();
                 switch (topClause.Kind())
                 {
                     case SyntaxKind.WhereClause:
-                        return reduceWhere(enclosingBinder, (WhereClauseSyntax)topClause, state);
+                        return ReduceWhere(enclosingBinder, (WhereClauseSyntax)topClause, state);
                     case SyntaxKind.JoinClause:
-                        return reduceJoin(enclosingBinder, (JoinClauseSyntax)topClause, state);
+                        return ReduceJoin(enclosingBinder, (JoinClauseSyntax)topClause, state);
                     case SyntaxKind.OrderByClause:
-                        return reduceOrderBy(enclosingBinder, (OrderByClauseSyntax)topClause, state);
+                        return ReduceOrderBy(enclosingBinder, (OrderByClauseSyntax)topClause, state);
                     case SyntaxKind.FromClause:
-                        return reduceFrom(enclosingBinder, (FromClauseSyntax)topClause, state);
+                        return ReduceFrom(enclosingBinder, (FromClauseSyntax)topClause, state);
                     case SyntaxKind.LetClause:
-                        return reduceLet(enclosingBinder, (LetClauseSyntax)topClause, state);
+                        return ReduceLet(enclosingBinder, (LetClauseSyntax)topClause, state);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(topClause.Kind());
                 }
             }
 
-            bool reduceWhere(Binder enclosingBinder, WhereClauseSyntax where, QueryTranslationState state)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.ReduceWhere"/>
+            /// </summary>
+            private bool ReduceWhere(Binder enclosingBinder, WhereClauseSyntax where, QueryTranslationState state)
             {
                 // A query expression with a where clause
                 //     from x in e
@@ -661,17 +726,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     ...
                 // is translated into
                 //     from x in ( e ) . Where ( x => f )
-                return makeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), state.rangeVariable, where.Condition);
+                return MakeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), state.rangeVariable, where.Condition);
             }
 
-            bool reduceJoin(Binder enclosingBinder, JoinClauseSyntax join, QueryTranslationState state)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.ReduceJoin"/>
+            /// </summary>
+            private bool ReduceJoin(Binder enclosingBinder, JoinClauseSyntax join, QueryTranslationState state)
             {
-                if (checkParameterReferencesInNode(join.InExpression, enclosingBinder) &&
-                    makeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), state.rangeVariable, join.LeftExpression))
+                if (CheckIdentifiersInNode(join.InExpression, enclosingBinder) &&
+                    MakeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), state.rangeVariable, join.LeftExpression))
                 {
                     var x2 = state.AddRangeVariable(enclosingBinder, join.Identifier, BindingDiagnosticBag.Discarded);
 
-                    if (makeQueryUnboundLambda(enclosingBinder, QueryTranslationState.RangeVariableMap(x2), x2, join.RightExpression))
+                    if (MakeQueryUnboundLambda(enclosingBinder, QueryTranslationState.RangeVariableMap(x2), x2, join.RightExpression))
                     {
                         if (join.Into != null)
                         {
@@ -688,7 +756,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool reduceOrderBy(Binder enclosingBinder, OrderByClauseSyntax orderby, QueryTranslationState state)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.ReduceOrderBy"/>
+            /// </summary>
+            private bool ReduceOrderBy(Binder enclosingBinder, OrderByClauseSyntax orderby, QueryTranslationState state)
             {
                 // A query expression with an orderby clause
                 //     from x in e
@@ -705,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // an invocation of OrderByDescending or ThenByDescending is produced instead.
                 foreach (var ordering in orderby.Orderings)
                 {
-                    if (!makeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), state.rangeVariable, ordering.Expression))
+                    if (!MakeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), state.rangeVariable, ordering.Expression))
                     {
                         return false;
                     }
@@ -714,10 +785,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            bool reduceFrom(Binder enclosingBinder, FromClauseSyntax from, QueryTranslationState state)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.ReduceFrom"/>
+            /// </summary>
+            private bool ReduceFrom(Binder enclosingBinder, FromClauseSyntax from, QueryTranslationState state)
             {
                 var x1 = state.rangeVariable;
-                if (makeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x1, from.Expression))
+                if (MakeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x1, from.Expression))
                 {
                     state.AddRangeVariable(enclosingBinder, from.Identifier, BindingDiagnosticBag.Discarded);
                     return true;
@@ -726,7 +800,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool reduceLet(Binder enclosingBinder, LetClauseSyntax let, QueryTranslationState state)
+            /// <summary>
+            /// Follows the logic of <see cref="Binder.ReduceLet"/>
+            /// </summary>
+            private bool ReduceLet(Binder enclosingBinder, LetClauseSyntax let, QueryTranslationState state)
             {
                 // A query expression with a let clause
                 //     from x in e
@@ -737,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     ...
                 var x = state.rangeVariable;
 
-                if (makeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x, let.Expression))
+                if (MakeQueryUnboundLambda(enclosingBinder, state.RangeVariableMap(), x, let.Expression))
                 {
                     state.rangeVariable = state.TransparentRangeVariable(enclosingBinder);
                     state.AddTransparentIdentifier(x.Name);
@@ -749,78 +826,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool makeQueryUnboundLambda(Binder enclosingBinder, RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression)
+            private bool MakeQueryUnboundLambda(Binder enclosingBinder, RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression)
             {
-                UnboundLambda unboundLambda = MakeQueryUnboundLambda(
+                UnboundLambda unboundLambda = Binder.MakeQueryUnboundLambda(
                     expression,
                     new QueryUnboundLambdaState(
                         enclosingBinder, qvm, ImmutableArray.Create(parameter),
                         (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) => throw ExceptionUtilities.Unreachable()),
                     withDependencies: false);
 
-                var lambdaBodyBinder = createLambdaBodyBinder(enclosingBinder, unboundLambda);
-                return checkParameterReferencesInNode(expression, lambdaBodyBinder.GetRequiredBinder(expression));
-            }
-
-            static Binder getEnclosingBinderForNode(CSharpSyntaxNode contextNode, Binder contextBinder, SyntaxNode targetNode)
-            {
-                while (true)
-                {
-                    Binder? enclosingBinder = contextBinder.GetBinder(targetNode);
-
-                    if (enclosingBinder is not null)
-                    {
-                        return enclosingBinder;
-                    }
-
-                    if (targetNode == contextNode)
-                    {
-                        return contextBinder;
-                    }
-
-                    Debug.Assert(targetNode.Parent is not null);
-                    targetNode = targetNode.Parent;
-                }
-            }
-
-            static bool childrenNeedChecking(SyntaxNode n)
-            {
-                switch (n)
-                {
-                    case MemberBindingExpressionSyntax:
-                    case BaseExpressionColonSyntax:
-                    case NameEqualsSyntax:
-                    case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
-                    case TypeParameterConstraintClauseSyntax:
-                    case AliasQualifiedNameSyntax:
-                        // These nodes do not have anything interesting for us
-                        return false;
-
-                    case AttributeListSyntax:
-                        // References in attributes, if any, are errors
-                        // Skip them
-                        return false;
-
-                    case ParameterSyntax:
-                        // Same as attributes
-                        return false;
-
-                    case AnonymousFunctionExpressionSyntax:
-                    case QueryExpressionSyntax:
-                        // Lambdas need special handling
-                        return false;
-
-                    case ExpressionSyntax expression:
-                        if (SyntaxFacts.IsInTypeOnlyContext(expression) &&
-                            !(expression.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.IsExpression } isExpression &&
-                                isExpression.Right == expression))
-                        {
-                            return false;
-                        }
-                        break;
-                }
-
-                return true;
+                var lambdaBodyBinder = CreateLambdaBodyBinder(enclosingBinder, unboundLambda);
+                return CheckIdentifiersInNode(expression, lambdaBodyBinder.GetRequiredBinder(expression));
             }
         }
     }
