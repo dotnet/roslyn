@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="AddCompilationEndCustomTagDescription">
         <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
-        <target state="new">'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</target>
+        <target state="translated">필드에 할당된 'DiagnosticDescriptor'는 컴파일 종료 진단을 보고하는 데 사용되지만 이를 초기화하는 데 사용되는 'DiagnosticDescriptor' 생성자는 필요한 사용자 지정 태그 "CompilationEnd"를 전달하지 않습니다. 자세한 내용은 'WellKnownDiagnosticTags.CompilationEnd'에 대한 설명서를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagMessage">
         <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
-        <target state="new">Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</target>
+        <target state="translated">컴파일 종료 진단을 보고하는 데 사용되므로 필드 '{0}'을(를) 초기화하는 데 사용되는 진단 설명자에 "CompilationEnd" 사용자 지정 태그를 추가합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagTitle">
         <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
-        <target state="new">Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</target>
+        <target state="translated">컴파일 종료 진단 설명자에 "CompilationEnd" 사용자 지정 태그를 추가합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -587,7 +587,7 @@
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
         <source>Do not ignore values returned by methods on immutable objects</source>
-        <target state="new">Do not ignore values returned by methods on immutable objects</target>
+        <target state="translated">변경할 수 없는 개체의 메서드에서 반환된 값을 무시하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">

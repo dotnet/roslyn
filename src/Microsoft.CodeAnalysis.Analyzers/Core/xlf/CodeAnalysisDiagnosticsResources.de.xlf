@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="AddCompilationEndCustomTagDescription">
         <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
-        <target state="new">'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</target>
+        <target state="translated">"DiagnosticDescriptor", der dem Feld zugewiesen ist, wird verwendet, um eine Kompilierungsendediagnose zu melden, aber der zum Initialisieren verwendete DiagnosticDescriptor-Konstruktor übergibt nicht das erforderliche benutzerdefinierte Tag "CompilationEnd". Weitere Informationen finden Sie in der Dokumentation zu "WellKnownDiagnosticTags.CompilationEnd".</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagMessage">
         <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
-        <target state="new">Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</target>
+        <target state="translated">Dem Diagnosedeskriptor das benutzerdefinierte Tag "CompilationEnd" hinzufügen, das zum Initialisieren des Felds "{0}" verwendet wird, da es zum Melden einer Kompilierungsenddiagnose verwendet wird</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagTitle">
         <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
-        <target state="new">Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</target>
+        <target state="translated">Benutzerdefiniertes Tag "CompilationEnd" zum Diagnosedeskriptor für Kompilierungsende hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -587,7 +587,7 @@
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
         <source>Do not ignore values returned by methods on immutable objects</source>
-        <target state="new">Do not ignore values returned by methods on immutable objects</target>
+        <target state="translated">Keine von Methoden zu unveränderlichen Objekten zurückgegebenen Werte ignorieren</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">

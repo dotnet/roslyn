@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="AddCompilationEndCustomTagDescription">
         <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
-        <target state="new">'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</target>
+        <target state="translated">Alana atanan 'DiagnosticDescriptor', bir derleme bitiş tanılamasını rapor etmek için kullanılır ancak bunu başlatmak için kullanılan 'DiagnosticDescriptor' oluşturucusu, gerekli "CompilationEnd" özel etiketinde geçmez. Ayrıntılar için 'WellKnownDiagnosticTags.CompilationEnd' belgesine bakın.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagMessage">
         <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
-        <target state="new">Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</target>
+        <target state="translated">Derleme sonu tanılamasını rapor etmek için kullanıldığından, '{0}' alanını başlatmak için kullanılan tanılama tanımlayıcısına "CompilationEnd" özel etiketi ekleyin</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagTitle">
         <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
-        <target state="new">Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</target>
+        <target state="translated">Derleme sonu tanılama tanımlayıcısına "CompilationEnd" özel etiketi ekleme</target>
         <note />
       </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -587,7 +587,7 @@
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
         <source>Do not ignore values returned by methods on immutable objects</source>
-        <target state="new">Do not ignore values returned by methods on immutable objects</target>
+        <target state="translated">Sabit nesnelerdeki yöntemler tarafından döndürülen değerleri yok saymama</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">

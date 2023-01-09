@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="AddCompilationEndCustomTagDescription">
         <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
-        <target state="new">'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</target>
+        <target state="translated">指派給欄位的 'DiagnosticDescriptor' 可用來報告編譯結束診斷，但用於初始化的 'DiagnosticDescriptor' 建構函式未傳遞到必要的自訂標籤 "CompilationEnd"。如需詳細資料，請參閱 'WellKnownDiagnosticTags.CompilationEnd' 文件。</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagMessage">
         <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
-        <target state="new">Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</target>
+        <target state="translated">將 "CompilationEnd" 自訂標記新增至用於初始化欄位 '{0}' 的診斷描述項，因為它用來報告編譯結束診斷</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagTitle">
         <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
-        <target state="new">Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</target>
+        <target state="translated">將 "CompilationEnd" 自訂標記新增至編譯結束診斷描述項</target>
         <note />
       </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -587,7 +587,7 @@
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
         <source>Do not ignore values returned by methods on immutable objects</source>
-        <target state="new">Do not ignore values returned by methods on immutable objects</target>
+        <target state="translated">請勿略過不可變物件上方法所傳回的值</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
