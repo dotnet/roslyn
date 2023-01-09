@@ -45,7 +45,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Experimental"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
