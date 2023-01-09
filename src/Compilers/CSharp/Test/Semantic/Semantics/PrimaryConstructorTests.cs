@@ -21,27 +21,27 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    using static TestFlags;
-
-    [Flags]
-    public enum TestFlags
-    {
-        Success = 0,
-        Captured = 1 << 0,
-        BadReference = 1 << 1,
-        NotUsedWarning = 1 << 2,
-        BadAttributeValue = 1 << 3,
-        BadConstant = 1 << 4,
-        BadDefaultValue = 1 << 5,
-        TwoBodies = 1 << 6,
-        Shadows = 1 << 7,
-        InNestedMethod = 1 << 8,
-        AttributesNotAllowed = 1 << 9,
-        NotInScope = 1 << 10,
-    }
+    using static PrimaryConstructorTests.TestFlags;
 
     public class PrimaryConstructorTests : CompilingTestBase
     {
+        [Flags]
+        public enum TestFlags
+        {
+            Success = 0,
+            Captured = 1 << 0,
+            BadReference = 1 << 1,
+            NotUsedWarning = 1 << 2,
+            BadAttributeValue = 1 << 3,
+            BadConstant = 1 << 4,
+            BadDefaultValue = 1 << 5,
+            TwoBodies = 1 << 6,
+            Shadows = 1 << 7,
+            InNestedMethod = 1 << 8,
+            AttributesNotAllowed = 1 << 9,
+            NotInScope = 1 << 10,
+        }
+
         [Theory]
         [CombinatorialData]
         public void LanguageVersion_01([CombinatorialValues("class ", "struct")] string keyword)
@@ -2825,7 +2825,7 @@ public class C
 ";
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics(); ;
+            CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
         }
 
         [Theory]
@@ -4812,8 +4812,6 @@ struct C
                     case "C":
                         Interlocked.Increment(ref FireCount7);
                         break;
-                    case "System.Runtime.CompilerServices.IsExternalInit":
-                        break;
                     default:
                         Assert.True(false);
                         break;
@@ -4912,8 +4910,6 @@ readonly struct C
                         Assert.Equal(0, FireCount8);
 
                         context.RegisterSymbolEndAction(Handle6);
-                        break;
-                    case "System.Runtime.CompilerServices.IsExternalInit":
                         break;
                     default:
                         Assert.True(false);
@@ -6885,6 +6881,66 @@ struct Example()
                     ("2329", NotUsedWarning, "public C1() : this(() => { void local(string x = nameof(p1)){} local(); }) {} C1(System.Action x) : this(0) {}"),
                     ("2330", NotUsedWarning, "public C1() : this(0) { void local(string x = nameof(p1)){} local(); }"),
                     ("2335", NotUsedWarning, "class Nested() : NestedBase(() => { void local(string x = nameof(p1)){} local(); }) {} class NestedBase(System.Action x) { object F = x; } "),
+
+                    // References in nameof in members    
+                    ("2401", Success | Shadows, "public int F = nameof(p1).Length;"),
+                    ("2402", Success | Shadows, "public int P {get;} = nameof(p1).Length;"),
+                    ("2403", Success | Shadows, "public event System.Action E = () => nameof(p1).Length.ToString();"),
+                    ("2404", NotUsedWarning | Shadows, "public static int F = nameof(p1).Length;"),
+                    ("2405", NotUsedWarning | Shadows, "public const string F = nameof(p1);"),
+                    ("2406", NotUsedWarning | Shadows, "public static int P {get;} = nameof(p1).Length;"),
+                    ("2407", NotUsedWarning | Shadows, "public static event System.Action E = () => nameof(p1).Length.ToString();"),
+                    ("2408", NotUsedWarning, "static C1() { _ = nameof(p1); }"),
+                    ("2409", NotUsedWarning, "static void M() { _ = nameof(p1); }"),
+                    ("2411", NotUsedWarning, "static int P { get { return nameof(p1).Length; } }"),
+                    ("2412", NotUsedWarning, "static int P { set { _ = nameof(p1); } }"),
+                    ("2413", NotUsedWarning, "static int P { set {} get { return nameof(p1).Length; } }"),
+                    ("2414", NotUsedWarning, "static int P { get => 0; set { _ = nameof(p1); } }"),
+                    ("2415", NotUsedWarning, "static event System.Action E { add { _ = nameof(p1); } remove {} }"),
+                    ("2416", NotUsedWarning, "static event System.Action E { add {} remove { _ = nameof(p1); } }"),
+                    ("2417", NotUsedWarning, "void M() { _ = nameof(p1); }"),
+                    ("2418", NotUsedWarning, "int P { get { return nameof(p1).Length; } }"),
+                    ("2419", NotUsedWarning, "int P { set { _ = nameof(p1); } }"),
+                    ("2420", NotUsedWarning, "int P { set {} get { return nameof(p1).Length; } }"),
+                    ("2421", NotUsedWarning, "int P { get => 0; set { _ = nameof(p1); } }"),
+                    ("2422", NotUsedWarning, "event System.Action E { add { _ = nameof(p1); } remove {} }"),
+                    ("2423", NotUsedWarning, "event System.Action E { add {} remove { _ = nameof(p1); } }"),
+                    ("2424", NotUsedWarning, "int this[int x] { get { return nameof(p1).Length; } }"),
+                    ("2425", NotUsedWarning, "int this[int x] { set { _ = nameof(p1); } }"),
+                    ("2426", NotUsedWarning, "int this[int x] { set {} get { return nameof(p1).Length; } }"),
+                    ("2427", NotUsedWarning, "int this[int x] { get => 0; set { _ = nameof(p1); } }"),
+                    ("2428", NotUsedWarning, "~C1() { _ = nameof(p1); }"),
+                    ("2429", NotUsedWarning, "public C1() : this(nameof(p1).Length) {}"),
+
+                    // Same in a nested type
+                    ("2501", NotUsedWarning, "class Nested { public int F = nameof(p1).Length; }"),
+                    ("2502", NotUsedWarning, "class Nested { public int P {get;} = nameof(p1).Length; }"),
+                    ("2503", NotUsedWarning, "class Nested { public event System.Action E = () => nameof(p1).Length.ToString(); }"),
+                    ("2504", NotUsedWarning, "class Nested { public static int F = nameof(p1).Length; }"),
+                    ("2506", NotUsedWarning, "class Nested { public static int P {get;} = nameof(p1).Length; }"),
+                    ("2507", NotUsedWarning, "class Nested { public static event System.Action E = () => nameof(p1).Length.ToString(); }"),
+                    ("2508", NotUsedWarning, "class Nested { static Nested() { _ = nameof(p1); } }"),
+                    ("2509", NotUsedWarning, "class Nested { static void M() { _ = nameof(p1); } }"),
+                    ("2511", NotUsedWarning, "class Nested { static int P { get { return nameof(p1).Length; } } }"),
+                    ("2512", NotUsedWarning, "class Nested { static int P { set { _ = nameof(p1); } } }"),
+                    ("2513", NotUsedWarning, "class Nested { static int P { set {} get { return nameof(p1).Length; } } }"),
+                    ("2514", NotUsedWarning, "class Nested { static int P { get => 0; set { _ = nameof(p1); } } }"),
+                    ("2515", NotUsedWarning, "class Nested { static event System.Action E { add { _ = nameof(p1); } remove {} } }"),
+                    ("2516", NotUsedWarning, "class Nested { static event System.Action E { add {} remove { _ = nameof(p1); } } }"),
+                    ("2517", NotUsedWarning, "class Nested { void M() { _ = nameof(p1); } }"),
+                    ("2518", NotUsedWarning, "class Nested { int P { get { return nameof(p1).Length; } } }"),
+                    ("2519", NotUsedWarning, "class Nested { int P { set { _ = nameof(p1); } } }"),
+                    ("2520", NotUsedWarning, "class Nested { int P { set {} get { return nameof(p1).Length; } } }"),
+                    ("2521", NotUsedWarning, "class Nested { int P { get => 0; set { _ = nameof(p1); } } }"),
+                    ("2522", NotUsedWarning, "class Nested { event System.Action E { add { _ = nameof(p1); } remove {} } }"),
+                    ("2523", NotUsedWarning, "class Nested { event System.Action E { add {} remove { _ = nameof(p1); } } }"),
+                    ("2524", NotUsedWarning, "class Nested { int this[int x] { get { return nameof(p1).Length; } } }"),
+                    ("2525", NotUsedWarning, "class Nested { int this[int x] { set { _ = nameof(p1); } } }"),
+                    ("2526", NotUsedWarning, "class Nested { int this[int x] { set {} get { return nameof(p1).Length; } } }"),
+                    ("2527", NotUsedWarning, "class Nested { int this[int x] { get => 0; set { _ = nameof(p1); } } }"),
+                    ("2528", NotUsedWarning, "class Nested { ~Nested() { _ = nameof(p1); } }"),
+                    ("2529", NotUsedWarning, "class Nested { public Nested() : this(nameof(p1).Length) {} Nested(int x) {} }"),
+                    ("2530", NotUsedWarning, "class Nested { public Nested() { _ = nameof(p1); } }"),
                 };
 
             foreach (var keyword in new[] { "class", "struct" })
@@ -7492,6 +7548,35 @@ int p1 { get; set; }
 ";
 
             AssertParameterScope(keyword, shadow, isRecord, flags, source);
+        }
+
+        [Fact]
+        public void Nameof_01()
+        {
+            var src = @"
+using System;
+
+class C1 (int p1)
+{
+    bool M1(string x)
+    {
+        return x is nameof(p1);
+    }
+
+    public static void Main()
+    {
+        Console.Write(new C1(0).M1(""p1""));
+        Console.Write(new C1(0).M1(""p2""));
+    }
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"TrueFalse").VerifyDiagnostics(
+                // (4,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(4, 15)
+                );
+
+            Assert.Empty(((CSharpCompilation)verifier.Compilation).GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
         [Fact]
@@ -8442,6 +8527,212 @@ class Program
                     ("1005", "int M1() { int local(int p1) { int local() => p1; return local(); }; return local(0); }"),
                     ("1006", "int M1() { int local(int p1) { int local() { int local() => p1; return local(); }; return local(); }; return local(0); }"),
                     ("1007", "int M1() { int local(int p1) { int local() { var d = (int x) => p1; return d(0); }; return local(); }; return local(0); }"),
+
+                    ("1101", "object M1() => from p1 in new[] {1} select p1;"),
+                    ("1102", "object M1() => from p1 in new[] {1} group p1 by p1;"),
+                    ("1103", "object M1() => from p1 in new[] {1} where p1 > 0 select p1;"),
+                    ("1104", "object M1() => from p1 in new[] {1} orderby p1 group p1 by p1;"),
+                    ("1105", "object M1() => from p1 in new[] {1} orderby p1, p1 select p1;"),
+                    ("1106", "object M1() => from p1 in new[] {1} let x = p1 select p1;"),
+                    ("1107", "object M1() => from p1 in new[] {1} let x = p1 group p1 by p1;"),
+                    ("1108", "object M1() => from p1 in new[] {1} let x = p1 where p1 > 0 select p1;"),
+                    ("1109", "object M1() => from p1 in new[] {1} let x = p1 orderby p1 group p1 by p1;"),
+                    ("1110", "object M1() => from p1 in new[] {1} let x = p1 orderby p1, p1 select p1;"),
+                    ("1111", "object M1() => from p1 in new[] {1} where p1 > 0 let x = p1 select p1;"),
+                    ("1112", "object M1() => from p1 in new[] {1} orderby p1 let x = p1 group p1 by p1;"),
+                    ("1113", "object M1() => from p1 in new[] {1} from x in new[] {p1} select p1;"),
+                    ("1114", "object M1() => from p1 in new[] {1} from x in new[] {p1} group p1 by p1;"),
+                    ("1115", "object M1() => from p1 in new[] {1} from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1116", "object M1() => from p1 in new[] {1} from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1117", "object M1() => from p1 in new[] {1} from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1118", "object M1() => from p1 in new[] {1} where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1119", "object M1() => from p1 in new[] {1} orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1120", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x select p1;"),
+                    ("1121", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1122", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1123", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1124", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1125", "object M1() => from p1 in new[] {1} where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1126", "object M1() => from p1 in new[] {1} orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1127", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1128", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1129", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1130", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1131", "object M1() => from p1 in new[] {1} join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1132", "object M1() => from p1 in new[] {1} where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1133", "object M1() => from p1 in new[] {1} orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+
+                    ("1201", "object M1() => from y in new[] {1} from p1 in new[] {y} select p1;"),
+                    ("1202", "object M1() => from y in new[] {1} from p1 in new[] {y} group p1 by p1;"),
+                    ("1203", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 select p1;"),
+                    ("1204", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 group p1 by p1;"),
+                    ("1205", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1, p1 select p1;"),
+                    ("1206", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 select p1;"),
+                    ("1207", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 group p1 by p1;"),
+                    ("1208", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 where p1 > 0 select p1;"),
+                    ("1209", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 orderby p1 group p1 by p1;"),
+                    ("1210", "object M1() => from y in new[] {1} from p1 in new[] {y} let x = p1 orderby p1, p1 select p1;"),
+                    ("1211", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 let x = p1 select p1;"),
+                    ("1212", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 let x = p1 group p1 by p1;"),
+                    ("1213", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} select p1;"),
+                    ("1214", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} group p1 by p1;"),
+                    ("1215", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1216", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1217", "object M1() => from y in new[] {1} from p1 in new[] {y} from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1218", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1219", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1220", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x select p1;"),
+                    ("1221", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1222", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1223", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1224", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1225", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1226", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1227", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1228", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1229", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1230", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1231", "object M1() => from y in new[] {1} from p1 in new[] {y} join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1232", "object M1() => from y in new[] {1} from p1 in new[] {y} where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1233", "object M1() => from y in new[] {1} from p1 in new[] {y} orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+
+                    ("1301", "object M1() => from y in new[] {1} let p1 = y select p1;"),
+                    ("1302", "object M1() => from y in new[] {1} let p1 = y group p1 by p1;"),
+                    ("1303", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 select p1;"),
+                    ("1304", "object M1() => from y in new[] {1} let p1 = y orderby p1 group p1 by p1;"),
+                    ("1305", "object M1() => from y in new[] {1} let p1 = y orderby p1, p1 select p1;"),
+                    ("1306", "object M1() => from y in new[] {1} let p1 = y let x = p1 select p1;"),
+                    ("1307", "object M1() => from y in new[] {1} let p1 = y let x = p1 group p1 by p1;"),
+                    ("1308", "object M1() => from y in new[] {1} let p1 = y let x = p1 where p1 > 0 select p1;"),
+                    ("1309", "object M1() => from y in new[] {1} let p1 = y let x = p1 orderby p1 group p1 by p1;"),
+                    ("1310", "object M1() => from y in new[] {1} let p1 = y let x = p1 orderby p1, p1 select p1;"),
+                    ("1311", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 let x = p1 select p1;"),
+                    ("1312", "object M1() => from y in new[] {1} let p1 = y orderby p1 let x = p1 group p1 by p1;"),
+                    ("1313", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} select p1;"),
+                    ("1314", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} group p1 by p1;"),
+                    ("1315", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1316", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1317", "object M1() => from y in new[] {1} let p1 = y from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1318", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1319", "object M1() => from y in new[] {1} let p1 = y orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1320", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x select p1;"),
+                    ("1321", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1322", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1323", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1324", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1325", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1326", "object M1() => from y in new[] {1} let p1 = y orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1327", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1328", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1329", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1330", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1331", "object M1() => from y in new[] {1} let p1 = y join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1332", "object M1() => from y in new[] {1} let p1 = y where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1333", "object M1() => from y in new[] {1} let p1 = y orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+
+                    ("1401", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 select p1;"),
+                    ("1402", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 group p1 by p1;"),
+                    ("1403", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 select p1;"),
+                    ("1404", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 group p1 by p1;"),
+                    ("1405", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1, p1 select p1;"),
+                    ("1406", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 select p1;"),
+                    ("1407", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 group p1 by p1;"),
+                    ("1408", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 where p1 > 0 select p1;"),
+                    ("1409", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 orderby p1 group p1 by p1;"),
+                    ("1410", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 let x = p1 orderby p1, p1 select p1;"),
+                    ("1411", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 let x = p1 select p1;"),
+                    ("1412", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 let x = p1 group p1 by p1;"),
+                    ("1413", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} select p1;"),
+                    ("1414", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1415", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1416", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1417", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1418", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1419", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1420", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1421", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1422", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1423", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1424", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1425", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1426", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1427", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1428", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1429", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1430", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1431", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1432", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1433", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+
+                    ("1501", "object M1() => from y in new[] {1} join p1 in new[] {2} on y equals p1 into u select u;"),
+
+                    ("1601", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 select p1;"),
+                    ("1602", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 group p1 by p1;"),
+                    ("1603", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 select p1;"),
+                    ("1604", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 group p1 by p1;"),
+                    ("1605", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1, p1 select p1;"),
+                    ("1606", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 select p1;"),
+                    ("1607", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 group p1 by p1;"),
+                    ("1608", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 where p1.Count() > 0 select p1;"),
+                    ("1609", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 orderby p1 group p1 by p1;"),
+                    ("1610", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 let x = p1 orderby p1, p1 select p1;"),
+                    ("1611", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 let x = p1 select p1;"),
+                    ("1612", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 let x = p1 group p1 by p1;"),
+                    ("1613", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} select p1;"),
+                    ("1614", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1615", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} where p1.Count() > 0 select p1;"),
+                    ("1616", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1617", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1618", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 from x in new[] {p1} select p1;"),
+                    ("1619", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1620", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x select p1;"),
+                    ("1621", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x group p1 by p1;"),
+                    ("1622", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x where p1.Count() > 0 select p1;"),
+                    ("1623", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x orderby p1 group p1 by p1;"),
+                    ("1624", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x orderby p1, p1 select p1;"),
+                    ("1625", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 join x in new[] {2} on p1.Count() equals x select p1;"),
+                    ("1626", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 join x in new[] {2} on p1.Count() equals x group p1 by p1;"),
+                    ("1627", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z select p1;"),
+                    ("1628", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z group p1 by p1;"),
+                    ("1629", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z where p1.Count() > 0 select p1;"),
+                    ("1630", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z orderby p1 group p1 by p1;"),
+                    ("1631", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 join x in new[] {2} on p1.Count() equals x into z orderby p1, p1 select p1;"),
+                    ("1632", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 where p1.Count() > 0 join x in new[] {2} on p1.Count() equals x into z select p1;"),
+                    ("1633", "object M1() => from y in new[] {1} join u in new[] {2} on y equals u into p1 orderby p1 join x in new[] {2} on p1.Count() equals x into z group p1 by p1;"),
+
+                    ("1701", "object M1() => from y in new[] {1} select y + 1 into p1 select p1;"),
+                    ("1702", "object M1() => from y in new[] {1} select y + 1 into p1 group p1 by p1;"),
+                    ("1703", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 select p1;"),
+                    ("1704", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 group p1 by p1;"),
+                    ("1705", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1, p1 select p1;"),
+                    ("1706", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 select p1;"),
+                    ("1707", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 group p1 by p1;"),
+                    ("1708", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 where p1 > 0 select p1;"),
+                    ("1709", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 orderby p1 group p1 by p1;"),
+                    ("1710", "object M1() => from y in new[] {1} select y + 1 into p1 let x = p1 orderby p1, p1 select p1;"),
+                    ("1711", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 let x = p1 select p1;"),
+                    ("1712", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 let x = p1 group p1 by p1;"),
+                    ("1713", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} select p1;"),
+                    ("1714", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1715", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} where p1 > 0 select p1;"),
+                    ("1716", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} orderby p1 group p1 by p1;"),
+                    ("1717", "object M1() => from y in new[] {1} select y + 1 into p1 from x in new[] {p1} orderby p1, p1 select p1;"),
+                    ("1718", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 from x in new[] {p1} select p1;"),
+                    ("1719", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 from x in new[] {p1} group p1 by p1;"),
+                    ("1720", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1721", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1722", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x where p1 > 0 select p1;"),
+                    ("1723", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x orderby p1 group p1 by p1;"),
+                    ("1724", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x orderby p1, p1 select p1;"),
+                    ("1725", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 join x in new[] {2} on p1 equals x select p1;"),
+                    ("1726", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 join x in new[] {2} on p1 equals x group p1 by p1;"),
+                    ("1727", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1728", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
+                    ("1729", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z where p1 > 0 select p1;"),
+                    ("1730", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z orderby p1 group p1 by p1;"),
+                    ("1731", "object M1() => from y in new[] {1} select y + 1 into p1 join x in new[] {2} on p1 equals x into z orderby p1, p1 select p1;"),
+                    ("1732", "object M1() => from y in new[] {1} select y + 1 into p1 where p1 > 0 join x in new[] {2} on p1 equals x into z select p1;"),
+                    ("1733", "object M1() => from y in new[] {1} select y + 1 into p1 orderby p1 join x in new[] {2} on p1 equals x into z group p1 by p1;"),
                 };
 
             foreach (var d in data)
@@ -8457,6 +8748,8 @@ class Program
             _ = tag;
 
             var source = @"
+using System.Linq;
+
 #line 1000
 class C1 (int p1)
 {
@@ -8466,7 +8759,7 @@ class C1 (int p1)
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            comp.VerifyEmitDiagnostics(
+            comp.GetEmitDiagnostics().Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
                 // (1000,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
                 // class C1 (int p1)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 15)
@@ -8557,6 +8850,11 @@ class C3 (System.Func<int, int> nameof)
     public int M3(int x) => nameof(x);
 }
 
+class C4 (System.Func<int, int> nameof, int p4)
+{
+    public int M4() => nameof(p4);
+}
+
 class Program
 {
     static void Main()
@@ -8567,12 +8865,14 @@ class Program
         System.Console.Write(c2.M2());
         var c3 = new C3(x => x);
         System.Console.Write(c3.M3(30));
+        var c4 = new C4(x => x, 40);
+        System.Console.Write(c4.M4());
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: @"p1x30").VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: @"p1x3040").VerifyDiagnostics(
                 // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
                 // class C1 (int p1)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
@@ -8581,6 +8881,7 @@ class Program
             Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
             Assert.Equal(1, comp.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
             Assert.Equal(1, comp.GetTypeByMetadataName("C3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+            Assert.Equal(2, comp.GetTypeByMetadataName("C4").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
         }
 
         [Fact]
@@ -8600,6 +8901,2189 @@ class C3 (int nameof)
                 );
 
             Assert.Equal(1, comp.GetTypeByMetadataName("C3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+        }
+
+        [Fact]
+        public void ParameterCapturing_015_AmbiguousDeclaration()
+        {
+            var source = @"
+class C1 (int p1, C1 p1)
+{
+    object M1(int x)
+    {
+        return p1;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // No unused warnings because we detected capturing
+            comp.VerifyEmitDiagnostics(
+                    // (2,22): error CS0100: The parameter name 'p1' is a duplicate
+                    // class C1 (int p1, C1 p1)
+                    Diagnostic(ErrorCode.ERR_DuplicateParamName, "p1").WithArguments("p1").WithLocation(2, 22),
+                    // (6,16): error CS0229: Ambiguity between 'int p1' and 'C1 p1'
+                    //         return p1;
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "p1").WithArguments("int p1", "C1 p1").WithLocation(6, 16)
+                );
+
+            Assert.Equal(2, comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+        }
+
+        public static IEnumerable<object[]> ParameterCapturing_016_Query_MemberData()
+        {
+            var data = new (string tag, string code)[]
+                {
+                    ("0001", "=> (from x in new[] {p1} select x).Single();"),
+                    ("0002", "=> (from x in new[] {1} let z = p1 select z).Single();"),
+                    ("0003", "=> (from x in new[] {1} select p1).Single();"),
+                    ("0004", "=> (from x in new[] {1, 123, 2} where x == p1 select x).Single();"),
+                    ("0005", "=> (from x in new[] {123} from y in new[] {p1} where x == y select x).Single();"),
+                    ("0006", "=> (from x in new[] {123} join y in new[] {p1} on x equals y select x).Single();"),
+                    ("0007", "=> (from x in new[] {123} join y in new[] {0} on x equals y + p1 select x).Single();"),
+                    ("0008", "=> (from x in new[] {0} join y in new[] {123} on x + p1 equals y select y).Single();"),
+                    ("0009", "=> (from x in new[] {123} join y in new[] {p1} on x equals y into z select x).Single();"),
+                    ("0010", "=> (from x in new[] {123} join y in new[] {0} on x equals y + p1 into z select x).Single();"),
+                    ("0011", "=> (from x in new[] {0} join y in new[] {123} on x + p1 equals y into z select z.Single()).Single();"),
+                    ("0012", "=> (from x in new[] {1} group x by p1).Single().Key;"),
+                    ("0013", "=> (from x in new[] {1} group p1 by x).Single().Single();"),
+                    ("0014", "=> (from x in new[] {1} orderby p1 select x + 122).Single();"),
+                    ("0015", "=> (from x in new[] {1} orderby p1, x select x + 122).Single();"),
+                    ("0016", "=> (from x in new[] {1} orderby x, p1 select x + 122).Single();"),
+                    ("0017", "=> (from x in new[] {1} select x into y select p1).Single();"),
+
+                    ("0101", "=> (from p1 in new[] {1} select p1 + 1 into y from x in new[] {p1} select x).Single();"),
+                    ("0102", "=> (from p1 in new[] {1} select p1 + 1 into y let z = p1 select z).Single();"),
+                    ("0103", "=> (from p1 in new[] {1} select p1 + 1 into y select p1).Single();"),
+                    ("0104", "=> (from p1 in new[] {1, 122, 2} select p1 + 1 into x where x == p1 select x).Single();"),
+                    ("0105", "=> (from p1 in new[] {122} select p1 + 1 into x from y in new[] {p1} where x == y select x).Single();"),
+                    ("0106", "=> (from p1 in new[] {122} select p1 + 1 into x join y in new[] {p1} on x equals y select x).Single();"),
+                    ("0107", "=> (from p1 in new[] {122} select p1 + 1 into x join y in new[] {0} on x equals y + p1 select x).Single();"),
+                    ("0108", "=> (from p1 in new[] {-1} select p1 + 1 into x join y in new[] {123} on x + p1 equals y select y).Single();"),
+                    ("0109", "=> (from p1 in new[] {122} select p1 + 1 into x join y in new[] {p1} on x equals y into z select x).Single();"),
+                    ("0110", "=> (from p1 in new[] {122} select p1 + 1 into x join y in new[] {0} on x equals y + p1 into z select x).Single();"),
+                    ("0111", "=> (from p1 in new[] {-1} select p1 + 1 into x  join y in new[] {123} on x + p1 equals y into z select z.Single()).Single();"),
+                    ("0112", "=> (from p1 in new[] {1} select p1 + 1 into x group x by p1).Single().Key;"),
+                    ("0113", "=> (from p1 in new[] {1} select p1 + 1 into x group p1 by x).Single().Single();"),
+                    ("0114", "=> (from p1 in new[] {0} select p1 + 1 into x orderby p1 select x + 122).Single();"),
+                    ("0115", "=> (from p1 in new[] {0} select p1 + 1 into x orderby p1, x select x + 122).Single();"),
+                    ("0116", "=> (from p1 in new[] {0} select p1 + 1 into x orderby x, p1 select x + 122).Single();"),
+                    ("0117", "=> (from p1 in new[] {1} select p1 + 1 into x select x into y select p1).Single();"),
+
+                    ("0201", "=> (from y in new[] {1} join p1 in new[] {1} on y equals p1 into u from x in new[] {p1} select x).Single();"),
+                    ("0202", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u let z = p1 select z).Single();"),
+                    ("0203", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u select p1).Single();"),
+                    ("0204", "=> (from x in new[] {1, 123, 2} join p1 in new[] {1} on x equals p1 into u where x == p1 select x).Single();"),
+                    ("0205", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u from y in new[] {p1} where x == y select x).Single();"),
+                    ("0206", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u join y in new[] {p1} on x equals y select x).Single();"),
+                    ("0207", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u join y in new[] {0} on x equals y + p1 select x).Single();"),
+                    ("0208", "=> (from x in new[] {0} join p1 in new[] {1} on x equals p1 into u join y in new[] {123} on x + p1 equals y select y).Single();"),
+                    ("0209", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u join y in new[] {p1} on x equals y into z select x).Single();"),
+                    ("0210", "=> (from x in new[] {123} join p1 in new[] {1} on x equals p1 into u join y in new[] {0} on x equals y + p1 into z select x).Single();"),
+                    ("0211", "=> (from x in new[] {0} join p1 in new[] {1} on x equals p1 into u join y in new[] {123} on x + p1 equals y into z select z.Single()).Single();"),
+                    ("0212", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u group x by p1).Single().Key;"),
+                    ("0213", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u group p1 by x).Single().Single();"),
+                    ("0214", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u orderby p1 select x + 122).Single();"),
+                    ("0215", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u orderby p1, x select x + 122).Single();"),
+                    ("0216", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u orderby x, p1 select x + 122).Single();"),
+                    ("0217", "=> (from x in new[] {1} join p1 in new[] {1} on x equals p1 into u select x into y select p1).Single();"),
+
+                    ("0301", "=> (from p1 in new[] {1} join x in new[] {p1} on 1 equals 1 select x).Single();"),
+                    ("0302", "=> (from p1 in new[] {1} join x in new[] {123} on 123 equals p1 select x).Single();"),
+                    ("0303", "=> (from x in new[] {123} join p1 in new[] {1} on p1 equals 123 select x).Single();"),
+                    ("0304", "=> (from p1 in new[] {1} join x in new[] {123} on p1 + 122 equals p1 select x).Single();"),
+                    ("0305", "=> (from x in new[] {123} join p1 in new[] {1} on p1 equals p1 + 122 select x).Single();"),
+                };
+
+            foreach (var d in data)
+            {
+                yield return new object[] { d.tag, d.code };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterCapturing_016_Query_MemberData))]
+        public void ParameterCapturing_016_Query(string tag, string code)
+        {
+            _ = tag;
+
+            var source = @"
+using System.Linq;
+
+class C1 (int p1)
+{
+    public int M1()
+" + code + @"
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123);
+        System.Console.Write(c1.M1());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            Assert.Equal(1, comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_017_ColorColor_MemberAccess_Static_FieldPropertyEvent(
+            [CombinatorialValues(
+                @"const string Red = ""Red"";",
+                @"static string Red { get; } = ""Red"";",
+                @"static event System.Func<string> Red = () => ""Red"";",
+                @"static string Red = ""Red"";"
+                )]
+            string member)
+        {
+            var source = @"
+class Color
+{
+    public " + member + @"
+
+    public class C1 (Color Color)
+    {
+        public object M1() {var val = Color.Red; return val; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1();
+        System.Console.Write(val is System.Func<string> d ? d() : val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_018_ColorColor_MemberAccess_Static_Method()
+        {
+            var source = @"
+class Color
+{
+    public static string Red() => ""Red"";
+
+    public class C1 (Color Color)
+    {
+        public object M1() => Color.Red();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1();
+        System.Console.Write(val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_019_ColorColor_MemberAccess_Type()
+        {
+            var source = @"
+class Color
+{
+    public class Red;
+
+    public class C1 (Color Color)
+    {
+        public object M1(object input)
+        {
+            switch(input)
+            {
+                case Color.Red: return ""Red"";
+            }
+
+            return ""Blue"";
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1(new Color.Red());
+        System.Console.Write(val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_020_ColorColor_MemberAccess_Instance_FieldPropertyEvent(
+            [CombinatorialValues(
+                @"string Red { get; } = ""Red"";",
+                @"event System.Func<string> Red = () => ""Red"";",
+                @"string Red = ""Red"";"
+                )]
+            string member)
+        {
+            var source = @"
+class Color
+{
+    public " + member + @"
+
+    public class C1 (Color Color)
+    {
+        public object M1() {var val = Color.Red; return val; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(new Color());
+        object val = c1.M1();
+        System.Console.Write(val is System.Func<string> d ? d() : val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_021_ColorColor_MemberAccess_Instance_Method()
+        {
+            var source = @"
+class Color
+{
+    public string Red() => ""Red"";
+
+    public class C1 (Color Color)
+    {
+        public object M1() => Color.Red();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(new Color());
+        object val = c1.M1();
+        System.Console.Write(val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_022_ColorColor_MemberAccess_Instance_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""0"");
+    }
+    
+    public void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""1"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"0").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_024_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""static"");
+    }
+    
+    public void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""instance"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_025_ColorColor_MemberAccess_ExtensionAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_026_ColorColor_MemberAccess_ExtensionAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1<T>(this Color @this, T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_027_ColorColor_MemberAccess_InstanceInapplicableAndStaticApplicableDueToArguments_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(string.Empty);
+    }
+}
+
+class Color
+{
+    public void M1(int x)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1(string x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(string.Empty);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_028_ColorColor_MemberAccess_InstanceApplicableAndStaticInapplicableDueToArguments_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(0);
+    }
+}
+
+class Color
+{
+    public void M1(int x)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1(string x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(0);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_029_ColorColor_MemberAccess_ExtensionApplicableAndStaticInapplicableDueToArgument_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(string.Empty);
+    }
+}
+
+class Color
+{
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, string x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(string.Empty);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_030_ColorColor_MemberAccess_ExtensionInapplicableAndStaticApplicableDueToArguments_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(0);
+    }
+}
+
+class Color
+{
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, string x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(0);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_030_ColorColor_MemberAccess_Extension_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(string.Empty);
+    }
+}
+
+class Color
+{
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, string x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"extension").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_031_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x, int y = 0) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_032_ColorColor_MemberAccess_InstanceAndStatic_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+    
+    public void M1<T>(T x, int y = 0) where T : unmanaged
+    {
+        System.Console.WriteLine(""instance"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_034_ColorColor_MemberAccess_InstanceAndStaticAmbiguity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            // If we treat receiver as value, we capture the parameter and 'S1' becomes managed. Then static method becomes inapplicable due to constraint and we would call instance method.
+            // If we treat receiver as type, we don't capture the parameter and 'S1' remains unmanaged. Then both methods applicable, but we would call static method because optional parameter isn't needed for it.
+            // Neither choice leads to an error, but each would result in distinct behavior.
+            // We decided to treat this as an ambiguity.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_035_ColorColor_MemberAccess_ExtensionInapplicableBasedOnReceiverAndStaticApplicable_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(0);
+    }
+}
+
+class Color
+{
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this S1 @this, int x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_036_ColorColor_MemberAccess_InstanceInapplicableAndStaticApplicableDueToArity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1<int>(0);
+    }
+}
+
+class Color
+{
+    public void M1(int x)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_037_ColorColor_MemberAccess_InstanceApplicableAndStaticInapplicableDueToArity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1<int>(0);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"instance").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_038_ColorColor_MemberAccess_ExtensionApplicableAndStaticInapplicableDueToArity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1<int>(0);
+    }
+}
+
+class Color
+{
+    public static void M1(int x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1<T>(this Color @this, T x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"extension").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_039_ColorColor_MemberAccess_ExtensionInapplicableAndStaticApplicableDueToArity_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1<int>(0);
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x)
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, int x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_040_ColorColor_MemberAccess_InstanceAndStatic_Nameof_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        System.Console.WriteLine(nameof(Color.M1));
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"M1").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_041_ColorColor_MemberAccess_ExtensionAndStatic_Nameof_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        System.Console.WriteLine(nameof(Color.M1));
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, S1 x, int y = 0)
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"M1").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_042_ColorColor_MemberAccess_InstanceAndStatic_InStaticInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public static string F = Color.M1(new S1());
+}
+
+class Color
+{
+    public string M1(S1 x, int y = 0) => ""instance"";
+    
+    public static string M1<T>(T x) where T : unmanaged => ""static"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(S1.F);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_043_ColorColor_MemberAccess_InstanceAndStatic_InStaticInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    static int F = Color.M1(new S1());
+}
+
+class Color
+{
+    public int M1(S1 x) => 0;
+    
+    public static int M1<T>(T x) where T : unmanaged => 0;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17),
+                // (4,20): error CS9500: Cannot use primary constructor parameter 'Color Color' in this context.
+                //     static int F = Color.M1(new S1());
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 20)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_044_ColorColor_MemberAccess_InstanceAndStatic_InStaticMethod_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public static string Test() => Color.M1(new S1());
+}
+
+class Color
+{
+    public string M1(S1 x, int y = 0) => ""instance"";
+    
+    public static string M1<T>(T x) where T : unmanaged => ""static"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(S1.Test());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_045_ColorColor_MemberAccess_InstanceAndStatic_InStaticMethod_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public static int Test() => Color.M1(new S1());
+}
+
+class Color
+{
+    public int M1(S1 x) => 0;
+    
+    public static int M1<T>(T x) where T : unmanaged => 0;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17),
+                // (4,33): error CS9500: Cannot use primary constructor parameter 'Color Color' in this context.
+                //     public static int Test() => Color.M1(new S1());
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 33)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_046_ColorColor_MemberAccess_InstanceAndStatic_InInstanceInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public string F = Color.M1(new S1());
+}
+
+class Color
+{
+    public string M1(S1 x, int y = 0) => ""instance"";
+    
+    public static string M1<T>(T x) => ""static"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(new S1(new Color()).F);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_047_ColorColor_MemberAccess_InstanceAndStatic_InInstanceInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public string F = Color.M1(new S1());
+}
+
+class Color
+{
+    public string M1(S1 x) => ""instance"";
+    
+    public static string M1<T>(T x) where T : unmanaged => ""static"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(new S1(new Color()).F);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"instance").VerifyDiagnostics();
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_048_ColorColor_MemberAccess_InstanceAndStatic_InConstructorBody_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public S1() : this(new Color())
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_049_ColorColor_MemberAccess_InstanceAndStatic_InConstructorInitializer_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public S1() : this(
+        Color.M1(
+            new Color()))
+    {
+    }
+}
+
+class Color
+{
+    public Color M1(S1 x, int y = 0) => null;
+    
+    public static Color M1<T>(T x) where T : unmanaged => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_050_ColorColor_MemberAccess_InstanceAndStatic_InBaseInitializer_Method()
+        {
+            var source = @"
+class S1(Color Color)
+    : Base(Color.M1(default(S1)))
+{
+}
+
+class Color
+{
+    public string M1(S1 x, int y = 0) => ""instance"";
+    
+    public static string M1<T>(T x) => ""static"";
+}
+
+class Base
+{
+    public Base(string x)
+    {
+        System.Console.WriteLine(x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new S1(new Color());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,16): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // class S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 16)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_051_ColorColor_MemberAccess_InstanceAndStatic_InBaseInitializer_Method()
+        {
+            var source = @"
+class S1(Color Color)
+    : Base(Color.M1(null))
+{
+}
+
+class Color
+{
+    public string M1(S1 x) => ""instance"";
+    
+    public static string M1<T>(T x) => ""static"";
+}
+
+class Base
+{
+    public Base(string x)
+    {
+        System.Console.WriteLine(x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new S1(new Color());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"instance").VerifyDiagnostics();
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_052_ColorColor_QualifiedName_Static_FieldPropertyEvent(
+            [CombinatorialValues(
+                @"static string Red { get; } = ""Red"";",
+                @"static event System.Func<string> Red = () => ""Red"";",
+                @"static string Red = ""Red"";"
+                )]
+            string member)
+        {
+            var source = @"
+class Color
+{
+    public " + member + @"
+
+    public class C1 (Color Color)
+    {
+        public void M1(object x)
+        {
+            if (x is Color.Red)
+            {}
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28),
+                // (10,22): error CS0150: A constant value is expected
+                //             if (x is Color.Red)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "Color.Red").WithLocation(10, 22)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_053_ColorColor_MemberAccess_Constant()
+        {
+            var source = @"
+class Color
+{
+    public const string Red = ""Red"";
+
+    public class C1 (Color Color)
+    {
+        public void M1(object x)
+        {
+            if (x is Color.Red)
+            {
+                System.Console.Write(x);
+            }
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        c1.M1(""Red"");
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_054_ColorColor_QualifiedName_Type()
+        {
+            var source = @"
+class Color
+{
+    public class Red;
+
+    public class C1 (Color Color)
+    {
+        public object M1(object input)
+        {
+            if (input is Color.Red)
+            {
+                return ""Red"";
+            }
+
+            return ""Blue"";
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new Color.C1(default);
+        object val = c1.M1(new Color.Red());
+        System.Console.Write(val);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
+                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                //     public class C1 (Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        public static IEnumerable<object[]> ParameterCapturing_055_ColorColor_Query_Method_MemberData()
+        {
+            var data = new (string tag, string method, string query)[]
+                {
+                    ("01", "Cast", "from int i in Color select i"),
+                    ("02", "Select", "from i in Color select i"),
+                    ("03", "SelectMany", "from i in Color from j in new[] {1} select i + j"),
+                    ("04", "Select", "from i in Color let j = i + 1 select i + j"),
+                    ("05", "Where", "from i in Color where i > 0 select i"),
+                    ("06", "Join", "from i in Color join j in new[] {1} on i equals j select i + j"),
+                    ("07", "GroupJoin", "from i in Color join j in new[] {1} on i equals j into g select i + g.Count()"),
+                    ("08", "OrderBy", "from i in Color orderby i select i"),
+                    ("09", "OrderBy", "from i in Color orderby i ascending select i"),
+                    ("10", "OrderBy", "from i in Color orderby i, i select i"),
+                    ("11", "OrderBy", "from i in Color orderby i ascending, i select i"),
+                    ("12", "OrderByDescending", "from i in Color orderby i descending select i"),
+                    ("13", "OrderByDescending", "from i in Color orderby i descending, i select i"),
+                    ("14", "GroupBy1", "from i in Color group i by i"),
+                    ("15", "GroupBy2", "from i in Color group i + 1 by i"),
+                };
+
+            foreach (var isStatic in new[] { false, true })
+            {
+                foreach (var d in data)
+                {
+                    yield return new object[] { isStatic, d.tag, d.method, d.query };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParameterCapturing_055_ColorColor_Query_Method_MemberData))]
+        public void ParameterCapturing_055_ColorColor_Query_Method(bool isStatic, string tag, string methodName, string query)
+        {
+            _ = tag;
+
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C1 (Color Color)
+{
+    public object M1() => " + query + @";
+}
+
+public class Color
+{
+";
+            if (isStatic)
+            {
+                source += "static ";
+            }
+
+            switch (methodName)
+            {
+                case "Cast":
+                    source += @"
+    public IEnumerable<T> Cast<T>()
+    {
+        System.Console.Write(""Cast"");
+        return new T[] {};
+    }
+";
+                    break;
+
+                case "Where":
+                    source += @"
+    public IEnumerable<int> Where(Func<int, bool> predicate)
+    {
+        System.Console.Write(""Where"");
+        return new int[] {};
+    }
+";
+                    break;
+
+                case "Select":
+                    source += @"
+    public IEnumerable<V> Select<V>(Func<int, V> selector)
+    {
+        System.Console.Write(""Select"");
+        return new V[] {};
+    }
+";
+                    break;
+
+                case "SelectMany":
+                    source += @"
+    public IEnumerable<V> SelectMany<U, V>(Func<int, IEnumerable<U>> selector, Func<int,U,V> resultSelector)
+    {
+        System.Console.Write(""SelectMany"");
+        return new V[] {};
+    }
+";
+                    break;
+
+                case "Join":
+                    source += @"
+	public IEnumerable<V> Join<U,K,V>(IEnumerable<U> inner, Func<int,K> outerKeySelector, Func<U,K> innerKeySelector, Func<int,U,V> resultSelector)
+    {
+        System.Console.Write(""Join"");
+        return new V[] {};
+    }
+";
+                    break;
+
+                case "GroupJoin":
+                    source += @"
+	public IEnumerable<V> GroupJoin<U,K,V>(IEnumerable<U> inner, Func<int,K> outerKeySelector, Func<U,K> innerKeySelector, Func<int,IEnumerable<U>,V> resultSelector)
+    {
+        System.Console.Write(""GroupJoin"");
+        return new V[] {};
+    }
+";
+                    break;
+
+                case "OrderBy":
+                    source += @"
+	public IOrderedEnumerable<int> OrderBy<K>(Func<int,K> keySelector)
+    {
+        System.Console.Write(""OrderBy"");
+        return (new int[] {}).OrderBy(keySelector);
+    }
+";
+                    break;
+
+                case "OrderByDescending":
+                    source += @"
+	public IOrderedEnumerable<int> OrderByDescending<K>(Func<int,K> keySelector)
+    {
+        System.Console.Write(""OrderByDescending"");
+        return (new int[] {}).OrderByDescending(keySelector);
+    }
+";
+                    break;
+
+                case "GroupBy1":
+                    source += @"
+	public IEnumerable<K> GroupBy<K>(Func<int,K> keySelector)
+    {
+        System.Console.Write(""GroupBy1"");
+        return new K[] {};
+    }
+";
+                    break;
+
+                case "GroupBy2":
+                    source += @"
+	public IEnumerable<K> GroupBy<K,E>(Func<int,K> keySelector, Func<int,E> elementSelector)
+    {
+        System.Console.Write(""GroupBy2"");
+        return new K[] {};
+    }
+";
+                    break;
+            }
+
+            source += @"
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(" + (isStatic ? "default" : "new Color()") + @");
+        c1.M1();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: methodName);
+            var diagnostics = verifier.Diagnostics.Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective);
+
+            if (isStatic)
+            {
+                diagnostics.Verify(
+                    // (6,24): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                    // public class C1 (Color Color)
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 24)
+                    );
+            }
+            else
+            {
+                diagnostics.Verify();
+            }
+
+            Assert.Equal(isStatic, comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().IsEmpty());
+        }
+
+        [Fact]
+        public void ParameterCapturing_056_CapturingOfAManagedParameterMakesStructManaged()
+        {
+            var source = @"
+struct S1(string p1)
+{
+    public string Test() => p1;
+}
+
+struct S2(string p1)
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test(new S1());
+        Test(new S2());
+        Test(new S3());
+    }
+
+    static void Test<T>(T x) where T : unmanaged {}
+}
+
+struct S3(int p1)
+{
+    public int Test() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,18): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S2(string p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(7, 18),
+                // (15,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Program.Test<T>(T)'
+                //         Test(new S1());
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("Program.Test<T>(T)", "T", "S1").WithLocation(15, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+            Assert.Empty(comp.GetTypeByMetadataName("S2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_057_ColorColor_MemberAccess_InstanceAndStatic_Property()
+        {
+            //  public class Color
+            //  {
+            //      public int P => 1;
+            //      public static string P => "1";
+            //  }
+            var ilSource = @"
+.class public auto ansi beforefieldinit Color
+    extends System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname 
+        instance int32 get_P () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldc.i4.1
+        IL_0001: ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Color::get_P()
+    }
+
+    .method public hidebysig specialname static 
+        string get_P () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldstr ""1""
+        IL_0005: ret
+    }
+
+    .property string P()
+    {
+        .get string Color::get_P()
+    }
+}
+";
+
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        _ = Color.P;
+    }
+}
+";
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,19): error CS0229: Ambiguity between 'Color.P' and 'Color.P'
+                //         _ = Color.P;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("Color.P", "Color.P").WithLocation(6, 19)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_058_ColorColor_MemberAccess_InstanceAndStatic_Property()
+        {
+            var source = @"
+interface I1
+{
+    int P => 1;
+}
+
+interface I2
+{
+    static string P => ""1"";
+}
+
+interface Color : I1, I2
+{}
+
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        _ = Color.P;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (19,19): error CS0229: Ambiguity between 'I1.P' and 'I2.P'
+                //         _ = Color.P;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("I1.P", "I2.P").WithLocation(19, 19)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_059_ColorColor_MemberAccess_InstanceAndExtension_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine(""0"");
+    }
+}
+
+static class Extension
+{
+    static public void M1(this Color @this, S1 x)
+    {
+        System.Console.WriteLine(""extension"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"0").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_060_CaseDifferences()
+        {
+            var source1 = @"
+class C1 (int p1, string P1)
+{
+    public string M1() => P1;
+}
+
+class C2 (int p2, string P2)
+{
+    public int M2() => p2;
+}
+
+class C3 (int p3, string P3)
+{
+    public string M31() => P3;
+    public int M32() => p3;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(1, ""_10_"");
+        System.Console.Write(c1.M1());
+        var c2 = new C2(2, ""_20_"");
+        System.Console.Write(c2.M2());
+        var c3 = new C3(3, ""_30_"");
+        System.Console.Write(c3.M31());
+        System.Console.Write(c3.M32());
+    }
+}
+";
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp1, expectedOutput: @"_10_2_30_3").VerifyDiagnostics(
+                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15),
+                // (7,26): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // class C2 (int p2, string P2)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(7, 26)
+                );
+
+            Assert.Equal("System.String P1", comp1.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Single().Key.ToTestDisplayString());
+            Assert.Equal("System.Int32 p2", comp1.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Single().Key.ToTestDisplayString());
+            Assert.Equal(2, comp1.GetTypeByMetadataName("C3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
+
+            var source2 = @"
+class C1 (int p1)
+{
+    public string M1() => P1;
+}
+
+class C2 (string P2)
+{
+    public int M2() => p2;
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyEmitDiagnostics(
+                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15),
+                // (4,27): error CS0103: The name 'P1' does not exist in the current context
+                //     public string M1() => P1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "P1").WithArguments("P1").WithLocation(4, 27),
+                // (7,18): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // class C2 (string P2)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(7, 18),
+                // (9,24): error CS0103: The name 'p2' does not exist in the current context
+                //     public int M2() => p2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 24)
+                );
+
+            Assert.Empty(comp2.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+            Assert.Empty(comp2.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_061_ColorColor_MemberAccess_InstanceAndStaticDisambiguation_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        (Color).M1(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"instance").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_062_ColorColor_MemberAccess_InstanceAndStaticDisambiguation_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        global::Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_063_ColorColor_MemberAccess_InstanceAndStaticAmbiguity_Method_ApplicabilityDueToArgumentsNotConsidered()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+        Color.M2(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x, int y)
+    {
+    }
+    
+    public static void M1<T>(T x)
+    {
+    }
+
+    public void M2<T>(T x)
+    {
+    }
+    
+    public static void M2<T>(T x, int y)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9),
+                // (7,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M2(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(7, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
         [Fact]
@@ -8750,14 +11234,11 @@ struct C1(int p1)
                 {
                     yield return new object[] { keyword, d.tag, d.flags, d.code };
                 }
+            }
 
-                if (keyword == "class")
-                {
-                    foreach (var d in data2)
-                    {
-                        yield return new object[] { keyword, d.tag, d.flags, d.code };
-                    }
-                }
+            foreach (var d in data2)
+            {
+                yield return new object[] { "class", d.tag, d.flags, d.code };
             }
         }
 

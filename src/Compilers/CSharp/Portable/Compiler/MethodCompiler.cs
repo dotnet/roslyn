@@ -2000,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 #if DEBUG
-            // Predict all identifiers in the body that should go though Binder.BindIdentifier method
+            // Predict all identifiers in the body that should go through Binder.BindIdentifier method
             static void buildIdentifierMapOfBindIdentifierTargets(
                 CSharpSyntaxNode syntaxNode, Binder bodyBinder,
                 out InMethodBinder? inMethodBinder, out ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap)
@@ -2017,7 +2017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Binder current = bodyBinder;
                         while (current is not InMethodBinder)
                         {
-                            current = current!.Next!;
+                            current = current.Next!;
                         }
 
                         inMethodBinder = (InMethodBinder)current;
@@ -2147,7 +2147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (flags != (1 | 2))
                             {
-
                                 if (id.IsMissing)
                                 {
                                     continue;

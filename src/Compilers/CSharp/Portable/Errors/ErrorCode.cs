@@ -2159,6 +2159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParamsArrayInLambdaOnly = 9100,
 
         ERR_InvalidPrimaryConstructorParameterReference = 9500, // PROTOTYPE(PrimaryConstructors): pack numbers
+        ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver = 9501,
 
         #endregion
 

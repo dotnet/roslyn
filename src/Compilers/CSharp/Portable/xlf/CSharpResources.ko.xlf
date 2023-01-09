@@ -57,6 +57,11 @@
         <target state="translated">'{0}' 연산자는 참조 형식인 것으로 알려지지 않은 형식 매개 변수이므로 'default' 및 '{1}' 형식의 피연산자에 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
+        <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
+        <target state="new">Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">nullable 참조 형식은 개체를 만드는 데 사용할 수 없습니다.</target>
