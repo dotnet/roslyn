@@ -3057,7 +3057,24 @@ class C { }
             var compilation = CreateCompilation(text);
             Assert.False(compilation.GetSpecialType(SpecialType.System_ArgIterator).IsManagedTypeNoUseSiteDiagnostics);
             Assert.False(compilation.GetSpecialType(SpecialType.System_RuntimeArgumentHandle).IsManagedTypeNoUseSiteDiagnostics);
-            Assert.False(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void IsManagedType_TypedReference()
+        {
+            var src = @"
+unsafe class C
+{
+    void M(System.TypedReference* r) { }
+}
+";
+            var compilation = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+            Assert.True(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            compilation.VerifyDiagnostics(
+                // (4,35): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     void M(System.TypedReference* r) { }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "r").WithArguments("System.TypedReference").WithLocation(4, 35)
+                );
         }
 
         [Fact]
