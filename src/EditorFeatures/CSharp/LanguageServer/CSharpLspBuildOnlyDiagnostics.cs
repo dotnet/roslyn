@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS4013", // ErrorCode.ERR_SpecialByRefInLambda:
         "CS1969", // ErrorCode.ERR_DynamicRequiredTypesMissing:
         "CS8984", // ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
-        "CS9026", // ErrorCode.ERR_CannotBeConvertedToUtf8:
-        "CS9068" // ErrorCode.ERR_FileTypeNonUniquePath:
+        "CS9026" // ErrorCode.ERR_CannotBeConvertedToUtf8:
+        // "CS9068" // ErrorCode.ERR_FileTypeNonUniquePath:
         )]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
     {

@@ -16,17 +16,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.LanguageServer
 {
-    internal abstract class AbstractLspBuildOnlyDiagnosticTests
+    public abstract class AbstractLspBuildOnlyDiagnosticsTests
     {
         protected abstract Type ErrorCodeType { get; }
-        protected abstract ILspBuildOnlyDiagnostics LspBuildOnlyDiagnostics { get; }
+        protected abstract Type LspBuildOnlyDiagnosticsType { get; }
         protected abstract ImmutableArray<string> ExpectedDiagnosticCodes { get; }
 
         [Fact]
         public void TestExportedDiagnosticIds()
         {
-            var lspDiagnostics = this.LspBuildOnlyDiagnostics;
-            var attribute = lspDiagnostics.GetType().GetCustomAttribute<LspBuildOnlyDiagnosticsAttribute>();
+            var attribute = this.LspBuildOnlyDiagnosticsType.GetCustomAttribute<LspBuildOnlyDiagnosticsAttribute>();
 
             var actualDiagnosticCodes = attribute.BuildOnlyDiagnostics;
             var missing = ExpectedDiagnosticCodes.Except(actualDiagnosticCodes).OrderBy(k => k).ToList();
