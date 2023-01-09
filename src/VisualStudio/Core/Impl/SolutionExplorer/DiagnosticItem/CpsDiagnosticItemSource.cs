@@ -18,6 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly IVsHierarchyItem _item;
         private readonly string _projectDirectoryPath;
 
+        /// <summary>
+        /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned null again.
+        /// </summary>
         private AnalyzerReference? _analyzerReference;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -38,6 +41,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
                     item.PropertyChanged += IVsHierarchyItem_PropertyChanged;
+
+                    // Now that we've subscribed, check once more in case we missed the event
+                    var analyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
+
+                    if (analyzerReference != null)
+                    {
+                        _analyzerReference = analyzerReference;
+                        UnsubscribeFromEvents();
+                    }
                 }
             }
         }
@@ -76,9 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (e.ProjectId == ProjectId ||
                 e.Kind == WorkspaceChangeKind.SolutionChanged)
             {
-                _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
-                if (_analyzerReference != null)
+                var analyzerReference = TryGetAnalyzerReference(e.NewSolution);
+                if (analyzerReference != null)
                 {
+                    _analyzerReference = analyzerReference;
                     UnsubscribeFromEvents();
 
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
