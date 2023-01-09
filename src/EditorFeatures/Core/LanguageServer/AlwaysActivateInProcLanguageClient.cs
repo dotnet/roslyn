@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -21,6 +23,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
+
     /// <summary>
     /// Language client responsible for handling C# / VB / F# LSP requests in any scenario (both local and codespaces).
     /// This powers "LSP only" features (e.g. cntrl+Q code search) that do not use traditional editor APIs.
@@ -34,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
+        private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
@@ -43,10 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
-            ExportProvider exportProvider)
+            ExportProvider exportProvider,
+            IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics)
             : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
             _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
+            _buildOnlyDiagnostics = buildOnlyDiagnostics;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
@@ -95,6 +101,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
                     new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
                 };
+                serverCapabilities.DiagnosticProvider.BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
+                    .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
+                    .Distinct()
+                    .ToArray();
             }
 
             // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
