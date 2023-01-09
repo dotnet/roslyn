@@ -202,6 +202,15 @@ namespace Microsoft.CodeAnalysis.Editing
             throw new NotImplementedException();
         }
 
+        private protected abstract SyntaxNode OperatorDeclaration(
+            string operatorName,
+            bool isImplicitConversion,
+            IEnumerable<SyntaxNode>? parameters = null,
+            SyntaxNode? returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default,
+            IEnumerable<SyntaxNode>? statements = null);
+
         /// <summary>
         /// Creates a method declaration matching an existing method symbol.
         /// </summary>
@@ -209,11 +218,17 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             if (method.MethodKind != MethodKind.UserDefinedOperator)
             {
-                throw new ArgumentException("Method is not an operator.");
+                throw new ArgumentException($"Method kind '{method.MethodKind}' is not an operator.");
             }
 
+            // This method currently supports MethodKind.UserDefinedOperator, but not MethodKind.Conversion.
+            // If we supported conversion, we'll delete these asserts and correctly pass isImplicitConversion below.
+            Debug.Assert(!method.Name.Equals(WellKnownMemberNames.ImplicitConversionName, StringComparison.OrdinalIgnoreCase));
+            Debug.Assert(!method.Name.Equals(WellKnownMemberNames.ExplicitConversionName, StringComparison.OrdinalIgnoreCase));
+
             var decl = OperatorDeclaration(
-                GetOperatorKind(method),
+                method.Name,
+                isImplicitConversion: false,
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
                 returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,
@@ -222,39 +237,6 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return decl;
         }
-
-        private static OperatorKind GetOperatorKind(IMethodSymbol method)
-            => method.Name switch
-            {
-                WellKnownMemberNames.ImplicitConversionName => OperatorKind.ImplicitConversion,
-                WellKnownMemberNames.ExplicitConversionName => OperatorKind.ExplicitConversion,
-                WellKnownMemberNames.AdditionOperatorName => OperatorKind.Addition,
-                WellKnownMemberNames.BitwiseAndOperatorName => OperatorKind.BitwiseAnd,
-                WellKnownMemberNames.BitwiseOrOperatorName => OperatorKind.BitwiseOr,
-                WellKnownMemberNames.DecrementOperatorName => OperatorKind.Decrement,
-                WellKnownMemberNames.DivisionOperatorName => OperatorKind.Division,
-                WellKnownMemberNames.EqualityOperatorName => OperatorKind.Equality,
-                WellKnownMemberNames.ExclusiveOrOperatorName => OperatorKind.ExclusiveOr,
-                WellKnownMemberNames.FalseOperatorName => OperatorKind.False,
-                WellKnownMemberNames.GreaterThanOperatorName => OperatorKind.GreaterThan,
-                WellKnownMemberNames.GreaterThanOrEqualOperatorName => OperatorKind.GreaterThanOrEqual,
-                WellKnownMemberNames.IncrementOperatorName => OperatorKind.Increment,
-                WellKnownMemberNames.InequalityOperatorName => OperatorKind.Inequality,
-                WellKnownMemberNames.LeftShiftOperatorName => OperatorKind.LeftShift,
-                WellKnownMemberNames.LessThanOperatorName => OperatorKind.LessThan,
-                WellKnownMemberNames.LessThanOrEqualOperatorName => OperatorKind.LessThanOrEqual,
-                WellKnownMemberNames.LogicalNotOperatorName => OperatorKind.LogicalNot,
-                WellKnownMemberNames.ModulusOperatorName => OperatorKind.Modulus,
-                WellKnownMemberNames.MultiplyOperatorName => OperatorKind.Multiply,
-                WellKnownMemberNames.OnesComplementOperatorName => OperatorKind.OnesComplement,
-                WellKnownMemberNames.RightShiftOperatorName => OperatorKind.RightShift,
-                WellKnownMemberNames.UnsignedRightShiftOperatorName => OperatorKind.UnsignedRightShift,
-                WellKnownMemberNames.SubtractionOperatorName => OperatorKind.Subtraction,
-                WellKnownMemberNames.TrueOperatorName => OperatorKind.True,
-                WellKnownMemberNames.UnaryNegationOperatorName => OperatorKind.UnaryNegation,
-                WellKnownMemberNames.UnaryPlusOperatorName => OperatorKind.UnaryPlus,
-                _ => throw new ArgumentException("Unknown operator kind."),
-            };
 
         /// <summary>
         /// Creates a parameter declaration.
