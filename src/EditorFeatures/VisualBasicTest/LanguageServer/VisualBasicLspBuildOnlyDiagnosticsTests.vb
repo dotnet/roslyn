@@ -31,7 +31,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LanguageServer
                 Dim builder = ImmutableArray.CreateBuilder(Of String)
                 For Each errorCode As Integer In errorCodes
                     If Not supported.Contains(errorCode) AndAlso
-                        errorCode > 0 AndAlso
                         errorCode > ERRID.ERR_None AndAlso
                         errorCode < ERRID.WRN_NextAvailable Then
                         builder.Add("BC" & errorCode.ToString("D5"))
