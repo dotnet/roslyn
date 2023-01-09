@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             }
             else if (value is ImmutableArray<string> stringArray)
             {
-                value = stringArray.ToArray();
+                value = stringArray.IsDefault ? null : stringArray.ToArray();
             }
 
             return _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
