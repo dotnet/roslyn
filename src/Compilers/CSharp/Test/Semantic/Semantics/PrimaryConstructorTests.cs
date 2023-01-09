@@ -9674,42 +9674,6 @@ class Color
         }
 
         [Fact]
-        public void ParameterCapturing_033_ColorColor_MemberAccess_InstanceAndStatic_Method()
-        {
-            var source = @"
-struct S1(Color Color)
-{
-    public void Test()
-    {
-        Color.M1(this);
-    }
-}
-
-class Color
-{
-    public static void M1<T>(T x) where T : unmanaged
-    {
-        System.Console.WriteLine(""static"");
-    }
-    
-    public void M1<T>(T x, int y = 0) where T : unmanaged
-    {
-        System.Console.WriteLine(""instance"");
-    }
-}
-";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
-
-            comp.VerifyEmitDiagnostics(
-                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-                //         Color.M1(this);
-                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9)
-                );
-
-            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
-        }
-
-        [Fact]
         public void ParameterCapturing_034_ColorColor_MemberAccess_InstanceAndStaticAmbiguity_Method()
         {
             var source = @"
@@ -10733,9 +10697,15 @@ class Program
     {
         Test(new S1());
         Test(new S2());
+        Test(new S3());
     }
 
     static void Test<T>(T x) where T : unmanaged {}
+}
+
+struct S3(int p1)
+{
+    public int Test() => p1;
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
@@ -10751,6 +10721,7 @@ class Program
 
             Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
             Assert.Empty(comp.GetTypeByMetadataName("S2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S3").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
         [Fact]
@@ -10836,7 +10807,7 @@ interface I1
 
 interface I2
 {
-    string P => ""1"";
+    static string P => ""1"";
 }
 
 interface Color : I1, I2
@@ -10983,6 +10954,136 @@ class C2 (string P2)
 
             Assert.Empty(comp2.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
             Assert.Empty(comp2.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_061_ColorColor_MemberAccess_InstanceAndStaticDisambiguation_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        (Color).M1(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"instance").VerifyDiagnostics();
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_062_ColorColor_MemberAccess_InstanceAndStaticDisambiguation_Method()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        global::Color.M1(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x, int y = 0)
+    {
+        System.Console.WriteLine(""instance"");
+    }
+    
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine(""static"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(new Color()).Test();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
+                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // struct S1(Color Color)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_063_ColorColor_MemberAccess_InstanceAndStaticAmbiguity_Method_ApplicabilityDueToArgumentsNotConsidered()
+        {
+            var source = @"
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+        Color.M2(this);
+    }
+}
+
+class Color
+{
+    public void M1<T>(T x, int y)
+    {
+    }
+    
+    public static void M1<T>(T x)
+    {
+    }
+
+    public void M2<T>(T x)
+    {
+    }
+    
+    public static void M2<T>(T x, int y)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(6, 9),
+                // (7,9): error CS9501: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M2(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(7, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
         [Fact]
