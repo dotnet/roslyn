@@ -11,6 +11,7 @@ Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
 Imports Roslyn.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports System.Threading
+Imports System.IO
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
@@ -45,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             ' world function of the indexer.
             Assert.Equal(workspace.Composition, TestComposition)
 
-            Dim lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(jsonWriter)
+            Dim log = New StringWriter()
+            Dim lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(jsonWriter, log)
 
             For Each project In workspace.CurrentSolution.Projects
                 Dim compilation = Await project.GetCompilationAsync()
@@ -55,6 +57,9 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
                 Await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, CancellationToken.None)
             Next
+
+            ' The only things would have logged were an error, so this should be empty
+            Assert.Empty(log.ToString())
         End Function
 
         Public Function GetElementById(Of T As Element)(id As Id(Of T)) As T

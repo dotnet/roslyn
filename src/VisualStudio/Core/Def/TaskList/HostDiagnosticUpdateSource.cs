@@ -127,5 +127,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 RaiseDiagnosticsRemovedForProject(projectId, key);
             }
         }
+
+        public DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId projectId, string language)
+        {
+            return DocumentAnalysisExecutor.CreateAnalyzerLoadFailureDiagnostic(e, fullPath, projectId, language);
+        }
     }
 }

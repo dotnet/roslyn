@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var current = expression;
             while (true)
             {
-                if (current.ConstantValue != null)
+                if (current.ConstantValueOpt != null)
                 {
                     return true;
                 }

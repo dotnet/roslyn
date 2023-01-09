@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
 
                         BoundPattern pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, node.HasErrors, diagnostics);
+                            matchLabelSyntax.Pattern, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics);
                         if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
                             reportIfConstantNamedUnderscore(pattern, p.Expression);
 

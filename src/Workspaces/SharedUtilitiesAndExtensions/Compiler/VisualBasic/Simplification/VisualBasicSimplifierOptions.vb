@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports System.Runtime.Serialization
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     <DataContract>
@@ -32,11 +33,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
     Friend Module VisualBasicSimplifierOptionsProviders
         <Extension>
-        Friend Function GetVisualBasicSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSimplifierOptions) As VisualBasicSimplifierOptions
+        Friend Function GetVisualBasicSimplifierOptions(options As IOptionsReader, fallbackOptions As VisualBasicSimplifierOptions) As VisualBasicSimplifierOptions
             fallbackOptions = If(fallbackOptions, VisualBasicSimplifierOptions.Default)
             Return New VisualBasicSimplifierOptions() With
             {
-                .Common = options.GetCommonSimplifierOptions(fallbackOptions.Common)
+                .Common = options.GetCommonSimplifierOptions(LanguageNames.VisualBasic, fallbackOptions.Common)
             }
         End Function
     End Module

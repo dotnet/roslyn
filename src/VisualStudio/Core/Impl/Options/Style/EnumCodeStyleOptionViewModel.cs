@@ -36,37 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private NotificationOptionViewModel _selectedNotificationPreference;
 
         public EnumCodeStyleOptionViewModel(
-            PerLanguageOption2<CodeStyleOption2<T>> option,
-            string language,
-            string description,
-            T[] enumValues,
-            string[] previews,
-            AbstractOptionPreviewViewModel info,
-            OptionStore optionStore,
-            string groupName,
-            List<CodeStylePreference> preferences)
-            : this((IOption)option, language, description, enumValues, previews, info,
-                   optionStore, groupName, preferences)
-        {
-        }
-
-        public EnumCodeStyleOptionViewModel(
-            Option2<CodeStyleOption2<T>> option,
-            string description,
-            T[] enumValues,
-            string[] previews,
-            AbstractOptionPreviewViewModel info,
-            OptionStore optionStore,
-            string groupName,
-            List<CodeStylePreference> preferences)
-            : this(option, language: null, description, enumValues, previews, info,
-                   optionStore, groupName, preferences)
-        {
-        }
-
-        private EnumCodeStyleOptionViewModel(
-            IOption option,
-            string language,
+            IOption2 option,
             string description,
             T[] enumValues,
             string[] previews,
@@ -82,9 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _enumValues = enumValues.ToImmutableArray();
             _previews = previews.ToImmutableArray();
 
-            var codeStyleOption = (ICodeStyleOption)optionStore.GetOption(new OptionKey(option, language));
+            var codeStyleOption = optionStore.GetOption<CodeStyleOption2<T>>(option, option.IsPerLanguage ? info.Language : null);
 
-            var enumIndex = _enumValues.IndexOf((T)codeStyleOption.Value);
+            var enumIndex = _enumValues.IndexOf(codeStyleOption.Value);
             if (enumIndex < 0 || enumIndex >= Preferences.Count)
             {
                 enumIndex = 0;
