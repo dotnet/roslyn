@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS0017", // ErrorCode.ERR_MultipleEntryPoints:
         "CS7022", // ErrorCode.WRN_MainIgnored:
         "CS1556", // ErrorCode.ERR_MainClassNotClass:
-        "CS0420", // ErrorCode.WRN_MainCantBeGeneric:
-        "CS1557", // ErrorCode.ERR_NoMainInClass:
+        "CS0402", // ErrorCode.WRN_MainCantBeGeneric:
+        "CS1558", // ErrorCode.ERR_NoMainInClass:
         "CS1555", // ErrorCode.ERR_MainClassNotFound:
         "CS8892", // ErrorCode.WRN_SyncAndAsyncEntryPoints:
         "CS0148", // ErrorCode.ERR_BadDelegateConstructor:
@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS4013", // ErrorCode.ERR_SpecialByRefInLambda:
         "CS1969", // ErrorCode.ERR_DynamicRequiredTypesMissing:
         "CS8984", // ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
-        "CS9026" // ErrorCode.ERR_CannotBeConvertedToUtf8:
-        // "CS9068" // ErrorCode.ERR_FileTypeNonUniquePath:
+        "CS9026", // ErrorCode.ERR_CannotBeConvertedToUtf8:
+        "CS9068" // ErrorCode.ERR_FileTypeNonUniquePath:
         )]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
     {
