@@ -10,9 +10,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServer
     ' Keep in sync with IsBuildOnlyDiagnostic
     ' src\Compilers\VisualBasic\Portable\Errors\ErrorFacts.vb
     <LspBuildOnlyDiagnostics(
-        "VB31093", ' ERRID.ERR_TypeRefResolutionError3,
-        "VB35000", ' ERRID.ERR_MissingRuntimeHelper,
-        "VB36957" ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
+        "BC31091", ' ERRID.ERR_TypeRefResolutionError3,
+        "BC35000", ' ERRID.ERR_MissingRuntimeHelper,
+        "BC36597" ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
     )>
     Friend NotInheritable Class VisualBasicLspBuildOnlyDiagnostics
         Implements ILspBuildOnlyDiagnostics
