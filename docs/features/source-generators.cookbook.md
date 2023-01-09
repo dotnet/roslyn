@@ -12,6 +12,7 @@ of scope in the final design of the shipping feature.
 **This document expands on the details in the [full design document](source-generators.md), please ensure you have read that first.**
 
 ## Table of content
+
 - [Source Generators Cookbook](#source-generators-cookbook)
   - [Table of content](#table-of-content)
   - [Summary](#summary)
