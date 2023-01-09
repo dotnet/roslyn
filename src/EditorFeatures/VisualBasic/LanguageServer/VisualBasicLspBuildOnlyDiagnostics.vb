@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServer
         "VB35000", ' ERRID.ERR_MissingRuntimeHelper,
         "VB36957" ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
     )>
-    Friend Class VisualBasicLspBuildOnlyDiagnostics
+    Friend NotInheritable Class VisualBasicLspBuildOnlyDiagnostics
         Implements ILspBuildOnlyDiagnostics
 
         <ImportingConstructor>

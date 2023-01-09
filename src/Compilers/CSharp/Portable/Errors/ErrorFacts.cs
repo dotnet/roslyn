@@ -573,6 +573,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
+                    // Update src\EditorFeatures\VisualBasic\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
+                    // whenever new values are added here.
                     return true;
                 case ErrorCode.Void:
                 case ErrorCode.Unknown:
