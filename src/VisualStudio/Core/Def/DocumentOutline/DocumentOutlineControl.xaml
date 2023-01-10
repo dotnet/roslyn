@@ -8,6 +8,7 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:utils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              mc:Ignorable="d" 
@@ -53,18 +54,22 @@
                 <Setter Property="Padding" Value="0, 5, 0, 0" />
                 <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
                 <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
+                <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
             </Style>
 
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
                 <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
                 <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
             </Style>
+
+            <utils:ReverseBooleanToVisibilityConverter x:Key="ReverseBooleanToVisibilityConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
-            <RowDefinition Height="23" />
+            <RowDefinition Height="28" />
+            <RowDefinition Height="2"/>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
@@ -100,6 +105,7 @@
                     <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
                     <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
                     <Setter Property="CaretBrush" Value="{StaticResource {x:Static vsui:HeaderColors.DefaultTextBrushKey}}" />
+                    <Setter Property="Margin" Value="0, 0, 0, 5" />
                     <Style.Resources>
                         <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
                             <VisualBrush.Visual>
@@ -118,7 +124,17 @@
                 </Style>
             </TextBox.Style>
         </TextBox>
-        <TreeView Grid.Row="2" Name="SymbolTree">
+        <ProgressBar
+            Name="ProgressBar"
+            Grid.Row="2"
+            Minimum="0"
+            Maximum="100"
+            Height="2"
+            IsIndeterminate="{Binding RelativeSource={RelativeSource Self}, Path=IsVisible}"
+            Visibility="{Binding SymbolTreeIsInitialized, Mode=OneWay, Converter={StaticResource ReverseBooleanToVisibilityConverter}}"
+            Foreground="{DynamicResource {x:Static vsui:ProgressBarColors.IndicatorFillBrushKey}}"
+            Background="{DynamicResource {x:Static vsui:ProgressBarColors.BackgroundBrushKey}}" />
+        <TreeView Grid.Row="3" Name="SymbolTree">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolUIItem}" ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="SymbolTree_MouseDown">

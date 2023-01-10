@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// <summary>
     /// Interaction logic for DocumentOutlineControl.xaml
     /// </summary>
-    internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents, IDisposable
+    internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents, IDisposable, INotifyPropertyChanged
     {
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
         private readonly IThreadingContext _threadingContext;
@@ -62,6 +64,38 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private SortOption _sortOption;
 
         /// <summary>
+        /// Returns whether SymbolTree.ItemsSource has been initialized. 
+        /// </summary>
+        /// <remarks>
+        /// It is only safe to read/mutate SymbolTreeIsInitialized from the UI thread.
+        /// </remarks>
+        public bool SymbolTreeIsInitialized
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _symbolTreeIsInitialized;
+            }
+            set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                // If the property value changed, raise an event to notify the UI to check the new value.
+                if (_symbolTreeIsInitialized != value)
+                {
+                    _symbolTreeIsInitialized = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        private bool _symbolTreeIsInitialized;
+
+        private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
         /// Queue to batch up work to do to compute the data model. Used so we can batch up a lot of events 
         /// and only fetch the model once for every batch. The bool parameter is unused.
         /// </summary>
@@ -90,6 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IVsCodeWindow codeWindow)
         {
+            DataContext = this;
             InitializeComponent();
 
             _languageServiceBroker = languageServiceBroker;

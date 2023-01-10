@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,24 +46,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // further. We only get to the code below if the control is still in an active state.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var activeTextView = GetLastActiveIWpfTextView();
-            if (activeTextView is null)
-                return null;
-
-            var textBuffer = activeTextView.TextBuffer;
-            var filePath = GetFilePath();
-            if (filePath is null)
-                return null;
+            var textBuffer = GetLastActiveIWpfTextView()?.TextBuffer;
+            var filePath = textBuffer is null ? null : GetFilePath();
 
             // Ensure we switch to the threadpool before calling ComputeModelAsync. It ensures that fetching and processing the document
             // symbol data model is not done on the UI thread.
             await TaskScheduler.Default;
 
-            var model = await ComputeModelAsync().ConfigureAwait(false);
+            var model = textBuffer is null || filePath is null ? null : await ComputeModelAsync().ConfigureAwait(false);
 
-            // The model can be null if the LSP document symbol request returns a null response.
-            if (model is not null)
-                EnqueueFilterAndSortDataModelTask();
+            EnqueueFilterAndSortDataModelTask();
 
             return model;
 
@@ -115,8 +108,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private async ValueTask<DocumentSymbolDataModel?> FilterAndSortDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
             var model = await _computeDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-            if (model is null)
-                return null;
 
             // Switch to the UI thread to get the current search query and sort option.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -127,16 +118,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Switch to the threadpool to filter and sort the data model.
             await TaskScheduler.Default;
 
-            var updatedDocumentSymbolData = model.DocumentSymbolData;
-
-            if (!string.IsNullOrWhiteSpace(searchQuery))
-                updatedDocumentSymbolData = DocumentOutlineHelper.SearchDocumentSymbolData(updatedDocumentSymbolData, searchQuery, cancellationToken);
-
-            updatedDocumentSymbolData = DocumentOutlineHelper.SortDocumentSymbolData(updatedDocumentSymbolData, sortOption, cancellationToken);
+            var newModel = model is null ? null : new DocumentSymbolDataModel(FilterAndSortDocumentSymbolData(), model.OriginalSnapshot);
 
             EnqueueHighlightExpandAndPresentItemsTask(ExpansionOption.NoChange);
 
-            return new DocumentSymbolDataModel(updatedDocumentSymbolData, model.OriginalSnapshot);
+            return newModel;
+
+            ImmutableArray<DocumentSymbolData> FilterAndSortDocumentSymbolData()
+            {
+                var updatedDocumentSymbolData = model.DocumentSymbolData;
+
+                if (!string.IsNullOrWhiteSpace(searchQuery))
+                    updatedDocumentSymbolData = DocumentOutlineHelper.SearchDocumentSymbolData(updatedDocumentSymbolData, searchQuery, cancellationToken);
+
+                return DocumentOutlineHelper.SortDocumentSymbolData(updatedDocumentSymbolData, sortOption, cancellationToken);
+            }
         }
 
         /// <summary>
@@ -154,33 +150,29 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private async ValueTask HighlightExpandAndPresentItemsAsync(ImmutableSegmentedList<ExpansionOption> expansionOption, CancellationToken cancellationToken)
         {
             var model = await _filterAndSortDataModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-            if (model is null)
-                return;
 
-            // Switch to the UI thread to get the current caret point and latest active text view then create the UI model.
+            // Switch to the UI thread to get the current caret point and create the UI model.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var activeTextView = GetLastActiveIWpfTextView();
-            if (activeTextView is null)
-                return;
+            var caretPoint = activeTextView?.GetCaretPoint(activeTextView.TextBuffer);
 
-            var caretPoint = activeTextView.GetCaretPoint(activeTextView.TextBuffer);
-            if (!caretPoint.HasValue)
-                return;
-
-            var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData, _threadingContext);
+            var documentSymbolUIItems = model is null ?
+                ImmutableArray<DocumentSymbolUIItem>.Empty :
+                DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData, _threadingContext);
 
             // Switch to the threadpool to determine which node to select (if applicable).
             await TaskScheduler.Default;
 
-            var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
+            var symbolToSelect = caretPoint is null || model is null ? null : DocumentOutlineHelper.GetDocumentNodeToSelect(
+                documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
 
             // Switch to the UI thread to update the view.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Expand/collapse nodes based on the given Expansion Option.
             var expansion = expansionOption.Last();
-            if (expansion is not ExpansionOption.NoChange && SymbolTree.ItemsSource is not null)
+            if (expansion is not ExpansionOption.NoChange && SymbolTreeIsInitialized)
                 DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, (IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource, expansion);
 
             // Hightlight the selected node if it exists, otherwise unselect all nodes (required so that the view does not select a node by default).
@@ -192,12 +184,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
             else
             {
-                // On Document Outline Control initialization, SymbolTree.ItemsSource is null
-                if (SymbolTree.ItemsSource is not null)
+                if (SymbolTreeIsInitialized)
                     DocumentOutlineHelper.UnselectAll((IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource);
             }
 
             SymbolTree.ItemsSource = documentSymbolUIItems;
+
+            if (!SymbolTreeIsInitialized)
+                SymbolTreeIsInitialized = true;
         }
 
         private IWpfTextView? GetLastActiveIWpfTextView()
