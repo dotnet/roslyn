@@ -336,11 +336,15 @@ namespace Roslyn.Test.Utilities.Desktop
                     throw new Exception("Verification failed", ex);
                 }
 
-                if (verification.PEVerifyMessage != null)
+                var expectedMessage = verification.PEVerifyMessage;
+                if (expectedMessage != null)
                 {
-                    // remove token values to avoid dependency on on metadata ordering
-                    var actualMessage = Regex.Replace(ex.Output, @"\[mdToken=0x[0-9a-fA-F]+\]", "");
-                    var expectedMessage = Regex.Replace(verification.PEVerifyMessage, @"\[mdToken=0x[0-9a-fA-F]+\]", "");
+                    var actualMessage = ex.Output;
+                    
+                    if (!verification.IncludeTokens)
+                    {
+                        actualMessage = Regex.Replace(ex.Output, @"\[mdToken=0x[0-9a-fA-F]+\]", "");
+                    }
 
                     AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedMessage, actualMessage);
                 }

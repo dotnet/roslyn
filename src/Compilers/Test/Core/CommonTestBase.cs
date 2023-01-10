@@ -39,14 +39,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         PassesOrFailFast = 1 << 4,
     }
 
-    public readonly record struct Verification(VerificationStatus Status, string? ILVerifyMessage = null, string? PEVerifyMessage = null)
+    public readonly struct Verification
     {
-        public static readonly Verification Skipped = new(VerificationStatus.Skipped);
-        public static readonly Verification Passes = new(VerificationStatus.Passes);
-        public static readonly Verification FailsPEVerify = new(VerificationStatus.FailsPEVerify);
-        public static readonly Verification FailsILVerify = new(VerificationStatus.FailsILVerify);
-        public static readonly Verification Fails = new(VerificationStatus.Fails);
-        public static readonly Verification PassesOrFailFast = new(VerificationStatus.PassesOrFailFast);
+        public VerificationStatus Status { get; init; }
+        public string? ILVerifyMessage { get; init; }
+        public string? PEVerifyMessage { get; init; }
+
+        /// <summary>
+        /// True if the expected messages include member tokens.
+        /// </summary>
+        public bool IncludeTokens { get; init; }
+
+        public static readonly Verification Skipped = new() { Status = VerificationStatus.Skipped };
+        public static readonly Verification Passes = new() { Status = VerificationStatus.Passes };
+        public static readonly Verification FailsPEVerify = new() { Status = VerificationStatus.FailsPEVerify };
+        public static readonly Verification FailsILVerify = new() { Status = VerificationStatus.FailsILVerify };
+        public static readonly Verification Fails = new() { Status = VerificationStatus.Fails };
+        public static readonly Verification PassesOrFailFast = new() { Status = VerificationStatus.PassesOrFailFast };
     }
 
 #nullable disable
