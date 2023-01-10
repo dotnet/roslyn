@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -772,7 +773,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
-                    !_seenBaseCall)
+                    !_seenBaseCall &&
+                    // Primary constructor doesn't have any user code after base constructor initializer.
+                    // Therefore, if we detected a proxy for 'this', it must be used to refer in a lambda
+                    // to a constructor parameter captured into the containing type state.
+                    // That lambda could be executed before the base constructor initializer, or by
+                    // the base constructor initializer. That is why we cannot defer the proxy
+                    // initialization until after the base constructor initializer is executed.
+                    // Even though that is going to be an unverifiable IL.
+                    _currentMethod is not SynthesizedPrimaryConstructor)
                 {
                     // Containing method is a constructor 
                     // Initialization statement for the "this" proxy must be inserted
@@ -782,6 +791,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    Debug.Assert(_currentMethod is not SynthesizedPrimaryConstructor primaryConstructor ||
+                                 symbol != _currentMethod.ThisParameter ||
+                                 primaryConstructor.GetCapturedParameters().Any());
                     prologue.Add(assignToProxy);
                 }
             }

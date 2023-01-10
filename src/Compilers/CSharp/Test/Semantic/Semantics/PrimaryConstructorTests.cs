@@ -7582,28 +7582,12 @@ class C1 (int p1)
         [Fact]
         public void ParameterCapturing_001()
         {
-            // PROTOTYPE(PrimaryConstructors): Closure initialization in primary constructor is not quite correct.
-            //
-            // Uncomment the `System.Console.Write(z() - 1);` line to observe a crash at runtime.
-            // `this` is captured after the base constructor is executed.
-            // 
-            // Starting:    Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests
-            //   Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.PrimaryConstructorTests.ParameterCapturing_001 [FAIL]
-            //     System.NullReferenceException : Object reference not set to an instance of an object.
-            //     Stack Trace:
-            //       (15,0): at C1.<>c__DisplayClass1_0.<.ctor>b__1()
-            //       (6,0): at Base..ctor(Int32 x, Int32 y, Func`1 z)
-            //       (15,0): at C1..ctor(Int32 p1, Int32 p2, Int32 p3)
-            //       (35,0): at Program.Main()
-            //          at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
-            //          at System.Reflection.MethodInvoker.Invoke(Object obj, IntPtr* args, BindingFlags invokeAttr)
-
             var source = @"
 class Base
 {
     public Base(int x, int y, System.Func<int> z)
     {
-        //System.Console.Write(z() - 1);
+        System.Console.Write(z() - 1);
     }
 }
 
@@ -7655,7 +7639,7 @@ class Program
                 Assert.Contains(symbol, model.LookupSymbols(p1.SpanStart, name: "p1"));
             }
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"123124125").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"122123124125", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyTypeIL("C1", @"
 .class private auto ansi beforefieldinit C1
@@ -7675,7 +7659,7 @@ class Program
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2067
+			// Method begins at RVA 0x2203
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -7685,7 +7669,7 @@ class Program
 		.method assembly hidebysig 
 			instance void '<.ctor>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x21f8
+			// Method begins at RVA 0x220c
 			// Code size 17 (0x11)
 			.maxstack 3
 			.locals init (
@@ -7704,7 +7688,7 @@ class Program
 		.method assembly hidebysig 
 			instance int32 '<.ctor>b__1' () cil managed 
 		{
-			// Method begins at RVA 0x2215
+			// Method begins at RVA 0x2229
 			// Code size 12 (0xc)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -7733,7 +7717,7 @@ class Program
 			int32 p3
 		) cil managed 
 	{
-		// Method begins at RVA 0x2070
+		// Method begins at RVA 0x207c
 		// Code size 98 (0x62)
 		.maxstack 5
 		.locals init (
@@ -7747,43 +7731,43 @@ class Program
 		IL_000d: ldloc.0
 		IL_000e: ldarg.3
 		IL_000f: stfld int32 C1/'<>c__DisplayClass1_0'::p3
-		IL_0014: ldarg.0
-		IL_0015: ldarg.2
-		IL_0016: ldc.i4.1
-		IL_0017: add
-		IL_0018: stfld int32 C1::F1
-		IL_001d: ldarg.0
-		IL_001e: ldarg.2
-		IL_001f: ldc.i4.2
-		IL_0020: add
-		IL_0021: stfld int32 C1::F2
-		IL_0026: ldarg.0
-		IL_0027: ldarg.2
-		IL_0028: ldc.i4.3
-		IL_0029: add
-		IL_002a: stfld int32 C1::F3
-		IL_002f: ldarg.0
-		IL_0030: ldloc.0
-		IL_0031: ldftn instance void C1/'<>c__DisplayClass1_0'::'<.ctor>b__0'()
-		IL_0037: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
-		IL_003c: stfld class [mscorlib]System.Action C1::E2
-		IL_0041: ldarg.0
-		IL_0042: ldarg.0
-		IL_0043: ldfld int32 C1::'<p1>PC__BackingField'
-		IL_0048: ldarg.2
-		IL_0049: ldloc.0
-		IL_004a: ldftn instance int32 C1/'<>c__DisplayClass1_0'::'<.ctor>b__1'()
-		IL_0050: newobj instance void class [mscorlib]System.Func`1<int32>::.ctor(object, native int)
-		IL_0055: call instance void Base::.ctor(int32, int32, class [mscorlib]System.Func`1<int32>)
-		IL_005a: ldloc.0
-		IL_005b: ldarg.0
-		IL_005c: stfld class C1 C1/'<>c__DisplayClass1_0'::'<>4__this'
+		IL_0014: ldloc.0
+		IL_0015: ldarg.0
+		IL_0016: stfld class C1 C1/'<>c__DisplayClass1_0'::'<>4__this'
+		IL_001b: ldarg.0
+		IL_001c: ldarg.2
+		IL_001d: ldc.i4.1
+		IL_001e: add
+		IL_001f: stfld int32 C1::F1
+		IL_0024: ldarg.0
+		IL_0025: ldarg.2
+		IL_0026: ldc.i4.2
+		IL_0027: add
+		IL_0028: stfld int32 C1::F2
+		IL_002d: ldarg.0
+		IL_002e: ldarg.2
+		IL_002f: ldc.i4.3
+		IL_0030: add
+		IL_0031: stfld int32 C1::F3
+		IL_0036: ldarg.0
+		IL_0037: ldloc.0
+		IL_0038: ldftn instance void C1/'<>c__DisplayClass1_0'::'<.ctor>b__0'()
+		IL_003e: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+		IL_0043: stfld class [mscorlib]System.Action C1::E2
+		IL_0048: ldarg.0
+		IL_0049: ldarg.0
+		IL_004a: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_004f: ldarg.2
+		IL_0050: ldloc.0
+		IL_0051: ldftn instance int32 C1/'<>c__DisplayClass1_0'::'<.ctor>b__1'()
+		IL_0057: newobj instance void class [mscorlib]System.Func`1<int32>::.ctor(object, native int)
+		IL_005c: call instance void Base::.ctor(int32, int32, class [mscorlib]System.Func`1<int32>)
 		IL_0061: ret
 	} // end of method C1::.ctor
 	.method public hidebysig specialname 
 		instance int32 get_P1 () cil managed 
 	{
-		// Method begins at RVA 0x20de
+		// Method begins at RVA 0x20ea
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -7793,7 +7777,7 @@ class Program
 	.method public hidebysig specialname 
 		instance int32 get_P2 () cil managed 
 	{
-		// Method begins at RVA 0x20e8
+		// Method begins at RVA 0x20f4
 		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
@@ -7813,7 +7797,7 @@ class Program
 	.method public hidebysig 
 		instance int32 M1 () cil managed 
 	{
-		// Method begins at RVA 0x2108
+		// Method begins at RVA 0x2114
 		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
@@ -7835,7 +7819,7 @@ class Program
 			class [mscorlib]System.Action 'value'
 		) cil managed 
 	{
-		// Method begins at RVA 0x2126
+		// Method begins at RVA 0x2132
 		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -7851,7 +7835,7 @@ class Program
 			class [mscorlib]System.Action 'value'
 		) cil managed 
 	{
-		// Method begins at RVA 0x2136
+		// Method begins at RVA 0x2142
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -7866,7 +7850,7 @@ class Program
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2140
+		// Method begins at RVA 0x214c
 		// Code size 41 (0x29)
 		.maxstack 3
 		.locals init (
@@ -7905,7 +7889,7 @@ class Program
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2178
+		// Method begins at RVA 0x2184
 		// Code size 41 (0x29)
 		.maxstack 3
 		.locals init (
@@ -7939,7 +7923,7 @@ class Program
 	.method public hidebysig 
 		instance class [mscorlib]System.Action M2 () cil managed 
 	{
-		// Method begins at RVA 0x21ad
+		// Method begins at RVA 0x21b9
 		// Code size 13 (0xd)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -7953,7 +7937,7 @@ class Program
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x21bb
+		// Method begins at RVA 0x21c7
 		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -7970,7 +7954,7 @@ class Program
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2126
+		// Method begins at RVA 0x2132
 		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -10261,7 +10245,7 @@ struct S1(Color Color)
 {
     public S1() : this(
         Color.M1(
-            new Color()))
+            new S1()))
     {
     }
 }
@@ -11084,6 +11068,227 @@ class Color
                 );
 
             Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
+        public void ParameterCapturing_064_OnlyCapturedParameterUsedInLambda_InPrimaryConstructor()
+        {
+            var source = @"
+partial class C1
+{
+    public System.Func<int> F1 = Execute1(() => p1++);
+    public int F2 = p2;
+}
+
+partial class C1 (int p1, int p2)
+{
+    public int M1() { return p1++; }
+
+    public static int F3;
+
+    static System.Func<int> Execute1(System.Func<int> f)
+    {
+        F3 = f();
+        return f;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123,-1);
+        System.Console.Write(C1.F3);
+        System.Console.Write(c1.F1());
+        System.Console.Write(c1.M1());
+        System.Console.Write(c1.F1());
+        System.Console.Write(c1.F2);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123124125126-1", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C1..ctor(int, int)",
+@"
+{
+  // Code size       44 (0x2c)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.0
+  IL_0009:  ldftn      ""int C1.<.ctor>b__2_0()""
+  IL_000f:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0014:  call       ""System.Func<int> C1.Execute1(System.Func<int>)""
+  IL_0019:  stfld      ""System.Func<int> C1.F1""
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.2
+  IL_0020:  stfld      ""int C1.F2""
+  IL_0025:  ldarg.0
+  IL_0026:  call       ""object..ctor()""
+  IL_002b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ParameterCapturing_065_CapturedAndNotCapturedParameterUsedInLambda_InPrimaryConstructor()
+        {
+            var source = @"
+partial class C1
+{
+    public System.Func<int> F1 = Execute1(() => p1++);
+    public System.Func<int> F2 = Execute2(() => p2--);
+}
+
+partial class C1 (int p1, int p2)
+{
+    public int M1() { return p1++; }
+
+    public static int F3;
+    public static int F4;
+
+    static System.Func<int> Execute1(System.Func<int> f)
+    {
+        F3 = f();
+        return f;
+    }
+
+    static System.Func<int> Execute2(System.Func<int> f)
+    {
+        F4 = f();
+        return f;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123,-1);
+        System.Console.Write(C1.F3);
+        System.Console.Write(c1.F1());
+        System.Console.Write(c1.M1());
+        System.Console.Write(c1.F1());
+        System.Console.Write(C1.F4);
+        System.Console.Write(c1.F2());
+        System.Console.Write(c1.F2());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123124125126-1-2-3", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C1..ctor(int, int)",
+@"
+{
+  // Code size       80 (0x50)
+  .maxstack  3
+  .locals init (C1.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0007:  newobj     ""C1.<>c__DisplayClass2_0..ctor()""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  ldarg.0
+  IL_000f:  stfld      ""C1 C1.<>c__DisplayClass2_0.<>4__this""
+  IL_0014:  ldloc.0
+  IL_0015:  ldarg.2
+  IL_0016:  stfld      ""int C1.<>c__DisplayClass2_0.p2""
+  IL_001b:  ldarg.0
+  IL_001c:  ldloc.0
+  IL_001d:  ldftn      ""int C1.<>c__DisplayClass2_0.<.ctor>b__0()""
+  IL_0023:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0028:  call       ""System.Func<int> C1.Execute1(System.Func<int>)""
+  IL_002d:  stfld      ""System.Func<int> C1.F1""
+  IL_0032:  ldarg.0
+  IL_0033:  ldloc.0
+  IL_0034:  ldftn      ""int C1.<>c__DisplayClass2_0.<.ctor>b__1()""
+  IL_003a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_003f:  call       ""System.Func<int> C1.Execute2(System.Func<int>)""
+  IL_0044:  stfld      ""System.Func<int> C1.F2""
+  IL_0049:  ldarg.0
+  IL_004a:  call       ""object..ctor()""
+  IL_004f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ParameterCapturing_066_OnlyNotCapturedParameterUsedInLambda_InPrimaryConstructor()
+        {
+            var source = @"
+partial class C1
+{
+    public int F1 = p1;
+    public System.Func<int> F2 = Execute2(() => p2--);
+}
+
+partial class C1 (int p1, int p2)
+{
+    public int M1() { return p1++; }
+
+    public static int F4;
+
+    static System.Func<int> Execute2(System.Func<int> f)
+    {
+        F4 = f();
+        return f;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123,-1);
+        System.Console.Write(c1.F1);
+        System.Console.Write(c1.M1());
+        System.Console.Write(c1.M1());
+        System.Console.Write(C1.F4);
+        System.Console.Write(c1.F2());
+        System.Console.Write(c1.F2());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123123124-1-2-3", verify: Verification.Passes).VerifyDiagnostics();
+
+            verifier.VerifyIL("C1..ctor(int, int)",
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (C1.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0007:  newobj     ""C1.<>c__DisplayClass2_0..ctor()""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  ldarg.2
+  IL_000f:  stfld      ""int C1.<>c__DisplayClass2_0.p2""
+  IL_0014:  ldarg.0
+  IL_0015:  ldarg.0
+  IL_0016:  ldfld      ""int C1.<p1>PC__BackingField""
+  IL_001b:  stfld      ""int C1.F1""
+  IL_0020:  ldarg.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldftn      ""int C1.<>c__DisplayClass2_0.<.ctor>b__0()""
+  IL_0028:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_002d:  call       ""System.Func<int> C1.Execute2(System.Func<int>)""
+  IL_0032:  stfld      ""System.Func<int> C1.F2""
+  IL_0037:  ldarg.0
+  IL_0038:  call       ""object..ctor()""
+  IL_003d:  ret
+}
+");
         }
 
         [Fact]
