@@ -10374,7 +10374,7 @@ class C
             {
                 PEVerifyMessage = "[ : C::.ctor][offset 0x00000003][found Native Int][expected unmanaged pointer] Unexpected type on the stack."
             });
-            
+
             c.VerifyDiagnostics(
                 // (5,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
