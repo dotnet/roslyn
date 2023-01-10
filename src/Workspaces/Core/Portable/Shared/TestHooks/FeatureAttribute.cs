@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string AutomaticEndConstructCorrection = nameof(AutomaticEndConstructCorrection);
         public const string AutomaticPairCompletion = nameof(AutomaticPairCompletion);
         public const string BraceHighlighting = nameof(BraceHighlighting);
+        public const string BracePairs = nameof(BracePairs);
         public const string CallHierarchy = nameof(CallHierarchy);
         public const string Classification = nameof(Classification);
         public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
