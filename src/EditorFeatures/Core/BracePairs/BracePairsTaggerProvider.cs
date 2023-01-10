@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.BracePairs
     [Export(typeof(ITaggerProvider))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IBracePairTag))]
-    internal sealed class BracePairsViewTaggerProvider : AsynchronousTaggerProvider<IBracePairTag>
+    internal sealed class BracePairsTaggerProvider : AsynchronousTaggerProvider<IBracePairTag>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public BracePairsViewTaggerProvider(
+        public BracePairsTaggerProvider(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptionService,
             ITextBufferVisibilityTracker visibilityTracker,
