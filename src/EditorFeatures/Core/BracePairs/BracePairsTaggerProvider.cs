@@ -77,7 +77,9 @@ namespace Microsoft.CodeAnalysis.BracePairs
                     if (start is null && end is null)
                         continue;
 
-                    context.AddTag(new TagSpan<IBracePairTag>(start ?? end.Value, new BracePairTag(start, end)));
+                    context.AddTag(new TagSpan<IBracePairTag>(
+                        new SnapshotSpan(snapshot, Span.FromBounds(bracePair.Start.Start, bracePair.End.End)),
+                        new BracePairTag(start, end)));
                 }
             }
 
