@@ -59,7 +59,9 @@ public abstract class AbstractLanguageServerHostTests
 
             // This task completes when the server shuts down.  We store it so that we can wait for completion
             // when we dispose of the test server.
-            _languageServerHostCompletionTask = _languageServerHost.StartAsync();
+            _languageServerHost.Start();
+
+            _languageServerHostCompletionTask = _languageServerHost.WaitForExitAsync();
         }
 
         public async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, CancellationToken cancellationToken) where RequestType : class

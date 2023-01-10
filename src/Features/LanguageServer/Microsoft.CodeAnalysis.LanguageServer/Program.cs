@@ -46,7 +46,8 @@ using (var workspace = await LanguageServerWorkspace.CreateWorkspaceAsync(soluti
 {
     var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, hostServices, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
 
-    await server.StartAsync().ConfigureAwait(false);
+    server.Start();
+    await server.WaitForExitAsync().ConfigureAwait(false);
 }
 
 loggerFactory.Dispose();

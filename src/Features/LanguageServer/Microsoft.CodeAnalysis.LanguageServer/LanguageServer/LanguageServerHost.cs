@@ -46,14 +46,17 @@ internal sealed class LanguageServerHost
         _roslynLanguageServer = roslynLspFactory.Create(_jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, lspLogger, hostServices);
     }
 
-    public async Task StartAsync()
+    public void Start()
     {
         _logger.LogInformation("Starting server...");
         _jsonRpc.StartListening();
 
         // Now that the server is started, update the our instance reference
         Instance = this;
+    }
 
+    public async Task WaitForExitAsync()
+    {
         await _jsonRpc.Completion.ConfigureAwait(false);
         await _roslynLanguageServer.WaitForExitAsync().ConfigureAwait(false);
     }
