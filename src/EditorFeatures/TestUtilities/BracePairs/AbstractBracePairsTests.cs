@@ -19,7 +19,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.BracePairs
 {
-    internal abstract class AbstractBracePairsTests
+    [UseExportProvider]
+    public abstract class AbstractBracePairsTests
     {
         protected abstract TestWorkspace CreateWorkspace(string input);
 
