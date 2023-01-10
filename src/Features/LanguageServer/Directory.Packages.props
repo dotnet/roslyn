@@ -2,14 +2,17 @@
 
   <PropertyGroup>
     <MicrosoftBuildLocatorVersion>1.5.5</MicrosoftBuildLocatorVersion>
+
     <MicrosoftCodeAnalysisVersion>4.6.0-2.23101.21</MicrosoftCodeAnalysisVersion>
     <MicrosoftCodeAnalysisCSharpFeaturesVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpFeaturesVersion>
     <MicrosoftCodeAnalysisLanguageServerProtocolVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisLanguageServerProtocolVersion>
     <MicrosoftCodeAnalysisWorkspacesDesktopVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisWorkspacesDesktopVersion>
     <MicrosoftCodeAnalysisWorkspacesMSBuildVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisWorkspacesMSBuildVersion>
+    
     <MicrosoftExtensionsLoggingVersion>6.0.0</MicrosoftExtensionsLoggingVersion>
     <MicrosoftExtensionsLoggingAbstractionsVersion>6.0.2</MicrosoftExtensionsLoggingAbstractionsVersion>
     <MicrosoftExtensionsLoggingConsoleVersion>$(MicrosoftExtensionsLoggingVersion)</MicrosoftExtensionsLoggingConsoleVersion>
+    
     <MicrosoftVisualStudioCompositionVersion>17.2.41</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioLanguageServerProtocolVersion>17.5.20-preview</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <NerdbankStreamsVersion>2.9.112</NerdbankStreamsVersion>
