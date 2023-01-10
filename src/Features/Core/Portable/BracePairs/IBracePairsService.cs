@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,14 +21,17 @@ namespace Microsoft.CodeAnalysis.BracePairs
         Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairs> bracePairs, CancellationToken cancellationToken);
     }
 
-    internal abstract class AbstractBracePairsService : IBracePairsService
+    internal abstract class AbstractBracePairsService<TSyntaxKind> : IBracePairsService
+        where TSyntaxKind : struct, System.Enum
     {
         private readonly Dictionary<int, int> _bracePairKinds = new();
 
-        protected AbstractBracePairsService(params (int startBraceKind, int endBraceKind)[] bracePairs)
+        protected AbstractBracePairsService(
+            ISyntaxKinds syntaxKinds,
+            params (TSyntaxKind startBraceKind, TSyntaxKind endBraceKind)[] bracePairs)
         {
-            foreach (var pair in bracePairs)
-                _bracePairKinds[pair.startBraceKind] = pair.endBraceKind;
+            foreach (var (startBraceKind, endBraceKind) in bracePairs)
+                _bracePairKinds[syntaxKinds.Convert(startBraceKind)] = syntaxKinds.Convert(endBraceKind);
         }
 
         public async Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairs> bracePairs, CancellationToken cancellationToken)

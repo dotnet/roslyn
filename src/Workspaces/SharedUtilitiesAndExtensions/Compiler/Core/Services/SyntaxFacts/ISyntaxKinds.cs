@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
     internal interface ISyntaxKinds
     {
         TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
+        int Convert<TSyntaxKind>(TSyntaxKind kind) where TSyntaxKind : struct;
 
         #region trivia
 
