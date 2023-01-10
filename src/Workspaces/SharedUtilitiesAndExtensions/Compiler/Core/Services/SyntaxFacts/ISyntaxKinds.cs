@@ -67,12 +67,19 @@ namespace Microsoft.CodeAnalysis.LanguageService
         #region tokens
 
         int CloseBraceToken { get; }
+        int? CloseBracketToken { get; }
+        int CloseParenToken { get; }
         int ColonToken { get; }
         int DotToken { get; }
         int EndOfFileToken { get; }
         int HashToken { get; }
+        int GreaterThanToken { get; }
         int IdentifierToken { get; }
         int InterpolatedStringTextToken { get; }
+        int LessThanToken { get; }
+        int OpenBraceToken { get; }
+        int? OpenBracketToken { get; }
+        int OpenParenToken { get; }
         int QuestionToken { get; }
 
         #endregion

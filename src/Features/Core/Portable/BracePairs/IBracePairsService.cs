@@ -21,17 +21,25 @@ namespace Microsoft.CodeAnalysis.BracePairs
         Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairs> bracePairs, CancellationToken cancellationToken);
     }
 
-    internal abstract class AbstractBracePairsService<TSyntaxKind> : IBracePairsService
-        where TSyntaxKind : struct, System.Enum
+    internal abstract class AbstractBracePairsService : IBracePairsService
     {
         private readonly Dictionary<int, int> _bracePairKinds = new();
 
         protected AbstractBracePairsService(
-            ISyntaxKinds syntaxKinds,
-            params (TSyntaxKind startBraceKind, TSyntaxKind endBraceKind)[] bracePairs)
+            ISyntaxKinds syntaxKinds)
         {
-            foreach (var (startBraceKind, endBraceKind) in bracePairs)
-                _bracePairKinds[syntaxKinds.Convert(startBraceKind)] = syntaxKinds.Convert(endBraceKind);
+            Add(syntaxKinds.OpenBraceToken, syntaxKinds.CloseBraceToken);
+            Add(syntaxKinds.OpenBracketToken, syntaxKinds.CloseBracketToken);
+            Add(syntaxKinds.OpenParenToken, syntaxKinds.CloseParenToken);
+            Add(syntaxKinds.LessThanToken, syntaxKinds.GreaterThanToken);
+
+            return;
+
+            void Add(int? open, int? close)
+            {
+                if (open != null && close != null)
+                    _bracePairKinds[open.Value] = close.Value;
+            }
         }
 
         public async Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairs> bracePairs, CancellationToken cancellationToken)
