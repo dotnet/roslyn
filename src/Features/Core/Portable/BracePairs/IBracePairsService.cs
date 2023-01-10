@@ -12,13 +12,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.BracePairs
 {
-    internal readonly record struct BracePairs(
+    internal readonly record struct BracePairData(
         TextSpan Start,
         TextSpan End);
 
     internal interface IBracePairsService : ILanguageService
     {
-        Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairs> bracePairs, CancellationToken cancellationToken);
+        Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken);
     }
 
     internal abstract class AbstractBracePairsService : IBracePairsService
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
             }
         }
 
-        public async Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairs> bracePairs, CancellationToken cancellationToken)
+        public async Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
                             foreach (var sibling in current.Parent.ChildNodesAndTokens())
                             {
                                 if (sibling.IsToken && sibling.RawKind == closeKind)
-                                    bracePairs.Add(new BracePairs(current.Span, sibling.Span));
+                                    bracePairs.Add(new BracePairData(current.Span, sibling.Span));
                             }
                         }
                     }

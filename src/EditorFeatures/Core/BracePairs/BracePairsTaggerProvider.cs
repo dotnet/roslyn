@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
 
         protected override async Task ProduceTagsAsync(TaggerContext<IBracePairTag> context, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<BracePairs>.GetInstance(out var bracePairs);
+            using var _ = ArrayBuilder<BracePairData>.GetInstance(out var bracePairs);
             foreach (var spanToTag in context.SpansToTag)
             {
                 var document = spanToTag.Document;
