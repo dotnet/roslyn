@@ -58,8 +58,8 @@ internal abstract class VisualStudioOptionStorage
                 _ => language // handles F#, TypeScript and Xaml
             });
 
-        public bool TryPersist(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
-            => persister.TryPersist(optionKey, GetKey(optionKey.Language), value);
+        public Task PersistAsync(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
+            => persister.PersistAsync(optionKey, GetKey(optionKey.Language), value);
 
         public bool TryFetch(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, out object? value)
             => persister.TryFetch(optionKey, GetKey(optionKey.Language), out value);
@@ -74,8 +74,11 @@ internal abstract class VisualStudioOptionStorage
             FlagName = flagName;
         }
 
-        public bool TryPersist(FeatureFlagPersister persister, object? value)
-            => persister.TryPersist(FlagName, value);
+        public Task PersistAsync(FeatureFlagPersister persister, object? value)
+        {
+            persister.Persist(FlagName, value);
+            return Task.CompletedTask;
+        }
 
         public bool TryFetch(FeatureFlagPersister persister, OptionKey2 optionKey, out object? value)
             => persister.TryFetch(optionKey, FlagName, out value);
@@ -92,8 +95,11 @@ internal abstract class VisualStudioOptionStorage
             _key = key;
         }
 
-        public bool TryPersist(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, object? value)
-            => persister.TryPersist(optionKey, _path, _key, value);
+        public Task PersistAsync(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, object? value)
+        {
+            persister.Persist(optionKey, _path, _key, value);
+            return Task.CompletedTask;
+        }
 
         public bool TryFetch(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, out object? value)
             => persister.TryFetch(optionKey, _path, _key, out value);

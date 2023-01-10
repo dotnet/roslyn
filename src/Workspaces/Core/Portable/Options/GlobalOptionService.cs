@@ -250,5 +250,14 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
         }
+
+        // for testing
+        public void ClearCachedValues()
+        {
+            lock (_gate)
+            {
+                _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
+            }
+        }
     }
 }

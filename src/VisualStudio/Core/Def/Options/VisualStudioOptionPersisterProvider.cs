@@ -20,6 +20,7 @@ using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncService
 namespace Microsoft.VisualStudio.LanguageServices.Options
 {
     [Export(typeof(IOptionPersisterProvider))]
+    [Export(typeof(VisualStudioOptionPersisterProvider))]
     internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProvider
     {
         private readonly IAsyncServiceProvider _serviceProvider;
