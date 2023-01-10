@@ -257,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_ModuleEmitFailure => (int)ErrorCode.ERR_ModuleEmitFailure;
         public override int ERR_EncUpdateFailedMissingAttribute => (int)ErrorCode.ERR_EncUpdateFailedMissingAttribute;
         public override int ERR_InvalidDebugInfo => (int)ErrorCode.ERR_InvalidDebugInfo;
+        public override int? ERR_FunctionPointerTypesInAttributeNotSupported => (int)ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported;
 
         // Generators:
         public override int WRN_GeneratorFailedDuringInitialization => (int)ErrorCode.WRN_GeneratorFailedDuringInitialization;

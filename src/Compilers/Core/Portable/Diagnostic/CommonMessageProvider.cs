@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
+        public virtual int? ERR_FunctionPointerTypesInAttributeNotSupported => null;
 
         // Generators:
         public abstract int WRN_GeneratorFailedDuringInitialization { get; }
