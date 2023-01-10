@@ -189,6 +189,12 @@ dotnet_diagnostic.CA2007.severity = warning
 # CA2016: Forward the CancellationToken parameter to methods that take one
 dotnet_diagnostic.CA2016.severity = warning
 
+# CA1848: Use LoggerMessage delegates when calling ILogger methods
+dotnet_diagnostic.CA1848.severity = none
+
+# CA2254: Logging message template should not vary between calls
+dotnet_diagnostic.CA2254.severity = none
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings
