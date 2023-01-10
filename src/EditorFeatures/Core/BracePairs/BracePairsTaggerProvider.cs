@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -14,41 +12,19 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BracePairs
 {
-    internal interface IBracePairTag : ITag
-    {
-        SnapshotSpan? Start { get; }
-        SnapshotSpan? End { get; }
-    }
-
-    internal class BracePairTag : IBracePairTag
-    {
-        public BracePairTag(SnapshotSpan? start, SnapshotSpan? end)
-        {
-            if (start == null && end == null)
-            {
-                throw new ArgumentNullException(nameof(start), "start and end cannot both be null");
-            }
-            this.Start = start;
-            this.End = end;
-        }
-
-        public SnapshotSpan? Start { get; }
-        public SnapshotSpan? End { get; }
-    }
-
+#pragma warning disable CS0618 // IBracePairTag is obsolete while editor works on this API.
     [Export(typeof(ITaggerProvider))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IBracePairTag))]
@@ -110,5 +86,18 @@ namespace Microsoft.CodeAnalysis.BracePairs
             static SnapshotSpan? CreateSnapshotSpan(TextSpan span, ITextSnapshot snapshot)
                 => span.IsEmpty ? null : span.ToSnapshotSpan(snapshot);
         }
+
+        protected override bool TagEquals(IBracePairTag tag1, IBracePairTag tag2)
+        {
+            if (tag1 is null && tag2 is null)
+                return true;
+
+            if (tag1 is null || tag2 is null)
+                return false;
+
+            return SpanEquals(tag1.Start, tag2.Start) &&
+                   SpanEquals(tag1.End, tag2.End);
+        }
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 }
