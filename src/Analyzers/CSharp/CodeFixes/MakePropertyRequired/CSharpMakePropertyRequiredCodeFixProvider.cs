@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakePropertyRequired;
 
@@ -66,16 +68,24 @@ internal sealed class CSharpMakePropertyRequiredCodeFixProvider : SyntaxEditorBa
         if (setMethod is null)
             return;
 
-        var containingTypeAccessibility = propertySymbol.ContainingType.DeclaredAccessibility;
+        var containingTypeVisibility = propertySymbol.ContainingType.GetResultantVisibility();
+
+        var propertyAccessibility = propertySymbol.DeclaredAccessibility;
+        var setMethodAccessibility = setMethod.DeclaredAccessibility;
 
         // Property itself and its set/init accessor must have
-        // at least equal accessibility as the type they belong to
+        // at least equal visibility as the type they belong to
         // in order to be able to be required
-        if (propertySymbol.DeclaredAccessibility < containingTypeAccessibility ||
-            setMethod.DeclaredAccessibility < containingTypeAccessibility)
+        var propertyAndSetterCanBeAccessed = containingTypeVisibility switch
         {
+            SymbolVisibility.Public => propertyAccessibility is Accessibility.Public && setMethodAccessibility is Accessibility.Public,
+            SymbolVisibility.Internal => propertyAccessibility is >= Accessibility.Internal && setMethodAccessibility is >= Accessibility.Internal,
+            SymbolVisibility.Private => propertyAccessibility is >= Accessibility.Internal && setMethodAccessibility is >= Accessibility.Internal,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        if (!propertyAndSetterCanBeAccessed)
             return;
-        }
 
         RegisterCodeFix(context, CSharpCodeFixesResources.Make_property_required, nameof(CSharpCodeFixesResources.Make_property_required));
     }
