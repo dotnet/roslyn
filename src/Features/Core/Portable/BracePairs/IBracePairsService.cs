@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
 
     internal interface IBracePairsService : ILanguageService
     {
-        Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken);
+        Task AddBracePairsAsync(Document document, TextSpan textSpan, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken);
     }
 
     internal abstract class AbstractBracePairsService : IBracePairsService
@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.BracePairs
             }
         }
 
-        public async Task AddBracePairsAsync(Document document, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken)
+        public async Task AddBracePairsAsync(
+            Document document, TextSpan span, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
@@ -54,6 +55,13 @@ namespace Microsoft.CodeAnalysis.BracePairs
                 var current = stack.Pop();
                 if (current.IsNode)
                 {
+                    // Ignore nodes that have no intersection at all with the span we're being asked with. Note: if
+                    // there is any node intersection, then we want to process it.  We specifically don't check token
+                    // intersection as the start token might not be in the span we're asked about, but the close token
+                    // may be.
+                    if (!current.Span.IntersectsWith(span))
+                        continue;
+
                     foreach (var child in current.ChildNodesAndTokens().Reverse())
                         stack.Push(child);
                 }

@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -22,6 +24,7 @@ using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BracePairs
 {
@@ -55,31 +58,52 @@ namespace Microsoft.CodeAnalysis.BracePairs
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer));
         }
 
+        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+        {
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
+
+            // Find the visible span some 100 lines +/- what's actually in view.  This way
+            // if the user scrolls up/down, we'll already have the results.
+            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
+            if (visibleSpanOpt == null)
+            {
+                // Couldn't find anything visible, just fall back to tagging all hint locations
+                return base.GetSpansToTag(textView, subjectBuffer);
+            }
+
+            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
+        }
+
         protected override async Task ProduceTagsAsync(TaggerContext<IBracePairTag> context, CancellationToken cancellationToken)
         {
-            var spanToTag = context.SpansToTag.FirstOrDefault();
-            var document = spanToTag.Document;
-            if (document is null)
-                return;
-
-            var service = document.GetLanguageService<IBracePairsService>();
-            if (service is null)
-                return;
-
             using var _ = ArrayBuilder<BracePairData>.GetInstance(out var bracePairs);
-            await service.AddBracePairsAsync(document, bracePairs, cancellationToken).ConfigureAwait(false);
-
-            var snapshot = spanToTag.SnapshotSpan.Snapshot;
-            foreach (var bracePair in bracePairs)
+            foreach (var spanToTag in context.SpansToTag)
             {
-                var start = CreateSnapshotSpan(bracePair.Start, snapshot);
-                var end = CreateSnapshotSpan(bracePair.End, snapshot);
-                if (start is null && end is null)
+                var document = spanToTag.Document;
+                if (document is null)
                     continue;
 
-                context.AddTag(new TagSpan<IBracePairTag>(
-                    new SnapshotSpan(snapshot, Span.FromBounds(bracePair.Start.Start, bracePair.End.End)),
-                    new BracePairTag(start, end)));
+                var service = document.GetLanguageService<IBracePairsService>();
+                if (service is null)
+                    continue;
+
+                bracePairs.Clear();
+                await service.AddBracePairsAsync(
+                    document, spanToTag.SnapshotSpan.Span.ToTextSpan(), bracePairs, cancellationToken).ConfigureAwait(false);
+
+                var snapshot = spanToTag.SnapshotSpan.Snapshot;
+                foreach (var bracePair in bracePairs)
+                {
+                    var start = CreateSnapshotSpan(bracePair.Start, snapshot);
+                    var end = CreateSnapshotSpan(bracePair.End, snapshot);
+                    if (start is null && end is null)
+                        continue;
+
+                    context.AddTag(new TagSpan<IBracePairTag>(
+                        new SnapshotSpan(snapshot, Span.FromBounds(bracePair.Start.Start, bracePair.End.End)),
+                        new BracePairTag(start, end)));
+                }
             }
 
             return;

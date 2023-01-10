@@ -31,8 +31,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.BracePairs
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var service = document.GetRequiredLanguageService<IBracePairsService>();
 
+            var text = await document.GetTextAsync();
+
             using var _ = ArrayBuilder<BracePairData>.GetInstance(out var bracePairs);
-            await service.AddBracePairsAsync(document, bracePairs, CancellationToken.None);
+            await service.AddBracePairsAsync(document, new TextSpan(0, text.Length), bracePairs, CancellationToken.None);
 
             var expected = workspace.Documents.Single().AnnotatedSpans;
 
