@@ -13,6 +13,7 @@
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
 
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
