@@ -164,7 +164,7 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
     foreach (string file in fileList)
     {
         var fileWithPath = Path.IsPathRooted(file) ? file : Path.Combine(projectDir, file);
-        result.AppendLine(FileElement(fileWithPath, "build"));
+        result.AppendLine(FileElement(fileWithPath, "buildTransitive"));
     }
 
     if (readmePackageLocation.Length > 0)
