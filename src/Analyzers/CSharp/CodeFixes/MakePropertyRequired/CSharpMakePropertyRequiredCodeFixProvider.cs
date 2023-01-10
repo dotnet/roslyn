@@ -70,17 +70,16 @@ internal sealed class CSharpMakePropertyRequiredCodeFixProvider : SyntaxEditorBa
 
         var containingTypeVisibility = propertySymbol.ContainingType.GetResultantVisibility();
 
-        var propertyAccessibility = propertySymbol.DeclaredAccessibility;
-        var setMethodAccessibility = setMethod.DeclaredAccessibility;
+        var minimalAccessibility = (Accessibility)Math.Min((int)propertySymbol.DeclaredAccessibility, (int)setMethod.DeclaredAccessibility);
 
         // Property itself and its set/init accessor must have
         // at least equal visibility as the type they belong to
         // in order to be able to be required
         var propertyAndSetterCanBeAccessed = containingTypeVisibility switch
         {
-            SymbolVisibility.Public => propertyAccessibility is Accessibility.Public && setMethodAccessibility is Accessibility.Public,
-            SymbolVisibility.Internal => propertyAccessibility is >= Accessibility.Internal && setMethodAccessibility is >= Accessibility.Internal,
-            SymbolVisibility.Private => propertyAccessibility is >= Accessibility.Internal && setMethodAccessibility is >= Accessibility.Internal,
+            SymbolVisibility.Public => minimalAccessibility is Accessibility.Public,
+            SymbolVisibility.Internal => minimalAccessibility is >= Accessibility.Internal,
+            SymbolVisibility.Private => minimalAccessibility is >= Accessibility.Internal,
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
