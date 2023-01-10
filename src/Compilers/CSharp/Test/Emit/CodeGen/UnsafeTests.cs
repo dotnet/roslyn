@@ -10350,7 +10350,7 @@ class C
 ";
             var c = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify with
             {
-                PEVerifyMessage = "[ : C::.ctor][mdToken=0x6000001][offset 0x0000000A][found Native Int][expected unmanaged pointer] Unexpected type on the stack."
+                PEVerifyMessage = "[ : C::.ctor][offset 0x0000000A][found Native Int][expected unmanaged pointer] Unexpected type on the stack."
             });
 
             c.VerifyDiagnostics(
