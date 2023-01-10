@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
         public BracePairsTaggerProvider(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptionService,
-            ITextBufferVisibilityTracker visibilityTracker,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext,
                   globalOptionService,
