@@ -4641,7 +4641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (field.RefKind is RefKind.Ref or RefKind.RefReadOnly)
+            if (field.RefKind is RefKind.Ref)
             {
                 return true;
             }
@@ -4664,7 +4664,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!field.IsReadOnly)
+            Debug.Assert(field.RefKind is RefKind.None or RefKind.RefReadOnly);
+
+            if (field.RefKind == RefKind.None && !field.IsReadOnly)
             {
                 // in a case if we have a writeable struct field with a receiver that only has a readable home we would need to pass it via a temp.
                 // it would be advantageous to make a temp for the field, not for the outer struct, since the field is smaller and we can get to is by fetching references.
@@ -4703,7 +4705,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return (containingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor } or FieldSymbol { IsStatic: false } or MethodSymbol { IsInitOnly: true }) &&
-                    fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
+                    fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference &&
+                    field.RefKind == RefKind.None;
             }
         }
     }
