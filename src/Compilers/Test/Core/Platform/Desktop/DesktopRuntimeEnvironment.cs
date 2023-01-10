@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -337,7 +338,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 }
 
                 var expectedMessage = verification.PEVerifyMessage;
-                if (expectedMessage != null)
+                if (expectedMessage != null && !IsEnglishLocal.Instance.ShouldSkip)
                 {
                     var actualMessage = ex.Output;
                     

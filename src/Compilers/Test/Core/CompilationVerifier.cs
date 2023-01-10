@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     "IL Verify succeeded unexpectedly");
             }
 
-            if (!actualSuccess && verification.ILVerifyMessage != null)
+            if (!actualSuccess && verification.ILVerifyMessage != null && !IsEnglishLocal.Instance.ShouldSkip)
             {
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(verification.ILVerifyMessage, actualMessage);
             }
