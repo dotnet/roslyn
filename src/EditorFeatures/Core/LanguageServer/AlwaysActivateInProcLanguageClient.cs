@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             ExportProvider exportProvider,
-            IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics)
+            [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics)
             : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
             _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
