@@ -114,13 +114,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly Entry[] _log;
         private readonly string _id;
+        private readonly string _fileName;
         private readonly string? _logDirectory;
         private int _currentLine;
 
-        public TraceLog(int logSize, string id, string? logDirectory)
+        public TraceLog(int logSize, string id, string fileName, string? logDirectory)
         {
             _log = new Entry[logSize];
             _id = id;
+            _fileName = fileName;
             _logDirectory = logDirectory;
         }
 
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             try
             {
-                path = Path.Combine(_logDirectory, "Trace.log");
+                path = Path.Combine(_logDirectory, _fileName);
                 File.AppendAllLines(path, new[] { entry.GetDebuggerDisplay() });
             }
             catch (Exception e)
