@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -25,10 +26,11 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.BracePairs
 {
 #pragma warning disable CS0618 // IBracePairTag is obsolete while editor works on this API.
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
+    [VisualStudio.Utilities.Name(nameof(BracePairsTaggerProvider))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IBracePairTag))]
-    internal sealed class BracePairsTaggerProvider : AsynchronousTaggerProvider<IBracePairTag>
+    internal sealed class BracePairsTaggerProvider : AsynchronousViewTaggerProvider<IBracePairTag>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -55,32 +57,29 @@ namespace Microsoft.CodeAnalysis.BracePairs
 
         protected override async Task ProduceTagsAsync(TaggerContext<IBracePairTag> context, CancellationToken cancellationToken)
         {
+            var spanToTag = context.SpansToTag.FirstOrDefault();
+            var document = spanToTag.Document;
+            if (document is null)
+                return;
+
+            var service = document.GetLanguageService<IBracePairsService>();
+            if (service is null)
+                return;
+
             using var _ = ArrayBuilder<BracePairData>.GetInstance(out var bracePairs);
-            foreach (var spanToTag in context.SpansToTag)
+            await service.AddBracePairsAsync(document, bracePairs, cancellationToken).ConfigureAwait(false);
+
+            var snapshot = spanToTag.SnapshotSpan.Snapshot;
+            foreach (var bracePair in bracePairs)
             {
-                var document = spanToTag.Document;
-                if (document is null)
+                var start = CreateSnapshotSpan(bracePair.Start, snapshot);
+                var end = CreateSnapshotSpan(bracePair.End, snapshot);
+                if (start is null && end is null)
                     continue;
 
-                var service = document.GetLanguageService<IBracePairsService>();
-                if (service is null)
-                    continue;
-
-                bracePairs.Clear();
-                await service.AddBracePairsAsync(document, bracePairs, cancellationToken).ConfigureAwait(false);
-
-                var snapshot = spanToTag.SnapshotSpan.Snapshot;
-                foreach (var bracePair in bracePairs)
-                {
-                    var start = CreateSnapshotSpan(bracePair.Start, snapshot);
-                    var end = CreateSnapshotSpan(bracePair.End, snapshot);
-                    if (start is null && end is null)
-                        continue;
-
-                    context.AddTag(new TagSpan<IBracePairTag>(
-                        new SnapshotSpan(snapshot, Span.FromBounds(bracePair.Start.Start, bracePair.End.End)),
-                        new BracePairTag(start, end)));
-                }
+                context.AddTag(new TagSpan<IBracePairTag>(
+                    new SnapshotSpan(snapshot, Span.FromBounds(bracePair.Start.Start, bracePair.End.End)),
+                    new BracePairTag(start, end)));
             }
 
             return;
