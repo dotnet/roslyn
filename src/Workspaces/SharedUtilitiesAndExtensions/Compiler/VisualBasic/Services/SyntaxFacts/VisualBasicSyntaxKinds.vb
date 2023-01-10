@@ -18,6 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return CType(CType(CType(kind, SyntaxKind), Object), TSyntaxKind)
         End Function
 
+        Public Function Convert(Of TSyntaxKind As Structure)(kind As TSyntaxKind) As Integer Implements ISyntaxKinds.Convert
+            ' Boxing/Unboxing casts from Object to SyntaxKind will be erased by jit.
+            Return CType(CType(CType(kind, Object), SyntaxKind), Integer)
+        End Function
+
         Public ReadOnly Property ConflictMarkerTrivia As Integer = SyntaxKind.ConflictMarkerTrivia Implements ISyntaxKinds.ConflictMarkerTrivia
         Public ReadOnly Property DisabledTextTrivia As Integer = SyntaxKind.DisabledTextTrivia Implements ISyntaxKinds.DisabledTextTrivia
         Public ReadOnly Property EndOfLineTrivia As Integer = SyntaxKind.EndOfLineTrivia Implements ISyntaxKinds.EndOfLineTrivia

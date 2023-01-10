@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct
             => (TSyntaxKind)(object)(SyntaxKind)kind;
 
+        // Boxing/Unboxing casts from Object to TSyntaxKind will be erased by jit.
+        public int Convert<TSyntaxKind>(TSyntaxKind kind) where TSyntaxKind : struct
+            => (int)(SyntaxKind)(object)kind;
+
         public int ConflictMarkerTrivia => (int)SyntaxKind.ConflictMarkerTrivia;
         public int DisabledTextTrivia => (int)SyntaxKind.DisabledTextTrivia;
         public int EndOfLineTrivia => (int)SyntaxKind.EndOfLineTrivia;
