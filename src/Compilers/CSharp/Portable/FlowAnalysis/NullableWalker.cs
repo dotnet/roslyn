@@ -11536,8 +11536,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // No states should be modified in unreachable code, as there is only one unreachable state.
                 if (!this.Reachable) return;
                 index *= 2;
-                _state[index] = (value is NullableFlowState.NotNull or NullableFlowState.MaybeNull);
-                _state[index + 1] = (value is NullableFlowState.NotNull or NullableFlowState.MaybeDefault);
+
+                (_state[index], _state[index + 1]) = value switch
+                {
+                    NullableFlowState.MaybeNull => (true, false),
+                    NullableFlowState.MaybeDefault => (false, true),
+                    NullableFlowState.NotNull => (true, true),
+                    _ => throw ExceptionUtilities.Unreachable()
+                };
             }
 
             internal void ForEach<TArg>(Action<int, TArg> action, TArg arg)
