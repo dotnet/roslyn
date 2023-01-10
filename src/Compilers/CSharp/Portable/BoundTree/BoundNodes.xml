@@ -1714,12 +1714,22 @@
     <Field Name="Id" Type="int"/>
   </Node>
 
-  <!--  This node represents a complex receiver for a call, or a conditional access.  
-        At runtime, when its type is a value type, ValueTypeReceiver should be used as a receiver. 
+  <!--  This node represents a complex receiver for a conditional access.  
+        At runtime, when its type is a non-nullable value type, ValueTypeReceiver should be used as a receiver. 
         Otherwise, ReferenceTypeReceiver should be used.  
         This kind of receiver is created only by SpillSequenceSpiller rewriter. 
   -->
   <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
+    <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
+  </Node>
+
+  <!--  This node represents a complex receiver for a call.  
+        At runtime, when its type is a value type (including nullable value type), ValueTypeReceiver should be used as a receiver. 
+        Otherwise, ReferenceTypeReceiver should be used.  
+  -->
+  <Node Name="BoundComplexReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
     <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
