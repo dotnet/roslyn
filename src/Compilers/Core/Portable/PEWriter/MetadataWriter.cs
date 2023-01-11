@@ -3389,15 +3389,17 @@ namespace Microsoft.Cci
             CustomAttributeNamedArgumentsEncoder namedArgsEncoder;
             new BlobEncoder(builder).CustomAttributeSignature(out fixedArgsEncoder, out namedArgsEncoder);
 
+            var attributeContext = GetEmitContextForAttribute(customAttribute);
+
             for (int i = 0; i < parameters.Length; i++)
             {
-                SerializeMetadataExpression(fixedArgsEncoder.AddArgument(), arguments[i], parameters[i].GetType(Context), customAttribute);
+                SerializeMetadataExpression(in attributeContext, fixedArgsEncoder.AddArgument(), arguments[i], parameters[i].GetType(Context));
             }
 
-            SerializeCustomAttributeNamedArguments(namedArgsEncoder.Count(customAttribute.NamedArgumentCount), customAttribute);
+            SerializeCustomAttributeNamedArguments(in attributeContext, namedArgsEncoder.Count(customAttribute.NamedArgumentCount), customAttribute);
         }
 
-        private void SerializeCustomAttributeNamedArguments(NamedArgumentsEncoder encoder, ICustomAttribute customAttribute)
+        private void SerializeCustomAttributeNamedArguments(in EmitContext context, NamedArgumentsEncoder encoder, ICustomAttribute customAttribute)
         {
             foreach (IMetadataNamedArgument namedArgument in customAttribute.GetNamedArguments(Context))
             {
@@ -3406,17 +3408,17 @@ namespace Microsoft.Cci
                 LiteralEncoder literalEncoder;
                 encoder.AddArgument(namedArgument.IsField, out typeEncoder, out nameEncoder, out literalEncoder);
 
-                SerializeNamedArgumentType(typeEncoder, namedArgument.Type, customAttribute);
+                SerializeNamedArgumentType(in context, typeEncoder, namedArgument.Type);
                 nameEncoder.Name(namedArgument.ArgumentName);
-                SerializeMetadataExpression(literalEncoder, namedArgument.ArgumentValue, namedArgument.Type, customAttribute);
+                SerializeMetadataExpression(in context, literalEncoder, namedArgument.ArgumentValue, namedArgument.Type);
             }
         }
 
-        private void SerializeNamedArgumentType(NamedArgumentTypeEncoder encoder, ITypeReference type, ICustomAttribute customAttribute)
+        private void SerializeNamedArgumentType(in EmitContext context, NamedArgumentTypeEncoder encoder, ITypeReference type)
         {
             if (type is IArrayTypeReference arrayType)
             {
-                SerializeCustomAttributeArrayType(encoder.SZArray(), arrayType, customAttribute);
+                SerializeCustomAttributeArrayType(in context, encoder.SZArray(), arrayType);
             }
             else if (module.IsPlatformType(type, PlatformType.SystemObject))
             {
@@ -3424,11 +3426,11 @@ namespace Microsoft.Cci
             }
             else
             {
-                SerializeCustomAttributeElementType(encoder.ScalarType(), type, customAttribute);
+                SerializeCustomAttributeElementType(in context, encoder.ScalarType(), type);
             }
         }
 
-        private void SerializeMetadataExpression(LiteralEncoder encoder, IMetadataExpression expression, ITypeReference targetType, ICustomAttribute customAttribute)
+        private void SerializeMetadataExpression(in EmitContext context, LiteralEncoder encoder, IMetadataExpression expression, ITypeReference targetType)
         {
             if (expression is MetadataCreateArray a)
             {
@@ -3441,7 +3443,7 @@ namespace Microsoft.Cci
 
                     CustomAttributeArrayTypeEncoder arrayTypeEncoder;
                     encoder.TaggedVector(out arrayTypeEncoder, out vectorEncoder);
-                    SerializeCustomAttributeArrayType(arrayTypeEncoder, a.ArrayType, customAttribute);
+                    SerializeCustomAttributeArrayType(in context, arrayTypeEncoder, a.ArrayType);
 
                     targetElementType = a.ElementType;
                 }
@@ -3459,7 +3461,7 @@ namespace Microsoft.Cci
 
                 foreach (IMetadataExpression elemValue in a.Elements)
                 {
-                    SerializeMetadataExpression(literalsEncoder.AddLiteral(), elemValue, targetElementType, customAttribute);
+                    SerializeMetadataExpression(in context, literalsEncoder.AddLiteral(), elemValue, targetElementType);
                 }
             }
             else
@@ -3481,7 +3483,7 @@ namespace Microsoft.Cci
                     }
                     else
                     {
-                        SerializeCustomAttributeElementType(typeEncoder, expression.Type, customAttribute);
+                        SerializeCustomAttributeElementType(in context, typeEncoder, expression.Type);
                     }
                 }
                 else
@@ -3502,7 +3504,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    scalarEncoder.SystemType(((MetadataTypeOf)expression).TypeToGet.GetSerializedTypeName(GetEmitContextForAttribute(customAttribute)));
+                    scalarEncoder.SystemType(((MetadataTypeOf)expression).TypeToGet.GetSerializedTypeName(context));
                 }
             }
         }
@@ -3676,7 +3678,7 @@ namespace Microsoft.Cci
 
                 var customAttributeArgsBuilder = PooledBlobBuilder.GetInstance();
                 var namedArgsEncoder = new BlobEncoder(customAttributeArgsBuilder).PermissionSetArguments(customAttribute.NamedArgumentCount);
-                SerializeCustomAttributeNamedArguments(namedArgsEncoder, customAttribute);
+                SerializeCustomAttributeNamedArguments(in context, namedArgsEncoder, customAttribute);
                 writer.WriteCompressedInteger(customAttributeArgsBuilder.Count);
 
                 customAttributeArgsBuilder.WriteContentTo(writer);
@@ -3925,7 +3927,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeCustomAttributeArrayType(CustomAttributeArrayTypeEncoder encoder, IArrayTypeReference arrayTypeReference, ICustomAttribute customAttribute)
+        private void SerializeCustomAttributeArrayType(in EmitContext context, CustomAttributeArrayTypeEncoder encoder, IArrayTypeReference arrayTypeReference)
         {
             // A single-dimensional, zero-based array is specified as a single byte 0x1D followed by the FieldOrPropType of the element type. 
 
@@ -3942,11 +3944,11 @@ namespace Microsoft.Cci
             }
             else
             {
-                SerializeCustomAttributeElementType(encoder.ElementType(), elementType, customAttribute);
+                SerializeCustomAttributeElementType(in context, encoder.ElementType(), elementType);
             }
         }
 
-        private void SerializeCustomAttributeElementType(CustomAttributeElementTypeEncoder encoder, ITypeReference typeReference, ICustomAttribute customAttribute)
+        private void SerializeCustomAttributeElementType(in EmitContext context, CustomAttributeElementTypeEncoder encoder, ITypeReference typeReference)
         {
             // Spec:
             // The FieldOrPropType shall be exactly one of:
@@ -3966,7 +3968,7 @@ namespace Microsoft.Cci
             else
             {
                 Debug.Assert(typeReference.IsEnum);
-                encoder.Enum(typeReference.GetSerializedTypeName(GetEmitContextForAttribute(customAttribute)));
+                encoder.Enum(typeReference.GetSerializedTypeName(context));
             }
         }
 
