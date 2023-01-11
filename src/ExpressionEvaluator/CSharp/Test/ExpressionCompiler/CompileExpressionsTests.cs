@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -737,16 +738,24 @@ class Program
                         "C.X",
                         out var error,
                         testData);
-                    Assert.NotNull(result.Assembly);
-                    Assert.Null(error);
-                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
-                        {
-                          // Code size        6 (0x6)
-                          .maxstack  1
-                          IL_0000:  ldsfld     "int C.X"
-                          IL_0005:  ret
-                        }
-                        """);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'C' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int C.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
                 });
         }
 
@@ -791,16 +800,24 @@ class Program
                         "C.X",
                         out var error,
                         testData);
-                    Assert.Null(error);
-                    Assert.NotNull(result.Assembly);
-                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
                     {
-                      // Code size        6 (0x6)
-                      .maxstack  1
-                      IL_0000:  ldsfld     "int C.X"
-                      IL_0005:  ret
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'C' does not exist in the current context", error);
                     }
-                    """);
+                    else
+                    {
+                        Assert.Null(error);
+                        Assert.NotNull(result.Assembly);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int C.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
                 });
         }
 
@@ -851,16 +868,24 @@ class Program
                         "Outer.Inner.X",
                         out var error,
                         testData);
-                    Assert.Null(error);
-                    Assert.NotNull(result.Assembly);
-                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
-                        {
-                          // Code size        6 (0x6)
-                          .maxstack  1
-                          IL_0000:  ldsfld     "int Outer.Inner.X"
-                          IL_0005:  ret
-                        }
-                        """);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'Outer' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.Null(error);
+                        Assert.NotNull(result.Assembly);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int Outer.Inner.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
                 });
         }
 
@@ -902,6 +927,102 @@ class Program
                     Assert.Equal(new[] { "(1,1): error CS0103: The name 'C' does not exist in the current context" }, errorMessages);
                     Assert.Null(assembly);
                     Assert.Empty(methodTokens);
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_05()
+        {
+            var source =
+@"file class C
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.Main");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "new C()",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  newobj     "C..ctor()"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_06()
+        {
+            var source =
+@"file class C
+{
+    int F = 1;
+    void M()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "C.M");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "F",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'F' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.F"
+                              IL_0006:  ret
+                            }
+                            """);
+                    }
                 });
         }
 
@@ -1060,20 +1181,12 @@ class Program
                 """,
                 format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
 
-            // Disable testing with DebugInformationFormat.Pdb format for now (see https://github.com/dotnet/roslyn/issues/66260).
-            //WithRuntimeInstance(
-            //    comp,
-            //    references: null,
-            //    includeLocalSignatures: true,
-            //    includeIntrinsicAssembly: false,
-            //    validator: runtime =>
-            {
-                using (var runtime = RuntimeInstance.Create(
-                    comp,
-                    references: null,
-                    Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb,
-                    includeLocalSignatures: true,
-                    includeIntrinsicAssembly: false))
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
                 {
                     GetContextState(runtime, "Program..ctor", out var blocks, out var moduleVersionId, out var symReader, out var methodToken, out var localSignatureToken);
 
@@ -1130,8 +1243,7 @@ class Program
                             IL_0001:  ret
                         }
                         """);
-                }
-            }
+                });
         }
     }
 }
