@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             delay.Reset();
         }
 
-        private Task UpdateAsync()
+        private async Task UpdateAsync()
         {
             ImmutableArray<(IGraphContext context, ImmutableArray<IGraphQuery> queries)> liveQueries;
             lock (_gate)
@@ -122,9 +122,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             var solution = _workspace.CurrentSolution;
             var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.queries, t.context)).ToArray();
-            var whenAllTask = Task.WhenAll(tasks);
-
-            return whenAllTask.SafeContinueWith(t => PostUpdate(solution), TaskScheduler.Default);
+            try
+            {
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+            finally
+            {
+                PostUpdate(solution);
+            }
         }
 
         private void PostUpdate(Solution solution)
