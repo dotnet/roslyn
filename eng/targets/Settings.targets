@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+
+  <!--
+    Analyzers
+  -->
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!--
+     Code indexing targets to help generating LSIF from indexing builds.
+  -->
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+    <PackageReference Include="RichCodeNav.EnvVarDump" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Language-specific analyzer packages -->
+  <Choose>
+    <When Condition="'$(Language)' == 'VB'">
+      <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+
+    <When Condition="'$(Language)' == 'C#'">
+      <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+</Project>

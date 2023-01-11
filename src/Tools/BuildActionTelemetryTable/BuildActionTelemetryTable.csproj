@@ -21,12 +21,12 @@
 
   <!-- These are dependencies that are never deployed but that we need to reflect over the Microsoft.CodeAnalysis.EditorFeatures assemblies -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.GraphModel" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" NoWarn="NU1701" />
   </ItemGroup>
 
   <ItemGroup>

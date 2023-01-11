@@ -3,4 +3,5 @@
   <Import Project="eng\targets\Imports.BeforeArcade.targets" />
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\targets\Imports.targets" />
+  <Import Project="eng\targets\Settings.targets" />
 </Project>

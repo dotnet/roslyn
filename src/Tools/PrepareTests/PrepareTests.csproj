@@ -9,6 +9,6 @@
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
+    <PackageReference Include="Mono.Options" />
   </ItemGroup>
 </Project>

@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" />
   </ItemGroup>
 
   <ItemGroup>
