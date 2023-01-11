@@ -2100,5 +2100,77 @@ record D(int X) : C(F(X, out int z), () => z)
       </methods>
     </symbols>", format: CodeAnalysis.Emit.DebugInformationFormat.Pdb);
         }
+
+        [Fact]
+        [WorkItem(32352, "https://github.com/dotnet/roslyn/issues/32352")]
+        public void ClosureAllocationSequencePoints()
+        {
+            var source = WithWindowsLineBreaks(@"
+using System;
+
+class C
+{
+    void F(bool outer)
+    {
+        if (outer) 
+        {
+            var inner = false;
+            var f = new Func<bool>(() => inner & outer);
+        }
+    }
+}");
+            var c = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, options: TestOptions.DebugDll);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/32352
+            // The inner closure allocation on IL_0018 should be withing the sequence point associated with opening brace of the if statement.
+            // This sequence point is currently on  IL_0025, which causes NRE when the instruction pointer is moved to the opening brace.
+
+            c.VerifyIL("C.F", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                bool V_1,
+                C.<>c__DisplayClass0_1 V_2, //CS$<>8__locals1
+                System.Func<bool> V_3) //f
+  // sequence point: <hidden>
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""bool C.<>c__DisplayClass0_0.outer""
+  // sequence point: {
+  IL_000d:  nop
+  // sequence point: if (outer)
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      ""bool C.<>c__DisplayClass0_0.outer""
+  IL_0014:  stloc.1
+  // sequence point: <hidden>
+  IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_003b
+  // sequence point: <hidden>
+  IL_0018:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
+  IL_001d:  stloc.2
+  IL_001e:  ldloc.2
+  IL_001f:  ldloc.0
+  IL_0020:  stfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  // sequence point: {
+  IL_0025:  nop
+  // sequence point: var inner = false;
+  IL_0026:  ldloc.2
+  IL_0027:  ldc.i4.0
+  IL_0028:  stfld      ""bool C.<>c__DisplayClass0_1.inner""
+  // sequence point: var f = new Func<bool>(() => inner & outer);
+  IL_002d:  ldloc.2
+  IL_002e:  ldftn      ""bool C.<>c__DisplayClass0_1.<F>b__0()""
+  IL_0034:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
+  IL_0039:  stloc.3
+  // sequence point: }
+  IL_003a:  nop
+  // sequence point: }
+  IL_003b:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
     }
 }
