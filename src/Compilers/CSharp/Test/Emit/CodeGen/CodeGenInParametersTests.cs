@@ -4798,5 +4798,85 @@ Console.Write(C.M(in s));
             var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
             CompileAndVerify(comp, expectedOutput: "RAN 00");
         }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnReadonlyField()
+        {
+            var libOrig_cs = """
+public struct S
+{
+    int i;
+    public void Report() { throw null; }
+}
+""";
+            var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
+
+            var libChanged_cs = """
+public struct S
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+    public void Report() { System.Console.Write($"Report{i} "); }
+}
+""";
+            var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
+
+            var libUser_cs = """
+public class C
+{
+    readonly S field;
+    public C(int i)
+    {
+        field.ToString();
+    }
+    public string M()
+    {
+        return field.ToString();
+    }
+    public void Report() { field.Report(); }
+}
+""";
+            var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
+            var verifier = CompileAndVerify(libUser);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "S C.field"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+
+            verifier.VerifyIL("C..ctor(int)", """
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "object..ctor()"
+  IL_0006:  ldarg.0
+  IL_0007:  ldflda     "S C.field"
+  IL_000c:  constrained. "S"
+  IL_0012:  callvirt   "string object.ToString()"
+  IL_0017:  pop
+  IL_0018:  ret
+}
+""");
+
+            var src = """
+C c = new C(42);
+c.Report();
+System.Console.Write(c.M());
+System.Console.Write(c.M());
+""";
+
+            var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
+            CompileAndVerify(comp, expectedOutput: "Report1 11");
+        }
     }
 }
