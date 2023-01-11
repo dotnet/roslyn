@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var methodHandle = GetDeltaRelativeMethodDefinitionHandle(reader, methodToken);
 
-            // TODO: only null in DTEE case where we looking for default namesapace
+            // TODO: only null in DTEE case where we looking for default namespace
             if (symbolProvider != null)
             {
                 ReadLocalScopeInformation(
@@ -64,8 +64,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReadMethodCustomDebugInformation(reader, methodHandle, out var hoistedLocalScopes, out var defaultNamespace);
 
             var documentHandle = reader.GetMethodDebugInformation(methodHandle).Document;
-            var document = reader.GetDocument(documentHandle);
-            var documentName = reader.GetString(document.Name);
+            string? documentName = null;
+            if (!documentHandle.IsNil)
+            {
+                var document = reader.GetDocument(documentHandle);
+                documentName = reader.GetString(document.Name);
+            }
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,

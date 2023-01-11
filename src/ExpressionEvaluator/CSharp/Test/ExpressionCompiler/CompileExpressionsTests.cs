@@ -8,7 +8,10 @@ using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -735,16 +738,24 @@ class Program
                         "C.X",
                         out var error,
                         testData);
-                    Assert.NotNull(result.Assembly);
-                    Assert.Null(error);
-                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
-                        {
-                          // Code size        6 (0x6)
-                          .maxstack  1
-                          IL_0000:  ldsfld     "int C.X"
-                          IL_0005:  ret
-                        }
-                        """);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'C' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int C.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
                 });
         }
 
@@ -789,16 +800,24 @@ class Program
                         "C.X",
                         out var error,
                         testData);
-                    Assert.Null(error);
-                    Assert.NotNull(result.Assembly);
-                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
                     {
-                      // Code size        6 (0x6)
-                      .maxstack  1
-                      IL_0000:  ldsfld     "int C.X"
-                      IL_0005:  ret
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'C' does not exist in the current context", error);
                     }
-                    """);
+                    else
+                    {
+                        Assert.Null(error);
+                        Assert.NotNull(result.Assembly);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int C.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
                 });
         }
 
@@ -849,16 +868,24 @@ class Program
                         "Outer.Inner.X",
                         out var error,
                         testData);
-                    Assert.Null(error);
-                    Assert.NotNull(result.Assembly);
-                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
-                        {
-                          // Code size        6 (0x6)
-                          .maxstack  1
-                          IL_0000:  ldsfld     "int Outer.Inner.X"
-                          IL_0005:  ret
-                        }
-                        """);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'Outer' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.Null(error);
+                        Assert.NotNull(result.Assembly);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int Outer.Inner.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
                 });
         }
 
@@ -904,6 +931,102 @@ class Program
         }
 
         [Fact]
+        public void FileLocalType_05()
+        {
+            var source =
+@"file class C
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.Main");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "new C()",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  newobj     "C..ctor()"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_06()
+        {
+            var source =
+@"file class C
+{
+    int F = 1;
+    void M()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "C.M");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "F",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'F' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.F"
+                              IL_0006:  ret
+                            }
+                            """);
+                    }
+                });
+        }
+
+        [Fact]
         public void IllFormedFilePath_01()
         {
             var source =
@@ -940,6 +1063,184 @@ class Program
                           .maxstack  1
                           IL_0000:  ldsfld     "int C.X"
                           IL_0005:  ret
+                        }
+                        """);
+                });
+        }
+
+        [WorkItem(66109, "https://github.com/dotnet/roslyn/issues/66109")]
+        [Fact]
+        public void SequencePointsMultipleDocuments()
+        {
+            var sourceA =
+@"partial class Program
+{
+    private int x = 1;
+    private void F()
+    {
+    }
+}";
+            var sourceB =
+@"partial class Program
+{
+    private int y = 2;
+    public Program()
+    {
+        F();
+        int z = x + y;
+    }
+}";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(sourceA, path: "A.cs", encoding: Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(sourceB, path: "B.cs", encoding: Encoding.Default)
+                },
+                options: TestOptions.DebugDll);
+
+            comp.VerifyPdb("""
+                <symbols>
+                  <files>
+                    <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="09-65-32-19-5F-F8-8A-58-BF-BC-0C-D3-68-2C-2C-7B-15-33-18-E4" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="62-4B-E2-91-A3-E9-43-48-4F-A0-E6-E8-22-74-EB-90-24-C3-05-A5" />
+                  </files>
+                  <methods>
+                    <method containingType="Program" name="F">
+                      <customDebugInfo>
+                        <using>
+                          <namespace usingCount="0" />
+                        </using>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="6" document="1" />
+                        <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="6" document="1" />
+                      </sequencePoints>
+                    </method>
+                    <method containingType="Program" name=".ctor">
+                      <customDebugInfo>
+                        <forward declaringType="Program" methodName="F" />
+                        <encLocalSlotMap>
+                          <slot kind="0" offset="29" />
+                        </encLocalSlotMap>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="23" document="1" />
+                        <entry offset="0x7" startLine="3" startColumn="5" endLine="3" endColumn="23" document="2" />
+                        <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="21" document="2" />
+                        <entry offset="0x15" startLine="5" startColumn="5" endLine="5" endColumn="6" document="2" />
+                        <entry offset="0x16" startLine="6" startColumn="9" endLine="6" endColumn="13" document="2" />
+                        <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="23" document="2" />
+                        <entry offset="0x2b" startLine="8" startColumn="5" endLine="8" endColumn="6" document="2" />
+                      </sequencePoints>
+                      <scope startOffset="0x0" endOffset="0x2c">
+                        <scope startOffset="0x15" endOffset="0x2c">
+                          <local name="z" il_index="0" il_start="0x15" il_end="0x2c" attributes="0" />
+                        </scope>
+                      </scope>
+                    </method>
+                  </methods>
+                </symbols>
+                """,
+                format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Pdb);
+            comp.VerifyPdb("""
+                <symbols>
+                  <files>
+                    <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="09-65-32-19-5F-F8-8A-58-BF-BC-0C-D3-68-2C-2C-7B-15-33-18-E4" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="62-4B-E2-91-A3-E9-43-48-4F-A0-E6-E8-22-74-EB-90-24-C3-05-A5" />
+                  </files>
+                  <methods>
+                    <method containingType="Program" name="F">
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="6" document="1" />
+                        <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="6" document="1" />
+                      </sequencePoints>
+                    </method>
+                    <method containingType="Program" name=".ctor">
+                      <customDebugInfo>
+                        <encLocalSlotMap>
+                          <slot kind="0" offset="29" />
+                        </encLocalSlotMap>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="23" document="1" />
+                        <entry offset="0x7" startLine="3" startColumn="5" endLine="3" endColumn="23" document="2" />
+                        <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="21" document="2" />
+                        <entry offset="0x15" startLine="5" startColumn="5" endLine="5" endColumn="6" document="2" />
+                        <entry offset="0x16" startLine="6" startColumn="9" endLine="6" endColumn="13" document="2" />
+                        <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="23" document="2" />
+                        <entry offset="0x2b" startLine="8" startColumn="5" endLine="8" endColumn="6" document="2" />
+                      </sequencePoints>
+                      <scope startOffset="0x0" endOffset="0x2c">
+                        <scope startOffset="0x15" endOffset="0x2c">
+                          <local name="z" il_index="0" il_start="0x15" il_end="0x2c" attributes="0" />
+                        </scope>
+                      </scope>
+                    </method>
+                  </methods>
+                </symbols>
+                """,
+                format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    GetContextState(runtime, "Program..ctor", out var blocks, out var moduleVersionId, out var symReader, out var methodToken, out var localSignatureToken);
+
+                    var appDomain = new AppDomain();
+                    uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+                    var context = CreateMethodContext(
+                        appDomain,
+                        blocks,
+                        symReader,
+                        moduleVersionId,
+                        methodToken: methodToken,
+                        methodVersion: 1,
+                        ilOffset: 0x15, // offset matches startOffset of "z" scope
+                        localSignatureToken: localSignatureToken,
+                        kind: MakeAssemblyReferencesKind.AllAssemblies);
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "z",
+                        out var error,
+                        testData);
+                    Assert.Null(error);
+                    Assert.NotNull(result.Assembly);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldloc.0
+                            IL_0001:  ret
+                        }
+                        """);
+
+                    testData = new CompilationTestData();
+                    var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                    string typeName;
+                    var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+
+                    Assert.Equal(2, locals.Count);
+                    VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt: """
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldarg.0
+                            IL_0001:  ret
+                        }
+                        """);
+                    VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt: """
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldloc.0
+                            IL_0001:  ret
                         }
                         """);
                 });
