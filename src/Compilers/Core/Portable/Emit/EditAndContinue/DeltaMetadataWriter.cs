@@ -568,13 +568,13 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.AddDefIfNecessary(_eventDefs, eventDef, eventChange);
             }
 
-            foreach (var eventDel in _changes.GetDeletedEvents(typeDef))
+            foreach (var eventDef in _changes.GetDeletedEvents(typeDef))
             {
                 RoslynDebug.AssertNotNull(deletedMethodDefinitions);
 
-                var oldEventDef = (IEventDefinition)eventDel.GetCciAdapter();
+                var oldEventDef = (IEventDefinition)eventDef.GetCciAdapter();
 
-                // Because deleted property information comes from the associated symbol of the deleted accessors, its safe
+                // Because deleted event information comes from the associated symbol of the deleted accessors, its safe
                 // to assume that everything will be in the dictionary. We wouldn't be here it if wasn't.
                 var adder = deletedMethodDefinitions[(IMethodDefinition)oldEventDef.Adder];
                 var remover = deletedMethodDefinitions[(IMethodDefinition)oldEventDef.Remover];
