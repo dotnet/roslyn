@@ -165,10 +165,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var graphQueries = GetGraphQueries(context, _threadingContext, _asyncListener);
 
             // Perform the queries asynchronously  in a fire-and-forget fashion.  This helper will be responsible
-            // for always completing the context.
+            // for always completing the context. AddQueriesAsync is `async`, so it always returns a task and will never
+            // bubble out an exception synchronously (so CompletesAsyncOperation is safe).
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(BeginGetGraphData));
             _ = _graphQueryManager
-                .AddQueriesAsync(context, graphQueries)
+                .AddQueriesAsync(context, graphQueries, _threadingContext.DisposalToken)
                 .CompletesAsyncOperation(asyncToken);
         }
 

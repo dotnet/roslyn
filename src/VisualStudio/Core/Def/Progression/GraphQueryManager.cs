@@ -56,14 +56,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _workspace.WorkspaceChanged += (_, _) => _updateQueue.AddWork();
         }
 
-        public async Task AddQueriesAsync(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries)
+        public async Task AddQueriesAsync(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries, CancellationToken disposalToken)
         {
             try
             {
                 var solution = _workspace.CurrentSolution;
 
                 // Perform the actual graph query first.
-                await PopulateContextGraphAsync(solution, context, graphQueries).ConfigureAwait(false);
+                await PopulateContextGraphAsync(solution, context, graphQueries, disposalToken).ConfigureAwait(false);
 
                 // If this context would like to be continuously updated with live changes to this query, then add the
                 // tracked query to our tracking list, keeping it alive as long as those is keeping the context alive.
