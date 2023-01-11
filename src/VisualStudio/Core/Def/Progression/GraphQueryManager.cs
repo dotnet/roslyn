@@ -9,7 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
@@ -31,13 +33,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly object _gate = new();
         private ImmutableArray<(WeakReference<IGraphContext> context, ImmutableArray<IGraphQuery> queries)> _trackedQueries = ImmutableArray<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)>.Empty;
 
-        // We update all of our tracked queries when this delay elapses.
-        private ResettableDelay? _delay;
+        private readonly AsyncBatchingWorkQueue _updateQueue;
 
-        internal GraphQueryManager(Workspace workspace, IAsynchronousOperationListener asyncListener)
+        internal GraphQueryManager(
+            Workspace workspace,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListener asyncListener)
         {
             _workspace = workspace;
             _asyncListener = asyncListener;
+            _updateQueue = new AsyncBatchingWorkQueue(
+                DelayTimeSpan.Idle,
+                UpdateExistingQueriesAsync,
+                asyncListener,
+                threadingContext.DisposalToken);
+
+            _workspace.WorkspaceChanged += (_, _) => _updateQueue.AddWork();
         }
 
         public void AddQueries(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries)
@@ -55,70 +66,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (context.TrackChanges)
             {
                 task = task.SafeContinueWith(
-                    _ => TrackChangesAfterFirstPopulate(solution, context, graphQueries),
+                    _ => TrackChangesAfterFirstPopulate(context, graphQueries),
                     context.CancelToken, TaskContinuationOptions.None, TaskScheduler.Default);
             }
 
             task.CompletesAsyncOperation(asyncToken);
         }
 
-        private void TrackChangesAfterFirstPopulate(Solution solution, IGraphContext context, ImmutableArray<IGraphQuery> graphQueries)
+        private void TrackChangesAfterFirstPopulate(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries)
         {
-            var workspace = solution.Workspace;
-            var contextWeakReference = new WeakReference<IGraphContext>(context);
-
             lock (_gate)
             {
-                if (_trackedQueries.IsEmpty)
-                    _workspace.WorkspaceChanged += OnWorkspaceChanged;
-
-                _trackedQueries = _trackedQueries.Add((contextWeakReference, graphQueries));
+                _trackedQueries = _trackedQueries.Add((new WeakReference<IGraphContext>(context), graphQueries));
             }
 
-            EnqueueUpdateIfSolutionIsStale(solution);
+            _updateQueue.AddWork();
         }
 
-        private void EnqueueUpdateIfSolutionIsStale(Solution solution)
-        {
-            // It's possible the workspace changed during our initial population, so let's enqueue an update if it did
-            if (_workspace.CurrentSolution != solution)
-            {
-                EnqueueUpdate();
-            }
-        }
-
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-            => EnqueueUpdate();
-
-        private void EnqueueUpdate()
-        {
-            const int WorkspaceUpdateDelay = 1500;
-            var delay = _delay;
-            if (delay == null)
-            {
-                var newDelay = new ResettableDelay(WorkspaceUpdateDelay, _asyncListener);
-                if (Interlocked.CompareExchange(ref _delay, newDelay, null) == null)
-                {
-                    var asyncToken = _asyncListener.BeginAsyncOperation("WorkspaceGraphQueryManager.EnqueueUpdate");
-                    newDelay.Task.SafeContinueWithFromAsync(_ => UpdateAsync(), CancellationToken.None, TaskScheduler.Default)
-                        .CompletesAsyncOperation(asyncToken);
-                }
-
-                return;
-            }
-
-            delay.Reset();
-        }
-
-        private async Task UpdateAsync()
+        private async ValueTask UpdateExistingQueriesAsync(CancellationToken cancellationToken)
         {
             ImmutableArray<(IGraphContext context, ImmutableArray<IGraphQuery> queries)> liveQueries;
             lock (_gate)
             {
                 liveQueries = _trackedQueries
-                    .SelectAsArray(t => (t.Item1.GetTarget(), t.Item2))
+                    .SelectAsArray(t => (t.context.GetTarget(), t.queries))
                     .WhereAsArray(t => t.Item1 != null)!;
             }
+
+            if (liveQueries.Length == 0)
+                return;
 
             var solution = _workspace.CurrentSolution;
             var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.context, t.queries)).ToArray();
@@ -128,25 +104,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
             finally
             {
-                PostUpdate(solution);
+                PostUpdate();
             }
         }
 
-        private void PostUpdate(Solution solution)
+        private void PostUpdate()
         {
-            _delay = null;
             lock (_gate)
             {
                 // See if each context is still alive. It's possible it's already been GC'ed meaning we should stop caring about the query
-                _trackedQueries = _trackedQueries.RemoveAll(t => !IsTrackingContext(t.Item1));
-                if (_trackedQueries.IsEmpty)
-                {
-                    _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-                    return;
-                }
+                _trackedQueries = _trackedQueries.RemoveAll(t => !IsTrackingContext(t.context));
             }
 
-            EnqueueUpdateIfSolutionIsStale(solution);
+            _updateQueue.AddWork();
         }
 
         private static bool IsTrackingContext(WeakReference<IGraphContext> weakContext)
@@ -168,7 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             try
             {
-
                 // Compute all queries in parallel.  Then as each finishes, update the graph.
 
                 var tasks = graphQueries.Select(q => Task.Run(() => q.GetGraphAsync(solution, context, cancellationToken), cancellationToken)).ToHashSet();
