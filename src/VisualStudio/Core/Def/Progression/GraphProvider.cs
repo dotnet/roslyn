@@ -166,7 +166,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             // Perform the queries asynchronously  in a fire-and-forget fashion.  This helper will be responsible
             // for always completing the context.
-            _ = _graphQueryManager.AddQueriesAsync(context, graphQueries);
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(BeginGetGraphData));
+            _ = _graphQueryManager
+                .AddQueriesAsync(context, graphQueries)
+                .CompletesAsyncOperation(asyncToken);
         }
 
         public IEnumerable<GraphCommand> GetCommands(IEnumerable<GraphNode> nodes)

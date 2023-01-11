@@ -25,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     internal class GraphQueryManager
     {
         private readonly Workspace _workspace;
-        private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
         /// This gate locks manipulation of <see cref="_trackedQueries"/>.
@@ -41,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             IAsynchronousOperationListener asyncListener)
         {
             _workspace = workspace;
-            _asyncListener = asyncListener;
 
             // Update any existing live/tracking queries 1.5 seconds after every workspace changes.
             _updateQueue = new AsyncBatchingWorkQueue(
@@ -55,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public async Task AddQueriesAsync(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries)
         {
-            using var asyncToken = _asyncListener.BeginAsyncOperation(nameof(AddQueriesAsync));
             try
             {
                 var solution = _workspace.CurrentSolution;
