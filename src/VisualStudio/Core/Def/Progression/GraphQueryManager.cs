@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// This gate locks manipulation of <see cref="_trackedQueries"/>.
         /// </summary>
         private readonly object _gate = new();
-        private ImmutableArray<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)> _trackedQueries = ImmutableArray<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)>.Empty;
+        private ImmutableArray<(WeakReference<IGraphContext> context, ImmutableArray<IGraphQuery> queries)> _trackedQueries = ImmutableArray<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)>.Empty;
 
         // We update all of our tracked queries when this delay elapses.
         private ResettableDelay? _delay;
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             var solution = _workspace.CurrentSolution;
 
-            var populateTask = PopulateContextGraphAsync(solution, graphQueries, context);
+            var populateTask = PopulateContextGraphAsync(solution, context, graphQueries);
 
             // We want to ensure that no matter what happens, this initial context is completed
             var task = populateTask.SafeContinueWith(
@@ -55,14 +55,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (context.TrackChanges)
             {
                 task = task.SafeContinueWith(
-                    _ => TrackChangesAfterFirstPopulate(graphQueries, context, solution),
+                    _ => TrackChangesAfterFirstPopulate(solution, context, graphQueries),
                     context.CancelToken, TaskContinuationOptions.None, TaskScheduler.Default);
             }
 
             task.CompletesAsyncOperation(asyncToken);
         }
 
-        private void TrackChangesAfterFirstPopulate(ImmutableArray<IGraphQuery> graphQueries, IGraphContext context, Solution solution)
+        private void TrackChangesAfterFirstPopulate(Solution solution, IGraphContext context, ImmutableArray<IGraphQuery> graphQueries)
         {
             var workspace = solution.Workspace;
             var contextWeakReference = new WeakReference<IGraphContext>(context);
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             var solution = _workspace.CurrentSolution;
-            var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.queries, t.context)).ToArray();
+            var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.context, t.queries)).ToArray();
             try
             {
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -160,8 +160,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// </summary>
         private static async Task PopulateContextGraphAsync(
             Solution solution,
-            ImmutableArray<IGraphQuery> graphQueries,
-            IGraphContext context)
+            IGraphContext context,
+            ImmutableArray<IGraphQuery> graphQueries)
         {
             Contract.ThrowIfTrue(graphQueries.IsEmpty);
             var cancellationToken = context.CancelToken;
