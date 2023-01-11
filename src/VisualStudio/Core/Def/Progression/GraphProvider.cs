@@ -164,15 +164,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             var graphQueries = GetGraphQueries(context, _threadingContext, _asyncListener);
 
-            if (graphQueries.Length > 0)
-            {
-                _graphQueryManager.AddQueries(context, graphQueries);
-            }
-            else
-            {
-                // It's an unknown query type, so we're done
-                context.OnCompleted();
-            }
+            // Perform the queries asynchronously  in a fire-and-forget fashion.  This helper will be responsible
+            // for always completing the context.
+            _ = _graphQueryManager.AddQueriesAsync(context, graphQueries);
         }
 
         public IEnumerable<GraphCommand> GetCommands(IEnumerable<GraphNode> nodes)
