@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
             finally
             {
-                // // We want to ensure that no matter what happens, this initial context is completed
+                // We want to ensure that no matter what happens, this initial context is completed
                 context.OnCompleted();
             }
         }
