@@ -827,7 +827,7 @@ Delta.2: Test D2
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void AssemblyLoading_NativeDependency()
         {
             Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
