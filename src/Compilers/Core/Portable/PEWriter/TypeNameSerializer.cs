@@ -81,10 +81,9 @@ namespace Microsoft.Cci
                 if (typeReference is IFunctionPointerTypeReference)
                 {
                     var messageProvider = context.Module.CommonCompilation.MessageProvider;
-                    if (messageProvider.ERR_FunctionPointerTypesInAttributeNotSupported is { } code)
-                    {
-                        context.Diagnostics.Add(messageProvider.CreateDiagnostic(code, context.SyntaxNode?.Location ?? Location.None));
-                    }
+                    context.Diagnostics.Add(messageProvider.CreateDiagnostic(
+                        messageProvider.ERR_FunctionPointerTypesInAttributeNotSupported,
+                        context.SyntaxNode?.Location ?? Location.None));
                     sb.Append("(fnptr)");
                     goto done;
                 }
