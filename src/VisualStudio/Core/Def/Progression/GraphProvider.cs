@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _workspace = workspace;
             _streamingPresenter = streamingPresenter;
-            _graphQueryManager = new GraphQueryManager(workspace, _asyncListener);
+            _graphQueryManager = new GraphQueryManager(workspace, threadingContext, _asyncListener);
         }
 
         private void EnsureInitialized()
