@@ -275,7 +275,6 @@ class C
 ");
         }
 
-
         [Fact]
         public async Task TestNotAfterStaticInternal()
             => await VerifyAbsenceAsync(@"static internal $$");
