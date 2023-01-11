@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 if (_trackedQueries.IsEmpty)
                     _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
-                _trackedQueries = _trackedQueries.Add(ValueTuple.Create(contextWeakReference, graphQueries));
+                _trackedQueries = _trackedQueries.Add((contextWeakReference, graphQueries));
             }
 
             EnqueueUpdateIfSolutionIsStale(solution);
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private Task UpdateAsync()
         {
-            ImmutableArray<ValueTuple<IGraphContext, ImmutableArray<IGraphQuery>>> liveQueries;
+            ImmutableArray<(IGraphContext, ImmutableArray<IGraphQuery>)> liveQueries;
             lock (_gate)
             {
                 liveQueries = _trackedQueries
