@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }
-                        if (token.HasMatchingText(SyntaxKind.FileKeyword)) 
+                        if (token.HasMatchingText(SyntaxKind.FileKeyword))
                         {
                             result.Add(SyntaxKind.FileKeyword);
                             positionBeforeModifiers = token.FullSpan.Start;

@@ -264,6 +264,19 @@ $$");
         }
 
         [Fact]
+        public async Task TestAfterFile2()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"file $$
+
+class C
+{
+}
+");
+        }
+
+
+        [Fact]
         public async Task TestNotAfterStaticInternal()
             => await VerifyAbsenceAsync(@"static internal $$");
 
