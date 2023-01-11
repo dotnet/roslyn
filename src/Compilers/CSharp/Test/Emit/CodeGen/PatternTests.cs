@@ -918,7 +918,9 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        [Fact]
+        [WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        [WorkItem(65091, "https://github.com/dotnet/roslyn/issues/65091")]
         public void InParameter_StoreToTemp()
         {
             var source =
@@ -934,27 +936,27 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M1",
 @"{
-  // Code size       24 (0x18)
+  // Code size       23 (0x17)
   .maxstack  2
-  .locals init (object V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldind.ref
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  isinst     ""int""
-  IL_0009:  brfalse.s  IL_0016
-  IL_000b:  ldloc.0
-  IL_000c:  unbox.any  ""int""
-  IL_0011:  ldc.i4.s   42
-  IL_0013:  ceq
-  IL_0015:  ret
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldind.ref
+  IL_000b:  unbox.any  ""int""
+  IL_0010:  ldc.i4.s   42
+  IL_0012:  ceq
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }");
         }
 
-        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
-        public void RefReadonlyLocal_StoreToTemp()
+        [Fact]
+        [WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        [WorkItem(65091, "https://github.com/dotnet/roslyn/issues/65091")]
+        public void RefReadonlyLocal_AsInParameter_StoreToTemp()
         {
             var source =
 @"public class C
@@ -970,26 +972,68 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M1",
 @"{
-  // Code size       30 (0x1e)
+  // Code size       31 (0x1f)
   .maxstack  2
-  .locals init (object V_0)
+  .locals init (object& V_0) //z
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_0006
   IL_0003:  ldarg.2
   IL_0004:  br.s       IL_0007
   IL_0006:  ldarg.1
-  IL_0007:  ldind.ref
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldind.ref
   IL_000a:  isinst     ""int""
-  IL_000f:  brfalse.s  IL_001c
+  IL_000f:  brfalse.s  IL_001d
   IL_0011:  ldloc.0
-  IL_0012:  unbox.any  ""int""
-  IL_0017:  ldc.i4.s   42
-  IL_0019:  ceq
-  IL_001b:  ret
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
+  IL_0012:  ldind.ref
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  ldc.i4.s   42
+  IL_001a:  ceq
+  IL_001c:  ret
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+}");
+        }
+
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        public void RefReadonlyLocal_StoreToTemp()
+        {
+            var source =
+@"public class C
+{
+    static bool M1(bool b, object x, object y)
+    {
+        ref readonly object z = ref b ? ref x : ref y;
+        return z is 42;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (object& V_0) //z
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0007
+  IL_0003:  ldarga.s   V_2
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldarga.s   V_1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldind.ref
+  IL_000c:  isinst     ""int""
+  IL_0011:  brfalse.s  IL_001f
+  IL_0013:  ldloc.0
+  IL_0014:  ldind.ref
+  IL_0015:  unbox.any  ""int""
+  IL_001a:  ldc.i4.s   42
+  IL_001c:  ceq
+  IL_001e:  ret
+  IL_001f:  ldc.i4.0
+  IL_0020:  ret
 }");
         }
 

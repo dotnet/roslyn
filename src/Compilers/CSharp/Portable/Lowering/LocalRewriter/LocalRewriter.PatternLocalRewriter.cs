@@ -516,8 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .Any(static node => node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValueOpt: null } });
 
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
-                if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
-                    && loweredInput.GetRefKind() == RefKind.None &&
+                if (loweredInput.Kind is BoundKind.Local or BoundKind.Parameter &&
+                    loweredInput.GetRefKind() is RefKind.None or RefKind.RefReadOnly &&
                     !anyWhenClause)
                 {
                     // If we're switching on a local variable and there is no when clause,

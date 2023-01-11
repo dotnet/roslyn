@@ -3148,5 +3148,97 @@ class N
                     );
             }
         }
+
+        [Theory]
+        [InlineData("v is null")]
+        [InlineData("!v.HasValue")]
+        [InlineData("v == null")]
+        [WorkItem(65091, "https://github.com/dotnet/roslyn/issues/65091")]
+        public void Nullable_Parameter_NullChecks(string nullCheckExpression)
+        {
+            var source = @$"
+using System;
+M(null);
+void M(in int? v)
+{{
+    if ({nullCheckExpression}) 
+        Console.Write(1);
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyIL("Program.<<Main>$>g__M|0_0(in int?)", @"
+{
+    // Code size       15 (0xf)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""bool int?.HasValue.get""
+    IL_0006:  brtrue.s   IL_000e
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("s is { Value: 1 }")]
+        [InlineData("s.Value is 1")]
+        [WorkItem(65091, "https://github.com/dotnet/roslyn/issues/65091")]
+        public void ReadOnlySafety_MutatingMember_IsExpression(string isExpression)
+        {
+            var source = @$"
+using System;
+var s = default(S);
+M(s);
+
+void M(in S s)
+{{
+    if ({isExpression}) {{ Console.Write(1); }}
+    if ({isExpression}) {{ Console.Write(2); }}
+    if (s.Value == 1) {{ Console.Write(3); }}
+}}
+
+struct S
+{{
+    int item;
+    public int Value => ++item;
+}}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "123");
+            verifier.VerifyIL("Program.<<Main>$>g__M|0_0(in S)", @"
+{
+    // Code size       70 (0x46)
+    .maxstack  2
+    .locals init (S V_0)
+    IL_0000:  ldarg.0
+    IL_0001:  ldobj      ""S""
+    IL_0006:  stloc.0
+    IL_0007:  ldloca.s   V_0
+    IL_0009:  call       ""int S.Value.get""
+    IL_000e:  ldc.i4.1
+    IL_000f:  bne.un.s   IL_0017
+    IL_0011:  ldc.i4.1
+    IL_0012:  call       ""void System.Console.Write(int)""
+    IL_0017:  ldarg.0
+    IL_0018:  ldobj      ""S""
+    IL_001d:  stloc.0
+    IL_001e:  ldloca.s   V_0
+    IL_0020:  call       ""int S.Value.get""
+    IL_0025:  ldc.i4.1
+    IL_0026:  bne.un.s   IL_002e
+    IL_0028:  ldc.i4.2
+    IL_0029:  call       ""void System.Console.Write(int)""
+    IL_002e:  ldarg.0
+    IL_002f:  ldobj      ""S""
+    IL_0034:  stloc.0
+    IL_0035:  ldloca.s   V_0
+    IL_0037:  call       ""int S.Value.get""
+    IL_003c:  ldc.i4.1
+    IL_003d:  bne.un.s   IL_0045
+    IL_003f:  ldc.i4.3
+    IL_0040:  call       ""void System.Console.Write(int)""
+    IL_0045:  ret
+}
+");
+        }
     }
 }
