@@ -1,0 +1,93 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net7.0": {
+      "Microsoft.CodeAnalysis.NetAnalyzers": {
+        "type": "Direct",
+        "requested": "[8.0.0-preview1.23058.2, )",
+        "resolved": "8.0.0-preview1.23058.2",
+        "contentHash": "JEPe0ZWGPV9xOfi8h8H5s8lFrPf/rDhBGhE13ZUyMZXNCImHhYqRmsaVCWP4m/o7t45YsWchiubJZnAIA1Wx8Q=="
+      },
+      "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers": {
+        "type": "Direct",
+        "requested": "[3.3.4-beta1.22504.1, )",
+        "resolved": "3.3.4-beta1.22504.1",
+        "contentHash": "2XRlqPAzVke7Sb80+UqaC7o57OwfK+tIr+aIOxrx41RWDMeR2SBUW7kL4sd6hfLFfBNsLo3W5PT+UwfvwPaOzA=="
+      },
+      "Microsoft.CodeAnalysis.VisualBasic.CodeStyle": {
+        "type": "Direct",
+        "requested": "[4.3.0-1.final, )",
+        "resolved": "4.3.0-1.final",
+        "contentHash": "/F3EzghKGAhRMTBn7+UHE5ZAi3VmJaVZBrZs1yJF+2/Z/IS+suxeE2k3iTE916f3hO3UHpQ7KfiPAOt43+ebMw=="
+      },
+      "Microsoft.Net.Compilers.Toolset": {
+        "type": "Direct",
+        "requested": "[4.4.0-2.final, )",
+        "resolved": "4.4.0-2.final",
+        "contentHash": "71tcpqZwCPMvJTwI8eDhbKtMAa3NFqBGsPc7jIl58Y9gw/75IyK0O+kReXiiwL4aKUXNbwXwuYaLCzZHTaOogQ=="
+      },
+      "Microsoft.SourceLink.AzureRepos.Git": {
+        "type": "Direct",
+        "requested": "[1.2.0-beta-23053-01, )",
+        "resolved": "1.2.0-beta-23053-01",
+        "contentHash": "v2/FmKrORy7BNtmfhaQvmUGkruwPuoFU3qnd7f1zb8UdZilb9ffuTQg3uxPGpXBEOMGPwohhH/6oHvjssQwLdg==",
+        "dependencies": {
+          "Microsoft.Build.Tasks.Git": "1.2.0-beta-23053-01",
+          "Microsoft.SourceLink.Common": "1.2.0-beta-23053-01"
+        }
+      },
+      "Microsoft.SourceLink.GitHub": {
+        "type": "Direct",
+        "requested": "[1.2.0-beta-23053-01, )",
+        "resolved": "1.2.0-beta-23053-01",
+        "contentHash": "cepQXU/xAWJ8A/l4ejDNA+4LyidHY347rE2jZ8W/dT7wA/bjzeIcqVsDn8ul9/u89Z4n1/OoZ7pMJXLdf8ty3g==",
+        "dependencies": {
+          "Microsoft.Build.Tasks.Git": "1.2.0-beta-23053-01",
+          "Microsoft.SourceLink.Common": "1.2.0-beta-23053-01"
+        }
+      },
+      "Microsoft.VisualStudio.Threading.Analyzers": {
+        "type": "Direct",
+        "requested": "[17.5.10-alpha, )",
+        "resolved": "17.5.10-alpha",
+        "contentHash": "IsKDBljm14amASaI2J9SIH23da1qMScBUxRfmOgo05XkmERCnA9kjcVmlWdmOwIi4+gBEMLMlgmmo0fXSIfnww=="
+      },
+      "RichCodeNav.EnvVarDump": {
+        "type": "Direct",
+        "requested": "[0.1.1643-alpha, )",
+        "resolved": "0.1.1643-alpha",
+        "contentHash": "JYCyCxU/KrMUECak2zZoAL+e5lpefBz3Y+qudqUH5n4HLFq+pdju3V0642MWo6WGRtDcAAz7mVdIyfBuqI8DuA=="
+      },
+      "Roslyn.Diagnostics.Analyzers": {
+        "type": "Direct",
+        "requested": "[3.3.4-beta1.22579.2, )",
+        "resolved": "3.3.4-beta1.22579.2",
+        "contentHash": "OV5Bhcl79NjfEAAxksSNtludueFtpMipWd8zgXnGrJ/v5YZu+O0UNkc83PjokeF53kS8D57H0dwAAlzuGMMtVA==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.BannedApiAnalyzers": "[3.3.4-beta1.22579.2]",
+          "Microsoft.CodeAnalysis.PublicApiAnalyzers": "[3.3.4-beta1.22579.2]"
+        }
+      },
+      "Microsoft.Build.Tasks.Git": {
+        "type": "Transitive",
+        "resolved": "1.2.0-beta-23053-01",
+        "contentHash": "4ZbX+kCdAaO0CBxWyGmob8l9TDiVq0jU313rAh83Q9rcaZSRBSqePVFC6Bq8DFheIU6xLfwsViWUuxtBQgdbZQ=="
+      },
+      "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
+        "type": "Transitive",
+        "resolved": "3.3.4-beta1.22579.2",
+        "contentHash": "RMup8zMQAaXMW+jXMA4ibQLVOr0RZlCBIljL93BNO7nlGkUrLOIsSu5q22grPTiHRYYKlUbb8XXh+GoNYO0NHg=="
+      },
+      "Microsoft.CodeAnalysis.PublicApiAnalyzers": {
+        "type": "Transitive",
+        "resolved": "3.3.4-beta1.22579.2",
+        "contentHash": "TH+aUVPqne48xiq5iBnX1KfdukxKGj4cpfvSgg2RpyFrZXVeFQl0Uuty/vEksCwd6/RARu6RsMO6tZ1QlVFCgw=="
+      },
+      "Microsoft.SourceLink.Common": {
+        "type": "Transitive",
+        "resolved": "1.2.0-beta-23053-01",
+        "contentHash": "8nRzEU6h2raYmDX7k5RRXbYATdPacqHI1/r9W8Cvv4wiuahfgShoEKX8rcooWP0O+KIaLjzsGcr0qb+Gb3vtUA=="
+      }
+    }
+  }
+}
