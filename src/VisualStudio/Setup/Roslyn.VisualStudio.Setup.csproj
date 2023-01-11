@@ -272,7 +272,7 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64\InteractiveHost64.csproj">
       <Name>InteractiveHost.Core64</Name>
 
       <SetTargetFramework>TargetFramework=net6.0-windows7.0</SetTargetFramework>
@@ -287,7 +287,7 @@
       <!-- Disable NGEN. Core assemblies are crossgened. -->
       <Ngen>false</Ngen>
     </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64\InteractiveHost64.csproj">
       <Name>InteractiveHost.Desktop64</Name>
 
       <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
@@ -299,7 +299,7 @@
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost32.csproj">
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost32\InteractiveHost32.csproj">
       <Name>InteractiveHost.Desktop32</Name>
 
       <!--

@@ -12,6 +12,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>CoreXT package for the VS build</PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
 
     <!--
       Suppress NuGet warning: 

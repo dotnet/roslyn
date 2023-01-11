@@ -14,6 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
+    <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
   </ItemGroup>
 </Project>

@@ -123,11 +123,11 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BasicAnalyzerDriver", "src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{274B96B7-F815-47E3-9CA4-4024A57A478F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Package", "src\NuGet\Microsoft.CodeAnalysis.Compilers.Package.csproj", "{E0756C89-603F-4B48-8E64-1D53E62654C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Package", "src\NuGet\Microsoft.CodeAnalysis.Compilers.Package\Microsoft.CodeAnalysis.Compilers.Package.csproj", "{E0756C89-603F-4B48-8E64-1D53E62654C8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Scripting.Package", "src\NuGet\Microsoft.CodeAnalysis.Scripting.Package.csproj", "{7F8057D9-F70F-4EA7-BD64-AB2D0DD8057B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Scripting.Package", "src\NuGet\Microsoft.CodeAnalysis.Scripting.Package\Microsoft.CodeAnalysis.Scripting.Package.csproj", "{7F8057D9-F70F-4EA7-BD64-AB2D0DD8057B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Package", "src\NuGet\Microsoft.CodeAnalysis.Package.csproj", "{2483917E-7024-4D10-99C6-2BEF338FF53B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Package", "src\NuGet\Microsoft.CodeAnalysis.Package\Microsoft.CodeAnalysis.Package.csproj", "{2483917E-7024-4D10-99C6-2BEF338FF53B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildBoss", "src\Tools\BuildBoss\BuildBoss.csproj", "{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1}"
 EndProject

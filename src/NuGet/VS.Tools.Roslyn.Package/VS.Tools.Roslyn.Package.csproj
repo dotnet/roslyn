@@ -6,6 +6,7 @@
     <!-- The package is inserted to Visual Studio CoreXT package store -->
     <IsShipping>false</IsShipping>
     <IsVisualStudioBuildPackage>true</IsVisualStudioBuildPackage>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
 
     <IsPackable>true</IsPackable>
     <PackageId>VS.Tools.Roslyn</PackageId>

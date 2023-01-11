@@ -168,7 +168,7 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.Edit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities", "src\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj", "{76C6F005-C89D-4348-BB4A-39189DDBEB52}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost32", "src\Interactive\HostProcess\InteractiveHost32.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost32", "src\Interactive\HostProcess\InteractiveHost32\InteractiveHost32.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost.UnitTests", "src\Interactive\HostTest\InteractiveHost.UnitTests.csproj", "{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}"
 EndProject
@@ -313,7 +313,7 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.Visu
 		{41ED1BFA-FDAD-4FE4-8118-DB23FB49B0B0} = {41ED1BFA-FDAD-4FE4-8118-DB23FB49B0B0}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities", "src\CodeStyle\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities.csproj", "{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities", "src\CodeStyle\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities.csproj", "{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests", "src\CodeStyle\CSharp\Tests\Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests.csproj", "{5018D049-5870-465A-889B-C742CE1E31CB}"
 EndProject
@@ -334,25 +334,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Pool
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests", "src\Workspaces\MSBuildTest\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj", "{037F06F0-3BE8-42D0-801E-2F74FC380AB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\HostProcess\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\HostProcess\InteractiveHost64\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.IntegrationService", "src\VisualStudio\IntegrationTest\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj", "{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Package", "src\NuGet\Microsoft.CodeAnalysis.Compilers.Package.csproj", "{CFA94A39-4805-456D-A369-FC35CCC170E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Package", "src\NuGet\Microsoft.CodeAnalysis.Compilers.Package\Microsoft.CodeAnalysis.Compilers.Package.csproj", "{CFA94A39-4805-456D-A369-FC35CCC170E9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{C52D8057-43AF-40E6-A01B-6CDBB7301985}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Scripting.Package", "src\NuGet\Microsoft.CodeAnalysis.Scripting.Package.csproj", "{4A490CBC-37F4-4859-AFDB-4B0833D144AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Scripting.Package", "src\NuGet\Microsoft.CodeAnalysis.Scripting.Package\Microsoft.CodeAnalysis.Scripting.Package.csproj", "{4A490CBC-37F4-4859-AFDB-4B0833D144AF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.Package", "src\NuGet\Microsoft.CodeAnalysis.EditorFeatures.Package.csproj", "{34E868E9-D30B-4FB5-BC61-AFC4A9612A0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.Package", "src\NuGet\Microsoft.CodeAnalysis.EditorFeatures.Package\Microsoft.CodeAnalysis.EditorFeatures.Package.csproj", "{34E868E9-D30B-4FB5-BC61-AFC4A9612A0F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{BE25E872-1667-4649-9D19-96B83E75A44E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VS.ExternalAPIs.Roslyn.Package", "src\NuGet\VisualStudio\VS.ExternalAPIs.Roslyn.Package.csproj", "{0EB22BD1-B8B1-417D-8276-F475C2E190FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VS.ExternalAPIs.Roslyn.Package", "src\NuGet\VS.ExternalAPIs.Roslyn.Package\VS.ExternalAPIs.Roslyn.Package.csproj", "{0EB22BD1-B8B1-417D-8276-F475C2E190FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VS.Tools.Roslyn.Package", "src\NuGet\VisualStudio\VS.Tools.Roslyn.Package.csproj", "{3636D3E2-E3EF-4815-B020-819F382204CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VS.Tools.Roslyn.Package", "src\NuGet\VS.Tools.Roslyn.Package\VS.Tools.Roslyn.Package.csproj", "{3636D3E2-E3EF-4815-B020-819F382204CD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Package", "src\NuGet\Microsoft.CodeAnalysis.Package.csproj", "{B9843F65-262E-4F40-A0BC-2CBEF7563A44}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Package", "src\NuGet\Microsoft.CodeAnalysis.Package\Microsoft.CodeAnalysis.Package.csproj", "{B9843F65-262E-4F40-A0BC-2CBEF7563A44}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Installer.Package", "src\Setup\Installer\Installer.Package.csproj", "{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}"
 EndProject
@@ -438,7 +438,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workspace", "Workspace", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities", "src\EditorFeatures\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.csproj", "{B64766CD-1A1F-4C1B-B11F-C30F82B8E41E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities", "src\CodeStyle\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities.csproj", "{2D5E2DE4-5DA8-41C1-A14F-49855DCCE9C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities", "src\CodeStyle\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities\Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities.csproj", "{2D5E2DE4-5DA8-41C1-A14F-49855DCCE9C5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdeCoreBenchmarks", "src\Tools\IdeCoreBenchmarks\IdeCoreBenchmarks.csproj", "{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}"
 EndProject
