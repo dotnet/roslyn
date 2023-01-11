@@ -48,6 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 asyncListener,
                 threadingContext.DisposalToken);
 
+            // Note: this ends up always listening for workspace events, even if we have no active 'live' queries that
+            // need updating.  But this should basically be practically no cost.  The queue just holds a single item
+            // indicating a change happened.  And when UpdateExistingQueriesAsync fires, it will just see that there are
+            // no live queries and immediately return.  So it's just simple to do things this way instead of trying to 
+            // have state management where we try to decide if we should listen or not.
             _workspace.WorkspaceChanged += (_, _) => _updateQueue.AddWork();
         }
 
