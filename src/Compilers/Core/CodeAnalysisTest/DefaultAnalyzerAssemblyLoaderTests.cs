@@ -20,7 +20,6 @@ using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
-using Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE;
 #if NETCOREAPP
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
@@ -47,7 +46,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #else
         private sealed class AppDomainInvokeUtil : MarshalByRefObject
         {
-            public void Exec(string typeName, string methodName) => InvokeTestCode(typeName, methodName);
+            public void Exec(string typeName, string methodName)
+            {
+                try
+                {
+                    InvokeTestCode(typeName, methodName);
+                }
+                catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
+                {
+                    var inner = ex.InnerException;
+                    throw new Exception(inner.Message + inner.StackTrace);
+                }
+            }
         }
 #endif
 
@@ -233,6 +243,54 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(expected, Roslyn.Utilities.EnumerableExtensions.Order(assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location))));
         }
 
+        /// <summary>
+        /// Verify the set of asesmblies loaded as analyzer dependencies are the specified assembly paths
+        /// </summary>
+        private static void VerifyDependencyAssemblies(DefaultAnalyzerAssemblyLoader loader, params string[] assemblyPaths)
+        {
+            IEnumerable<Assembly> loadedAssemblies;
+
+#if NETCOREAPP
+            // This verify only works where there is a single load context.
+            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            Assert.Equal(1, alcs.Length);
+
+            loadedAssemblies = alcs[0].Assemblies;
+#else
+
+            // Unfortunately in .NET Framework we cannot determine which Assemblies are in the LoadFrom context
+            // which is what we want here. Our ability to verify here is less robust and instead we filter out 
+            // all the DLLs we know are simply a part of the application and examine what is left.
+            loadedAssemblies = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .Where(x =>
+                {
+                    var name = x.GetName().Name;
+                    if (name.StartsWith("System") ||
+                        name.StartsWith("Microsoft") ||
+                        name.StartsWith("xunit") ||
+                        name.StartsWith("Basic") ||
+                        name.StartsWith("netstandard") ||
+                        name.StartsWith("mscorlib"))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                });
+
+#endif
+            var data = assemblyPaths
+                .Select(x =>
+                {
+                    var name = AssemblyName.GetAssemblyName(x);
+                    return (name.Name!, name.Version?.ToString() ?? "", x);
+                })
+                .ToArray();
+
+            VerifyAssemblies(loadedAssemblies, data);
+        }
+
         [Fact]
         public void AssemblyLoading_DependencyInDifferentDirectory()
         {
@@ -256,18 +314,10 @@ Delta: Gamma: Beta: Test B
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
 
-#if NETCOREAPP
-
-                var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
-                Assert.Equal(1, alcs.Length);
-
-                VerifyAssemblies(
-                    alcs[0].Assemblies,
-                    ("Delta", "1.0.0.0", deltaFile.Path),
-                    ("Gamma", "0.0.0.0", gammaFile.Path)
-                );
-
-#endif
+                VerifyDependencyAssemblies(
+                    loader,
+                    deltaFile.Path,
+                    gammaFile.Path);
             });
         }
 
@@ -301,18 +351,10 @@ Delta: Gamma: Beta: Test B
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
 
-#if NETCOREAPP
-
-                var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
-                Assert.Equal(1, alcs.Length);
-
-                VerifyAssemblies(
-                    alcs[0].Assemblies,
-                    ("Delta", "1.0.0.0", deltaFile2.Path),
-                    ("Gamma", "0.0.0.0", gammaFile.Path)
-                );
-
-#endif
+                VerifyDependencyAssemblies(
+                    loader,
+                    deltaFile2.Path,
+                    gammaFile.Path);
             });
         }
 
@@ -344,17 +386,10 @@ Delta: Gamma: Beta: Test B
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
 
-#if NETCOREAPP
-                var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
-                Assert.Equal(1, alcs.Length);
-
-                VerifyAssemblies(
-                    alcs[0].Assemblies,
-                    ("Delta", "1.0.0.0", deltaFile.Path),
-                    ("Gamma", "0.0.0.0", gammaFile.Path)
-                );
-
-#endif
+                VerifyDependencyAssemblies(
+                    loader,
+                    deltaFile.Path,
+                    gammaFile.Path);
             });
         }
 
@@ -429,15 +464,6 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-#if NETCOREAPP
-                var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
-                Assert.Equal(1, alcs.Length);
-
-                VerifyAssemblies(
-                    alcs[0].Assemblies,
-                    ("Delta", "3.0.0.0", testFixture.Delta3.Path),
-                    ("Epsilon", "0.0.0.0", testFixture.Epsilon.Path));
-#endif
 
                 var actual = sb.ToString();
                 if (ExecutionConditionUtil.IsCoreClr)
@@ -445,6 +471,10 @@ Delta: Epsilon: Test E
                     // In .NET Core we have _full_ control over assembly loading and can prevent implicit
                     // loads from probing paths. That means we can avoid implicitly loading the Delta v2 
                     // next to Epsilon
+                    VerifyDependencyAssemblies(
+                        loader,
+                        testFixture.Delta3.Path,
+                        testFixture.Epsilon.Path);
                     Assert.Equal(
 @"Delta.3: Epsilon: Test E
 ",
@@ -455,6 +485,11 @@ Delta: Epsilon: Test E
                     // The Epsilon.dll has Delta.dll (v2) next to it in the directory. The .NET Framework 
                     // will implicitly load this due to normal probing rules. No way for us to intercept
                     // this and we end up with v2 here where it wasn't specified as a dependency.
+                    VerifyDependencyAssemblies(
+                        loader,
+                        testFixture.Delta2.Path,
+                        testFixture.Epsilon.Path);
+
                     Assert.Equal(
     @"Delta.2: Epsilon: Test E
 ",
@@ -479,15 +514,10 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-#if NETCOREAPP
-                var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
-                Assert.Equal(1, alcs.Length);
-
-                VerifyAssemblies(
-                    alcs[0].Assemblies,
-                    ("Delta", "2.0.0.0", testFixture.Delta2.Path),
-                    ("Epsilon", "0.0.0.0", testFixture.Epsilon.Path));
-#endif
+                VerifyDependencyAssemblies(
+                    loader,
+                    testFixture.Delta2.Path,
+                    testFixture.Epsilon.Path);
 
                 var actual = sb.ToString();
                 Assert.Equal(
@@ -544,15 +574,10 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-#if NETCOREAPP
-                var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
-                Assert.Equal(1, alcs.Length);
-
-                VerifyAssemblies(
-                    alcs[0].Assemblies,
-                    ("Delta", "2.0.0.0", testFixture.Delta2B.Path),
-                    ("Epsilon", "0.0.0.0", testFixture.Epsilon.Path));
-#endif
+                VerifyDependencyAssemblies(
+                    loader,
+                    testFixture.Delta2B.Path,
+                    testFixture.Epsilon.Path);
 
                 var actual = sb.ToString();
                 if (ExecutionConditionUtil.IsCoreClr)
@@ -595,15 +620,10 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-#if NETCOREAPP
-                var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
-                Assert.Equal(1, alcs.Length);
-
-                VerifyAssemblies(
-                    alcs[0].Assemblies,
-                    ("Delta", "1.0.0.0", delta1File.Path),
-                    ("Epsilon", "0.0.0.0", epsilonFile.Path));
-#endif
+                VerifyDependencyAssemblies(
+                    loader,
+                    delta1File.Path,
+                    epsilonFile.Path);
 
                 var actual = sb.ToString();
                 Assert.Equal(
