@@ -1550,6 +1550,12 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        {
+            var newState = _state.WithDocumentContentsFrom(documentId, documentState);
+            return newState == _state ? this : new Solution(newState);
+        }
+
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the source
         /// code kind specified.

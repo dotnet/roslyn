@@ -497,7 +497,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
         <source>Code snippet for '{0}'</source>
-        <target state="new">Code snippet for '{0}'</target>
+        <target state="translated">Fragment kódu pro {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Comments_not_allowed">
@@ -982,7 +982,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="new">Inline temporary variable</target>
+        <target state="translated">Dočasná vložená proměnná</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1302,7 +1302,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
-        <target state="new">Please resolve errors in your code before renaming this element.</target>
+        <target state="translated">Před přejmenováním tohoto elementu prosím vyřešte chyby v kódu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
@@ -2557,7 +2557,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="new">Renaming anonymous type members is not yet supported.</target>
+        <target state="translated">Přejmenování členů anonymního typu se zatím nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -3022,27 +3022,27 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
         <source>You cannot rename elements from previous submissions.</source>
-        <target state="new">You cannot rename elements from previous submissions.</target>
+        <target state="translated">Nemůžete přejmenovat elementy z předchozích odeslání.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
         <source>You cannot rename elements that are defined in metadata.</source>
-        <target state="new">You cannot rename elements that are defined in metadata.</target>
+        <target state="translated">Nemůžete přejmenovat elementy, které jsou definované v metadatech.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_operators">
         <source>You cannot rename operators.</source>
-        <target state="new">You cannot rename operators.</target>
+        <target state="translated">Nemůžete přejmenovat operátory.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element">
         <source>You cannot rename this element.</source>
-        <target state="new">You cannot rename this element.</target>
+        <target state="translated">Nemůžete přejmenovat tento element.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_rename_an_identifier">
         <source>You must rename an identifier.</source>
-        <target state="new">You must rename an identifier.</target>
+        <target state="translated">Musíte přejmenovat identifikátor.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -3461,6 +3461,11 @@ Pokud se specifikátor formátu d použije bez dalších specifikátorů vlastn�
       <trans-unit id="discard">
         <source>discard</source>
         <target state="translated">proměnná typu discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="translated">příkaz else</target>
         <note />
       </trans-unit>
       <trans-unit id="embedded">
@@ -4989,7 +4994,7 @@ Posun se vždy zobrazuje se znaménkem na začátku. Znaménko plus (+) označuj
       </trans-unit>
       <trans-unit id="while_loop">
         <source>while loop</source>
-        <target state="new">while loop</target>
+        <target state="translated">smyčka while</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

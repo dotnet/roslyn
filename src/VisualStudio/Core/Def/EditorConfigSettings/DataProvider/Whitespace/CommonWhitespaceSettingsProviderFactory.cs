@@ -4,17 +4,23 @@
 
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
 {
-    internal class CommonWhitespaceSettingsProviderFactory : IWorkspaceSettingsProviderFactory<WhitespaceSetting>
+    internal sealed class CommonWhitespaceSettingsProviderFactory : IWorkspaceSettingsProviderFactory<Setting>
     {
         private readonly Workspace _workspace;
+        private readonly IGlobalOptionService _globalOptions;
 
-        public CommonWhitespaceSettingsProviderFactory(Workspace workspace) => _workspace = workspace;
+        public CommonWhitespaceSettingsProviderFactory(Workspace workspace, IGlobalOptionService globalOptions)
+        {
+            _workspace = workspace;
+            _globalOptions = globalOptions;
+        }
 
-        public ISettingsProvider<WhitespaceSetting> GetForFile(string filePath)
-            => new CommonWhitespaceSettingsProvider(filePath, new OptionUpdater(_workspace, filePath), _workspace);
+        public ISettingsProvider<Setting> GetForFile(string filePath)
+            => new CommonWhitespaceSettingsProvider(filePath, new OptionUpdater(_workspace, filePath), _workspace, _globalOptions);
 
     }
 }

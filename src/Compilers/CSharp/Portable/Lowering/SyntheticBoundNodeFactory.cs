@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, statements) { WasCompilerGenerated = true };
         }
 
         public BoundExtractedFinallyBlock ExtractedFinallyBlock(BoundBlock finallyBlock)
@@ -551,7 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LocalSymbol InterpolatedStringHandlerLocal(
             TypeSymbol type,
-            uint valEscapeScope,
             SyntaxNode syntax
 #if DEBUG
             ,
@@ -560,11 +559,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return new SynthesizedLocalWithValEscape(
+            return new SynthesizedLocal(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
                 SynthesizedLocalKind.LoweringTemp,
-                valEscapeScope,
                 syntax
 #if DEBUG
                 , createdAtLineNumber: createdAtLineNumber, createdAtFilePath: createdAtFilePath
@@ -1585,14 +1583,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol boolType = Compilation.GetSpecialType(CodeAnalysis.SpecialType.System_Boolean);
 
             // Fold compile-time comparisons.
-            if (rewrittenExpr.ConstantValue != null)
+            if (rewrittenExpr.ConstantValueOpt != null)
             {
                 switch (operatorKind)
                 {
                     case BinaryOperatorKind.Equal:
-                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValueOpt.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                     case BinaryOperatorKind.NotEqual:
-                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValueOpt.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                 }
             }
 
@@ -1687,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? Literal(true) : null;
 
-                return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
+                return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, conditionalAccess.ForceCopyOfNullableValueType, whenNotNull.Type);
             }
 
             BoundExpression call = MakeNullableHasValue(syntax, nullable);

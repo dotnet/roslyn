@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Analyze_source_generated_files">
         <source>Analyze source generated files</source>
-        <target state="new">Analyze source generated files</target>
+        <target state="translated">分析源生成的文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">
@@ -929,7 +929,7 @@
       </trans-unit>
       <trans-unit id="Navigate_asynchronously_exerimental">
         <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">异步导航（实验性）</target>
+        <target state="translated">异步导航 (实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">

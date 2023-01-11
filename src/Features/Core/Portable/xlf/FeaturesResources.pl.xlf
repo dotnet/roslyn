@@ -497,7 +497,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
         <source>Code snippet for '{0}'</source>
-        <target state="new">Code snippet for '{0}'</target>
+        <target state="translated">Fragment kodu dla elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Comments_not_allowed">
@@ -982,7 +982,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="new">Inline temporary variable</target>
+        <target state="translated">Wstawiona zmienna tymczasowa</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1302,7 +1302,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
-        <target state="new">Please resolve errors in your code before renaming this element.</target>
+        <target state="translated">Przed zmianą nazwy tego elementu napraw problemy występujące w kodzie.</target>
         <note />
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
@@ -2557,7 +2557,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="new">Renaming anonymous type members is not yet supported.</target>
+        <target state="translated">Zmienianie nazwy anonimowych składowych typu nie jest jeszcze obsługiwane.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -3022,27 +3022,27 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
         <source>You cannot rename elements from previous submissions.</source>
-        <target state="new">You cannot rename elements from previous submissions.</target>
+        <target state="translated">Nie można zmienić nazw elementów pochodzących z poprzednich przesłanych elementów.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
         <source>You cannot rename elements that are defined in metadata.</source>
-        <target state="new">You cannot rename elements that are defined in metadata.</target>
+        <target state="translated">Nie można zmienić nazw elementów zdefiniowanych w metadanych.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_operators">
         <source>You cannot rename operators.</source>
-        <target state="new">You cannot rename operators.</target>
+        <target state="translated">Nie można zmienić nazw operatorów.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element">
         <source>You cannot rename this element.</source>
-        <target state="new">You cannot rename this element.</target>
+        <target state="translated">Nie można zmienić nazwy tego elementu.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_rename_an_identifier">
         <source>You must rename an identifier.</source>
-        <target state="new">You must rename an identifier.</target>
+        <target state="translated">Należy zmienić nazwę identyfikatora.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -3461,6 +3461,11 @@ Jeśli specyfikator formatu „d” zostanie użyty bez innych indywidualnych sp
       <trans-unit id="discard">
         <source>discard</source>
         <target state="translated">odrzuć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="new">else statement</target>
         <note />
       </trans-unit>
       <trans-unit id="embedded">
@@ -4989,7 +4994,7 @@ Przesunięcie jest zawsze wyświetlane ze znakiem wiodącym. Znak plus (+) wskaz
       </trans-unit>
       <trans-unit id="while_loop">
         <source>while loop</source>
-        <target state="new">while loop</target>
+        <target state="translated">pętla while</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

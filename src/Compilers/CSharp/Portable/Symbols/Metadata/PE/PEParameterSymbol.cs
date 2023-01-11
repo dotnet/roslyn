@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 get { return (_bits & HasNameInMetadataBit) != 0; }
             }
 
-            public DeclarationScope Scope
+            public ScopedKind Scope
             {
-                get { return (DeclarationScope)((_bits >> ScopeOffset) & ScopeMask); }
+                get { return (ScopedKind)((_bits >> ScopeOffset) & ScopeMask); }
             }
 
             public bool HasUnscopedRefAttribute
@@ -97,11 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(EnumUtilities.ContainsAllValues<WellKnownAttributeFlags>(WellKnownAttributeDataMask));
                 Debug.Assert(EnumUtilities.ContainsAllValues<RefKind>(RefKindMask));
                 Debug.Assert(EnumUtilities.ContainsAllValues<FlowAnalysisAnnotations>(FlowAnalysisAnnotationsMask));
-                Debug.Assert(EnumUtilities.ContainsAllValues<DeclarationScope>(ScopeMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<ScopedKind>(ScopeMask));
             }
 #endif
 
-            public PackedFlags(RefKind refKind, bool attributesAreComplete, bool hasNameInMetadata, DeclarationScope scope, bool hasUnscopedRefAttribute)
+            public PackedFlags(RefKind refKind, bool attributesAreComplete, bool hasNameInMetadata, ScopedKind scope, bool hasUnscopedRefAttribute)
             {
                 int refKindBits = ((int)refKind & RefKindMask) << RefKindOffset;
                 int attributeBits = attributesAreComplete ? AllWellKnownAttributesCompleteNoData : 0;
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _handle = handle;
 
             RefKind refKind = RefKind.None;
-            DeclarationScope scope = DeclarationScope.Unscoped;
+            ScopedKind scope = ScopedKind.None;
             bool hasUnscopedRefAttribute = false;
 
             if (handle.IsNil)
@@ -309,18 +309,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         isBad = true;
                     }
-                    scope = DeclarationScope.Unscoped;
+                    scope = ScopedKind.None;
                 }
                 else if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
                 {
                     if (isByRef)
                     {
                         Debug.Assert(refKind != RefKind.None);
-                        scope = DeclarationScope.RefScoped;
+                        scope = ScopedKind.ScopedRef;
                     }
                     else if (typeWithAnnotations.Type.IsRefLikeType)
                     {
-                        scope = DeclarationScope.ValueScoped;
+                        scope = ScopedKind.ScopedValue;
                     }
                     else
                     {
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else if (ParameterHelpers.IsRefScopedByDefault(_moduleSymbol.UseUpdatedEscapeRules, refKind))
                 {
-                    scope = DeclarationScope.RefScoped;
+                    scope = ScopedKind.ScopedRef;
                 }
             }
 
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override DeclarationScope EffectiveScope => _packedFlags.Scope;
+        internal sealed override ScopedKind EffectiveScope => _packedFlags.Scope;
 
         internal override bool HasUnscopedRefAttribute => _packedFlags.HasUnscopedRefAttribute;
 
