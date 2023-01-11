@@ -16,14 +16,10 @@ internal static class HighlightingOptionsStorage
         };
 
     public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
-        new("RegularExpressionsOptions",
-            "HighlightRelatedRegexComponentsUnderCursor",
-            defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
+        new("RegularExpressionsOptions_HighlightRelatedRegexComponentsUnderCursor",
+            defaultValue: true);
 
     public static PerLanguageOption2<bool> HighlightRelatedJsonComponentsUnderCursor =
-        new("JsonFeatureOptions",
-            "HighlightRelatedJsonComponentsUnderCursor",
-            defaultValue: HighlightingOptions.Default.HighlightRelatedJsonComponentsUnderCursor,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedJsonComponentsUnderCursor"));
+        new("JsonFeatureOptions_HighlightRelatedJsonComponentsUnderCursor",
+            defaultValue: HighlightingOptions.Default.HighlightRelatedJsonComponentsUnderCursor);
 }

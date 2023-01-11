@@ -82,6 +82,11 @@
         <target state="translated">Usar siempre los servidores de símbolos predeterminados para la navegación</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Analizar archivos generados por el origen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Valores predeterminados del analizador</target>
@@ -499,7 +504,7 @@
       </trans-unit>
       <trans-unit id="Extract_Base_Record">
         <source>Extract Base Record</source>
-        <target state="new">Extract Base Record</target>
+        <target state="translated">Extraer Record base</target>
         <note>{Locked="Record"} "Record" is a language construct for C# and should not be localized</note>
       </trans-unit>
       <trans-unit id="Finish">
@@ -1094,7 +1099,7 @@
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
-        <target state="needs-review-translation">Pegar un seguimiento de pila para ver y navegar sus valores</target>
+        <target state="translated">Pegar un seguimiento de pila para ver y navegar sus valores.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1144,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
-        <target state="new">Prefer read-only struct</target>
+        <target state="translated">Preferir la estructura de solo lectura</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">

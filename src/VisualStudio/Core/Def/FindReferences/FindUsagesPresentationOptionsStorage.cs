@@ -8,8 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal static class FindUsagesPresentationOptionsStorage
     {
-        private const string LocalRegistryPath = @"Roslyn\Internal\FindUsages\";
-
         /// <summary>
         /// Used to store the user's explicit 'grouping priority' for the 'Definition' column.
         /// We store this because we'll disable this grouping sometimes (i.e. for GoToImplementation),
@@ -17,7 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// next FindReferences call.
         /// </summary>
         public static readonly Option2<int> DefinitionGroupingPriority = new(
-            "FindUsagesOptions", "DefinitionGroupingPriority", defaultValue: -1,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "DefinitionGroupingPriority"));
+            "FindUsagesOptions_DefinitionGroupingPriority", defaultValue: -1);
     }
 }

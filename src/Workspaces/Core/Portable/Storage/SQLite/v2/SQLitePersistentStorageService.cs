@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
+                solutionKey,
                 workingFolderPath,
-                solutionKey.FilePath,
                 databaseFilePath,
                 _asyncListener,
                 _faultInjector));

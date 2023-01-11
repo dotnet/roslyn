@@ -67,18 +67,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             options.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
 
             // Remove once https://github.com/dotnet/roslyn/issues/62204 is fixed:
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, document.Project.Language), indentStyle);
+            workspace.GlobalOptions.SetGlobalOption(IndentationOptionsStorage.SmartIndent, document.Project.Language, indentStyle);
 
             var originalSnapshot = textBuffer.CurrentSnapshot;
             var originalSelections = document.SelectedSpans;
 
-            var snapshotSpans = new List<SnapshotSpan>();
-            foreach (var selection in originalSelections)
-            {
-                snapshotSpans.Add(selection.ToSnapshotSpan(originalSnapshot));
-            }
+            // primary caret will be the last one:
+            view.SetMultiSelection(originalSelections.Select(selection => selection.ToSnapshotSpan(originalSnapshot)));
 
-            view.SetMultiSelection(snapshotSpans);
+            // only validate when there is no selected text since the splitter is disabled in that case:
+            if (originalSelections.All(selection => selection.IsEmpty))
+            {
+                Assert.Equal(originalSelections.Last().Start, view.Caret.Position.BufferPosition.Position);
+            }
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
             var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                     out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
                 Assert.Equal(expectedOutput, textBuffer.CurrentSnapshot.AsText().ToString());
-                Assert.Equal(expectedSpans.First().Start, view.Caret.Position.BufferPosition.Position);
+                Assert.Equal(expectedSpans.Last().Start, view.Caret.Position.BufferPosition.Position);
 
                 if (verifyUndo)
                 {
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
                     var currentSnapshot = document.GetTextBuffer().CurrentSnapshot;
                     Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
-                    Assert.Equal(originalSelections.First().Start, view.Caret.Position.BufferPosition.Position);
+                    Assert.Equal(originalSelections.Last().Start, view.Caret.Position.BufferPosition.Position);
                 }
             }
         }

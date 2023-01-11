@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return Math.Max(0, indentationLevel + extraSpaces);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private (int indentation, IndentBlockOperation? operation) GetIndentationRuleOfCurrentPosition(

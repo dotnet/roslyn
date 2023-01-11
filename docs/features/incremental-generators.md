@@ -36,7 +36,7 @@ public class Generator : IIncrementalGenerator
         IncrementalValuesProvider<(string name, string content)> namesAndContents = textFiles.Select((text, cancellationToken) => (name: Path.GetFileNameWithoutExtension(text.Path), content: text.GetText(cancellationToken)!.ToString()));
 
         // generate a class that contains their values as const strings
-        context.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
+        initContext.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
         {
             spc.AddSource($"ConstStrings.{nameAndContent.name}", $@"
     public static partial class ConstStrings
@@ -169,12 +169,12 @@ The simplest transformation is `Select`. This maps the value in one provider
 into a new provider by applying a transform to it.
 
 ```ascii
- IValueProvider<TSource>                     IValueProvider<TResult>
-    ┌─────────────┐                            ┌─────────────┐
-    │             │  Select<TSource,TResult1>  │             │
-    │   TSource   ├───────────────────────────►│   TResult   │
-    │             │                            │             │
-    └─────────────┘                            └─────────────┘
+ IValueProvider<TSource>                   IValueProvider<TResult>
+    ┌─────────────┐                           ┌─────────────┐
+    │             │  Select<TSource,TResult>  │             │
+    │   TSource   ├──────────────────────────►│   TResult   │
+    │             │                           │             │
+    └─────────────┘                           └─────────────┘
 ```
 
 Generator transformations can be thought of as being conceptually somewhat similar to
@@ -206,18 +206,14 @@ transformations together:
 Consider the following simple example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
-    // apply a 1-to-1 transform on each text, which represents extracting the path
-    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+// apply a 1-to-1 transform on each text, which represents extracting the path
+IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
 
-    // transform each extracted path into something else
-    IncrementalValuesProvider<string> prefixTransform = transformed.Select(static (path, _) => "prefix_" + path);
-
-});
+// transform each extracted path into something else
+IncrementalValuesProvider<string> prefixTransform = transformed.Select(static (path, _) => "prefix_" + path);
 ```
 
 Note how `transformed` and `prefixTransform` are themselves an
@@ -369,17 +365,14 @@ distinct item for generation, effectively splitting a single additional file
 into multiple sub-items.
 
 ``` csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
-    // extract each element from each additional file
-    IncrementalValuesProvider<MyElementType> elements = additionalTexts.SelectMany(static (text, _) => /*transform text into an array of MyElementType*/);
+// extract each element from each additional file
+IncrementalValuesProvider<MyElementType> elements = additionalTexts.SelectMany(static (text, _) => /*transform text into an array of MyElementType*/);
 
-    // now the generator can consider the union of elements in all additional texts, without needing to consider multiple files
-    IncrementalValuesProvider<string> transformed = elements.Select(static (element, _) => /*transform the individual element*/);
-}
+// now the generator can consider the union of elements in all additional texts, without needing to consider multiple files
+IncrementalValuesProvider<string> transformed = elements.Select(static (element, _) => /*transform the individual element*/);
 ```
 
 ### Where
@@ -422,14 +415,11 @@ interested in. For example, the generator will likely want to filter additional
 texts on file extensions:
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
-    // filter additional texts by extension
-    IncrementalValuesProvider<string> xmlFiles = additionalTexts.Where(static (text, _) => text.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
-}
+// filter additional texts by extension
+IncrementalValuesProvider<string> xmlFiles = additionalTexts.Where(static (text, _) => text.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
 ```
 
 ### Collect
@@ -464,18 +454,14 @@ IncrementalValuesProvider<TSource>                IncrementalValueProvider<Immut
 ```
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
-    // collect the additional texts into a single item
-    IncrementalValueProvider<AdditionalText[]> collected = context.AdditionalTexts.Collect();
+// collect the additional texts into a single item
+IncrementalValueProvider<AdditionalText[]> collected = additionalTexts.Collect();
 
-    // perform a transformation where you can access all texts at once
-    var transform = collected.Select(static (texts, _) => /* ... */);
-}
-
+// perform a transformation where you can access all texts at once
+var transform = collected.Select(static (texts, _) => /* ... */);
 ```
 
 ### Multi-path pipelines
@@ -520,18 +506,15 @@ Those transforms can then be used as the inputs to new single path transforms, i
 For example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
 
-    // apply a 1-to-1 transform on each text, extracting the path
-    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+// apply a 1-to-1 transform on each text, extracting the path
+IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
 
-    // split the processing into two paths of derived data
-    IncrementalValuesProvider<string> nameTransform = transformed.Select(static (path, _) => "prefix_" + path);
-    IncrementalValuesProvider<string> extensionTransform = transformed.Select(static (path, _) => Path.ChangeExtension(path, ".new"));
-}
+// split the processing into two paths of derived data
+IncrementalValuesProvider<string> nameTransform = transformed.Select(static (path, _) => "prefix_" + path);
+IncrementalValuesProvider<string> extensionTransform = transformed.Select(static (path, _) => Path.ChangeExtension(path, ".new"));
 ```
 
 `nameTransform` and `extensionTransform` produce different values for the same
@@ -671,23 +654,19 @@ With the above transformations the generator author can now take one or more
 inputs and combine them into a single source of data. For example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
+
+// combine each additional text with the parse options
+IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = initContext.AdditionalTextsProvider.Combine(initContext.ParseOptionsProvider);
+
+// perform a transform on each text, with access to the options
+var transformed = combined.Select(static (pair, _) => 
 {
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
-
-    // combine each additional text with the parse options
-    IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = context.AdditionalTextsProvider.Combine(context.ParseOptionsProvider);
-
-    // perform a transform on each text, with access to the options
-    var transformed = combined.Select(static (pair, _) => 
-    {
-        AdditionalText text = pair.Left;
-        ParseOptions parseOptions = pair.Right;
-
-        // do the actual transform ...
-    });
-}
+    AdditionalText text = pair.Left;
+    ParseOptions parseOptions = pair.Right;
+    // do the actual transform ...
+});
 ```
 
 If either of the inputs to a combine change, then subsequent transformation will
@@ -751,12 +730,9 @@ public class Class3 {}
 As an author I can make an input node that extracts the return type information 
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // create a syntax provider that extracts the return type kind of method symbols
-    var returnKinds = context.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
+// create a syntax provider that extracts the return type kind of method symbols
+    var returnKinds = initContext.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
                                                                   static (n, _) => ((IMethodSymbol)n.SemanticModel.GetDeclaredSymbol(n.Node)).ReturnType.Kind);
-}
 ```
 
 Initially the `predicate` will run for all syntax nodes, and select the two
@@ -856,21 +832,19 @@ For example, a generator can extract out the set of paths for the additional
 files and create a method that prints them out:
 
 ``` csharp
-initContext.RegisterExecutionPipeline(static context =>
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
+
+// apply a 1-to-1 transform on each text, extracting the path
+IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+
+// collect the paths into a batch
+IncrementalValueProvider<ImmutableArray<string>> collected = transformed.Collect();
+
+// take the file paths from the above batch and make some user visible syntax
+initContext.RegisterSourceOutput(collected, static (sourceProductionContext, filePaths) =>
 {
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
-
-    // apply a 1-to-1 transform on each text, extracting the path
-    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
-
-    // collect the paths into a batch
-    IncrementalValueProvider<ImmutableArray<string>> collected = transformed.Collect();
-    
-    // take the file paths from the above batch and make some user visible syntax
-    initContext.RegisterSourceOutput(collected, static (sourceProductionContext, filePaths) =>
-    {
-        sourceProductionContext.AddSource("additionalFiles.cs", @"
+    sourceProductionContext.AddSource("additionalFiles.cs", @"
 namespace Generated
 {
     public class AdditionalTextList
@@ -881,8 +855,7 @@ namespace Generated
         }
     }
 }");
-    });
-}
+});
 ```
 
 **RegisterImplementationSourceOutput**:

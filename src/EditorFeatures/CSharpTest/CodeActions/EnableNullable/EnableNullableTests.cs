@@ -521,7 +521,7 @@ class Example
                     ExpectedDiagnostics =
                     {
                         // /0/Test3.cs(7,10): error CS8618: Non-nullable field 'value' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-                        DiagnosticResult.CompilerError("CS8618").WithLocation(0),
+                        DiagnosticResult.CompilerError("CS8618").WithSpan("/0/Test3.cs", 7, 10, 7, 15).WithSpan("/0/Test3.cs", 7, 10, 7, 15).WithArguments("field", "value"),
                     },
                 },
                 SolutionTransforms = { s_enableNullableInFixedSolution },
@@ -582,7 +582,7 @@ class Example
                 LanguageVersion.CSharp7_1 => "CS8302",
                 LanguageVersion.CSharp7_2 => "CS8320",
                 LanguageVersion.CSharp7_3 => "CS8370",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             // /0/Test0.cs(2,2): error [error]: Feature 'nullable reference types' is not available in C# [version]. Please use language version 8.0 or greater.

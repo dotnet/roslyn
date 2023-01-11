@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(NavigableHighlightTag))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
+    internal sealed partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
     {
         private readonly IGlobalOptionService _globalOptions;
 
@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
+
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(FeatureOnOffOptions.ReferenceHighlighting);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -225,5 +226,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             return contentType.IsOfType(ContentTypeNames.RoslynContentType) ||
                    contentType.IsOfType(ContentTypeNames.XamlContentType);
         }
+
+        // Safe to directly reference compare as all the NavigableHighlightTag subclasses are singletons.
+        protected override bool TagEquals(NavigableHighlightTag tag1, NavigableHighlightTag tag2)
+            => tag1 == tag2;
     }
 }

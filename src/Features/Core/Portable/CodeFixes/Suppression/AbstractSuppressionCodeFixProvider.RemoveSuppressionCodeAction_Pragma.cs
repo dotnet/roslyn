@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 private static SyntaxTriviaList GetTriviaListForSuppression(SyntaxToken token, bool isStartToken, AbstractSuppressionCodeFixProvider fixer)
                 {
-                    return isStartToken || fixer.IsEndOfFileToken(token) ?
-                        token.LeadingTrivia :
-                        token.TrailingTrivia;
+                    return isStartToken || fixer.IsEndOfFileToken(token)
+                        ? token.LeadingTrivia
+                        : token.TrailingTrivia;
                 }
 
                 private static SyntaxToken UpdateTriviaList(SyntaxToken token, bool isStartToken, SyntaxTriviaList triviaList, AbstractSuppressionCodeFixProvider fixer)

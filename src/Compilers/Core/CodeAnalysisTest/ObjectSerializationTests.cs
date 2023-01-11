@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -395,33 +396,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestInt32EncodingKinds()
+        public void TestInt32TypeCodes()
         {
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_1, ObjectWriter.EncodingKind.Int32_0 + 1);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_2, ObjectWriter.EncodingKind.Int32_0 + 2);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_3, ObjectWriter.EncodingKind.Int32_0 + 3);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_4, ObjectWriter.EncodingKind.Int32_0 + 4);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_5, ObjectWriter.EncodingKind.Int32_0 + 5);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_6, ObjectWriter.EncodingKind.Int32_0 + 6);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_7, ObjectWriter.EncodingKind.Int32_0 + 7);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_8, ObjectWriter.EncodingKind.Int32_0 + 8);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_9, ObjectWriter.EncodingKind.Int32_0 + 9);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_10, ObjectWriter.EncodingKind.Int32_0 + 10);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_1, ObjectWriter.TypeCode.Int32_0 + 1);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_2, ObjectWriter.TypeCode.Int32_0 + 2);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_3, ObjectWriter.TypeCode.Int32_0 + 3);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_4, ObjectWriter.TypeCode.Int32_0 + 4);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_5, ObjectWriter.TypeCode.Int32_0 + 5);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_6, ObjectWriter.TypeCode.Int32_0 + 6);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_7, ObjectWriter.TypeCode.Int32_0 + 7);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_8, ObjectWriter.TypeCode.Int32_0 + 8);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_9, ObjectWriter.TypeCode.Int32_0 + 9);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_10, ObjectWriter.TypeCode.Int32_0 + 10);
         }
 
         [Fact]
-        public void TestUInt32EncodingKinds()
+        public void TestUInt32TypeCodes()
         {
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_1, ObjectWriter.EncodingKind.UInt32_0 + 1);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_2, ObjectWriter.EncodingKind.UInt32_0 + 2);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_3, ObjectWriter.EncodingKind.UInt32_0 + 3);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_4, ObjectWriter.EncodingKind.UInt32_0 + 4);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_5, ObjectWriter.EncodingKind.UInt32_0 + 5);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_6, ObjectWriter.EncodingKind.UInt32_0 + 6);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_7, ObjectWriter.EncodingKind.UInt32_0 + 7);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_8, ObjectWriter.EncodingKind.UInt32_0 + 8);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_9, ObjectWriter.EncodingKind.UInt32_0 + 9);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_10, ObjectWriter.EncodingKind.UInt32_0 + 10);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_1, ObjectWriter.TypeCode.UInt32_0 + 1);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_2, ObjectWriter.TypeCode.UInt32_0 + 2);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_3, ObjectWriter.TypeCode.UInt32_0 + 3);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_4, ObjectWriter.TypeCode.UInt32_0 + 4);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_5, ObjectWriter.TypeCode.UInt32_0 + 5);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_6, ObjectWriter.TypeCode.UInt32_0 + 6);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_7, ObjectWriter.TypeCode.UInt32_0 + 7);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_8, ObjectWriter.TypeCode.UInt32_0 + 8);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_9, ObjectWriter.TypeCode.UInt32_0 + 9);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_10, ObjectWriter.TypeCode.UInt32_0 + 10);
         }
 
         private void TestRoundTripType(Type type)
@@ -1138,62 +1139,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripValue(values);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void Encoding_Utf8(bool byteOrderMark)
-        {
-            TestRoundtripEncoding(new UTF8Encoding(byteOrderMark));
-        }
+        public static IEnumerable<object[]> GetEncodingTestCases()
+            => EncodingTestHelpers.GetEncodingTestCases();
 
         [Theory]
-        [CombinatorialData]
-        public void Encoding_UTF32(bool bigEndian, bool byteOrderMark)
-        {
-            TestRoundtripEncoding(new UTF32Encoding(bigEndian, byteOrderMark));
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void Encoding_Unicode(bool bigEndian, bool byteOrderMark)
-        {
-            TestRoundtripEncoding(new UnicodeEncoding(bigEndian, byteOrderMark));
-        }
-
-        [Fact]
-        public void Encoding_AllAvailable()
-        {
-            foreach (var info in Encoding.GetEncodings())
-            {
-                TestRoundtripEncoding(Encoding.GetEncoding(info.Name));
-            }
-        }
-
-        private static void TestRoundtripEncoding(Encoding encoding)
+        [MemberData(nameof(GetEncodingTestCases))]
+        public void Encodings(Encoding original)
         {
             using var stream = new MemoryStream();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                writer.WriteEncoding(encoding);
+                writer.WriteEncoding(original);
             }
 
             stream.Position = 0;
 
             using var reader = ObjectReader.TryGetReader(stream);
             Assert.NotNull(reader);
-            var actualEncoding = (Encoding)((Encoding)reader.ReadValue()).Clone();
-            var expectedEncoding = (Encoding)encoding.Clone();
-
-            // set the fallbacks to the same instance so that equality comparison does not take them into account:
-            actualEncoding.EncoderFallback = EncoderFallback.ExceptionFallback;
-            actualEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
-            expectedEncoding.EncoderFallback = EncoderFallback.ExceptionFallback;
-            expectedEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
-
-            Assert.Equal(expectedEncoding.GetPreamble(), actualEncoding.GetPreamble());
-            Assert.Equal(expectedEncoding.CodePage, actualEncoding.CodePage);
-            Assert.Equal(expectedEncoding.WebName, actualEncoding.WebName);
-            Assert.Equal(expectedEncoding, actualEncoding);
+            var deserialized = (Encoding)reader.ReadValue();
+            EncodingTestHelpers.AssertEncodingsEqual(original, deserialized);
         }
 
         [Fact]

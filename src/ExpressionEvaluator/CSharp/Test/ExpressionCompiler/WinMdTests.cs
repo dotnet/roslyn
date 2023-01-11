@@ -355,7 +355,7 @@ class C
                     {
                         // Compilation should succeed without retry if we redirect assembly refs correctly.
                         // Throwing so that we don't loop forever (as we did before fix)...
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     },
                     out errorMessage,
                     out testData);

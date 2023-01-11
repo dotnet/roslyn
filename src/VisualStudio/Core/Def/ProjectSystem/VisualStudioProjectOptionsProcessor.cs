@@ -10,13 +10,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal class VisualStudioProjectOptionsProcessor : IDisposable
     {
-        private readonly VisualStudioProject _project;
+        private readonly ProjectSystemProject _project;
         private readonly SolutionServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
         private readonly ITemporaryStorageServiceInternal _temporaryStorageService;
@@ -47,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>>? _ruleSetFile = null;
 
         public VisualStudioProjectOptionsProcessor(
-            VisualStudioProject project,
+            ProjectSystemProject project,
             SolutionServices workspaceServices)
         {
             _project = project ?? throw new ArgumentNullException(nameof(project));
@@ -205,6 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _project.CompilationOutputAssemblyFilePath = fullOutputFilePath ?? _project.CompilationOutputAssemblyFilePath;
             _project.ParseOptions = parseOptions;
+            _project.ChecksumAlgorithm = _commandLineArgumentsForCommandLine.ChecksumAlgorithm;
         }
 
         private void RuleSetFile_UpdatedOnDisk(object sender, EventArgs e)

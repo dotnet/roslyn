@@ -22,7 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices
     public abstract class VisualStudioWorkspace : Workspace
     {
         private BackgroundCompiler? _backgroundCompiler;
-        private readonly BackgroundParser _backgroundParser;
+        private readonly BackgroundParser? _backgroundParser;
+
+        private readonly bool _backgroundCompilationDisabled;
 
         static VisualStudioWorkspace()
         {
@@ -32,44 +34,57 @@ namespace Microsoft.VisualStudio.LanguageServices
         internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
         {
-            _backgroundCompiler = new BackgroundCompiler(this);
-
-            var cacheService = Services.GetService<IWorkspaceCacheService>();
-            if (cacheService != null)
+            _backgroundCompilationDisabled = this.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.DisableBackgroundCompilation;
+            if (!_backgroundCompilationDisabled)
             {
-                cacheService.CacheFlushRequested += OnCacheFlushRequested;
+                _backgroundCompiler = new BackgroundCompiler(this);
+
+                var cacheService = Services.GetService<IWorkspaceCacheService>();
+                if (cacheService != null)
+                {
+                    cacheService.CacheFlushRequested += OnCacheFlushRequested;
+                }
+
+                _backgroundParser = new BackgroundParser(this);
+                _backgroundParser.Start();
             }
 
-            _backgroundParser = new BackgroundParser(this);
-            _backgroundParser.Start();
-        }
+            return;
 
-        private void OnCacheFlushRequested(object sender, EventArgs e)
-        {
-            if (_backgroundCompiler != null)
+            void OnCacheFlushRequested(object sender, EventArgs e)
             {
-                _backgroundCompiler.Dispose();
-                _backgroundCompiler = null; // PartialSemanticsEnabled will now return false
-            }
+                if (_backgroundCompiler != null)
+                {
+                    _backgroundCompiler.Dispose();
+                    _backgroundCompiler = null; // PartialSemanticsEnabled will now return false
+                }
 
-            // No longer need cache notifications
-            var cacheService = Services.GetService<IWorkspaceCacheService>();
-            if (cacheService != null)
-            {
-                cacheService.CacheFlushRequested -= OnCacheFlushRequested;
+                // No longer need cache notifications
+                var cacheService = Services.GetService<IWorkspaceCacheService>();
+                if (cacheService != null)
+                    cacheService.CacheFlushRequested -= OnCacheFlushRequested;
             }
         }
 
         protected internal override bool PartialSemanticsEnabled
         {
-            get { return _backgroundCompiler != null; }
+            get
+            {
+                // Still allow for partial semantics in the VS workspace, even with background compilation disabled. The
+                // presumption here is that there's *always* something implicitly pulling the compilations forward in VS
+                // (e.g. tagging, lightbulb, etc.) at a regular cadence.
+                if (_backgroundCompilationDisabled)
+                    return true;
+
+                return _backgroundCompiler != null;
+            }
         }
 
         protected override void OnDocumentTextChanged(Document document)
-            => _backgroundParser.Parse(document);
+            => _backgroundParser?.Parse(document);
 
         protected override void OnDocumentClosing(DocumentId documentId)
-            => _backgroundParser.CancelParse(documentId);
+            => _backgroundParser?.CancelParse(documentId);
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges => true;
 

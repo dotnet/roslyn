@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override IEnumerable<string> MemberNames => _constructedFrom.MemberNames;
 
-        public override IMethodSymbol DelegateInvokeMethod =>
+        public override IMethodSymbol DelegateInvokeMethod
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
-                null;
+                => null;
 
-        public override INamedTypeSymbol EnumUnderlyingType =>
+        public override INamedTypeSymbol EnumUnderlyingType
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
-                null;
+                => null;
 
         protected override CodeGenerationNamedTypeSymbol ConstructedFrom => _constructedFrom;
 

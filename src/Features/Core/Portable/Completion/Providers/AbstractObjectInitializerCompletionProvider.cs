@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return !propertySymbol.Type.IsStructType();
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

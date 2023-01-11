@@ -373,7 +373,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -1057,7 +1057,7 @@ SyntaxTree: ";
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, contextDetail)}
@@ -3811,7 +3811,7 @@ public class C
                 Assert.Equal(analyzer.Descriptor.Id, diagnostic.Id);
                 Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
                 var location = (ExternalFileLocation)diagnostic.Location;
-                Assert.Equal(additionalFile.Path, location.FilePath);
+                Assert.Equal(additionalFile.Path, location.GetLineSpan().Path);
                 Assert.Equal(diagnosticSpan, location.SourceSpan);
             }
         }
@@ -4008,6 +4008,52 @@ public record A(int X, int Y);";
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
+        [WorkItem(66085, "https://github.com/dotnet/roslyn/issues/66085")]
+        public void TestDisabledByDefaultAnalyzerEnabledForSingleFile(bool treeBasedOptions)
+        {
+            var source1 = "class C1 { }";
+            var source2 = "class C2 { }";
+            var source3 = "class C3 { }";
+            var analyzer = new AnalyzerWithDisabledRules();
+
+            var compilation = CreateCompilation(new[] { source1, source2, source3 });
+
+            CSharpCompilationOptions options;
+            if (treeBasedOptions)
+            {
+                // Enable disabled by default analyzer for first source file with analyzer config options.
+                var tree1 = compilation.SyntaxTrees[0];
+                options = compilation.Options.WithSyntaxTreeOptionsProvider(
+                    new TestSyntaxTreeOptionsProvider(tree1, (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn)));
+            }
+            else
+            {
+                // Enable disabled by default analyzer for entire compilation with SpecificDiagnosticOptions
+                // and disable the analyzer for second and third source file with analyzer config options.
+                // So, effectively the analyzer is enabled only for first source file.
+                var tree2 = compilation.SyntaxTrees[1];
+                var tree3 = compilation.SyntaxTrees[2];
+                options = compilation.Options
+                    .WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn))
+                    .WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(
+                        (tree2, new[] { (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Suppress) }),
+                        (tree3, new[] { (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Suppress) })));
+            }
+
+            compilation = compilation.WithOptions(options);
+
+            // Verify single analyzer diagnostic reported in the compilation.
+            compilation.VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer }, null, null,
+                    Diagnostic("ID1", "C1").WithLocation(1, 7));
+
+            // PERF: Verify no analyzer callbacks are made for source files where the analyzer was not enabled.
+            var symbol = Assert.Single(analyzer.CallbackSymbols);
+            Assert.Equal("C1", symbol.Name);
         }
     }
 }

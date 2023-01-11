@@ -1396,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We should've skipped all type evaluations at this point.
                     case (BoundDagTypeEvaluation, _):
                     case (_, BoundDagTypeEvaluation):
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
 
                     // If we have found two identical evaluations as the source (possibly null), inputs can be considered related.
                     case var (s1, s2) when s1 == s2:
@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Is the pattern in a state in which it is fully matched and there is no when clause?
             /// </summary>
-            public bool IsFullyMatched => RemainingTests is Tests.True && (WhenClause is null || WhenClause.ConstantValue == ConstantValue.True);
+            public bool IsFullyMatched => RemainingTests is Tests.True && (WhenClause is null || WhenClause.ConstantValueOpt == ConstantValue.True);
 
             /// <summary>
             /// Is the pattern fully matched and ready for the when clause to be evaluated (if any)?
@@ -1868,7 +1868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool Equals(object? obj)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public bool Equals(StateForCase other)
@@ -1919,7 +1919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out Tests whenTrue,
                 out Tests whenFalse,
                 ref bool foundExplicitNullTest);
-            public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
+            public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable();
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             /// <summary>
             /// Rewrite nested length tests in slice subpatterns to check the top-level length property instead.

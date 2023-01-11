@@ -887,7 +887,6 @@ Get
 ]]>)
         End Sub
 
-
         <Fact()>
         Public Sub LateMemberInvoke()
             CompileAndVerify(
@@ -1716,7 +1715,6 @@ Get
 1
 6]]>)
         End Sub
-
 
         <Fact()>
         Public Sub LateMemberArgConvert()
@@ -2587,7 +2585,6 @@ End Class
 </compilation>,
 expectedOutput:=<![CDATA[True]]>)
         End Sub
-
 
         <Fact()>
         Public Sub Regress14991()
@@ -3807,7 +3804,6 @@ BC42016: Implicit conversion from 'Object' to 'Integer'.
 
         End Sub
 
-
         <Fact(), WorkItem(531153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531153")>
         Public Sub Bug531153()
 
@@ -4119,7 +4115,6 @@ BC30454: Expression is not a method.
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
                 </expected>)
-
 
         End Sub
 

@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class VisualStudioDiagnosticAnalyzerExecutorTests
     {
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestCSharpAnalyzerOptions()
         {
             var code = @"class Test
@@ -65,14 +65,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var ideOptions = new IdeAnalyzerOptions()
             {
-                CleanCodeGenerationOptions = new CleanCodeGenerationOptions(
-                    CSharpCodeGenerationOptions.Default,
-                    new CodeCleanupOptions(
-                        FormattingOptions: CSharpSyntaxFormattingOptions.Default,
-                        SimplifierOptions: new CSharpSimplifierOptions()
+                CleanCodeGenerationOptions = new()
+                {
+                    GenerationOptions = CSharpCodeGenerationOptions.Default,
+                    CleanupOptions = new()
+                    {
+                        FormattingOptions = CSharpSyntaxFormattingOptions.Default,
+                        SimplifierOptions = new CSharpSimplifierOptions()
                         {
                             VarWhenTypeIsApparent = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)
-                        }))
+                        }
+                    }
+                }
             };
 
             analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideOptions);
@@ -82,7 +86,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(DiagnosticSeverity.Info, diagnostics[0].Severity);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestVisualBasicAnalyzerOptions()
         {
             var code = @"Class Test
@@ -126,7 +130,7 @@ End Class";
             }
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestCancellation()
         {
             var code = @"class Test { void Method() { } }";
@@ -162,7 +166,7 @@ End Class";
             }
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestHostAnalyzers_OutOfProc()
         {
             var code = @"class Test
@@ -179,7 +183,7 @@ End Class";
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.CSharp));
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.VarWhenTypeIsApparent), new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
+            workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
 
             // run analysis
             var project = workspace.CurrentSolution.Projects.First();
@@ -202,7 +206,7 @@ End Class";
             Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Fact]
         public async Task TestDuplicatedAnalyzers()
         {
             var code = @"class Test
@@ -266,12 +270,12 @@ End Class";
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
-            var workspace = (language == LanguageNames.CSharp) ?
-                TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :
-                TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
+            var workspace = (language == LanguageNames.CSharp)
+                ? TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition)
+                : TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), BackgroundAnalysisScope.FullSolution);
+            workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+            workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution);
 
             return workspace;
         }

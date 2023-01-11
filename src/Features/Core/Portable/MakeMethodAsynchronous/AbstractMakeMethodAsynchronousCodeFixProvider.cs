@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes);
 
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
-            bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            KnownTypes knownTypes);
+            bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes, CancellationToken cancellationToken);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // if our member is already Task-Like, and that functionality recognizes
             // ValueTask if it is available, but does not care if it is not.
             var knownTypes = new KnownTypes(compilation);
-            if (knownTypes._taskType == null || knownTypes._taskOfTType == null)
+            if (knownTypes.TaskType == null || knownTypes.TaskOfTType == null)
             {
                 return;
             }
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, knownTypes);
+            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, knownTypes, cancellationToken);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);
@@ -207,22 +206,22 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
         protected static bool IsTaskLike(ITypeSymbol returnType, KnownTypes knownTypes)
         {
-            if (returnType.Equals(knownTypes._taskType))
+            if (returnType.Equals(knownTypes.TaskType))
             {
                 return true;
             }
 
-            if (returnType.Equals(knownTypes._valueTaskType))
+            if (returnType.Equals(knownTypes.ValueTaskType))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
+            if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(knownTypes._valueTaskOfTTypeOpt))
+            if (returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTTypeOpt))
             {
                 return true;
             }

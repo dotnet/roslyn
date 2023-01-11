@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // This isn't particularly elegant, but hopefully locking on null is
                 // not very common.
-                Debug.Assert(rewrittenArgument.ConstantValue == ConstantValue.Null);
+                Debug.Assert(rewrittenArgument.ConstantValueOpt == ConstantValue.Null);
                 argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
                 rewrittenArgument = MakeLiteral(
                     rewrittenArgument.Syntax,
-                    rewrittenArgument.ConstantValue,
+                    rewrittenArgument.ConstantValueOpt,
                     argumentType); //need to have a non-null type here for TempHelpers.StoreToTemp.
             }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.Boxing,
                     argumentType,
                     @checked: false,
-                    constantValueOpt: rewrittenArgument.ConstantValue);
+                    constantValueOpt: rewrittenArgument.ConstantValueOpt);
             }
 
             BoundAssignmentOperator assignmentToLockTemp;

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal interface ICodeGenerationService : ILanguageService
     {
         CodeGenerationOptions DefaultOptions { get; }
-        CodeGenerationOptions GetCodeGenerationOptions(AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions);
+        CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions);
 
         /// <summary>
         /// Returns a newly created event declaration node from the provided event.

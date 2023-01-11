@@ -84,8 +84,6 @@ public class X
             compilation.VerifyDiagnostics(// error CS1555: Could not find '"abc.X"' specified for Main method
                                           Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"abc.X\""));
 
-
-
             // Verify use of Cyrillic namespace results in same behavior
             source = @"
 namespace решения
@@ -1377,9 +1375,9 @@ public static class Extensions
     ref readonly int VerifyDelegate(in int y) => throw null;
 }",
 comp => comp.VerifyDiagnostics(
-                // (12,9): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (12,9): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //         y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(12, 9),
                 // (13,9): error CS1510: A ref or out value must be an assignable variable
                 //         1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(13, 9)
@@ -1407,9 +1405,9 @@ public struct S
     }
 }",
 comp => comp.VerifyDiagnostics(
-                // (7,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (7,45): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //             System.Console.WriteLine(sizeof(S*));
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S").WithLocation(7, 45)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S*").WithArguments("S").WithLocation(7, 45)
                 ));
         }
 
@@ -3142,7 +3140,6 @@ public class Test
 ";
             CompileAndVerify(source, expectedOutput: "True");
         }
-
 
         [WorkItem(541840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541840")]
         [Fact]

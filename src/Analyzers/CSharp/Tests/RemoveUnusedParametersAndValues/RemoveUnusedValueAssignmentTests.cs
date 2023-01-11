@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         {
         }
 
-        private protected override OptionsCollection PreferNone =>
-            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+        private protected override OptionsCollection PreferNone
+            => Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        private protected override OptionsCollection PreferDiscard =>
-            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+        private protected override OptionsCollection PreferDiscard
+            => Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion));
 
-        private protected override OptionsCollection PreferUnusedLocal =>
-            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+        private protected override OptionsCollection PreferUnusedLocal
+            => Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion));
 
         [Theory, CombinatorialData]
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -1066,7 +1066,7 @@ $@"class C
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -1161,7 +1161,7 @@ $@"class C
 
     int M2() => 0;
 }",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -1240,7 +1240,7 @@ $@"class C
         _ = {prefix}x{postfix};
     }}
 }}",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -1357,7 +1357,7 @@ $@"class C
 
     int M2() => 0;
 }}",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -2571,7 +2571,7 @@ $@"class C
         };
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -2770,7 +2770,7 @@ $@"class C
         return isZero;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
             await new VerifyCS.Test
@@ -2895,7 +2895,7 @@ $@"class C
         return false;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -3046,7 +3046,7 @@ $@"class C
         return false;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -7805,7 +7805,7 @@ class C
         };
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -8845,6 +8845,74 @@ class C
         act();
     }
 }", optionName);
+        }
+
+        [Fact]
+        [WorkItem(64291, "https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInInitialization()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        C {|IDE0059:c|} = new();
+    }
+}";
+            var fixedSource =
+@"class C
+{
+    void M()
+    {
+        _ = new C();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(64291, "https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInAssignement()
+        {
+            var source =
+@"class C
+{
+    void M(C c)
+    {
+        System.Console.WriteLine(c);
+        {|IDE0059:c|} = new();
+    }
+}";
+            var fixedSource =
+@"class C
+{
+    void M(C c)
+    {
+        System.Console.WriteLine(c);
+        _ = new C();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
     }
 }

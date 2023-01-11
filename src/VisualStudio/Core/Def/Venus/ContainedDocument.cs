@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -37,9 +38,7 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-#pragma warning disable CS0618 // Type or member is obsolete
-    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument, IContainedDocument
-#pragma warning restore CS0618 // Type or member is obsolete
+    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IContainedDocument
     {
         private const string ReturnReplacementString = @"{|r|}";
         private const string NewLineReplacementString = @"{|n|}";
@@ -87,9 +86,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
-        private readonly VisualStudioProject _project;
+        private readonly ProjectSystemProject _project;
 
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
+        public bool SupportsSemanticSnippets { get { return false; } }
 
         public DocumentId Id { get; }
         public ITextBuffer SubjectBuffer { get; }
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer dataBuffer,
             IVsTextBufferCoordinator bufferCoordinator,
             Workspace workspace,
-            VisualStudioProject project,
+            ProjectSystemProject project,
             IComponentModel componentModel,
             AbstractFormattingRule vbHelperFormattingRule)
             : base(threadingContext)
@@ -125,24 +125,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             _hostType = GetHostType();
             s_containedDocuments.TryAdd(documentId, this);
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal AbstractProject Project
-        {
-            get
-            {
-                return _componentModel.GetService<VisualStudioWorkspaceImpl>().GetProjectTrackerAndInitializeIfNecessary().GetProject(_project.Id);
-            }
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal AbstractContainedLanguage ContainedLanguage
-        {
-            get
-            {
-                return new AbstractContainedLanguage(ContainedLanguageHost);
-            }
         }
 
         private HostType GetHostType()
@@ -177,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SourceTextContainer GetOpenTextContainer()
@@ -558,7 +540,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(visibleFirstLineInOriginalText.EndIncludingLineBreak, spanInOriginalText.End),
-                        snippetInRightText.Substring(firstLineOfRightTextSnippet.Length));
+                        snippetInRightText[firstLineOfRightTextSnippet.Length..]);
                     return true;
                 }
 
@@ -575,7 +557,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(spanInOriginalText.Start, visibleLastLineInOriginalText.Start),
-                        snippetInRightText.Substring(0, snippetInRightText.Length - lastLineOfRightTextSnippet.Length));
+                        snippetInRightText[..^lastLineOfRightTextSnippet.Length]);
                     return true;
                 }
 
@@ -586,7 +568,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             // if it got hit, then it means there is a missing case
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private IHierarchicalDifferenceCollection DiffStrings(string leftTextWithReplacement, string rightTextWithReplacement)

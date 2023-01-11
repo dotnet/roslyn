@@ -3,18 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    [NonDefaultable]
-    internal readonly struct OptionDefinition : IEquatable<OptionDefinition>
+    internal abstract class OptionDefinition : IEquatable<OptionDefinition?>
     {
-        /// <summary>
-        /// Feature this option is associated with.
-        /// </summary>
-        public string Feature { get; }
+        // Editorconfig name prefixes used for C#/VB specific options:
+        public const string CSharpConfigNamePrefix = "csharp_";
+        public const string VisualBasicConfigNamePrefix = "visual_basic_";
 
         /// <summary>
         /// Optional group/sub-feature for this option.
@@ -22,85 +21,84 @@ namespace Microsoft.CodeAnalysis.Options
         internal OptionGroup Group { get; }
 
         /// <summary>
-        /// The name of the option.
+        /// A unique name of the option used in editorconfig.
         /// </summary>
-        public string Name { get; }
+        public string ConfigName { get; }
 
         /// <summary>
-        /// The default value of the option.
+        /// True if the value of the option may be stored in an editorconfig file.
+        /// </summary>
+        public bool IsEditorConfigOption { get; }
+
+        /// <summary>
+        ///  Mapping between the public option storage and internal option storage.
+        /// </summary>
+        public OptionStorageMapping? StorageMapping { get; }
+
+        /// <summary>
+        /// The untyped/boxed default value of the option.
         /// </summary>
         public object? DefaultValue { get; }
+
+        public OptionDefinition(OptionGroup? group, string configName, object? defaultValue, OptionStorageMapping? storageMapping, bool isEditorConfigOption)
+        {
+            ConfigName = configName;
+            Group = group ?? OptionGroup.Default;
+            StorageMapping = storageMapping;
+            IsEditorConfigOption = isEditorConfigOption;
+            DefaultValue = defaultValue;
+        }
 
         /// <summary>
         /// The type of the option value.
         /// </summary>
-        public Type Type { get; }
+        public abstract Type Type { get; }
 
-        public OptionDefinition(string feature, OptionGroup group, string name, object? defaultValue, Type type)
-        {
-            if (string.IsNullOrWhiteSpace(feature))
-            {
-                throw new ArgumentNullException(nameof(feature));
-            }
+        public IEditorConfigValueSerializer Serializer => SerializerImpl;
 
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
+        protected abstract IEditorConfigValueSerializer SerializerImpl { get; }
 
-            this.Feature = feature;
-            this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name;
-            this.DefaultValue = defaultValue;
-            this.Type = type ?? throw new ArgumentNullException(nameof(type));
-        }
+        public override bool Equals(object? other)
+            => Equals(other as OptionDefinition);
 
-        public override bool Equals(object? obj)
-        {
-            return obj is OptionDefinition key &&
-                   Equals(key);
-        }
-
-        public bool Equals(OptionDefinition other)
-        {
-            var equals = this.Name == other.Name &&
-                this.Feature == other.Feature &&
-                this.Group == other.Group;
-
-            // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
-            // So, we skip these fields for equality checks of code style options.
-            if (equals && !(this.DefaultValue is ICodeStyleOption))
-            {
-                equals = Equals(this.DefaultValue, other.DefaultValue) && this.Type == other.Type;
-            }
-
-            return equals;
-        }
+        public bool Equals(OptionDefinition? other)
+            => ConfigName == other?.ConfigName;
 
         public override int GetHashCode()
-        {
-            var hash = this.Feature.GetHashCode();
-            hash = unchecked((hash * (int)0xA5555529) + this.Group.GetHashCode());
-            hash = unchecked((hash * (int)0xA5555529) + this.Name.GetHashCode());
-
-            // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
-            // So, we skip these fields for hash computation of code style options.
-            if (this.DefaultValue is not ICodeStyleOption)
-            {
-                hash = unchecked((hash * (int)0xA5555529) + this.DefaultValue?.GetHashCode() ?? 0);
-                hash = unchecked((hash * (int)0xA5555529) + this.Type.GetHashCode());
-            }
-
-            return hash;
-        }
+            => ConfigName.GetHashCode();
 
         public override string ToString()
-            => string.Format("{0} - {1}", this.Feature, this.Name);
+            => ConfigName;
 
-        public static bool operator ==(OptionDefinition left, OptionDefinition right)
-            => left.Equals(right);
+        public static bool operator ==(OptionDefinition? left, OptionDefinition? right)
+            => ReferenceEquals(left, right) || left?.Equals(right) == true;
 
-        public static bool operator !=(OptionDefinition left, OptionDefinition right)
-            => !left.Equals(right);
+        public static bool operator !=(OptionDefinition? left, OptionDefinition? right)
+            => !(left == right);
+    }
+
+    internal sealed class OptionDefinition<T> : OptionDefinition
+    {
+        public new T DefaultValue { get; }
+        public new EditorConfigValueSerializer<T> Serializer { get; }
+
+        public OptionDefinition(
+            T defaultValue,
+            EditorConfigValueSerializer<T>? serializer,
+            OptionGroup? group,
+            string configName,
+            OptionStorageMapping? storageMapping,
+            bool isEditorConfigOption)
+            : base(group, configName, defaultValue, storageMapping, isEditorConfigOption)
+        {
+            DefaultValue = defaultValue;
+            Serializer = serializer ?? EditorConfigValueSerializer.Default<T>();
+        }
+
+        public override Type Type
+            => typeof(T);
+
+        protected override IEditorConfigValueSerializer SerializerImpl
+            => Serializer;
     }
 }

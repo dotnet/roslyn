@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractDirectivePathCompletionProvider : CompletionProvider
     {
-        protected static bool IsDirectorySeparator(char ch) =>
-             ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
+        protected static bool IsDirectorySeparator(char ch)
+             => ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
 
         protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // We want the portion up to, and including the last slash if there is one.  That way if
             // the user pops up completion in the middle of a path (i.e. "C:\Win") then we'll
             // consider the path to be "C:\" and we will show appropriate completions.
-            return afterLastSlashIndex >= 0 ? path.Substring(0, afterLastSlashIndex) : path;
+            return afterLastSlashIndex >= 0 ? path[..afterLastSlashIndex] : path;
         }
 
         private static TextSpan GetTextChangeSpan(string quotedPath, int quotedPathStart, int position)

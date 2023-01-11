@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 var schemeName = _globalOptions.GetOption(ColorSchemeOptions.ColorScheme);
                 return schemeName != ColorSchemeName.None
                     ? schemeName
-                    : ColorSchemeOptions.ColorScheme.DefaultValue;
+                    : ColorSchemeOptions.ColorScheme.Definition.DefaultValue;
             }
 
             public void MigrateToColorSchemeSetting()
@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                     ? ColorSchemeName.VisualStudio2017
                     : ColorSchemeName.VisualStudio2019;
 
-                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
-                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
+                _globalOptions.SetGlobalOption(ColorSchemeOptions.ColorScheme, colorScheme);
+                _globalOptions.SetGlobalOption(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated);
             }
         }
     }

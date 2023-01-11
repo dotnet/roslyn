@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return new AddMetadataReferenceOperation(projectId, assemblyIdentity);
         }
 
-        private class AddMetadataReferenceOperation : Microsoft.CodeAnalysis.CodeActions.CodeActionOperation
+        private class AddMetadataReferenceOperation : CodeActionOperation
         {
             private readonly AssemblyIdentity _assemblyIdentity;
             private readonly ProjectId _projectId;
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _assemblyIdentity = assemblyIdentity;
             }
 
-            public override void Apply(Microsoft.CodeAnalysis.Workspace workspace, CancellationToken cancellationToken = default)
+            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default)
             {
                 var visualStudioWorkspace = (VisualStudioWorkspaceImpl)workspace;
                 if (!visualStudioWorkspace.TryAddReferenceToProject(_projectId, "*" + _assemblyIdentity.GetDisplayName()))

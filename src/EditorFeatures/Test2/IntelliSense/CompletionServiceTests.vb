@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -33,10 +34,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim completionService = New TestCompletionService(workspace.Services.SolutionServices)
+                Dim completionService = New TestCompletionService(workspace.Services.SolutionServices, workspace.GetService(Of IAsynchronousOperationListenerProvider)())
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
+                    document, caretPosition:=0, CompletionOptions.Default, OptionSet.Empty, CompletionTrigger.Invoke)
 
                 Assert.NotEmpty(list.ItemsList)
                 Assert.True(list.ItemsList.Count = 1, "Completion list contained more than one item")
@@ -47,8 +48,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend Class TestCompletionService
             Inherits CompletionService
 
-            Public Sub New(services As SolutionServices)
-                MyBase.New(services)
+            Public Sub New(services As SolutionServices, listenerProvider As IAsynchronousOperationListenerProvider)
+                MyBase.New(services, listenerProvider)
             End Sub
 
             Public Overrides ReadOnly Property Language As String
@@ -101,7 +102,7 @@ $$
                 Dim completionService = document.GetRequiredLanguageService(Of CompletionService)()
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke,
+                    document, caretPosition:=0, CompletionOptions.Default, OptionSet.Empty, CompletionTrigger.Invoke,
                     roles:=ImmutableHashSet.Create("MyTextViewRole"))
 
                 Assert.True(list.ItemsList.Contains(MyRoleProvider.Item))

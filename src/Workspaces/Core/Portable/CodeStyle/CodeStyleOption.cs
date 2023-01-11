@@ -4,6 +4,8 @@
 
 #nullable disable
 
+#pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
+
 using System;
 using System.Xml.Linq;
 using Roslyn.Utilities;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption<T>(Value, (NotificationOption)notification);
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
             => this is TCodeStyleOption ? this : _codeStyleOptionImpl;
+        ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => _codeStyleOptionImpl;
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => this;
 
         public NotificationOption Notification

@@ -986,5 +986,41 @@ GetIndentionColumn(30),
     public void UpsertRecord<T>[||]
 }");
         }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestWithMissingStartToken1()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>[||])
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestWithMissingStartToken2()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>[||] int i, int j)
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestWithMissingEndToken1()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>([||]
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestWithMissingEndToken2()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>([||]int i, int j
+}");
+        }
     }
 }

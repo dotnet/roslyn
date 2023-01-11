@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                         symbol,
                         fixedName,
 #endif
-                        string.Format(CodeFixesResources.Fix_Name_Violation_colon_0, fixedName),
+                        string.Format(CodeFixesResources.Fix_name_violation_colon_0, fixedName),
                         c => FixAsync(document, symbol, fixedName, c),
                         equivalenceKey: nameof(NamingStyleCodeFixProvider)),
                     diagnostic);
@@ -120,6 +120,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             private readonly string _title;
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
             private readonly string _equivalenceKey;
+
+            /// <summary>
+            /// This code action does produce non-text-edit operations (like notifying 3rd parties about a rename).  But
+            /// it doesn't require this.  As such, we can allow it to run in hosts that only allow document edits. Those
+            /// hosts will simply ignore the operations they don't understand.
+            /// </summary>
+            public override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
 
             public FixNameCodeAction(
 #if !CODE_STYLE
@@ -159,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 {
                     codeAction,
                     factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
-                }.AsEnumerable();
+                };
 #endif
             }
 

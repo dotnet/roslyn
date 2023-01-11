@@ -115,9 +115,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ByRef emittedName As MetadataTypeName
         ) As TypeSymbol
             Dim result = container.LookupMetadataType(emittedName)
-            Debug.Assert(result IsNot Nothing)
+            Debug.Assert(If(Not result?.IsErrorType(), True))
 
-            Return result
+            Return If(result, New MissingMetadataTypeSymbol.Nested(DirectCast(container, NamedTypeSymbol), emittedName))
         End Function
 
         ''' <summary>
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Try
-                Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
+                Return assembly.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies:=Nothing)
             Catch e As Exception When FatalError.ReportAndPropagate(e) ' Trying to get more useful Watson dumps.
                 Throw ExceptionUtilities.Unreachable
             End Try
@@ -149,7 +149,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Return ModuleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
                     Else
                         isNoPiaLocalType = False
-                        Return m.LookupTopLevelMetadataType(emittedName)
+                        Dim result As NamedTypeSymbol = m.LookupTopLevelMetadataType(emittedName)
+                        Debug.Assert(If(Not result?.IsErrorType(), True))
+
+                        Return If(result, New MissingMetadataTypeSymbol.TopLevel(m, emittedName))
                     End If
                 End If
             Next
@@ -318,11 +321,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Continue For
                 End If
 
-                Dim candidate As NamedTypeSymbol = assembly.LookupTopLevelMetadataType(fullEmittedName, digThroughForwardedTypes:=False)
-                Debug.Assert(Not candidate.IsGenericType)
+                Dim candidate As NamedTypeSymbol = assembly.LookupDeclaredTopLevelMetadataType(fullEmittedName)
+                Debug.Assert(If(Not candidate?.IsGenericType, True))
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
 
-                ' Ignore type forwarders, error symbols and non-public types
-                If candidate.Kind = SymbolKind.ErrorType OrElse
+                ' Ignore type forwarders and non-public types
+                If candidate Is Nothing OrElse
                    candidate.ContainingAssembly IsNot assembly OrElse
                    candidate.DeclaredAccessibility <> Accessibility.Public Then
                     Continue For

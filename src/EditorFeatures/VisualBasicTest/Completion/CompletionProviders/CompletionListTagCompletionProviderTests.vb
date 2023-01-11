@@ -273,8 +273,8 @@ Class C
 
 End Class
 ]]></Text>.Value
-            Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.X", glyph:=CType(Glyph.FieldPublic, Integer))
-            Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.Y", glyph:=CType(Glyph.PropertyPublic, Integer))
+            Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.X")
+            Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.Y")
         End Function
 
         <Fact>

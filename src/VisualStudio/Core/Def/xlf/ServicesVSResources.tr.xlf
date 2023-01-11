@@ -82,6 +82,11 @@
         <target state="translated">Gezinti için her zaman varsayılan sembol sunucularını kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Kaynak tarafından oluşturulan dosyaları analiz et</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Çözümleyici Varsayılanları</target>
@@ -1094,7 +1099,7 @@
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
-        <target state="needs-review-translation">Değerlerini görüntülemek ve bu değerlerde gezinmek için bir yığın izlemesi yapıştırın.</target>
+        <target state="translated">Değerlerini görüntülemek ve gezinmek için bir yığın izi yapıştırın.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1144,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
-        <target state="new">Prefer read-only struct</target>
+        <target state="translated">Salt okunur yapıyı tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">

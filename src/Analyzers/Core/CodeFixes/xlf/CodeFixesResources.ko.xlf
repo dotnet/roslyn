@@ -37,14 +37,14 @@
         <target state="translated">형식을 '{0}'(으)로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">이름 위반 수정: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">다음 위치에서 모든 발생 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="translated">이름 위반 수정: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -57,6 +57,11 @@
         <target state="translated">정적으로 만들기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="new">Make type partial</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
         <target state="translated">여분의 빈 줄 제거</target>
@@ -67,8 +72,8 @@
         <target state="translated">중복 할당 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
         <target state="translated">문제 표시 안 함 또는 구성</target>
         <note />
       </trans-unit>

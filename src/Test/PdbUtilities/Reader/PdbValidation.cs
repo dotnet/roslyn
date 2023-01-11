@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Include module custom debug info, specifically compilation options and references.
             // These shouldn't be emitted in EnC deltas and we want to validate that.
             string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(diff.PdbDelta), methodTokens, PdbToXmlOptions.IncludeTokens | PdbToXmlOptions.IncludeModuleDebugInfo);
-            var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb, actualIsConverted: false);
+            var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb);
 
             AssertEx.AssertLinesEqual(
                 expected,
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             peStream.Position = 0;
             pdbStream.Position = 0;
             var actualPdb = XElement.Parse(PdbToXmlConverter.ToXml(pdbStream, peStream, pdbToXmlOptions, methodName: qualifiedMethodName)).ToString();
-            var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: isPortable, actualIsConverted: false);
+            var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: isPortable);
 
             AssertEx.AssertLinesEqual(
                 expected,
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualConverted = AdjustForConversionArtifacts(XElement.Parse(PdbToXmlConverter.ToXml(pdbStreamConverted, peStreamOriginal, pdbToXmlOptions, methodName: qualifiedMethodName)).ToString());
             var adjustedExpected = AdjustForConversionArtifacts(expectedPdb);
 
-            var (actual, expected) = AdjustToPdbFormat(actualConverted, adjustedExpected, actualIsPortable: !originalIsPortable, actualIsConverted: true);
+            var (actual, expected) = AdjustToPdbFormat(actualConverted, adjustedExpected, actualIsPortable: !originalIsPortable);
 
             AssertEx.AssertLinesEqual(
                 expected,
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return xml.ToString();
         }
 
-        internal static (string Actual, string Expected) AdjustToPdbFormat(string actualPdb, string expectedPdb, bool actualIsPortable, bool actualIsConverted)
+        internal static (string Actual, string Expected) AdjustToPdbFormat(string actualPdb, string expectedPdb, bool actualIsPortable)
         {
             var actualXml = XElement.Parse(actualPdb);
             var expectedXml = XElement.Parse(expectedPdb);

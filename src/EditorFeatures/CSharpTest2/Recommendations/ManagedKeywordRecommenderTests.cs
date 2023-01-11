@@ -11,17 +11,8 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ManagedKeywordRecommenderTests : RecommenderTests
+    public class ManagedKeywordRecommenderTests : KeywordRecommenderTests
     {
-        protected override string KeywordText => "managed";
-
-        private readonly ManagedKeywordRecommender _recommender = new();
-
-        public ManagedKeywordRecommenderTests()
-        {
-            this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
-        }
-
         [Fact]
         public async Task TestInFunctionPointerDeclaration()
         {

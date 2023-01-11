@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             await provider.WaitAllDispatcherOperationAndTasksAsync(
                 Workspace,
                 FeatureAttribute.RenameTracking,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.EventHookup);
         }

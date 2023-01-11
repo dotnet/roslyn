@@ -2685,7 +2685,6 @@ class D { }
                 var oldTree = SyntaxFactory.SyntaxTree(oldRoot, options: tempTree.Options, path: tempTree.FilePath);
                 var newTree = oldTree.WithInsertAt(text.Length, " ");
 
-
                 var oldClassC = extractGreenClassC(oldTree);
                 var newClassC = extractGreenClassC(newTree);
 
@@ -2696,7 +2695,6 @@ class D { }
                 Assert.NotSame(oldClassC, newClassC);
                 // ...even though the text is the same.
                 Assert.Equal(oldClassC.ToFullString(), newClassC.ToFullString());
-
 
                 var oldToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)oldClassC).Identifier;
                 var newToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)newClassC).Identifier;
@@ -2736,7 +2734,6 @@ class D { }
 
             WalkTreeAndVerify(incrTree.GetRoot(), fullTree.GetRoot());
         }
-
 
         [Fact]
         public void TestRescanInterpolatedString()
