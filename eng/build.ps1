@@ -240,6 +240,8 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
+  $restoreLockedMode = if ($ci -and ($msbuildEngine -eq "vs")) { "/p:RestoreLockedMode=true" } else { "" }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -267,6 +269,7 @@ function BuildSolution() {
       $buildFromSource `
       $generateDocumentationFile `
       $roslynUseHardLinks `
+      $restoreLockedMode `
       @properties
   }
   finally {
