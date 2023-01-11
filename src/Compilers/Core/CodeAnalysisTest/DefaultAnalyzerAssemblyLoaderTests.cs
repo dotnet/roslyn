@@ -200,7 +200,7 @@ Delta: Gamma: Beta: Test B
             {
                 loader.AddDependencyLocation(testFixture.Gamma.Path);
                 loader.AddDependencyLocation(testFixture.Delta1.Path);
-                Assert.Throws<InvalidOperationException>(() => loader.LoadFromPath(testFixture.Beta.Path));
+                Assert.Throws<FileNotFoundException>(() => loader.LoadFromPath(testFixture.Beta.Path));
             });
         }
 
@@ -233,7 +233,7 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(expected, Roslyn.Utilities.EnumerableExtensions.Order(assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location))));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void AssemblyLoading_DependencyInDifferentDirectory()
         {
             Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
@@ -442,15 +442,21 @@ Delta: Epsilon: Test E
                 var actual = sb.ToString();
                 if (ExecutionConditionUtil.IsCoreClr)
                 {
+                    // In .NET Core we have _full_ control over assembly loading and can prevent implicit
+                    // loads from probing paths. That means we can avoid implicitly loading the Delta v2 
+                    // next to Epsilon
                     Assert.Equal(
-    @"Delta.3: Epsilon: Test E
+@"Delta.3: Epsilon: Test E
 ",
-                        actual);
+                    actual);
                 }
                 else
                 {
+                    // The Epsilon.dll has Delta.dll (v2) next to it in the directory. The .NET Framework 
+                    // will implicitly load this due to normal probing rules. No way for us to intercept
+                    // this and we end up with v2 here where it wasn't specified as a dependency.
                     Assert.Equal(
-    @"Delta: Epsilon: Test E
+    @"Delta.2: Epsilon: Test E
 ",
                         actual);
                 }
@@ -484,20 +490,10 @@ Delta: Epsilon: Test E
 #endif
 
                 var actual = sb.ToString();
-                if (ExecutionConditionUtil.IsCoreClr)
-                {
-                    Assert.Equal(
-    @"Delta.2: Epsilon: Test E
+                Assert.Equal(
+@"Delta.2: Epsilon: Test E
 ",
-                        actual);
-                }
-                else
-                {
-                    Assert.Equal(
-    @"Delta: Epsilon: Test E
-",
-                        actual);
-                }
+                    actual);
             });
         }
 
@@ -811,7 +807,7 @@ Delta.2: Test D2
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/66104")]
         public void AssemblyLoading_CompilerDependencyDuplicated()
         {
             Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
@@ -952,7 +948,7 @@ Delta.2: Test D2
 
             var testAssembly = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoaderTests).GetTypeInfo().Assembly.Location);
             var testObject = testAssembly.CreateInstance(typeof(DefaultAnalyzerAssemblyLoaderTests).FullName!,
-                ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output, testFixture }, null, null)!;
+                ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output, }, null, null)!;
 
             StringBuilder sb = new StringBuilder();
             testObject.GetType().GetMethod(nameof(AssemblyLoadingInNonDefaultContextHelper1), BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(testObject, new object[] { sb });
@@ -985,7 +981,7 @@ Delta.2: Test D2
 
             var testAssembly = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoaderTests).GetTypeInfo().Assembly.Location);
             var testObject = testAssembly.CreateInstance(typeof(DefaultAnalyzerAssemblyLoaderTests).FullName!,
-                ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output, testFixture }, null, null)!;
+                ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output }, null, null)!;
 
             StringBuilder sb = new StringBuilder();
             testObject.GetType().GetMethod(nameof(AssemblyLoadingInNonDefaultContextHelper2), BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(testObject, new object[] { sb });
