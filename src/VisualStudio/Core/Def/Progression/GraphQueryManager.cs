@@ -162,46 +162,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 var cancellationToken = context.CancelToken;
 
-                if (graphQueries.Length == 1)
+                if (graphQueries.Length == 0)
                 {
-                    // When we have just a single query, do the entire clear and production of new values as a single
-                    // transaction.  This also helps solution-explorer track the old values to the new values, keeping
-                    // the view-state persistent across edits.
-                    // Perform the actual graph transaction 
                     using var transaction = new GraphTransactionScope();
                     context.Graph.Links.Clear();
-
-                    var graphBuilder = await graphQueries.Single().GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
-                    graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
-
-                    context.OutputNodes.AddAll(graphBuilder.GetCreatedNodes(cancellationToken));
-
                     transaction.Complete();
                 }
                 else
                 {
-                    // If we have multiple queries (for example, when performing a search), first clear out the existing
-                    // results, then perform each query serially, updating the output nodes with the results of them.
-
-                    using (var transaction1 = new GraphTransactionScope())
+                    for (var i = 0; i < graphQueries.Length; i++)
                     {
-                        // Remove any links that may have been added by a previous population. We don't
-                        // remove nodes to maintain node identity, matching the behavior of the old
-                        // providers.
-                        context.Graph.Links.Clear();
-                        transaction1.Complete();
-                    }
+                        var graphBuilder = await graphQueries[i].GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var query in graphQueries)
-                    {
-                        var graphBuilder = await query.GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
+                        using var transaction = new GraphTransactionScope();
 
-                        using var transaction2 = new GraphTransactionScope();
+                        if (i == 0)
+                            context.Graph.Links.Clear();
 
                         graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
                         context.OutputNodes.AddAll(graphBuilder.GetCreatedNodes(cancellationToken));
 
-                        transaction2.Complete();
+                        transaction.Complete();
                     }
                 }
             }
