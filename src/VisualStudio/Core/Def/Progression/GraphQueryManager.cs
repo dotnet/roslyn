@@ -158,26 +158,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             ImmutableArray<IGraphQuery> graphQueries,
             IGraphContext context)
         {
+            var cancellationToken = context.CancelToken;
+
             try
             {
-                var cancellationToken = context.CancelToken;
-
                 if (graphQueries.Length == 0)
                 {
+                    // If we got no queries to populate, just clean out whatever was there before.
+
                     using var transaction = new GraphTransactionScope();
                     context.Graph.Links.Clear();
                     transaction.Complete();
                 }
                 else
                 {
-                    for (var i = 0; i < graphQueries.Length; i++)
-                    {
-                        var graphBuilder = await graphQueries[i].GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
+                    // Compute all queries in parallel.  Then as each finishes, update the graph.
 
+                    var tasks = graphQueries.Select(q => Task.Run(() => q.GetGraphAsync(solution, context, cancellationToken), cancellationToken)).ToHashSet();
+
+                    var first = true;
+                    while (tasks.Count > 0)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var completedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
+                        tasks.Remove(completedTask);
+
+                        // if this is the first task finished, clear out the existing results and add all the new
+                        // results as a single transaction.  Doing this as a single transaction is vital for
+                        // solution-explorer as that is how it can map the prior elements to the new ones, preserving the
+                        // view-state (like ensuring the same nodes stay collapsed/expanded).
+                        //
+                        // As additional queries finish, add those results in after without clearing the results of the
+                        // prior queries.
+
+                        var graphBuilder = await completedTask.ConfigureAwait(false);
                         using var transaction = new GraphTransactionScope();
 
-                        if (i == 0)
+                        if (first)
+                        {
+                            first = false;
                             context.Graph.Links.Clear();
+                        }
 
                         graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
                         context.OutputNodes.AddAll(graphBuilder.GetCreatedNodes(cancellationToken));
