@@ -568,7 +568,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.AddDefIfNecessary(_eventDefs, eventDef, eventChange);
             }
 
-
             foreach (var eventDel in _changes.GetDeletedEvents(typeDef))
             {
                 RoslynDebug.AssertNotNull(deletedMethodDefinitions);
