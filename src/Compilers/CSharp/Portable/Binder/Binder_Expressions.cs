@@ -2933,18 +2933,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if a bad special by ref local was found.
+        /// Reports an error when a bad special by-ref local was found.
         /// </summary>
-        internal static bool CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax, bool reportOnTemp = false)
         {
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
                 && type.IsRestrictedType())
             {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
-                return true;
+                Error(diagnostics, reportOnTemp ? ErrorCode.ERR_BadSpecialByRef : ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
             }
-            return false;
         }
 
         internal GlobalExpressionVariable LookupDeclaredField(SingleVariableDesignationSyntax variableDesignator)

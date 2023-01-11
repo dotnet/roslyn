@@ -1011,9 +1011,15 @@ public class Program
                 // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> local1 = default(Span<int>); // 1
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
+                // (13,19): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         Span<int> local1 = default(Span<int>); // 1
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(13, 19),
                 // (14,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         var local2 = default(Span<int>); // 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(14, 9)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(14, 9),
+                // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         var local2 = default(Span<int>); // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13)
             );
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
@@ -1022,9 +1028,15 @@ public class Program
                 // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> local1 = default(Span<int>); // 1
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
+                // (13,19): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         Span<int> local1 = default(Span<int>); // 1
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(13, 19),
                 // (14,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         var local2 = default(Span<int>); // 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(14, 9)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(14, 9),
+                // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         var local2 = default(Span<int>); // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13)
             );
         }
 
@@ -1113,6 +1125,7 @@ public class Program
     {
         (Span<int> s1, Span<int> s2) = new Program(); // 1, 2
         var (s3, s4) = new Program(); // 3, 4
+        (var s5, var s6) = new Program(); // 5, 6
 
         await Task.Yield();
         return;
@@ -1134,7 +1147,13 @@ public class Program
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "s3").WithArguments("System.Span<int>").WithLocation(10, 14),
                 // (10,18): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         var (s3, s4) = new Program(); // 3, 4
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "s4").WithArguments("System.Span<int>").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "s4").WithArguments("System.Span<int>").WithLocation(10, 18),
+                // (11,10): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
+                //         (var s5, var s6) = new Program(); // 5, 6
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(11, 10),
+                // (11,18): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
+                //         (var s5, var s6) = new Program(); // 5, 6
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(11, 18)
                 );
         }
 
@@ -1152,6 +1171,7 @@ public class Program
         using (var s1 = default(RS)) { } // 2
         using (RS s2 = default(RS)) { } // 3
         using RS s3 = default(RS); // 4
+        using var s4 = default(RS); // 5
 
         await Task.Yield();
         return;
@@ -1165,9 +1185,9 @@ public ref struct RS
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (8,16): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.
+                // (8,16): error CS9101: Values of type 'RS' cannot be used in async methods or async lambda expressions.
                 //         using (default(RS)) { } // 1
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "default(RS)").WithArguments("RS").WithLocation(8, 16),
+                Diagnostic(ErrorCode.ERR_BadSpecialByRef, "default(RS)").WithArguments("RS").WithLocation(8, 16),
                 // (9,16): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.
                 //         using (var s1 = default(RS)) { } // 2
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("RS").WithLocation(9, 16),
@@ -1176,7 +1196,10 @@ public ref struct RS
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "RS").WithArguments("RS").WithLocation(10, 16),
                 // (11,15): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.
                 //         using RS s3 = default(RS); // 4
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "RS").WithArguments("RS").WithLocation(11, 15)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "RS").WithArguments("RS").WithLocation(11, 15),
+                // (12,15): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.
+                //         using var s4 = default(RS); // 5
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("RS").WithLocation(12, 15)
                 );
         }
 

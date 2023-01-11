@@ -222,6 +222,11 @@
         <target state="translated">Элемент записи "{0}" должен быть доступным для чтения свойством экземпляра или полем типа "{1}", чтобы соответствовать позиционному параметру "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRef">
+        <source>Values of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">Values of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Ошибка в синтаксисе командной строки: "{0}" не является допустимым значением для параметра "{1}". Значение должно иметь форму "{2}".</target>

@@ -298,10 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SourceLocalSymbol local = this.IterationVariable;
                         local.SetTypeWithAnnotations(declType);
 
-                        if (CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax))
-                        {
-                            hasErrors = true;
-                        }
+                        CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
                         if (local.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrRefLikeType())
                         {

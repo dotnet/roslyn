@@ -1097,10 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax))
-            {
-                hasErrors = true;
-            }
+            CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax);
 
             if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
             {

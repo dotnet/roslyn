@@ -222,6 +222,11 @@
         <target state="translated">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft oder ein Feld vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRef">
+        <source>Values of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">Values of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Fehler in der Befehlszeilensyntax: "{0}" ist kein gültiger Wert für die Option "{1}". Der Wert muss im Format "{2}" vorliegen.</target>
