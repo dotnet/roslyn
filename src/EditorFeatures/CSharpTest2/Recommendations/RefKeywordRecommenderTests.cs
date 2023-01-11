@@ -541,6 +541,10 @@ $$");
             => await VerifyKeywordAsync(@"public $$");
 
         [Fact]
+        public async Task TestAfterFile()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"file $$");
+
+        [Fact]
         public async Task TestAfterNestedPublic()
         {
             await VerifyKeywordAsync(

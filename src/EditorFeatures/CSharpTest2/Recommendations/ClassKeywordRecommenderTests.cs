@@ -281,6 +281,13 @@ $$");
         }
 
         [Fact]
+        public async Task TestAfterFile()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"file $$");
+        }
+
+        [Fact]
         public async Task TestAfterPrivate()
         {
             await VerifyKeywordAsync(
