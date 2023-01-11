@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// This gate locks manipulation of <see cref="_trackedQueries"/>.
         /// </summary>
         private readonly object _gate = new();
-        private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new();
+        private readonly List<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)> _trackedQueries = new();
 
         // We update all of our tracked queries when this delay elapses.
         private ResettableDelay? _delay;
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _asyncListener = asyncListener;
         }
 
-        internal void AddQueries(IGraphContext context, List<IGraphQuery> graphQueries)
+        public void AddQueries(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries)
         {
             var asyncToken = _asyncListener.BeginAsyncOperation("GraphQueryManager.AddQueries");
 
@@ -60,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             task.CompletesAsyncOperation(asyncToken);
         }
 
-        private void TrackChangesAfterFirstPopulate(List<IGraphQuery> graphQueries, IGraphContext context, Solution solution)
+        private void TrackChangesAfterFirstPopulate(ImmutableArray<IGraphQuery> graphQueries, IGraphContext context, Solution solution)
         {
             var workspace = solution.Workspace;
             var contextWeakReference = new WeakReference<IGraphContext>(context);
@@ -112,10 +113,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private Task UpdateAsync()
         {
-            List<ValueTuple<IGraphContext, List<IGraphQuery>>> liveQueries;
+            List<ValueTuple<IGraphContext, ImmutableArray<IGraphQuery>>> liveQueries;
             lock (_gate)
             {
-                liveQueries = _trackedQueries.Select(t => ValueTuple.Create(t.Item1.GetTarget(), t.Item2)).Where(t => t.Item1 != null).ToList()!;
+                liveQueries = _trackedQueries.Select(t => (t.Item1.GetTarget(), t.Item2)).Where(t => t.Item1 != null).ToList()!;
             }
 
             var solution = _workspace.CurrentSolution;
@@ -151,7 +152,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// <summary>
         /// Populate the graph of the context with the values for the given Solution.
         /// </summary>
-        private static async Task PopulateContextGraphAsync(Solution solution, List<IGraphQuery> graphQueries, IGraphContext context)
+        private static async Task PopulateContextGraphAsync(
+            Solution solution,
+            ImmutableArray<IGraphQuery> graphQueries,
+            IGraphContext context)
         {
             try
             {

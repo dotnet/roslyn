@@ -6,12 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
@@ -64,12 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _initialized = true;
         }
 
-        internal static List<IGraphQuery> GetGraphQueries(
+        public static ImmutableArray<IGraphQuery> GetGraphQueries(
             IGraphContext context,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener)
         {
-            var graphQueries = new List<IGraphQuery>();
+            using var _ = ArrayBuilder<IGraphQuery>.GetInstance(out var graphQueries);
 
             if (context.Direction == GraphContextDirection.Self && context.RequestedProperties.Contains(DgmlNodeProperties.ContainsChildren))
             {
@@ -153,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return graphQueries;
+            return graphQueries.ToImmutable();
         }
 
         public void BeginGetGraphData(IGraphContext context)
@@ -162,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             var graphQueries = GetGraphQueries(context, _threadingContext, _asyncListener);
 
-            if (graphQueries.Count > 0)
+            if (graphQueries.Length > 0)
             {
                 _graphQueryManager.AddQueries(context, graphQueries);
             }
