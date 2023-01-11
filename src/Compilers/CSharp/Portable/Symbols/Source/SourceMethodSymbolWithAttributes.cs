@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
             else

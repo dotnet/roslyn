@@ -1393,7 +1393,6 @@ override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft
 override Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Host.Mef.MefHostServices.CreateWorkspaceServices(Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
-override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 override Microsoft.CodeAnalysis.Options.Option<T>.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Options.Option<T>.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Options.Option<T>.ToString() -> string

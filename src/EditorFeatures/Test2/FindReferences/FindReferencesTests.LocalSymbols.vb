@@ -621,5 +621,35 @@ class C
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(1711987, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1711987")>
+        Public Async Function TestLocal_ErrorDuplicateMethodInDifferentFiles(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+partial class C
+{
+    int M()
+    {
+        var {|Definition:$$goo|} = 1;
+        return [|goo|];
+    }
+}
+        </Document>
+        <Document>
+partial class C
+{
+    int M()
+    {
+        return goo;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

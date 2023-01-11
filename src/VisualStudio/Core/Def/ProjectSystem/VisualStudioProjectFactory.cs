@@ -9,11 +9,13 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -56,10 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
         }
 
-        public Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
+        public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
             => CreateAndAddToWorkspaceAsync(projectSystemName, language, new VisualStudioProjectCreationInfo(), cancellationToken);
 
-        public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(
+        public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
             string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
         {
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
@@ -92,66 +94,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // From this point on, we start mutating the solution.  So make us non cancellable.
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             cancellationToken = CancellationToken.None;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
-            var id = ProjectId.CreateNewId(projectSystemName);
-            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
+            _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
+            _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
-            // We will use the project system name as the default display name of the project
-            var project = new VisualStudioProject(
-                _visualStudioWorkspaceImpl,
-                _dynamicFileInfoProviders,
-                _hostDiagnosticUpdateSource,
-                vsixAnalyzerProvider,
-                id,
-                displayName: projectSystemName,
-                language,
-                assemblyName: assemblyName,
-                compilationOptions: creationInfo.CompilationOptions,
-                filePath: creationInfo.FilePath,
-                parseOptions: creationInfo.ParseOptions);
+            var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _hostDiagnosticUpdateSource, vsixAnalyzerProvider);
+            var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo);
 
-            var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
-                                                             : VersionStamp.Create();
-
-            await _visualStudioWorkspaceImpl.ApplyChangeToWorkspaceAsync(w =>
-            {
-                _visualStudioWorkspaceImpl.AddProjectToInternalMaps_NoLock(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
-
-                var projectInfo = ProjectInfo.Create(
-                    new ProjectInfo.ProjectAttributes(
-                        id,
-                        versionStamp,
-                        name: projectSystemName,
-                        assemblyName: assemblyName,
-                        language: language,
-                        checksumAlgorithm: SourceHashAlgorithms.Default, // will be updated when command line is set
-                        compilationOutputFilePaths: default, // will be updated when command line is set
-                        filePath: creationInfo.FilePath,
-                        telemetryId: creationInfo.ProjectGuid),
-                    compilationOptions: creationInfo.CompilationOptions,
-                    parseOptions: creationInfo.ParseOptions);
-
-                // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
-                // and count this as the solution being added so that event is raised.
-                if (w.CurrentSolution.ProjectIds.Count == 0)
-                {
-                    var solutionSessionId = GetSolutionSessionId();
-
-                    w.OnSolutionAdded(
-                        SolutionInfo.Create(
-                            SolutionId.CreateNewId(solutionFilePath),
-                            VersionStamp.Create(),
-                            solutionFilePath,
-                            projects: new[] { projectInfo },
-                            analyzerReferences: w.CurrentSolution.AnalyzerReferences)
-                        .WithTelemetryId(solutionSessionId));
-                }
-                else
-                {
-                    w.OnProjectAdded(projectInfo);
-                }
-            });
+            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
             // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
             // This is not cancellable as we have already mutated the solution.

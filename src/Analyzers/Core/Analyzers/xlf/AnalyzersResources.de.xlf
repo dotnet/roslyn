@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Remove_accessibility_modifiers">
         <source>Remove accessibility modifiers</source>
-        <target state="new">Remove accessibility modifiers</target>
+        <target state="translated">Barrierefreiheitsmodifizierer entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_equality">
@@ -329,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Simplify_check">
         <source>Simplify check</source>
-        <target state="new">Simplify check</target>
+        <target state="translated">Überprüfung vereinfachen</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

@@ -31,6 +31,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Public Sub New()
         End Sub
 
+        Protected Overrides Function TryGetBlock(node As SyntaxNode, ByRef block As ExecutableStatementSyntax) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function ReplaceBlockStatements(block As ExecutableStatementSyntax, newInnerStatement As ExecutableStatementSyntax) As ExecutableStatementSyntax
+            Throw ExceptionUtilities.Unreachable()
+        End Function
+
+        Protected Overrides Function PostProcessElseIf(ifStatement As MultiLineIfBlockSyntax, newWhenTrueStatement As ExecutableStatementSyntax) As SyntaxNode
+            Throw ExceptionUtilities.Unreachable()
+        End Function
+
         Protected Overrides Function ElementBindingExpression(argumentList As ArgumentListSyntax) As InvocationExpressionSyntax
             Return SyntaxFactory.InvocationExpression(Nothing, argumentList)
         End Function

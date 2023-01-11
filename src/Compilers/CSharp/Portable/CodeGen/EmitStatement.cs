@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         opKind == BinaryOperatorKind.NotEqual);
 
             BoundExpression nonConstOp;
-            BoundExpression constOp = (condition.Left.ConstantValue != null) ? condition.Left : null;
+            BoundExpression constOp = (condition.Left.ConstantValueOpt != null) ? condition.Left : null;
 
             if (constOp != null)
             {
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                constOp = (condition.Right.ConstantValue != null) ? condition.Right : null;
+                constOp = (condition.Right.ConstantValueOpt != null) ? condition.Right : null;
                 if (constOp == null)
                 {
                     return null;
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             bool isBool = nonConstType.PrimitiveTypeCode == Microsoft.Cci.PrimitiveTypeCode.Boolean;
-            bool isZero = constOp.ConstantValue.IsDefaultValue;
+            bool isZero = constOp.ConstantValueOpt.IsDefaultValue;
 
             // bool is special, only it can be compared to true and false...
             if (!isBool && !isZero)
@@ -395,9 +395,9 @@ oneMoreTime:
 
             ILOpCode ilcode;
 
-            if (condition.ConstantValue != null)
+            if (condition.ConstantValueOpt != null)
             {
-                bool taken = condition.ConstantValue.IsDefaultValue != sense;
+                bool taken = condition.ConstantValueOpt.IsDefaultValue != sense;
 
                 if (taken)
                 {
@@ -1126,7 +1126,7 @@ oneMoreTime:
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
             LabelSymbol fallThroughLabel)
         {
-            Debug.Assert(expression.ConstantValue == null);
+            Debug.Assert(expression.ConstantValueOpt == null);
             Debug.Assert((object)expression.Type != null &&
                 (expression.Type.IsValidV6SwitchGoverningType() || expression.Type.IsSpanOrReadOnlySpanChar()));
             Debug.Assert(switchCaseLabels.Length > 0);

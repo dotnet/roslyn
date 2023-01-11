@@ -2154,9 +2154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region diagnostics introduced for C# 12.0
+
         ERR_ImplicitlyTypedDefaultParameter = 9098,
         WRN_OptionalParamValueMismatch = 9099,
         WRN_ParamsArrayInLambdaOnly = 9100,
+        ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
+        ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
 
         ERR_InvalidPrimaryConstructorParameterReference = 9500, // PROTOTYPE(PrimaryConstructors): pack numbers
         ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver = 9501,

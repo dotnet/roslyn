@@ -10,6 +10,7 @@ using System.Linq;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,8 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!implicitlyInitializedFields.IsDefault)
                     {
                         Debug.Assert(!implicitlyInitializedFields.IsEmpty);
-                        // The following assert is disabled due to https://github.com/dotnet/roslyn/issues/66046.
-                        // Debug.Assert(!originalBodyNested);
+
+                        // It's not expected to have implicitly initialized fields when a constructor initializer is present, except in error scenarios.
+                        Debug.Assert(method is not SourceMemberMethodSymbol { SyntaxNode: ConstructorDeclarationSyntax { Initializer: not null } } || block.HasErrors);
+
                         block = PrependImplicitInitializations(block, method, implicitlyInitializedFields, compilationState, diagnostics);
                     }
                     if (needsImplicitReturn)
@@ -136,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var initializations = F.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
 
-            return body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(index: 0, initializations));
+            return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Statements.Insert(index: 0, initializations));
         }
 
         private static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, bool originalBodyNested)
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(statements, n - 1);
                 builder.Add(AppendImplicitReturn((BoundBlock)statements[n - 1], method));
 
-                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, builder.ToImmutableAndFree());
+                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, body.HasUnsafeModifier, builder.ToImmutableAndFree());
             }
             else
             {
@@ -178,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
-            return body.Update(body.Locals, body.LocalFunctions, body.Statements.Add(ret));
+            return body.Update(body.Locals, body.LocalFunctions, body.HasUnsafeModifier, body.Statements.Add(ret));
         }
 
         private static bool Analyze(

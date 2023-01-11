@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression? VisitExpressionImpl(BoundExpression node)
         {
-            ConstantValue? constantValue = node.ConstantValue;
+            ConstantValue? constantValue = node.ConstantValueOpt;
             if (constantValue != null)
             {
                 TypeSymbol? type = node.Type;
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var block = (BoundBlock)initializer;
                         var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
                         Debug.Assert(statement is { });
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(statement)));
+                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(statement)));
                     }
                     else
                     {
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         internal static bool CanBePassedByReference(BoundExpression expr)
         {
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return false;
             }

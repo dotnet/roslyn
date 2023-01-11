@@ -1333,10 +1333,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var hasUnsuppressedDiagnostic = false;
                 foreach (var descriptor in descriptors)
                 {
-                    _ = options.TryGetGlobalDiagnosticValue(descriptor.Id, AnalyzerExecutor.CancellationToken, out var configuredSeverity);
-                    if (options.TryGetDiagnosticValue(tree, descriptor.Id, AnalyzerExecutor.CancellationToken, out var diagnosticSeverity))
+                    var configuredSeverity = descriptor.GetEffectiveSeverity(AnalyzerExecutor.Compilation.Options);
+                    if (options.TryGetDiagnosticValue(tree, descriptor.Id, AnalyzerExecutor.CancellationToken, out var severityFromOptions) ||
+                        options.TryGetGlobalDiagnosticValue(descriptor.Id, AnalyzerExecutor.CancellationToken, out severityFromOptions))
                     {
-                        configuredSeverity = diagnosticSeverity;
+                        configuredSeverity = severityFromOptions;
                     }
 
                     // Disabled by default descriptor with default configured severity is equivalent to suppressed.

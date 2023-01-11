@@ -840,6 +840,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial, statements: new[] { Generator.IdentifierName("y") }),
                 "partial void m()\r\n{\r\n    y;\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                   Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial | DeclarationModifiers.Async, statements: null),
+                "partial void m();");
         }
 
         [Fact]
@@ -2714,6 +2718,16 @@ public class C
             VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
         }
 
+        [Theory, WorkItem(66295, "https://github.com/dotnet/roslyn/issues/66295")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        public void TestCompoundAccessibilityModifierKeywordsOrder(string modifier)
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration($$"""{{modifier}} int P { get; }""");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsRequired(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, $$"""{{modifier}} required int P { get; }""");
+        }
+
         [Fact]
         public void TestGetType()
         {
@@ -4024,13 +4038,24 @@ public class C : IDisposable
         }
 
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
-        public void TestMethodModifiers1()
+        public void TestMethodModifiers()
         {
             TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
                 @"
 class C
 {
     [|public sealed override void M() { }|]
+}");
+        }
+
+        [Fact, WorkItem(66170, "https://github.com/dotnet/roslyn/issues/66170")]
+        public void TestMethodModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly,
+                @"
+struct S
+{
+    [|public readonly void M() { }|]
 }");
         }
 
@@ -4099,6 +4124,16 @@ class C
 class C
 {
     public virtual event System.Action [|X|];
+}");
+        }
+
+        [Fact, WorkItem(65834, "https://github.com/dotnet/roslyn/issues/65834")]
+        public void TestStructModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
+                @"
+public readonly struct [|S|]
+{
 }");
         }
 
