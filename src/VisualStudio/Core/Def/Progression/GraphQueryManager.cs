@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private async ValueTask UpdateExistingQueriesAsync(CancellationToken cancellationToken)
+        private async ValueTask UpdateExistingQueriesAsync(CancellationToken disposalToken)
         {
             ImmutableArray<(IGraphContext context, ImmutableArray<IGraphQuery> queries)> liveQueries;
             lock (_gate)
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var solution = _workspace.CurrentSolution;
 
             // Update all the live queries in parallel.
-            var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.context, t.queries)).ToArray();
+            var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.context, t.queries, disposalToken)).ToArray();
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
@@ -114,13 +114,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private static async Task PopulateContextGraphAsync(
             Solution solution,
             IGraphContext context,
-            ImmutableArray<IGraphQuery> graphQueries)
+            ImmutableArray<IGraphQuery> graphQueries,
+            CancellationToken disposalToken)
         {
-            var cancellationToken = context.CancelToken;
-
             try
             {
                 // Compute all queries in parallel.  Then as each finishes, update the graph.
+
+                // Cancel the work if either the context wants us to cancel, or our host is getting disposed.
+                using var source = CancellationTokenSource.CreateLinkedTokenSource(context.CancelToken, disposalToken);
+                var cancellationToken = source.Token;
 
                 var tasks = graphQueries.Select(q => Task.Run(() => q.GetGraphAsync(solution, context, cancellationToken), cancellationToken)).ToHashSet();
 
@@ -154,6 +157,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                     transaction.Complete();
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Don't bubble this cancellation outwards.  The queue's cancellation token is mixed with the context's
+                // token to make a final token that controls the work we do above.  We don't want any of the wrong
+                // cancellations leaking outwards.
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Diagnostic))
             {
