@@ -489,7 +489,7 @@ class Program
 
         }
 
-        [Fact]
+        [Fact, WorkItem(66365, "https://github.com/dotnet/roslyn/issues/66365")]
         public void InvokeOnThisBaseMethods()
         {
             var text = @"
@@ -512,6 +512,8 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
 
+            // We may be able to optimize this case (ie. avoid defensive copy) since the struct and the caller are in the same module
+            // Tracked by https://github.com/dotnet/roslyn/issues/66365
             comp.VerifyIL("Program.S1.Test()", @"
 {
   // Code size       47 (0x2f)
