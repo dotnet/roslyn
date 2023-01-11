@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         }
                                         Debug.Assert(!IsConditionalState);
                                         Unsplit();
-                                        State[outputSlot] = NullableFlowState.NotNull;
+                                        SetState(ref State, outputSlot, NullableFlowState.NotNull);
                                         addToTempMap(output, outputSlot, e.Type);
                                         break;
                                     }
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
-                                        this.State[outputSlot] = NullableFlowState.NotNull; // Slice value is assumed to be never null
+                                        SetState(ref this.State, outputSlot, NullableFlowState.NotNull); // Slice value is assumed to be never null
                                         break;
                                     }
                                 case BoundDagAssignmentEvaluation e:
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
                                     break;
                                 case BoundDagNonNullTest t:
-                                    var inputMaybeNull = this.StateWhenTrue[inputSlot].MayBeNull();
+                                    var inputMaybeNull = GetState(ref this.StateWhenTrue, inputSlot).MayBeNull();
 
                                     if (inputSlot > 0)
                                     {
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (foundTemp) // in erroneous programs, we might not have seen a temp defined.
                             {
                                 var (tempSlot, tempType) = tempSlotAndType;
-                                var tempState = this.State[tempSlot];
+                                var tempState = GetState(ref this.State, tempSlot);
                                 if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                                 {
                                     var value = TypeWithState.Create(tempType, tempState);
