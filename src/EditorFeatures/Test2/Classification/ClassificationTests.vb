@@ -22,8 +22,58 @@ Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
-    <[UseExportProvider]>
+    <UseExportProvider>
     Public Class ClassificationTests
+        <Fact, WorkItem(66245, "https://github.com/dotnet/roslyn/pull/66245")>
+        Public Async Function TestClassificationAndHighlight1() As Task
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
+                        <Document>
+                        using System.Text.RegularExpressions;
+
+                        class C
+                        {
+                           [| Regex |]re = new Regex("()");
+                        }
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim text = Await document.GetTextAsync()
+                Dim referenceSpan = workspace.Documents.Single().SelectedSpans.Single()
+
+                Dim spansAndHighlightSpan = Await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    New DocumentSpan(document, referenceSpan),
+                    ClassificationOptions.Default, CancellationToken.None)
+
+                ' This is the classification of the line, starting at the beginning of the highlight, and going to the end of that line.
+                Assert.Equal(
+"(text, '<spaces>', [154..155))
+(class name, 'Regex', [155..160))
+(text, '<spaces>', [160..161))
+(field name, 're', [161..163))
+(text, '<spaces>', [163..164))
+(operator, '=', [164..165))
+(text, '<spaces>', [165..166))
+(keyword, 'new', [166..169))
+(text, '<spaces>', [169..170))
+(class name, 'Regex', [170..175))
+(punctuation, '(', [175..176))
+(string, '""', [176..177))
+(regex - grouping, '(', [177..178))
+(regex - grouping, ')', [178..179))
+(string, '""', [179..180))
+(punctuation, ')', [180..181))
+(punctuation, ';', [181..182))", String.Join(vbCrLf, spansAndHighlightSpan.ClassifiedSpans.Select(Function(s) ToTestString(text, s))))
+
+                ' The portion of the classified spans to highlight goes from the start of the classified spans to the
+                ' length of the original reference span.
+                Assert.Equal(New TextSpan(0, referenceSpan.Length), spansAndHighlightSpan.HighlightSpan)
+            End Using
+        End Function
+
         <Fact, WorkItem(65926, "https://github.com/dotnet/roslyn/issues/65926")>
         Public Async Function TestEmbeddedClassifications1() As Task
             Using workspace = TestWorkspace.Create(

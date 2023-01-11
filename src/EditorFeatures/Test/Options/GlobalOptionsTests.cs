@@ -44,7 +44,7 @@ public class GlobalOptionsTests
     [Export(typeof(IGlobalOptionService)), Shared, PartNotDiscoverable]
     internal class TestGlobalOptions : IGlobalOptionService
     {
-        public readonly List<OptionKey> AccessedOptionKeys = new();
+        public readonly List<OptionKey2> AccessedOptionKeys = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -52,115 +52,54 @@ public class GlobalOptionsTests
         {
         }
 
-        private void OnOptionAccessed(OptionKey key)
+        private void OnOptionAccessed(OptionKey2 key)
         {
             AccessedOptionKeys.Add(key);
         }
 
+        bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+        {
+            value = GetOption<T>(optionKey);
+            return true;
+        }
+
         public T GetOption<T>(Option2<T> option)
-        {
-            OnOptionAccessed(new OptionKey(option));
-            return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
-        }
+            => GetOption<T>(new OptionKey2(option));
 
-        public T GetOption<T>(PerLanguageOption2<T> option, string? languageName)
-        {
-            OnOptionAccessed(new OptionKey(option, languageName));
-            return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
-        }
+        public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
+            => GetOption<T>(new OptionKey2(option, languageName));
 
-        public object? GetOption(OptionKey optionKey)
-            => throw new NotImplementedException();
+        public T GetOption<T>(OptionKey2 optionKey)
+        {
+            OnOptionAccessed(optionKey);
+            return (T)OptionsTestHelpers.GetDifferentValue(typeof(T), optionKey.Option.DefaultValue)!;
+        }
 
         #region Unused
-
-        public void RegisterWorkspace(Workspace workspace)
-        {
-        }
-
-        public void UnregisterWorkspace(Workspace workspace)
-        {
-        }
 
 #pragma warning disable CS0067
         public event EventHandler<OptionChangedEventArgs>? OptionChanged;
 #pragma warning restore
 
-        public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys)
+        public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys)
             => throw new NotImplementedException();
 
-        public void RefreshOption(OptionKey optionKey, object? newValue)
+        public bool RefreshOption(OptionKey2 optionKey, object? newValue)
             => throw new NotImplementedException();
 
-        public void SetGlobalOption(OptionKey optionKey, object? value)
+        public void SetGlobalOption<T>(Option2<T> option, T value)
             => throw new NotImplementedException();
 
-        public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values)
+        public void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value)
             => throw new NotImplementedException();
 
-        public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
+        public void SetGlobalOption(OptionKey2 optionKey, object? value)
+            => throw new NotImplementedException();
+
+        public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
             => throw new NotImplementedException();
 
         #endregion
-    }
-
-    /// <summary>
-    /// True if the type is a type of an option value.
-    /// </summary>
-    private static bool IsOptionValueType(Type type)
-    {
-        type = GetNonNullableType(type);
-
-        return
-            type == typeof(bool) ||
-            type == typeof(int) ||
-            type == typeof(string) ||
-            type.IsEnum ||
-            type == typeof(NamingStylePreferences) ||
-            typeof(ICodeStyleOption).IsAssignableFrom(type);
-    }
-
-    private static Type GetNonNullableType(Type type)
-        => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? type.GetGenericArguments()[0] : type;
-
-    /// <summary>
-    /// Returns another value of the same type that's not equal to the specified <paramref name="value"/>.
-    /// </summary>
-    private static object GetNonEqualValue(Type type, object? value)
-    {
-        Assert.True(IsOptionValueType(type));
-
-        if (type == typeof(bool?))
-            return value is null ? true : null!;
-
-        switch (value)
-        {
-            case bool b:
-                return !b;
-
-            case int i:
-                return i == 0 ? 1 : 0;
-
-            case string s:
-                return "!" + s;
-
-            case ICodeStyleOption codeStyle:
-                return codeStyle
-                    .WithValue(GetNonEqualValue(codeStyle.GetType().GetGenericArguments()[0], codeStyle.Value))
-                    .WithNotification((codeStyle.Notification == NotificationOption2.Error) ? NotificationOption2.Warning : NotificationOption2.Error);
-
-            case NamingStylePreferences naming:
-                return naming.IsEmpty ? NamingStylePreferences.Default : NamingStylePreferences.Empty;
-
-            default:
-                if (value != null && type.IsEnum)
-                {
-                    var zero = Enum.ToObject(type, 0);
-                    return value.Equals(zero) ? Enum.ToObject(type, 1) : zero;
-                }
-
-                throw TestExceptionUtilities.UnexpectedValue(value);
-        }
     }
 
     private static void VerifyDataMembersHaveNonDefaultValues(object options, object defaultOptions, string? language = null)
@@ -180,7 +119,7 @@ public class GlobalOptionsTests
                     // default value for the option -- may be different then default(T):
                     var defaultValue = property.GetValue(defaultOptions);
 
-                    if (IsOptionValueType(property.PropertyType))
+                    if (OptionsTestHelpers.IsOptionValueType(property.PropertyType))
                     {
                         if (IsStoredInGlobalOptions(property, language))
                         {
@@ -189,7 +128,7 @@ public class GlobalOptionsTests
                     }
                     else
                     {
-                        var propertyType = GetNonNullableType(property.PropertyType);
+                        var propertyType = OptionsTestHelpers.GetNonNullableType(property.PropertyType);
 
                         if (propertyType != property.PropertyType)
                         {

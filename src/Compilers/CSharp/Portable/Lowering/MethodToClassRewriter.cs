@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return node.Update(
                 node.OperatorKind,
-                node.ConstantValue,
+                node.ConstantValueOpt,
                 VisitMethodSymbol(node.Method),
                 VisitType(node.ConstrainedToType),
                 node.ResultKind,
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
             var whenNullOpt = (BoundExpression?)this.Visit(node.WhenNullOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(receiver, VisitMethodSymbol(node.HasValueMethodOpt), whenNotNull, whenNullOpt, node.Id, type);
+            return node.Update(receiver, VisitMethodSymbol(node.HasValueMethodOpt), whenNotNull, whenNullOpt, node.Id, node.ForceCopyOfNullableValueType, type);
         }
 
         [return: NotNullIfNotNull(nameof(method))]

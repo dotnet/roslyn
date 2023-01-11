@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public abstract CodeGenerationOptions DefaultOptions { get; }
-        public abstract CodeGenerationOptions GetCodeGenerationOptions(AnalyzerConfigOptions info, CodeGenerationOptions? fallbackOptions);
+        public abstract CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions);
 
         #region ICodeGenerationService
 

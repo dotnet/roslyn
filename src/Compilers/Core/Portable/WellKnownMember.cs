@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis
         System_Type__GetTypeFromHandle,
         System_Type__Missing,
         System_Type__op_Equality,
+        System_Type__get_IsValueType,
 
         System_Reflection_AssemblyKeyFileAttribute__ctor,
         System_Reflection_AssemblyKeyNameAttribute__ctor,

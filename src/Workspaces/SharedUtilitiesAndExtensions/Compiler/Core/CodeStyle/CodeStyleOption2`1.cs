@@ -20,8 +20,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption WithNotification(NotificationOption2 notification);
         ICodeStyleOption AsCodeStyleOption<TCodeStyleOption>();
 #if !CODE_STYLE
+        ICodeStyleOption AsInternalCodeStyleOption();
         ICodeStyleOption AsPublicCodeStyleOption();
 #endif
+    }
+
+    internal interface ICodeStyleOption2 : ICodeStyleOption
+    {
     }
 
     /// <summary>
@@ -39,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// then those values will write back as false/true.
     /// </summary>
     [DataContract]
-    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption2, IEquatable<CodeStyleOption2<T>?>
     {
         public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
@@ -74,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
             => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
+        ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => this;
 #endif
 #pragma warning restore
 

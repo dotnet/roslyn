@@ -29,7 +29,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     /// <summary>
     /// Document editorconfig options.
     /// </summary>
-    private readonly AnalyzerConfigOptions _options;
+    private readonly IOptionsReader _options;
 
     /// <summary>
     /// C# language services.
@@ -41,7 +41,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     /// </summary>
     private readonly CodeActionOptionsProvider _fallbackOptions;
 
-    public CSharpCodeFixOptionsProvider(AnalyzerConfigOptions options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
+    public CSharpCodeFixOptionsProvider(IOptionsReader options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
     {
         _options = options;
         _fallbackOptions = fallbackOptions;
@@ -78,10 +78,10 @@ internal readonly struct CSharpCodeFixOptionsProvider
     public CodeStyleOption2<AccessibilityModifiersRequired> AccessibilityModifiersRequired => GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCodeStyleOptions.Common.AccessibilityModifiersRequired);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
+        => _options.GetOption(option, defaultValue);
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
+        => _options.GetOption(option, _languageServices.Language, defaultValue);
 
     private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
 #if CODE_STYLE
@@ -124,6 +124,6 @@ internal static class CSharpCodeFixOptionsProviders
     public static async ValueTask<CSharpCodeFixOptionsProvider> GetCSharpCodeFixOptionsProviderAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return new CSharpCodeFixOptionsProvider(configOptions, fallbackOptions, document.Project.GetExtendedLanguageServices());
+        return new CSharpCodeFixOptionsProvider(configOptions.GetOptionsReader(), fallbackOptions, document.Project.GetExtendedLanguageServices());
     }
 }

@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Selection_cannot_be_in_constructor_initializer">
         <source>Selection cannot be in constructor initializer</source>
-        <target state="new">Selection cannot be in constructor initializer</target>
+        <target state="translated">Zaznaczenie nie może znajdować się w inicjatorze konstruktora</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">

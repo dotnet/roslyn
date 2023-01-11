@@ -11033,39 +11033,37 @@ logged = 4
   // Code size       88 (0x58)
   .maxstack  5
   .locals init (T& V_0,
-            T V_1,
-            T& V_2,
-            T V_3,
-            DummyHandler V_4)
+                T V_1,
+                T& V_2,
+                DummyHandler V_3)
   IL_0000:  ldarga.s   V_0
   IL_0002:  stloc.2
-  IL_0003:  ldloca.s   V_3
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.3
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001e
-  IL_0013:  ldloc.2
-  IL_0014:  ldobj      ""T""
-  IL_0019:  stloc.1
-  IL_001a:  ldloca.s   V_1
-  IL_001c:  br.s       IL_001f
-  IL_001e:  ldloc.2
-  IL_001f:  stloc.0
-  IL_0020:  ldloc.0
-  IL_0021:  ldloca.s   V_4
-  IL_0023:  ldc.i4.4
-  IL_0024:  ldc.i4.1
-  IL_0025:  ldloc.0
-  IL_0026:  ldobj      ""T""
-  IL_002b:  box        ""T""
-  IL_0030:  call       ""DummyHandler..ctor(int, int, ILogger)""
-  IL_0035:  ldloca.s   V_4
-  IL_0037:  ldstr      ""log:""
-  IL_003c:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_0041:  ldloca.s   V_4
-  IL_0043:  ldc.i4.m1
-  IL_0044:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_0049:  ldloc.s    V_4
+  IL_0003:  ldtoken    ""T""
+  IL_0008:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000d:  call       ""bool System.Type.IsValueType.get""
+  IL_0012:  brtrue.s   IL_001f
+  IL_0014:  ldloc.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.2
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldc.i4.4
+  IL_0025:  ldc.i4.1
+  IL_0026:  ldloc.0
+  IL_0027:  ldobj      ""T""
+  IL_002c:  box        ""T""
+  IL_0031:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0036:  ldloca.s   V_3
+  IL_0038:  ldstr      ""log:""
+  IL_003d:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0042:  ldloca.s   V_3
+  IL_0044:  ldc.i4.m1
+  IL_0045:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_004a:  ldloc.3
   IL_004b:  constrained. ""T""
   IL_0051:  callvirt   ""void ILogger.Log(DummyHandler)""
   IL_0056:  ldarg.0
@@ -11110,39 +11108,37 @@ logged = 4
   // Code size       87 (0x57)
   .maxstack  5
   .locals init (T& V_0,
-            T V_1,
-            T& V_2,
-            T V_3,
-            DummyHandler V_4)
+                T V_1,
+                T& V_2,
+                DummyHandler V_3)
   IL_0000:  ldarg.0
   IL_0001:  stloc.2
-  IL_0002:  ldloca.s   V_3
-  IL_0004:  initobj    ""T""
-  IL_000a:  ldloc.3
-  IL_000b:  box        ""T""
-  IL_0010:  brtrue.s   IL_001d
-  IL_0012:  ldloc.2
-  IL_0013:  ldobj      ""T""
-  IL_0018:  stloc.1
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  br.s       IL_001e
-  IL_001d:  ldloc.2
-  IL_001e:  stloc.0
-  IL_001f:  ldloc.0
-  IL_0020:  ldloca.s   V_4
-  IL_0022:  ldc.i4.4
-  IL_0023:  ldc.i4.1
-  IL_0024:  ldloc.0
-  IL_0025:  ldobj      ""T""
-  IL_002a:  box        ""T""
-  IL_002f:  call       ""DummyHandler..ctor(int, int, ILogger)""
-  IL_0034:  ldloca.s   V_4
-  IL_0036:  ldstr      ""log:""
-  IL_003b:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_0040:  ldloca.s   V_4
-  IL_0042:  ldc.i4.s   -3
-  IL_0044:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_0049:  ldloc.s    V_4
+  IL_0002:  ldtoken    ""T""
+  IL_0007:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000c:  call       ""bool System.Type.IsValueType.get""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  ldc.i4.4
+  IL_0024:  ldc.i4.1
+  IL_0025:  ldloc.0
+  IL_0026:  ldobj      ""T""
+  IL_002b:  box        ""T""
+  IL_0030:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0035:  ldloca.s   V_3
+  IL_0037:  ldstr      ""log:""
+  IL_003c:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0041:  ldloca.s   V_3
+  IL_0043:  ldc.i4.s   -3
+  IL_0045:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_004a:  ldloc.3
   IL_004b:  constrained. ""T""
   IL_0051:  callvirt   ""void ILogger.Log(DummyHandler)""
   IL_0056:  ret
@@ -11287,18 +11283,16 @@ logged = 4
   // Code size      110 (0x6e)
   .maxstack  4
   .locals init (T& V_0,
-            T V_1,
-            T& V_2,
-            DummyHandler V_3,
-            T V_4,
-            DummyHandler V_5)
+                T V_1,
+                T& V_2,
+                DummyHandler V_3,
+                DummyHandler V_4)
   IL_0000:  ldarg.0
   IL_0001:  call       ""ref T Program.<<Main>$>g__get3|0_2<T>(ref T)""
   IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_4
-  IL_0009:  initobj    ""T""
-  IL_000f:  ldloc.s    V_4
-  IL_0011:  box        ""T""
+  IL_0007:  ldtoken    ""T""
+  IL_000c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0011:  call       ""bool System.Type.IsValueType.get""
   IL_0016:  brtrue.s   IL_0023
   IL_0018:  ldloc.2
   IL_0019:  ldobj      ""T""
@@ -11307,20 +11301,20 @@ logged = 4
   IL_0021:  br.s       IL_0024
   IL_0023:  ldloc.2
   IL_0024:  stloc.0
-  IL_0025:  ldloca.s   V_5
+  IL_0025:  ldloca.s   V_4
   IL_0027:  ldc.i4.4
   IL_0028:  ldc.i4.1
   IL_0029:  ldloc.0
   IL_002a:  ldobj      ""T""
   IL_002f:  box        ""T""
   IL_0034:  call       ""DummyHandler..ctor(int, int, ILogger)""
-  IL_0039:  ldloca.s   V_5
+  IL_0039:  ldloca.s   V_4
   IL_003b:  ldstr      ""log:""
   IL_0040:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_0045:  ldloca.s   V_5
+  IL_0045:  ldloca.s   V_4
   IL_0047:  ldc.i4.s   -3
   IL_0049:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_004e:  ldloc.s    V_5
+  IL_004e:  ldloc.s    V_4
   IL_0050:  stloc.3
   IL_0051:  ldloc.0
   IL_0052:  ldloc.3

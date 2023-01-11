@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         RefKind IParameterSymbol.RefKind => _underlying.RefKind;
 
-        ScopedKind IParameterSymbol.ScopedKind => _underlying.EffectiveScope.AsScopedKind();
+        ScopedKind IParameterSymbol.ScopedKind => _underlying.EffectiveScope;
 
         bool IParameterSymbol.IsDiscard => _underlying.IsDiscard;
 

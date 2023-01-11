@@ -5,8 +5,11 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle;
 
@@ -74,4 +77,43 @@ internal abstract class IdeCodeStyleOptions
     public static IdeCodeStyleOptions GetDefault(LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeStyleService>().DefaultOptions;
 #endif
+}
+
+internal static class IdeCodeStyleOptionsProviders
+{
+    public static IdeCodeStyleOptions.CommonOptions GetCommonCodeStyleOptions(this IOptionsReader options, string language, IdeCodeStyleOptions.CommonOptions? fallbackOptions)
+    {
+        fallbackOptions ??= IdeCodeStyleOptions.CommonOptions.Default;
+
+        return new()
+        {
+            PreferObjectInitializer = options.GetOption(CodeStyleOptions2.PreferObjectInitializer, language, fallbackOptions.PreferObjectInitializer),
+            PreferCollectionInitializer = options.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language, fallbackOptions.PreferCollectionInitializer),
+            PreferSimplifiedBooleanExpressions = options.GetOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, language, fallbackOptions.PreferSimplifiedBooleanExpressions),
+            OperatorPlacementWhenWrapping = options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.OperatorPlacementWhenWrapping),
+            PreferCoalesceExpression = options.GetOption(CodeStyleOptions2.PreferCoalesceExpression, language, fallbackOptions.PreferCoalesceExpression),
+            PreferNullPropagation = options.GetOption(CodeStyleOptions2.PreferNullPropagation, language, fallbackOptions.PreferNullPropagation),
+            PreferExplicitTupleNames = options.GetOption(CodeStyleOptions2.PreferExplicitTupleNames, language, fallbackOptions.PreferExplicitTupleNames),
+            PreferAutoProperties = options.GetOption(CodeStyleOptions2.PreferAutoProperties, language, fallbackOptions.PreferAutoProperties),
+            PreferInferredTupleNames = options.GetOption(CodeStyleOptions2.PreferInferredTupleNames, language, fallbackOptions.PreferInferredTupleNames),
+            PreferInferredAnonymousTypeMemberNames = options.GetOption(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, language, fallbackOptions.PreferInferredAnonymousTypeMemberNames),
+            PreferIsNullCheckOverReferenceEqualityMethod = options.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, language, fallbackOptions.PreferIsNullCheckOverReferenceEqualityMethod),
+            PreferConditionalExpressionOverAssignment = options.GetOption(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, language, fallbackOptions.PreferConditionalExpressionOverAssignment),
+            PreferConditionalExpressionOverReturn = options.GetOption(CodeStyleOptions2.PreferConditionalExpressionOverReturn, language, fallbackOptions.PreferConditionalExpressionOverReturn),
+            PreferCompoundAssignment = options.GetOption(CodeStyleOptions2.PreferCompoundAssignment, language, fallbackOptions.PreferCompoundAssignment),
+            PreferSimplifiedInterpolation = options.GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, language, fallbackOptions.PreferSimplifiedInterpolation),
+            UnusedParameters = options.GetOption(CodeStyleOptions2.UnusedParameters, language, fallbackOptions.UnusedParameters),
+            AccessibilityModifiersRequired = options.GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, language, fallbackOptions.AccessibilityModifiersRequired),
+            PreferReadonly = options.GetOption(CodeStyleOptions2.PreferReadonly, language, fallbackOptions.PreferReadonly),
+            ArithmeticBinaryParentheses = options.GetOption(CodeStyleOptions2.ArithmeticBinaryParentheses, language, fallbackOptions.ArithmeticBinaryParentheses),
+            OtherBinaryParentheses = options.GetOption(CodeStyleOptions2.OtherBinaryParentheses, language, fallbackOptions.OtherBinaryParentheses),
+            RelationalBinaryParentheses = options.GetOption(CodeStyleOptions2.RelationalBinaryParentheses, language, fallbackOptions.RelationalBinaryParentheses),
+            OtherParentheses = options.GetOption(CodeStyleOptions2.OtherParentheses, language, fallbackOptions.OtherParentheses),
+            ForEachExplicitCastInSource = options.GetOption(CodeStyleOptions2.ForEachExplicitCastInSource, fallbackOptions.ForEachExplicitCastInSource),
+            PreferNamespaceAndFolderMatchStructure = options.GetOption(CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure, language, fallbackOptions.PreferNamespaceAndFolderMatchStructure),
+            AllowMultipleBlankLines = options.GetOption(CodeStyleOptions2.AllowMultipleBlankLines, language, fallbackOptions.AllowMultipleBlankLines),
+            AllowStatementImmediatelyAfterBlock = options.GetOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, language, fallbackOptions.AllowStatementImmediatelyAfterBlock),
+            RemoveUnnecessarySuppressionExclusions = options.GetOption(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, fallbackOptions.RemoveUnnecessarySuppressionExclusions)
+        };
+    }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
@@ -166,16 +167,19 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly GeneratorRunStateTable.Builder GeneratorRunStateBuilder;
 
+        internal readonly ArrayBuilder<(string Key, string Value)> HostOutputBuilder;
+
         public IncrementalExecutionContext(DriverStateTable.Builder? tableBuilder, GeneratorRunStateTable.Builder generatorRunStateBuilder, AdditionalSourcesCollection sources)
         {
             TableBuilder = tableBuilder;
             GeneratorRunStateBuilder = generatorRunStateBuilder;
             Sources = sources;
+            HostOutputBuilder = ArrayBuilder<(string, string)>.GetInstance();
             Diagnostics = DiagnosticBag.GetInstance();
         }
 
-        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps) ToImmutableAndFree()
-                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree());
+        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps, ImmutableArray<(string Key, string Value)> hostOutputs) ToImmutableAndFree()
+                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree(), HostOutputBuilder.ToImmutableAndFree());
 
         internal void Free()
         {
