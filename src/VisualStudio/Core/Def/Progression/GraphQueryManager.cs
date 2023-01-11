@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// This gate locks manipulation of <see cref="_trackedQueries"/>.
         /// </summary>
         private readonly object _gate = new();
-        private readonly List<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)> _trackedQueries = new();
+        private ImmutableArray<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)> _trackedQueries = ImmutableArray<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)>.Empty;
 
         // We update all of our tracked queries when this delay elapses.
         private ResettableDelay? _delay;
@@ -69,12 +69,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             lock (_gate)
             {
-                if (_trackedQueries.IsEmpty())
-                {
+                if (_trackedQueries.IsEmpty)
                     _workspace.WorkspaceChanged += OnWorkspaceChanged;
-                }
 
-                _trackedQueries.Add(ValueTuple.Create(contextWeakReference, graphQueries));
+                _trackedQueries = _trackedQueries.Add(ValueTuple.Create(contextWeakReference, graphQueries));
             }
 
             EnqueueUpdateIfSolutionIsStale(solution);
@@ -114,10 +112,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private Task UpdateAsync()
         {
-            List<ValueTuple<IGraphContext, ImmutableArray<IGraphQuery>>> liveQueries;
+            ImmutableArray<ValueTuple<IGraphContext, ImmutableArray<IGraphQuery>>> liveQueries;
             lock (_gate)
             {
-                liveQueries = _trackedQueries.Select(t => (t.Item1.GetTarget(), t.Item2)).Where(t => t.Item1 != null).ToList()!;
+                liveQueries = _trackedQueries
+                    .SelectAsArray(t => (t.Item1.GetTarget(), t.Item2))
+                    .WhereAsArray(t => t.Item1 != null)!;
             }
 
             var solution = _workspace.CurrentSolution;
@@ -133,8 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             lock (_gate)
             {
                 // See if each context is still alive. It's possible it's already been GC'ed meaning we should stop caring about the query
-                _trackedQueries.RemoveAll(t => !IsTrackingContext(t.Item1));
-                if (_trackedQueries.IsEmpty())
+                _trackedQueries = _trackedQueries.RemoveAll(t => !IsTrackingContext(t.Item1));
+                if (_trackedQueries.IsEmpty)
                 {
                     _workspace.WorkspaceChanged -= OnWorkspaceChanged;
                     return;
