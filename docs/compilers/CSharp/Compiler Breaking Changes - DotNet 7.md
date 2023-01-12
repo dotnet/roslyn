@@ -9,7 +9,8 @@ Moving forward the `System.TypedReference` type is considered managed.
 ```csharp
 unsafe
 {
-    TypeReference* r = null; // warning: This takes the address of, gets the size of, or declares a pointer to a managed type
+    TypedReference* r = null; // warning: This takes the address of, gets the size of, or declares a pointer to a managed type
+    var a = stackalloc TypedReference[1]; // error: Cannot take the address of, get the size of, or declare a pointer to a managed type
 }
 ```
 
