@@ -667,17 +667,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected static bool IsConstantTrue(BoundExpression node)
         {
-            return node.ConstantValue == ConstantValue.True;
+            return node.ConstantValueOpt == ConstantValue.True;
         }
 
         protected static bool IsConstantFalse(BoundExpression node)
         {
-            return node.ConstantValue == ConstantValue.False;
+            return node.ConstantValueOpt == ConstantValue.False;
         }
 
         protected static bool IsConstantNull(BoundExpression node)
         {
-            return node.ConstantValue == ConstantValue.Null;
+            return node.ConstantValueOpt == ConstantValue.Null;
         }
 
         /// <summary>
@@ -1567,7 +1567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void SplitIfBooleanConstant(BoundExpression node)
         {
-            if (node.ConstantValue is { IsBoolean: true, BooleanValue: bool booleanValue })
+            if (node.ConstantValueOpt is { IsBoolean: true, BooleanValue: bool booleanValue })
             {
                 var unreachable = UnreachableState();
                 Split();
@@ -2380,7 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Meet(ref stateWhenNotNull, ref State);
                 }
 
-                var isNullConstant = binary.Right.ConstantValue?.IsNull == true;
+                var isNullConstant = binary.Right.ConstantValueOpt?.IsNull == true;
                 SetConditionalState(isNullConstant == isEquals(binary)
                     ? (State, stateWhenNotNull)
                     : (stateWhenNotNull, State));
@@ -2419,7 +2419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isKnownNullOrNotNull(BoundExpression expr)
             {
-                return expr.ConstantValue is object
+                return expr.ConstantValueOpt is object
                     || (expr is BoundConversion { ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable } conv
                         && conv.Operand.Type!.IsNonNullableValueType());
             }
@@ -2433,7 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // `true == a?.b(out x)`
                 if (isKnownNullOrNotNull(binary.Left) && TryVisitConditionalAccess(binary.Right, out var stateWhenNotNull))
                 {
-                    var isNullConstant = binary.Left.ConstantValue?.IsNull == true;
+                    var isNullConstant = binary.Left.ConstantValueOpt?.IsNull == true;
                     SetConditionalState(isNullConstant == isEquals(binary)
                         ? (State, stateWhenNotNull)
                         : (stateWhenNotNull, State));
@@ -2441,7 +2441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
                 // `a && b(out x) == true`
-                else if (IsConditionalState && binary.Right.ConstantValue is { IsBoolean: true } rightConstant)
+                else if (IsConditionalState && binary.Right.ConstantValueOpt is { IsBoolean: true } rightConstant)
                 {
                     var (stateWhenTrue, stateWhenFalse) = (StateWhenTrue.Clone(), StateWhenFalse.Clone());
                     Unsplit();
@@ -2453,7 +2453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
                 // `true == a && b(out x)`
-                else if (binary.Left.ConstantValue is { IsBoolean: true } leftConstant)
+                else if (binary.Left.ConstantValueOpt is { IsBoolean: true } leftConstant)
                 {
                     Unsplit();
                     Visit(binary.Right);
@@ -2739,7 +2739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     savedState = State.Clone();
                 }
 
-                if (node.LeftOperand.ConstantValue != null)
+                if (node.LeftOperand.ConstantValueOpt != null)
                 {
                     SetUnreachable();
                 }
@@ -2839,7 +2839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stateWhenNotNull = this.State.Clone();
             }
 
-            if (node.Receiver.ConstantValue != null && !IsConstantNull(node.Receiver))
+            if (node.Receiver.ConstantValueOpt != null && !IsConstantNull(node.Receiver))
             {
                 // Consider a scenario like `"a"?.M0(x = 1)?.M0(y = 1)`.
                 // We can "know" that `.M0(x = 1)` was evaluated unconditionally but not `M0(y = 1)`.
@@ -2927,6 +2927,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
+        {
+            var savedState = this.State.Clone();
+
+            VisitRvalue(node.ValueTypeReceiver);
+            Join(ref this.State, ref savedState);
+
+            savedState = this.State.Clone();
+            VisitRvalue(node.ReferenceTypeReceiver);
+            Join(ref this.State, ref savedState);
+
+            return null;
+        }
+
+        public override BoundNode VisitComplexReceiver(BoundComplexReceiver node)
         {
             var savedState = this.State.Clone();
 

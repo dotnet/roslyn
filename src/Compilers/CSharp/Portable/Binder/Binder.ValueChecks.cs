@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // constants/literals are strictly RValues
             // void is not even an RValue
-            if ((expr.ConstantValue != null) || (expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void))
+            if ((expr.ConstantValueOpt != null) || (expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void))
             {
                 Error(diagnostics, GetStandardLvalueError(valueKind), node);
                 return false;
@@ -2826,7 +2826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // constants/literals cannot ref-escape current scope
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return scopeOfTheContainingExpression;
             }
@@ -3070,7 +3070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // references to constants/literals cannot escape higher.
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
                 return false;
@@ -3378,7 +3378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // constants/literals cannot refer to local state
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return CallingMethodScope;
             }
@@ -3785,7 +3785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // constants/literals cannot refer to local state
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return true;
             }
@@ -4574,6 +4574,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         stackLocalsOpt));
                     Debug.Assert(HasHome(
                         ((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver,
+                        addressKind,
+                        containingSymbol,
+                        peVerifyCompatEnabled,
+                        stackLocalsOpt));
+                    goto case BoundKind.ConditionalReceiver;
+
+                case BoundKind.ComplexReceiver:
+                    Debug.Assert(HasHome(
+                        ((BoundComplexReceiver)expression).ValueTypeReceiver,
+                        addressKind,
+                        containingSymbol,
+                        peVerifyCompatEnabled,
+                        stackLocalsOpt));
+                    Debug.Assert(HasHome(
+                        ((BoundComplexReceiver)expression).ReferenceTypeReceiver,
                         addressKind,
                         containingSymbol,
                         peVerifyCompatEnabled,

@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.AddImport;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -112,24 +111,24 @@ internal interface CodeAndImportGenerationOptionsProvider :
 
 internal static class CodeGenerationOptionsProviders
 {
-    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions.CommonOptions? fallbackOptions)
+    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this IOptionsReader options, string language, CodeGenerationOptions.CommonOptions? fallbackOptions)
     {
         fallbackOptions ??= CodeGenerationOptions.CommonOptions.Default;
 
         return new()
         {
-            NamingStyle = options.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions.NamingStyle)
+            NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle)
         };
     }
 
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions, LanguageServices languageServices)
+    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(fallbackOptions, document.Project.Services);
+        return configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions);
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

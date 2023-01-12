@@ -309,6 +309,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool hasDefaultScope(bool useUpdatedEscapeRules, AnonymousTypeField field)
             {
+                if (field.HasUnscopedRefAttribute)
+                {
+                    return false;
+                }
                 return (field.Scope, ParameterHelpers.IsRefScopedByDefault(useUpdatedEscapeRules, field.RefKind)) switch
                 {
                     (ScopedKind.None, false) => true,

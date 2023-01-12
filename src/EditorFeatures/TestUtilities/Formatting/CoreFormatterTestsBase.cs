@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
 
             // Remove once https://github.com/dotnet/roslyn/issues/62204 is fixed:
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, document.Project.Language), indentStyle);
+            workspace.GlobalOptions.SetGlobalOption(IndentationOptionsStorage.SmartIndent, document.Project.Language, indentStyle);
 
             var snapshot = textBuffer.CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
             var formattingOptions = (options != null)
-                ? formattingService.GetFormattingOptions(options.ToAnalyzerConfigOptions(document.Project.Services), fallbackOptions: null)
+                ? formattingService.GetFormattingOptions(options, fallbackOptions: null)
                 : formattingService.DefaultOptions;
 
             var rules = formattingRuleProvider.CreateRule(documentSyntax, 0).Concat(Formatter.GetDefaultFormattingRules(document));
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         {
             using var workspace = new AdhocWorkspace();
             var formattingService = workspace.Services.GetLanguageServices(node.Language).GetRequiredService<ISyntaxFormattingService>();
-            var options = formattingService.GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty, fallbackOptions: null);
+            var options = formattingService.GetFormattingOptions(StructuredAnalyzerConfigOptions.Empty, fallbackOptions: null);
             var result = Formatter.Format(node, workspace.Services.SolutionServices, options, CancellationToken.None);
             var actual = result.GetText().ToString();
 

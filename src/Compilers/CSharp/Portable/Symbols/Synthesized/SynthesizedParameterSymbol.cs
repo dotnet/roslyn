@@ -181,6 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
+            if (this.HasUnscopedRefAttribute && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor));
+            }
+
             if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
@@ -206,8 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
         internal sealed override ScopedKind EffectiveScope => _scope;
-
-        internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => _container?.UseUpdatedEscapeRules ?? false;
     }
@@ -239,9 +242,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstantValue? defaultValue = null,
             ImmutableArray<CustomModifier> refCustomModifiers = default,
             SourceComplexParameterSymbolBase? baseParameterForAttributes = null,
-            bool isParams = false)
+            bool isParams = false,
+            bool hasUnscopedRefAttribute = false)
         {
-            if (!isParams && refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null && defaultValue is null)
+            if (!isParams
+                && refCustomModifiers.IsDefaultOrEmpty
+                && baseParameterForAttributes is null
+                && defaultValue is null
+                && !hasUnscopedRefAttribute)
             {
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, name);
             }
@@ -256,7 +264,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 name,
                 refCustomModifiers.NullToEmpty(),
                 baseParameterForAttributes,
-                isParams);
+                isParams: isParams,
+                hasUnscopedRefAttribute: hasUnscopedRefAttribute);
         }
 
         /// <summary>
@@ -298,6 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return null; }
         }
+
+        internal override bool HasUnscopedRefAttribute => false;
     }
 
     internal sealed class SynthesizedComplexParameterSymbol : SynthesizedParameterSymbolBase
@@ -308,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceComplexParameterSymbolBase? _baseParameterForAttributes;
         private readonly ConstantValue? _defaultValue;
         private readonly bool _isParams;
+        private readonly bool _hasUnscopedRefAttribute;
 
         public SynthesizedComplexParameterSymbol(
             MethodSymbol? container,
@@ -319,17 +331,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
             SourceComplexParameterSymbolBase? baseParameterForAttributes,
-            bool isParams)
+            bool isParams,
+            bool hasUnscopedRefAttribute)
             : base(container, type, ordinal, refKind, scope, name)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
-            Debug.Assert(isParams || !refCustomModifiers.IsEmpty || baseParameterForAttributes is object || defaultValue is not null);
+            Debug.Assert(isParams || !refCustomModifiers.IsEmpty || baseParameterForAttributes is object || defaultValue is not null || hasUnscopedRefAttribute);
             Debug.Assert(baseParameterForAttributes is null || baseParameterForAttributes.ExplicitDefaultConstantValue == defaultValue);
 
             _refCustomModifiers = refCustomModifiers;
             _baseParameterForAttributes = baseParameterForAttributes;
             _defaultValue = defaultValue;
             _isParams = isParams;
+            _hasUnscopedRefAttribute = hasUnscopedRefAttribute;
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -347,6 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
 
         public override bool IsParams => _isParams;
+
+        internal override bool HasUnscopedRefAttribute => _hasUnscopedRefAttribute;
 
         internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional ?? base.IsMetadataOptional;
 
