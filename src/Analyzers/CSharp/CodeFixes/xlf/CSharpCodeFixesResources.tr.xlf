@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Place_colon_on_following_line">
         <source>Place colon on following line</source>
-        <target state="translated">Aşağıdaki satıra iki noktayı yerleştirin</target>
+        <target state="new">Place colon on following line</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
