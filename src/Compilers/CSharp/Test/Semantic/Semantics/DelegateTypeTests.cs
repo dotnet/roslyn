@@ -10490,6 +10490,554 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred").WithArguments("arg1", "<anonymous delegate>").WithLocation(7, 1));
         }
 
+        [Fact]
+        public void SynthesizedDelegateTypes_MoreThan16Parameters_DefaultParameterValue()
+        {
+            var range = Enumerable.Range(1, 17);
+            var manyParams = string.Join(", ", range.Select(i => $"int p{i}"));
+            var manyTypes = string.Join(",", range.Select(_ => "System.Int32"));
+            var source = $$"""
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = ({{manyParams}} = 1) => { };
+                Report(lam1);
+                var lam2 = ({{manyParams}} = 1) => { };
+                Report(lam2);
+                var lam3 = ({{manyParams}} = 2) => { };
+                Report(lam3);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`17[{manyTypes}]
+                <>f__AnonymousDelegate0`17[{manyTypes}]
+                <>f__AnonymousDelegate1`17[{manyTypes}]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_MoreThan16Parameters_ParamsArray()
+        {
+            var range = Enumerable.Range(1, 16);
+            var manyParams = string.Join(", ", range.Select(i => $"int p{i}"));
+            var manyTypes = string.Join(",", range.Select(_ => "System.Int32"));
+            var source = $$"""
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = ({{manyParams}}, params int[] xs) => { };
+                Report(lam1);
+                var lam2 = ({{manyParams}}, params int[] xs) => { };
+                Report(lam2);
+                var lam3 = ({{manyParams}}, int[] xs) => { };
+                Report(lam3);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`17[{manyTypes},System.Int32]
+                <>f__AnonymousDelegate0`17[{manyTypes},System.Int32]
+                <>A`17[{manyTypes},System.Int32[]]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Pointer_DefaultParameterValue()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                unsafe
+                {
+                    var lam1 = (byte* a, int b = 1) => { };
+                    Report(lam1);
+                    var lam2 = (byte* x, int y = 1) => { };
+                    Report(lam2);
+                    var lam3 = (byte* a, int b = 2) => { };
+                    Report(lam3);
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: $"""
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate1
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Pointer_ParamsArray()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                unsafe
+                {
+                    var lam1 = (byte* a, params int[] bs) => { };
+                    Report(lam1);
+                    var lam2 = (byte* x, params int[] ys) => { };
+                    Report(lam2);
+                    var lam3 = (byte* a, int[] bs) => { };
+                    Report(lam3);
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: $"""
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate1
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_DefaultUnification()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (object o = null) => { };
+                Report(lam1);
+                var lam2 = (string s = null) => { };
+                Report(lam2);
+                var lam3 = (int? i = default) => { };
+                Report(lam3);
+                var lam4 = (S1 s1 = default) => { };
+                Report(lam4);
+                var lam5 = (S2 s2 = default) => { };
+                Report(lam5);
+                var lam6 = (C c = default) => { };
+                Report(lam6);
+                var lam7 = (I i = default) => { };
+                Report(lam7);
+                var lam8 = (int i = default) => { };
+                Report(lam8);
+
+                public struct S1 { public int X; }
+                public struct S2 { public int Y; }
+                public class C { }
+                public interface I { }
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Object]
+                <>f__AnonymousDelegate0`1[System.String]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Int32]]
+                <>f__AnonymousDelegate0`1[S1]
+                <>f__AnonymousDelegate0`1[S2]
+                <>f__AnonymousDelegate0`1[C]
+                <>f__AnonymousDelegate0`1[I]
+                <>f__AnonymousDelegate1`1[System.Int32]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_IntNullableUnification()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (int a = 1) => { };
+                Report(lam1);
+                var lam2 = (int? b = 1) => { };
+                Report(lam2);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Int32]]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_StringUnification()
+        {
+            var source = """
+                using System;
+                using System.Runtime.InteropServices;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (string a = "") => { };
+                Report(lam1);
+                var lam2 = (string b = null) => { };
+                Report(lam2);
+                var lam3 = (string c = "abc") => { };
+                Report(lam3);
+                var lam4 = (string d = "a" + "bc") => { };
+                Report(lam4);
+                var lam5 = ([Optional, DefaultParameterValue("abc")] object o) => { };
+                Report(lam5);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.String]
+                <>f__AnonymousDelegate1`1[System.String]
+                <>f__AnonymousDelegate2`1[System.String]
+                <>f__AnonymousDelegate2`1[System.String]
+                <>f__AnonymousDelegate2`1[System.Object]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_DifferentElementTypes()
+        {
+            var source = """
+                using System;
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                var lam1 = (params int[] xs) => { };
+                Report(lam1);
+                var lam2 = (params string[] ys) => { };
+                Report(lam2);
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.String]
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_NonArrayTypeInMetadata()
+        {
+            /*
+                public static class C
+                {
+                    public static void M(params int x) { }
+                }
+             */
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit C
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            int32 x
+                        ) cil managed 
+                    {
+                        .param [1]
+                            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x20a2
+                        // Code size 2 (0x2)
+                        .maxstack 8
+
+                        IL_0000: nop
+                        IL_0001: ret
+                    } // end of method C::M
+
+                } // end of class C
+                """;
+            var source = """
+                var m = C.M;
+                System.Console.WriteLine(m.GetType());
+                """;
+            var comp = CreateCompilationWithIL(source, ilSource).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "System.Action`1[System.Int32]");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_NotLastInMetadata()
+        {
+            /*
+                public static class C
+                {
+                    public static void M(params int[] x, int y) { }
+                }
+             */
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit C
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            int32[] x,
+                            int32 y
+                        ) cil managed 
+                    {
+                        .param [1]
+                            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x20a2
+                        // Code size 2 (0x2)
+                        .maxstack 8
+
+                        IL_0000: nop
+                        IL_0001: ret
+                    } // end of method C::M
+
+                } // end of class C
+                """;
+            var source = """
+                var m = C.M;
+                System.Console.WriteLine(m.GetType());
+                """;
+            var comp = CreateCompilationWithIL(source, ilSource).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "System.Action`2[System.Int32[],System.Int32]");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_01()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static ref int F(ref int x, [UnscopedRef] ref int y) => ref x;
+                    static void Main()
+                    {
+                        var d = F;
+                        Report(d);
+                    }
+                    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput:
+                """
+                <>f__AnonymousDelegate0
+                """);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+                """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                    extends [System.Runtime]System.MulticastDelegate
+                {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor (
+                            object 'object',
+                            native int 'method'
+                        ) runtime managed 
+                    {
+                    } // end of method '<>f__AnonymousDelegate0'::.ctor
+                    .method public hidebysig newslot virtual 
+                        instance int32& Invoke (
+                            int32& arg1,
+                            int32& arg2
+                        ) runtime managed 
+                    {
+                        .param [2]
+                            .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                    } // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_02()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var d = ([UnscopedRef] ref int x, ref int y) => ref x;
+                        Report(d);
+                    }
+                    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput:
+                """
+                <>f__AnonymousDelegate0
+                """);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+                """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                    extends [System.Runtime]System.MulticastDelegate
+                {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor (
+                            object 'object',
+                            native int 'method'
+                        ) runtime managed 
+                    {
+                    } // end of method '<>f__AnonymousDelegate0'::.ctor
+                    .method public hidebysig newslot virtual 
+                        instance int32& Invoke (
+                            int32& arg1,
+                            int32& arg2
+                        ) runtime managed 
+                    {
+                        .param [1]
+                            .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                    } // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_03()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static ref int F1(ref int x, ref int y) => ref x;
+                    static ref int F2(ref int x, [UnscopedRef] ref int y) => ref x;
+                    static ref int F3([UnscopedRef] ref int x, ref int y) => ref x;
+                    static void Main()
+                    {
+                        var d1 = F1;
+                        var d2 = F2;
+                        var d3 = F3;
+                        var d4 = ([UnscopedRef] ref int x, ref int y) => ref x;
+                        var d5 = (ref int x, [UnscopedRef] ref int y) => ref x;
+                        var d6 = (ref int x, ref int y) => ref x;
+                        Report(d1);
+                        Report(d2);
+                        Report(d3);
+                        Report(d4);
+                        Report(d5);
+                        Report(d6);
+                    }
+                    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput:
+                """
+                <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate1
+                <>f__AnonymousDelegate1
+                <>f__AnonymousDelegate0
+                <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingType()
+        {
+            var attributeAssemblyName = GetUniqueName();
+            var comp = CreateCompilation(UnscopedRefAttributeDefinition, targetFramework: TargetFramework.Net60, assemblyName: attributeAssemblyName);
+            var refAttribute = comp.EmitToImageReference();
+
+            string sourceA = """
+                using System.Diagnostics.CodeAnalysis;
+                public class A
+                {
+                    public static ref int F([UnscopedRef] ref int i) => ref i;
+                }
+                """;
+
+            comp = CreateCompilation(sourceA, references: new[] { refAttribute }, targetFramework: TargetFramework.Net60);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int i = 0;
+                        var d = A.F;
+                        d(ref i);
+                    }
+                }
+                """;
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net60);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.UnscopedRefAttribute..ctor'
+                //         var d = A.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "A.F").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(6, 17));
+
+            comp = CreateCompilation(sourceB, references: new[] { refA, refAttribute }, targetFramework: TargetFramework.Net60);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+                $$"""
+                    .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                        extends [System.Runtime]System.MulticastDelegate
+                    {
+                        .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Methods
+                        .method public hidebysig specialname rtspecialname
+                            instance void .ctor (
+                                object 'object',
+                                native int 'method'
+                            ) runtime managed
+                        {
+                        } // end of method '<>f__AnonymousDelegate0'::.ctor
+                        .method public hidebysig newslot virtual
+                            instance int32& Invoke (
+                                int32& arg
+                            ) runtime managed
+                        {
+                            .param [1]
+                                .custom instance void ['{{attributeAssemblyName}}']System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (
+                                    01 00 00 00
+                                )
+                        } // end of method '<>f__AnonymousDelegate0'::Invoke
+                    } // end of class <>f__AnonymousDelegate0
+                    """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_01()
+        {
+            string sourceA = """
+                using System.Diagnostics.CodeAnalysis;
+                public class A
+                {
+                    public static ref int F(int x, [UnscopedRef] ref int y) => ref y;
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net70);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int i = 0;
+                        var d = A.F;
+                        d(0, ref i);
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.UnscopedRefAttribute..ctor'
+                //         var d = A.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "A.F").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(6, 17));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_02()
+        {
+            string source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var d = (ref int x, [UnscopedRef] ref int y) => ref y;
+                        Console.WriteLine(d);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (7,51): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.UnscopedRefAttribute..ctor'
+                //         var d = (ref int x, [UnscopedRef] ref int y) => ref y;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "y").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(7, 51));
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
@@ -11807,7 +12355,7 @@ class Program
 
             var expectAnonymousDelegateIL =
 $@"
-.class private auto ansi sealed '<>f__AnonymousDelegate0'
+.class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, TResult>
 	extends [{s_libPrefix}]System.MulticastDelegate
 {{
 	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11820,15 +12368,15 @@ $@"
 			native int 'method'
 		) runtime managed 
 	{{
-	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	}} // end of method '<>f__AnonymousDelegate0`2'::.ctor
 	.method public hidebysig newslot virtual 
-		instance int32 Invoke (
-			[opt] int32 arg
+		instance !TResult Invoke (
+			[opt] !T1 arg
 		) runtime managed 
 	{{
 		.param [1] = int32(30)
-	}} // end of method '<>f__AnonymousDelegate0'::Invoke
-}} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+}} // end of class <>f__AnonymousDelegate0`2
 ";
 
             var expectLoweredClosureContainerIL =
@@ -11841,7 +12389,7 @@ $@"
     )
     // Fields
     .field public static initonly class Program/'<>c' '<>9'
-    .field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+    .field public static class '<>f__AnonymousDelegate0`2'<int32, int32> '<>9__1_0'
     // Methods
     .method private hidebysig specialname rtspecialname static 
         void .cctor () cil managed 
@@ -11880,8 +12428,8 @@ $@"
 
             var verifier = CompileAndVerify(source, expectedOutput:
 @"30 10
-<>f__AnonymousDelegate0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", expectAnonymousDelegateIL);
             verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
         }
 
@@ -11901,7 +12449,7 @@ class Program
     }
 }
 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "7 <>f__AnonymousDelegate0");
+            var verifier = CompileAndVerify(source, expectedOutput: "7 <>f__AnonymousDelegate0`4[System.Int32,System.Int32,System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -11922,7 +12470,7 @@ class Program
 """;
             var expectAnonymousDelegateIL =
 $@"
-.class private auto ansi sealed '<>f__AnonymousDelegate0'
+.class private auto ansi sealed '<>f__AnonymousDelegate0`4'<T1, T2, T3, TResult>
 	extends [{s_libPrefix}]System.MulticastDelegate
 {{
 	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11935,18 +12483,18 @@ $@"
 			native int 'method'
 		) runtime managed 
 	{{
-	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	}} // end of method '<>f__AnonymousDelegate0`4'::.ctor
 	.method public hidebysig newslot virtual 
-		instance string Invoke (
-			string arg1,
-			[opt] string arg2,
-			[opt] string arg3
+		instance !TResult Invoke (
+			!T1 arg1,
+			[opt] !T2 arg2,
+			[opt] !T3 arg3
 		) runtime managed 
 	{{
 		.param [2] = ""b""
 		.param [3] = ""c""
-	}} // end of method '<>f__AnonymousDelegate0'::Invoke
-}} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0`4'::Invoke
+}} // end of class <>f__AnonymousDelegate0`4
 ";
 
             var expectLoweredClosureContainerIL =
@@ -11959,7 +12507,7 @@ $@"
 	)
 	// Fields
 	.field public static initonly class Program/'<>c' '<>9'
-	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	.field public static class '<>f__AnonymousDelegate0`4'<string, string, string, string> '<>9__1_0'
 	// Methods
 	.method private hidebysig specialname rtspecialname static 
 		void .cctor () cil managed 
@@ -12002,8 +12550,8 @@ $@"
 }} // end of class <>c
 ";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "abc <>f__AnonymousDelegate0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            var verifier = CompileAndVerify(source, expectedOutput: "abc <>f__AnonymousDelegate0`4[System.String,System.String,System.String,System.String]");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`4", expectAnonymousDelegateIL);
             verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
         }
 
@@ -12026,8 +12574,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1
+@"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate1`2[System.Int32,System.Int32]
 ");
         }
 
@@ -12050,8 +12598,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
- @"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate0");
+ @"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -12073,7 +12621,7 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
+@"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
 System.Func`2[System.Int32,System.Int32]
 ");
 
@@ -12097,11 +12645,9 @@ class Program
     }
 }
 """;
-
-            // Emit only one templated delegate type? https://github.com/dotnet/roslyn/issues/65213
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1");
+@"<>f__AnonymousDelegate0`2[System.Double,System.Int32]
+<>f__AnonymousDelegate0`2[System.String,System.Int32]");
         }
 
         [Fact]
@@ -12399,7 +12945,7 @@ class Program
     """;
             var expectAnonymousDelegateIL =
 $@"
-    .class private auto ansi sealed '<>f__AnonymousDelegate0'
+    .class private auto ansi sealed '<>f__AnonymousDelegate0`3'<T1, T2, T3>
 	extends [{s_libPrefix}]System.MulticastDelegate
 {{
 	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -12412,17 +12958,17 @@ $@"
 			native int 'method'
 		) runtime managed 
 	{{
-	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	}} // end of method '<>f__AnonymousDelegate0`3'::.ctor
 	.method public hidebysig newslot virtual 
 		instance void Invoke (
-			int32& arg1,
-			[out] int32& arg2,
-			[opt] int32 arg3
+			!T1& arg1,
+			[out] !T2& arg2,
+			[opt] !T3 arg3
 		) runtime managed 
 	{{
 		.param [3] = int32(3)
-	}} // end of method '<>f__AnonymousDelegate0'::Invoke
-}} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0`3'::Invoke
+}} // end of class <>f__AnonymousDelegate0`3
 ";
 
             var expectLoweredClosureContainerIL =
@@ -12435,7 +12981,7 @@ $@"
 	)
 	// Fields
 	.field public static initonly class Program/'<>c' '<>9'
-	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	.field public static class '<>f__AnonymousDelegate0`3'<int32, int32, int32> '<>9__1_0'
 	// Methods
 	.method private hidebysig specialname rtspecialname static 
 		void .cctor () cil managed 
@@ -12482,8 +13028,8 @@ $@"
             var verifier = CompileAndVerify(source, expectedOutput:
  @"12
 29
-<>f__AnonymousDelegate0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+<>f__AnonymousDelegate0`3[System.Int32,System.Int32,System.Int32]");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`3", expectAnonymousDelegateIL);
             verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
         }
 
@@ -12565,8 +13111,8 @@ class Program
 }
 """;
             var verifier = CompileAndVerify(source, expectedOutput: "file::member:0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`3", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`3'<T1, T2, T3>
                 	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
                 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -12579,19 +13125,19 @@ class Program
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`3'::.ctor
                 	.method public hidebysig newslot virtual 
                 		instance void Invoke (
-                			[opt] string arg1,
-                			[opt] string arg2,
-                			[opt] int32 arg3
+                			[opt] !T1 arg1,
+                			[opt] !T2 arg2,
+                			[opt] !T3 arg3
                 		) runtime managed 
                 	{
                 		.param [1] = "member"
                 		.param [2] = "file"
                 		.param [3] = int32(0)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`3'::Invoke
+                } // end of class <>f__AnonymousDelegate0`3
                 """);
         }
 
@@ -12614,8 +13160,8 @@ class Program
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net60,
                 verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
                 expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, T2>
                 	extends [System.Runtime]System.MulticastDelegate
                 {
                 	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -12628,16 +13174,16 @@ class Program
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`2'::.ctor
                 	.method public hidebysig newslot virtual 
                 		instance void Invoke (
-                			int32 arg1,
-                			[opt] string arg2
+                			!T1 arg1,
+                			[opt] !T2 arg2
                 		) runtime managed 
                 	{
                 		.param [2] = "callerArgExpression"
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+                } // end of class <>f__AnonymousDelegate0`2
                 """);
         }
 
@@ -12734,7 +13280,7 @@ class Program
 
             CompileAndVerify(source, expectedOutput:
 @"1
-<>f__AnonymousDelegate0");
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -12803,8 +13349,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate0");
+@"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -12838,8 +13384,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1");
+@"<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate1`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -13119,8 +13665,8 @@ public class Program
 
             // ILVerify: Unrecognized arguments for delegate .ctor.
             CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1
+@"<>f__AnonymousDelegate0`4[Program,System.String,System.Int64,System.String]
+<>f__AnonymousDelegate1`3[System.String,System.Int64,System.String]
 20 b 1
 10 b 1");
         }
@@ -13572,13 +14118,13 @@ class Program
 }
 """;
             var verifier = CompileAndVerify(source, expectedOutput:
-@"3
+@" 3
 3
 3
-<>f__AnonymousDelegate0
-<>f__AnonymousDelegate0").VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate0`2[System.Int32,System.Int32]").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, TResult>
                 	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
                 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -13591,15 +14137,15 @@ class Program
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`2'::.ctor
                 	.method public hidebysig newslot virtual 
-                		instance int32 Invoke (
-                			[opt] int32 arg
+                		instance !TResult Invoke (
+                			[opt] !T1 arg
                 		) runtime managed 
                 	{
                 		.param [1] = int32(3)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+                } // end of class <>f__AnonymousDelegate0`2
                 """);
         }
 
@@ -13650,10 +14196,10 @@ class Program
                 static void Report(object obj) => System.Console.WriteLine(obj.GetType());
                 """;
             CompileAndVerify(source, expectedOutput: """
-                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
                 System.Func`2[System.Int32,System.Int32]
                 System.Func`2[System.Int32,System.Int32]
-                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
                 """).VerifyDiagnostics();
         }
 
@@ -13703,9 +14249,9 @@ class Program
 }
 """;
             var verifier = CompileAndVerify(source, expectedOutput: "");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1",
 $$"""
-.class private auto ansi sealed '<>f__AnonymousDelegate0'
+.class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
 	extends [{{s_libPrefix}}]System.MulticastDelegate
 {
 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -13718,19 +14264,63 @@ $$"""
 			native int 'method'
 		) runtime managed 
 	{
-	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	} // end of method '<>f__AnonymousDelegate0`1'::.ctor
 	.method public hidebysig newslot virtual 
 		instance void Invoke (
-			[opt] object arg
+			[opt] !T1 arg
 		) runtime managed 
 	{
 		.param [1] = nullref
-			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
-				01 00 00 00
-			)
-	} // end of method '<>f__AnonymousDelegate0'::Invoke
-} // end of class <>f__AnonymousDelegate0
+	} // end of method '<>f__AnonymousDelegate0`1'::Invoke
+} // end of class <>f__AnonymousDelegate0`1
 """);
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0`1'<object> '<>9__0_0'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x208d
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2085
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<Main>b__0_0' (
+                			[opt] object d
+                		) cil managed 
+                	{
+                		.param [1] = nullref
+                			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                		// Method begins at RVA 0x2099
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<Main>b__0_0'
+                } // end of class <>c
+                """);
         }
 
         [Fact]
@@ -13854,8 +14444,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0`1[System.String]
-<>f__AnonymousDelegate0`1[System.String]").VerifyDiagnostics();
+@"<>f__AnonymousDelegate0`3[System.Int32,System.String,System.String]
+<>f__AnonymousDelegate0`3[System.Int32,System.String,System.String]").VerifyDiagnostics();
         }
 
         [Fact]
@@ -13899,12 +14489,587 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate0
+@"<>f__AnonymousDelegate0`2[System.Decimal,System.Decimal]
+<>f__AnonymousDelegate0`2[System.Decimal,System.Decimal]
 100
 100
 5
 5").VerifyDiagnostics();
+        }
+
+        // delegate void <>f__AnonymousDelegate0<T1>([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] T1 d)
+        // (the decimal constant is equivalent to 1.1m)
+        private static readonly string s_anonymousDelegateWithDecimalConstant = $$"""
+            .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
+                extends [{{s_libPrefix}}]System.MulticastDelegate
+            {
+                .custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                	01 00 00 00
+                )
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                	instance void .ctor (
+                		object 'object',
+                		native int 'method'
+                	) runtime managed 
+                {
+                } // end of method '<>f__AnonymousDelegate0`1'::.ctor
+                .method public hidebysig newslot virtual 
+                	instance void Invoke (
+                		[opt] !T1 arg
+                	) runtime managed 
+                {
+                	.param [1]
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                			01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                			00 00
+                		)
+                } // end of method '<>f__AnonymousDelegate0`1'::Invoke
+            } // end of class <>f__AnonymousDelegate0`1
+            """;
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_Decimal_Lambda_DelegateIL()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+
+                var lam1 = (decimal d = 1.1m) => {};
+                Report(lam1);
+                var lam2 = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) => {};
+                Report(lam2);
+                var lam3 = ([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d = 1.1m) => {};
+                Report(lam3);
+                var lam4 = ([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) => {};
+                Report(lam4);
+                var lam5 = (decimal? d = 1.1m) => {};
+                Report(lam5);
+                var lam6 = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) => {};
+                Report(lam6);
+                var lam7 = ([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d = 1.1m) => {};
+                Report(lam7);
+                var lam8 = ([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) => {};
+                Report(lam8);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                System.Action`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                System.Action`1[System.Nullable`1[System.Decimal]]
+                """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_Decimal_Lambda_ClosureIL()
+        {
+            var source = """
+                var lam1 = (decimal d = 1.1m) => {};
+                var lam2 = (decimal? d = 1.1m) => {};
+                """;
+            var verifier = CompileAndVerify(source).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0`1'<valuetype [{{s_libPrefix}}]System.Decimal> '<>9__0_0'
+                	.field public static class '<>f__AnonymousDelegate0`1'<valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal>> '<>9__0_1'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x20a9
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x20a1
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_0' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Decimal d
+                		) cil managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                		// Method begins at RVA 0x20b5
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_0'
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_1' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> d
+                		) cil managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                		// Method begins at RVA 0x20b5
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_1'
+                } // end of class <>c
+                """);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_Decimal_LocalFunction_DelegateIL()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+                static void Report(System.Delegate obj) => System.Console.WriteLine(obj.GetType());
+
+                void local1(decimal d = 1.1m) {}
+                Report(local1);
+                void local2([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) {}
+                Report(local2);
+                void local3([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d = 1.1m) {}
+                Report(local3);
+                void local4([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) {}
+                Report(local4);
+                void local5(decimal? d = 1.1m) {}
+                Report(local5);
+                void local6([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) {}
+                Report(local6);
+                void local7([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d = 1.1m) {}
+                Report(local7);
+                void local8([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) {}
+                Report(local8);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                System.Action`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                System.Action`1[System.Nullable`1[System.Decimal]]
+                """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_Decimal_LocalFunction_ClosureIL()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+
+                void local1(decimal d = 1.1m) {}
+                void local2(decimal? d = 1.1m) {}
+                """;
+            var verifier = CompileAndVerify(source).VerifyDiagnostics();
+            verifier.VerifyTypeIL("Program", $$"""
+                .class private auto ansi beforefieldinit Program
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method private hidebysig static 
+                		void '<Main>$' (
+                			string[] args
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		.entrypoint
+                		IL_0000: ret
+                	} // end of method Program::'<Main>$'
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2069
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method Program::.ctor
+                	.method assembly hidebysig static 
+                		void '<<Main>$>g__local1|0_0' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Decimal d
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method Program::'<<Main>$>g__local1|0_0'
+                	.method assembly hidebysig static 
+                		void '<<Main>$>g__local2|0_1' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> d
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DecimalConstantAttribute::.ctor(uint8, uint8, uint32, uint32, uint32) = (
+                				01 00 01 00 00 00 00 00 00 00 00 00 0b 00 00 00
+                				00 00
+                			)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method Program::'<<Main>$>g__local2|0_1'
+                } // end of class Program
+                """);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_Decimal_MethodGroup()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+
+                var m1 = C.M1;
+                Report(m1);
+                var m2 = C.M2;
+                Report(m2);
+                var m3 = C.M3;
+                Report(m3);
+                var m4 = C.M4;
+                Report(m4);
+                var m5 = C.M5;
+                Report(m5);
+                var m6 = C.M6;
+                Report(m6);
+                var m7 = C.M7;
+                Report(m7);
+                var m8 = C.M8;
+                Report(m8);
+
+                class C
+                {
+                    public static void M1(decimal d = 1.1m) {}
+                    public static void M2([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) {}
+                    public static void M3([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d = 1.1m) {}
+                    public static void M4([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal d) {}
+                    public static void M5(decimal? d = 1.1m) {}
+                    public static void M6([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) {}
+                    public static void M7([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d = 1.1m) {}
+                    public static void M8([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal? d) {}
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Decimal]
+                System.Action`1[System.Decimal]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.Decimal]]
+                System.Action`1[System.Nullable`1[System.Decimal]]
+                """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDecimalConstant);
+        }
+
+        // delegate void <>f__AnonymousDelegate0<T1>([Optional, DateTimeConstant(100L)] T1 d)
+        private static readonly string s_anonymousDelegateWithDateTimeConstant = $$"""
+            .class private auto ansi sealed '<>f__AnonymousDelegate0`1'<T1>
+                extends [{{s_libPrefix}}]System.MulticastDelegate
+            {
+                .custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                	01 00 00 00
+                )
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                	instance void .ctor (
+                		object 'object',
+                		native int 'method'
+                	) runtime managed 
+                {
+                } // end of method '<>f__AnonymousDelegate0`1'::.ctor
+                .method public hidebysig newslot virtual 
+                	instance void Invoke (
+                		[opt] !T1 arg
+                	) runtime managed 
+                {
+                	.param [1]
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
+                			01 00 64 00 00 00 00 00 00 00 00 00
+                		)
+                } // end of method '<>f__AnonymousDelegate0`1'::Invoke
+            } // end of class <>f__AnonymousDelegate0`1
+            """;
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_DateTime_Lambda_DelegateIL()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+
+                var lam1 = ([Optional, DateTimeConstant(100L)] DateTime d) => {};
+                Report(lam1);
+                var lam2 = ([Optional, DateTimeConstant(100L)] DateTime? d) => {};
+                Report(lam2);
+                var lam3 = ([DateTimeConstant(100L)] DateTime d) => {};
+                Report(lam3);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.DateTime]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.DateTime]]
+                System.Action`1[System.DateTime]
+                """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDateTimeConstant);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_DateTime_Lambda_ClosureIL()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                var lam1 = ([Optional, DateTimeConstant(100L)] DateTime d) => {};
+                var lam2 = ([Optional, DateTimeConstant(100L)] DateTime? d) => {};
+                """;
+            var verifier = CompileAndVerify(source).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0`1'<valuetype [{{s_libPrefix}}]System.DateTime> '<>9__0_0'
+                	.field public static class '<>f__AnonymousDelegate0`1'<valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.DateTime>> '<>9__0_1'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x20a9
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x20a1
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_0' (
+                			[opt] valuetype [{{s_libPrefix}}]System.DateTime d
+                		) cil managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
+                				01 00 64 00 00 00 00 00 00 00 00 00
+                			)
+                		// Method begins at RVA 0x20b5
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_0'
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_1' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.DateTime> d
+                		) cil managed 
+                	{
+                		.param [1]
+                			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
+                				01 00 64 00 00 00 00 00 00 00 00 00
+                			)
+                		// Method begins at RVA 0x20b5
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_1'
+                } // end of class <>c
+                """);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_DateTime_LocalFunction_DelegateIL()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+                static void Report(Delegate obj) => System.Console.WriteLine(obj.GetType());
+
+                void local1([Optional, DateTimeConstant(100L)] DateTime d) {}
+                Report(local1);
+                void local2([Optional, DateTimeConstant(100L)] DateTime? d) {}
+                Report(local2);
+                void local3([DateTimeConstant(100L)] DateTime d) {}
+                Report(local3);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.DateTime]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.DateTime]]
+                System.Action`1[System.DateTime]
+                """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDateTimeConstant);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_DateTime_LocalFunction_ClosureIL()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                #pragma warning disable CS8321 // The local function is declared but never used
+                
+                void local1([Optional, DateTimeConstant(100L)] DateTime d) {}
+                void local2([Optional, DateTimeConstant(100L)] DateTime? d) {}
+                """;
+            var verifier = CompileAndVerify(source).VerifyDiagnostics();
+            verifier.VerifyTypeIL("Program", $$"""
+                .class private auto ansi beforefieldinit Program
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method private hidebysig static 
+                		void '<Main>$' (
+                			string[] args
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		.entrypoint
+                		IL_0000: ret
+                	} // end of method Program::'<Main>$'
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2069
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method Program::.ctor
+                	.method assembly hidebysig static 
+                		void '<<Main>$>g__local1|0_0' (
+                			[opt] valuetype [{{s_libPrefix}}]System.DateTime d
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                 		.param [1]
+                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
+                 				01 00 64 00 00 00 00 00 00 00 00 00
+                 			)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method Program::'<<Main>$>g__local1|0_0'
+                	.method assembly hidebysig static 
+                		void '<<Main>$>g__local2|0_1' (
+                			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.DateTime> d
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                 		.param [1]
+                 			.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
+                 				01 00 64 00 00 00 00 00 00 00 00 00
+                 			)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method Program::'<<Main>$>g__local2|0_1'
+                } // end of class Program
+                """);
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void DefaultParameterValue_DateTime_MethodGroup()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+
+                var m1 = C.M1;
+                Report(m1);
+                var m2 = C.M2;
+                Report(m2);
+                var m3 = C.M3;
+                Report(m3);
+
+                public class C
+                {
+                    public static void M1([Optional, DateTimeConstant(100L)] DateTime d) {}
+                    public static void M2([Optional, DateTimeConstant(100L)] DateTime? d) {}
+                    public static void M3([DateTimeConstant(100L)] DateTime d) {}
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.DateTime]
+                <>f__AnonymousDelegate0`1[System.Nullable`1[System.DateTime]]
+                System.Action`1[System.DateTime]
+                """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`1", s_anonymousDelegateWithDateTimeConstant);
         }
 
         [Fact]
@@ -13935,7 +15100,7 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0[]").VerifyDiagnostics();
+@"<>f__AnonymousDelegate0`1[System.Int32][]").VerifyDiagnostics();
         }
 
         [Fact]
@@ -13957,8 +15122,8 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput:
-$@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
-{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
+$@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,System.Int32]]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0`2[System.Int32,System.Int32]]]").VerifyDiagnostics();
         }
 
         [Fact]
@@ -13990,6 +15155,654 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 // (2,24): error CS0518: Predefined type 'System.Decimal' is not defined or imported
                 // var lam2 = (object d = 2m) => d;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "2m").WithArguments("System.Decimal").WithLocation(2, 24));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda(string type)
+        {
+            var source = $$"""
+                var lam = ({{type}} d = 1.1m) => { };
+                var lam2 = lam;
+                """;
+
+            var diagnostics = new[]
+            {
+                // (1,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var lam = (decimal  d = 1.1m) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 25)
+            };
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_AsArgument(string type)
+        {
+            var source = $$"""
+                TakeDelegate(({{type}} d = 1.1m) => { });
+
+                static void TakeDelegate(System.Delegate d) { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (1,28): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // TakeDelegate((decimal  d = 1.1m) => { });
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 28));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_AsGenericArgument(string type)
+        {
+            var source = $$"""
+                TakeDelegate(({{type}} d = 1.1m) => { });
+
+                static void TakeDelegate<T>(T d) where T : System.Delegate { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (1,28): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // TakeDelegate((decimal  d = 1.1m) => { });
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 28));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_CustomType(string type)
+        {
+            var source = $$"""
+                Del lam = ({{type}} d = 1.1m) => { };
+
+                delegate void Del({{type}} d = 1.1m);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (1,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // Del lam = (decimal  d = 1.1m) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 25),
+                // (3,32): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // delegate void Del(decimal  d = 1.1m);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 32));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal", "System.Decimal")]
+        [InlineData("decimal?", "System.Nullable`1[System.Decimal]")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_Alone(string type, string typeFullName)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                var lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
+                System.Console.WriteLine(lam.GetType());
+                var lam2 = lam;
+                System.Console.WriteLine(lam2.GetType());
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            CompileAndVerify(comp, expectedOutput: $"""
+                System.Action`1[{typeFullName}]
+                System.Action`1[{typeFullName}]
+                """).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_Alone_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                Del lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
+
+                delegate void Del([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithOptional(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                var lam = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
+                var lam2 = lam;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (4,68): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var lam = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] decimal  d) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(4, 68));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithOptional_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                Del lam = ([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) => { };
+                
+                delegate void Del([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithDefault(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                var lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) => { };
+                var lam2 = lam;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (3,58): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] decimal  d = 1.1m) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 58));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Lambda_ExplicitAttribute_WithDefault_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                Del lam = ([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) => { };
+
+                delegate void Del([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Method(string type)
+        {
+            var source = $$"""
+                var m = C.M;
+
+                class C
+                {
+                    public static void M({{type}} d = 1.1m) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 9),
+                // (5,39): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                //     public static void M(decimal  d = 1.1m) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(5, 39));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithOptional(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                var m = C.M;
+                
+                class C
+                {
+                    public static void M([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(4, 9));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithOptional_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                Del m = C.M;
+                
+                class C
+                {
+                    public static void M([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d) { }
+                }
+
+                delegate void Del([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithDefault(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                var m = C.M;
+                
+                class C
+                {
+                    public static void M([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 9));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal ")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_Method_ExplicitAttribute_WithDefault_CustomType(string type)
+        {
+            var source = $$"""
+                using System.Runtime.CompilerServices;
+
+                Del m = C.M;
+                
+                class C
+                {
+                    public static void M([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m) { }
+                }
+
+                delegate void Del([DecimalConstant(1, 0, 0u, 0u, 11u)] {{type}} d = 1.1m);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_ExternalMethodGroup(string type)
+        {
+            var source1 = $$"""
+                public class C
+                {
+                    public static void M({{type}} d = 1.1m) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                var m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp2.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(1, 9));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("decimal")]
+        [InlineData("decimal?")]
+        public void MissingDecimalConstantAttribute_ExternalMethodGroup_CustomType(string type)
+        {
+            var source1 = $$"""
+                public delegate void Del({{type}} d = 1.1m);
+
+                public class C
+                {
+                    public static void M({{type}} d = 1.1m) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                Del m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp2.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void MissingDecimalConstantAttribute_Field()
+        {
+            var source = """
+                class C
+                {
+                    public const decimal D = 1.1m;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics(
+                // (3,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DecimalConstantAttribute..ctor'
+                //     public const decimal D = 1.1m;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "D = 1.1m").WithArguments("System.Runtime.CompilerServices.DecimalConstantAttribute", ".ctor").WithLocation(3, 26));
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void MissingDecimalConstantAttribute_Field_ExplicitAttribute_Alone()
+        {
+            var source = """
+                public static class C
+                {
+                    [System.Runtime.CompilerServices.DecimalConstant(1, 0, 0u, 0u, 11u)]
+                    public static readonly decimal D;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyDiagnostics();
+
+            // Even though we use `static readonly` above, it's actually equivalent to `const` as demonstrated below.
+            var source2 = """
+                const decimal d = C.D;
+                """;
+            CreateCompilation(source2, new[] { comp.EmitToImageReference() }).VerifyEmitDiagnostics(
+                // (1,15): warning CS0219: The variable 'd' is assigned but its value is never used
+                // const decimal d = C.D;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "d").WithArguments("d").WithLocation(1, 15));
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void MissingDecimalConstantAttribute_Field_ExplicitAttribute_WithDefault()
+        {
+            var source = """
+                class C
+                {
+                    [System.Runtime.CompilerServices.DecimalConstant(1, 0, 0u, 0u, 11u)]
+                    public const decimal D = 1.1m;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void MissingDecimalConstantAttribute_OverloadResolution()
+        {
+            var source1 = """
+                public delegate void Del(decimal d = 1.1m);
+
+                public class C
+                {
+                    public void M(Del d) { }
+                    public void M(System.Action<decimal> d) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                new C().M((decimal d = 1.1m) => { });
+                """;
+
+            var diagnostics = new[]
+            {
+                // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Del)' and 'C.M(Action<decimal>)'
+                // new C().M((decimal d = 1.1m) => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(Del)", "C.M(System.Action<decimal>)").WithLocation(1, 9)
+            };
+
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.VerifyDiagnostics(diagnostics);
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime", "System.DateTime")]
+        [InlineData("DateTime?", "System.Nullable`1[System.DateTime]")]
+        public void MissingDateTimeConstantAttribute_Lambda_Alone(string type, string typeFullName)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                var lam = ([DateTimeConstant(100L)] {{type}} d) => { };
+                System.Console.WriteLine(lam.GetType());
+                var lam2 = lam;
+                System.Console.WriteLine(lam2.GetType());
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            CompileAndVerify(comp, expectedOutput: $"""
+                System.Action`1[{typeFullName}]
+                System.Action`1[{typeFullName}]
+                """).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime")]
+        [InlineData("DateTime?")]
+        public void MissingDateTimeConstantAttribute_Lambda_Alone_CustomType(string type)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                Del lam = ([DateTimeConstant(100L)] {{type}} d) => { };
+
+                delegate void Del([DateTimeConstant(100L)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime ")]
+        [InlineData("DateTime?")]
+        public void MissingDateTimeConstantAttribute_Lambda_WithOptional(string type)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                var lam = ([Optional, DateTimeConstant(100L)] {{type}} d) => { };
+                var lam2 = lam;
+                """;
+
+            var diagnostics = new[]
+            {
+                // (5,57): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DateTimeConstantAttribute..ctor'
+                // var lam = ([Optional, DateTimeConstant(100L)] DateTime  d) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.DateTimeConstantAttribute", ".ctor").WithLocation(5, 57)
+            };
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor);
+            comp.VerifyDiagnostics(diagnostics);
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime ")]
+        [InlineData("DateTime?")]
+        public void MissingDateTimeConstantAttribute_Lambda_WithOptional_CustomType(string type)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                Del lam = ([Optional, DateTimeConstant(100L)] {{type}} d) => { };
+
+                delegate void Del([Optional, DateTimeConstant(100L)] {{type}} d);
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime ")]
+        [InlineData("DateTime?")]
+        public void MissingDateTimeConstantAttribute_ExternalMethodGroup(string type)
+        {
+            var source1 = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+                
+                public class C
+                {
+                    public static void M([Optional, DateTimeConstant(100L)] {{type}} d) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                var m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp2.VerifyDiagnostics(
+                // (1,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DateTimeConstantAttribute..ctor'
+                // var m = C.M;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C.M").WithArguments("System.Runtime.CompilerServices.DateTimeConstantAttribute", ".ctor").WithLocation(1, 9));
+        }
+
+        [Theory, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        [InlineData("DateTime ")]
+        [InlineData("DateTime?")]
+        public void MissingDateTimeConstantAttribute_ExternalMethodGroup_CustomType(string type)
+        {
+            var source1 = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                public delegate void Del([Optional, DateTimeConstant(100L)] {{type}} d);
+                
+                public class C
+                {
+                    public static void M([Optional, DateTimeConstant(100L)] {{type}} d) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                Del m = C.M;
+                """;
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp2.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(65728, "https://github.com/dotnet/roslyn/issues/65728")]
+        public void MissingDateTimeConstantAttribute_OverloadResolution()
+        {
+            var source1 = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                public delegate void Del([Optional, DateTimeConstant(100L)] DateTime d);
+
+                public class C
+                {
+                    public void M(Del d) { }
+                    public void M(Action<DateTime> d) { }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+
+            var source2 = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                new C().M(([Optional, DateTimeConstant(100L)] DateTime d) => { });
+                """;
+
+            var diagnostics = new[]
+            {
+                // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Del)' and 'C.M(Action<DateTime>)'
+                // new C().M(([Optional, DateTimeConstant(100L)] DateTime d) => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(Del)", "C.M(System.Action<System.DateTime>)").WithLocation(5, 9)
+            };
+
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor);
+            comp2.VerifyDiagnostics(diagnostics);
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() });
+            comp2.VerifyDiagnostics(diagnostics);
         }
 
         [Fact]
@@ -14137,12 +15950,12 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 Report(lam7, del7);
                 """;
             CompileAndVerify(source, expectedOutput: """
-                True, <>f__AnonymousDelegate0
-                True, <>f__AnonymousDelegate0
-                True, <>f__AnonymousDelegate0
+                True, <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+                True, <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
+                True, <>f__AnonymousDelegate0`2[System.Int32,System.Int32]
                 True, System.Func`2[System.Int32[],System.Int32]
                 True, <>A{00000001}`3[System.Int32,System.Int32,System.Int32[]]
-                True, <>f__AnonymousDelegate1
+                True, <>f__AnonymousDelegate1`3[System.Int32,System.Int32,System.Int32]
                 True, <>f__AnonymousDelegate2
                 True, <>f__AnonymousDelegate2
                 """).VerifyDiagnostics();
@@ -14165,9 +15978,9 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                     {{method}}
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
-                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+            var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0`2[System.Int32,System.Int32]").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0`2", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0`2'<T1, T2>
                 	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
                 	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -14180,19 +15993,19 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 			native int 'method'
                 		) runtime managed 
                 	{
-                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	} // end of method '<>f__AnonymousDelegate0`2'::.ctor
                 	.method public hidebysig newslot virtual 
                 		instance void Invoke (
-                			int32 arg1,
-                			int32[] arg2
+                			!T1 arg1,
+                			!T2[] arg2
                 		) runtime managed 
                 	{
                 		.param [2]
                 			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
                 				01 00 00 00
                 			)
-                	} // end of method '<>f__AnonymousDelegate0'::Invoke
-                } // end of class <>f__AnonymousDelegate0
+                	} // end of method '<>f__AnonymousDelegate0`2'::Invoke
+                } // end of class <>f__AnonymousDelegate0`2
                 """);
         }
 
@@ -14213,7 +16026,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 	)
                 	// Fields
                 	.field public static initonly class Program/'<>c' '<>9'
-                	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
+                	.field public static class '<>f__AnonymousDelegate0`2'<int32, int32> '<>9__0_0'
                 	// Methods
                 	.method private hidebysig specialname rtspecialname static 
                 		void .cctor () cil managed 

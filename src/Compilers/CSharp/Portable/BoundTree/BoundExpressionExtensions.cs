@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
 
+                case BoundKind.IndexerAccess:
+                    return ((BoundIndexerAccess)node).Indexer.RefKind;
+
+                case BoundKind.ImplicitIndexerAccess:
+                    return ((BoundImplicitIndexerAccess)node).IndexerOrSliceAccess.GetRefKind();
+
                 case BoundKind.ObjectInitializerMember:
                     var member = (BoundObjectInitializerMember)node;
                     if (member.HasErrors)
@@ -56,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralNull(this BoundExpression node)
         {
-            return node is { Kind: BoundKind.Literal, ConstantValue: { Discriminator: ConstantValueTypeDiscriminator.Null } };
+            return node is { Kind: BoundKind.Literal, ConstantValueOpt: { Discriminator: ConstantValueTypeDiscriminator.Null } };
         }
 
         public static bool IsLiteralDefault(this BoundExpression node)
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var constValue = node.ConstantValue;
+            var constValue = node.ConstantValueOpt;
             if (constValue != null)
             {
                 return constValue.IsDefaultValue;
@@ -261,6 +267,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol? receiverType = expressionOpt.Type;
             return receiverType is NamedTypeSymbol { Kind: SymbolKind.NamedType, IsComImport: true };
+        }
+
+        internal static bool IsDiscardExpression(this BoundExpression expr)
+        {
+            return expr switch
+            {
+                BoundDiscardExpression => true,
+                OutDeconstructVarPendingInference { IsDiscardExpression: true } => true,
+                BoundDeconstructValuePlaceholder { IsDiscardExpression: true } => true,
+                _ => false
+            };
         }
     }
 }

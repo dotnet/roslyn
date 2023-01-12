@@ -119,8 +119,7 @@ End Class"
                 Dim language = workspace.Projects.Single().Language
 
                 workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language),
-                    New CodeStyleOption2(Of Boolean)(value:=True, notification:=NotificationOption2.Error))
+                    CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language, New CodeStyleOption2(Of Boolean)(value:=True, notification:=NotificationOption2.Error))
 
                 Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace, analyzerMap)
                 Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagnostic, span) (diagnostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()

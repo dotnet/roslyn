@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Place_token_on_following_line">
         <source>Place token on following line</source>
-        <target state="new">Place token on following line</target>
+        <target state="translated">将令牌放置在以下行上</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">

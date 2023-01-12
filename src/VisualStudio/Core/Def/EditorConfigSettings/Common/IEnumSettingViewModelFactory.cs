@@ -10,6 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
     internal interface IEnumSettingViewModelFactory
     {
         bool IsSupported(OptionKey2 key);
-        IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting);
+        IEnumSettingViewModel CreateViewModel(Setting setting);
     }
 }

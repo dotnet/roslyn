@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +18,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
@@ -49,12 +48,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             }
 
             var language = diagnostic.Location.SourceTree.Options.Language;
-            return IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, language, out var options) &&
-               !options.IsEmpty &&
-               options.All(o => o.StorageLocations.Any(static l => l is IEditorConfigStorageLocation2));
+            return IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, language, out _);
         }
 
-        public FixAllProvider GetFixAllProvider()
+        public FixAllProvider? GetFixAllProvider()
             => null;
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
@@ -79,11 +76,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 // For example, if the option value is CodeStyleOption<bool>, we will have two nested actions, one for 'true' setting and one
                 // for 'false' setting. If the option value is CodeStyleOption<SomeEnum>, we will have a nested action for each enum field.
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
-                var optionSet = project.Solution.Options;
                 var hasMultipleOptions = codeStyleOptions.Length > 1;
-                foreach (var (optionKey, codeStyleOption, editorConfigLocation, perLanguageOption) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
+                foreach (var option in codeStyleOptions)
                 {
-                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, codeStyleOption, editorConfigLocation, diagnostic, perLanguageOption, optionSet, hasMultipleOptions);
+                    var topLevelAction = GetCodeActionForCodeStyleOption(option, diagnostic, hasMultipleOptions);
                     if (topLevelAction != null)
                     {
                         nestedActions.Add(topLevelAction);
@@ -104,33 +100,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             return result.ToImmutableAndFree();
 
             // Local functions
-            TopLevelConfigureCodeStyleOptionCodeAction GetCodeActionForCodeStyleOption(
-                OptionKey optionKey,
-                ICodeStyleOption codeStyleOption,
-                IEditorConfigStorageLocation2 editorConfigLocation,
-                Diagnostic diagnostic,
-                bool isPerLanguage,
-                OptionSet optionSet,
-                bool hasMultipleOptions)
+            TopLevelConfigureCodeStyleOptionCodeAction? GetCodeActionForCodeStyleOption(IOption2 option, Diagnostic diagnostic, bool hasMultipleOptions)
             {
                 // Add a code action for every valid value of the given code style option.
                 // We only support light-bulb configuration of code style options with boolean or enum values.
 
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
 
-                string optionName = null;
-                if (codeStyleOption.Value is bool)
+                // Try to get the parsed editorconfig string representation of the new code style option value
+                var optionName = option.Definition.ConfigName;
+                var defaultValue = (ICodeStyleOption?)option.DefaultValue;
+                Contract.ThrowIfNull(defaultValue);
+
+                if (defaultValue.Value is bool)
                 {
                     foreach (var boolValue in s_boolValues)
                     {
-                        AddCodeActionWithOptionValue(codeStyleOption, boolValue);
+                        AddCodeActionWithOptionValue(defaultValue, boolValue);
                     }
                 }
-                else if (codeStyleOption.Value?.GetType() is Type t && t.IsEnum)
+                else if (defaultValue.Value?.GetType() is Type t && t.IsEnum)
                 {
                     foreach (var enumValue in Enum.GetValues(t))
                     {
-                        AddCodeActionWithOptionValue(codeStyleOption, enumValue);
+                        AddCodeActionWithOptionValue(defaultValue, enumValue!);
                     }
                 }
 
@@ -151,21 +144,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 {
                     // Create a new code style option value with the newValue
                     var configuredCodeStyleOption = codeStyleOption.WithValue(newValue);
+                    var optionValue = option.Definition.Serializer.Serialize(configuredCodeStyleOption);
 
-                    // Try to get the parsed editorconfig string representation of the new code style option value
-                    if (ConfigurationUpdater.TryGetEditorConfigStringParts(configuredCodeStyleOption, editorConfigLocation, optionSet, out var parts))
-                    {
-                        // We expect all code style values for same code style option to have the same editorconfig option name.
-                        Debug.Assert(optionName == null || optionName == parts.optionName);
-                        optionName ??= parts.optionName;
-
-                        // Add code action to configure the optionValue.
-                        nestedActions.Add(
-                            SolutionChangeAction.Create(
-                                parts.optionValue,
-                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken),
-                                parts.optionValue));
-                    }
+                    // Add code action to configure the optionValue.
+                    nestedActions.Add(
+                        SolutionChangeAction.Create(
+                            optionValue,
+                            solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(optionName, optionValue, diagnostic, option.IsPerLanguage, project, cancellationToken),
+                            optionValue));
                 }
             }
         }

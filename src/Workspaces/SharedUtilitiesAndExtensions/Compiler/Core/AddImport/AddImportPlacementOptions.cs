@@ -7,8 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Options;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
@@ -45,7 +49,7 @@ internal interface AddImportPlacementOptionsProvider
 internal static partial class AddImportPlacementOptionsProviders
 {
 #if !CODE_STYLE
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this AnalyzerConfigOptions options, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions, LanguageServices languageServices)
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions, fallbackOptions);
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)

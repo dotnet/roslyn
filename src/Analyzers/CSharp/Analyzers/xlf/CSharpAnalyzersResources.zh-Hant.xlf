@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
-        <target state="new">Blank line not allowed after arrow expression clause token</target>
+        <target state="translated">在箭頭運算式子句權杖後不允許空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_conditional_expression_token">
         <source>Blank line not allowed after conditional expression token</source>
-        <target state="new">Blank line not allowed after conditional expression token</target>
+        <target state="translated">條件運算式權杖之後不允許空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
@@ -229,47 +229,47 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessor">
         <source>Use block body for accessor</source>
-        <target state="new">Use block body for accessor</target>
+        <target state="translated">使用存取子的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_constructor">
         <source>Use block body for constructor</source>
-        <target state="new">Use block body for constructor</target>
+        <target state="translated">使用建構函式的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_conversion_operator">
         <source>Use block body for conversion operator</source>
-        <target state="new">Use block body for conversion operator</target>
+        <target state="translated">使用轉換運算子的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexer">
         <source>Use block body for indexer</source>
-        <target state="new">Use block body for indexer</target>
+        <target state="translated">使用索引子的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expression">
         <source>Use block body for lambda expression</source>
-        <target state="new">Use block body for lambda expression</target>
+        <target state="translated">使用 Lambda 運算式的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_function">
         <source>Use block body for local function</source>
-        <target state="new">Use block body for local function</target>
+        <target state="translated">為區域函式使用區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_method">
         <source>Use block body for method</source>
-        <target state="new">Use block body for method</target>
+        <target state="translated">使用方法的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_operator">
         <source>Use block body for operator</source>
-        <target state="new">Use block body for operator</target>
+        <target state="translated">使用運算子的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_property">
         <source>Use block body for property</source>
-        <target state="new">Use block body for property</target>
+        <target state="translated">使用屬性的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type">
@@ -284,47 +284,47 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_accessor">
         <source>Use expression body for accessor</source>
-        <target state="new">Use expression body for accessor</target>
+        <target state="translated">使用存取子的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_constructor">
         <source>Use expression body for constructor</source>
-        <target state="new">Use expression body for constructor</target>
+        <target state="translated">使用建構函式的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_conversion_operator">
         <source>Use expression body for conversion operator</source>
-        <target state="new">Use expression body for conversion operator</target>
+        <target state="translated">使用轉換運算子的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexer">
         <source>Use expression body for indexer</source>
-        <target state="new">Use expression body for indexer</target>
+        <target state="translated">使用索引子的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expression">
         <source>Use expression body for lambda expression</source>
-        <target state="new">Use expression body for lambda expression</target>
+        <target state="translated">使用 Lambda 運算式的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_function">
         <source>Use expression body for local function</source>
-        <target state="new">Use expression body for local function</target>
+        <target state="translated">為區域函式使用運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_method">
         <source>Use expression body for method</source>
-        <target state="new">Use expression body for method</target>
+        <target state="translated">使用方法的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_operator">
         <source>Use expression body for operator</source>
-        <target state="new">Use expression body for operator</target>
+        <target state="translated">使用運算子的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_property">
         <source>Use expression body for property</source>
-        <target state="new">Use expression body for property</target>
+        <target state="translated">使用屬性的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_implicit_type">
@@ -355,6 +355,11 @@
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">使用區域函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_nameof">
+        <source>Use 'nameof'</source>
+        <target state="translated">使用 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_new">

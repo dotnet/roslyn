@@ -59,6 +59,7 @@
       "src\\Scripting\\VisualBasic\\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj",
       "src\\Scripting\\CoreTestUtilities\\Microsoft.CodeAnalysis.Scripting.TestUtilities.csproj",
       "src\\Test\\PdbUtilities\\Roslyn.Test.PdbUtilities.csproj",
+      "src\\Tools\\ExternalAccess\\RazorCompiler\\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj",
       "src\\Tools\\PrepareTests\\PrepareTests.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpSyntaxGenerator\\CSharpSyntaxGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\BoundTreeGenerator\\CompilersBoundTreeGenerator.csproj",

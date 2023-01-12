@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateName(name));
+            return UpdateDocumentState(oldDocument.UpdateName(name), contentChanged: false);
         }
 
         /// <summary>
@@ -1246,7 +1246,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateFolders(folders));
+            return UpdateDocumentState(oldDocument.UpdateFolders(folders), contentChanged: false);
         }
 
         /// <summary>
@@ -1260,7 +1260,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateFilePath(filePath));
+            return UpdateDocumentState(oldDocument.UpdateFilePath(filePath), contentChanged: false);
         }
 
         /// <summary>
@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1290,7 +1290,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1367,7 +1367,24 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateTree(root, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
+        }
+
+        public SolutionState WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        {
+            var oldDocument = GetRequiredDocumentState(documentId);
+            if (oldDocument == documentState)
+                return this;
+
+            if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
+                oldDocument.TreeSource == documentState.TreeSource)
+            {
+                return this;
+            }
+
+            return UpdateDocumentState(
+                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource),
+                contentChanged: true);
         }
 
         private static async Task<Compilation> UpdateDocumentInCompilationAsync(
@@ -1393,16 +1410,16 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
         }
 
         public SolutionState UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
 
-            // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
-            // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return UpdateDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+            // Assumes that content has changed. User could have closed a doc without saving and we are loading text
+            // from closed file with old content.
+            return UpdateDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1413,9 +1430,9 @@ namespace Microsoft.CodeAnalysis
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
 
-            // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
-            // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+            // Assumes that content has changed. User could have closed a doc without saving and we are loading text
+            // from closed file with old content.
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
         }
 
         /// <summary>
@@ -1431,10 +1448,10 @@ namespace Microsoft.CodeAnalysis
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
         }
 
-        private SolutionState UpdateDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private SolutionState UpdateDocumentState(DocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-            var newProject = oldProject.UpdateDocument(newDocument, textChanged, recalculateDependentVersions);
+            var newProject = oldProject.UpdateDocument(newDocument, contentChanged);
 
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
@@ -1448,10 +1465,10 @@ namespace Microsoft.CodeAnalysis
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
         }
 
-        private SolutionState UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private SolutionState UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-            var newProject = oldProject.UpdateAdditionalDocument(newDocument, textChanged, recalculateDependentVersions);
+            var newProject = oldProject.UpdateAdditionalDocument(newDocument, contentChanged);
 
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);

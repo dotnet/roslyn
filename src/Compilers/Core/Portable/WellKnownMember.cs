@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis
         System_Type__GetTypeFromHandle,
         System_Type__Missing,
         System_Type__op_Equality,
+        System_Type__get_IsValueType,
 
         System_Reflection_AssemblyKeyFileAttribute__ctor,
         System_Reflection_AssemblyKeyNameAttribute__ctor,
@@ -146,6 +147,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CallSite_T__Create,
         System_Runtime_CompilerServices_CallSite_T__Target,
 
+        System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject,
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,

@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Is the pattern in a state in which it is fully matched and there is no when clause?
             /// </summary>
-            public bool IsFullyMatched => RemainingTests is Tests.True && (WhenClause is null || WhenClause.ConstantValue == ConstantValue.True);
+            public bool IsFullyMatched => RemainingTests is Tests.True && (WhenClause is null || WhenClause.ConstantValueOpt == ConstantValue.True);
 
             /// <summary>
             /// Is the pattern fully matched and ready for the when clause to be evaluated (if any)?

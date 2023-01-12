@@ -10,10 +10,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Castle.DynamicProxy.Internal;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -225,7 +225,7 @@ three"";
                        0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.LocalName],             0, // 'x'
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator],               0, // '='
                        0,     2,     5,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '@"one'
-                       1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'two'
+                       1,     0,     4,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'two '
                        0,     4,     2,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.StringEscapeCharacter], 0, // '""'
                        1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'three"'
                        0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
@@ -235,7 +235,7 @@ three"";
             };
 
             await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            Assert.Equal(expectedResults.Data, results);
+            AssertEx.Equal(expectedResults.Data, results);
         }
 
         [Fact]
@@ -287,12 +287,13 @@ class C
                        0,     2,     3,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],                0, // 'new'
                        0,     4,     5,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],             0, // 'Regex'
                        0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
-                       0,     1,     8,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.String],                 0, // '"(abc)*"'
+                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.String],                 0, // '"'
                        0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('
                        0,     1,     3,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexText],             0, // 'abc'
                        0,     3,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
                        0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.String],                 0, // '"'
+                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
                        0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
                        1,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
                        1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
@@ -300,7 +301,7 @@ class C
             };
 
             await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            Assert.Equal(expectedResults.Data, results);
+            AssertEx.Equal(expectedResults.Data, results);
         }
 
         [Theory, MemberData(nameof(ClassificationTypeNamesToMatch))]

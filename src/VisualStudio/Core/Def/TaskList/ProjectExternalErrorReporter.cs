@@ -315,8 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 projectId: projectId,
                 location: new DiagnosticDataLocation(
                     unmappedSpan,
-                    documentId,
-                    mappedFileSpan: null),
+                    documentId),
                 language: language,
                 helpLink: helpLink);
 

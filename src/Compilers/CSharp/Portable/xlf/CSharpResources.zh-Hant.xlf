@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
         <source>A deconstruction variable cannot be declared as a ref local</source>
-        <target state="new">A deconstruction variable cannot be declared as a ref local</target>
+        <target state="translated">解構變數不可宣告為參考本機</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -754,7 +754,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
+        <target state="translated">隱含輸入的 Lambda 參數 '{0}' 不能有預設值。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1304,7 +1304,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">無法參考指派 '{1}' 給 '{0}'，因為 '{1}' 具有比 '{0}' 更寬的值逸出範圍，允許透過 '{0}' 的值指派，其逸出範圍比 '{1}' 更窄。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1429,7 +1429,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
         <source>The 'scoped' modifier cannot be used with discard.</source>
-        <target state="new">The 'scoped' modifier cannot be used with discard.</target>
+        <target state="translated">'scoped' 修飾元不能與捨棄一起使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1637,9 +1637,24 @@
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法轉換為委派類型。取得此方法的函式指標。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="translated">UnscopedRefAttribute 無法套用到此項目，因為預設是不限範圍。</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="new">UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1779,12 +1794,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaOptionalParameters">
         <source>lambda optional parameters</source>
-        <target state="new">lambda optional parameters</target>
+        <target state="translated">Lambda 選用參數</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaParamsArray">
         <source>lambda params array</source>
-        <target state="new">lambda params array</target>
+        <target state="translated">Lambda 參數陣列</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1879,7 +1894,7 @@
       </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
-        <target state="new">&lt;missing&gt;</target>
+        <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2119,12 +2134,12 @@
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch">
         <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
-        <target state="new">Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</target>
+        <target state="translated">參數 {0} 在 Lambda 中的預設值為 '{1:10}'，但在目標委派類型中為 '{2:10}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
         <source>The default parameter value does not match in the target delegate type.</source>
-        <target state="new">The default parameter value does not match in the target delegate type.</target>
+        <target state="translated">目標委派類型中的預設參數值不相符。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2149,12 +2164,12 @@
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly">
         <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter {0} has params modifier in lambda but not in target delegate type.</target>
+        <target state="translated">參數 {0} 在 Lambda 中具有參數修飾元，但不在目標委派類型中。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter has params modifier in lambda but not in target delegate type.</target>
+        <target state="translated">參數在 Lambda 中具有參數修飾元，但不在目標委派類型中。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2214,12 +2229,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">此參考指派 '{1}' 給 '{0}' 但 '{1}' 具有比 '{0}' 更寬的值逸出範圍，允許透過 '{0}' 的值指派，其逸出範圍比 '{1}' 更窄。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
         <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
-        <target state="new">This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</target>
+        <target state="translated">此參考指派的值比目標的逸出範圍更寬，允許透過目標的值指派，其逸出範圍更窄。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -5303,7 +5318,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
-        <target state="needs-review-translation">屬性或索引子不可以 out 或 ref 參數形式傳遞</target>
+        <target state="translated">非參考傳回屬性或索引子不可以 out 或 ref 值形式使用</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -9674,7 +9689,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
         <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
-        <target state="new">Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</target>
+        <target state="translated">因為 '{0}' 是個會傳回 '{1}' 的非同步方法，所以傳回關鍵字之後不可接著物件運算式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11104,7 +11119,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
         <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
-        <target state="new">Async lambda expression converted to a '{0}' returning delegate cannot return a value</target>
+        <target state="translated">轉換成 '{0}' 傳回委派的非同步 Lambda 運算式，不可傳回值</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

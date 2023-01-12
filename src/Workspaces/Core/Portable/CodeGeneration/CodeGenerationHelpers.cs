@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return factory.ThrowStatement(exceptionCreationExpression);
         }
 
-        [return: NotNullIfNotNull("syntax")]
+        [return: NotNullIfNotNull(nameof(syntax))]
         public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode? syntax) where TSyntaxNode : SyntaxNode
             => symbol is CodeGenerationSymbol codeGenerationSymbol
                 ? syntax?.WithAdditionalAnnotations(codeGenerationSymbol.GetAnnotations())
