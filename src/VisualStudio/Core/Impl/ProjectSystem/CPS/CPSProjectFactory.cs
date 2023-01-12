@@ -32,7 +32,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IProjectCodeModelFactory _projectCodeModelFactory;
         private readonly IAsyncServiceProvider _serviceProvider;
-        private readonly EditAndContinueLanguageService _encService;
+
+        /// <summary>
+        /// Solutions containing projects that use older compiler toolset that does not provide a checksum algorithm.
+        /// Used only for EnC issue diagnostics.
+        /// </summary>
+        private ImmutableHashSet<string> _solutionsWithMissingChecksumAlgorithm = ImmutableHashSet<string>.Empty;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,15 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             VisualStudioProjectFactory projectFactory,
             VisualStudioWorkspaceImpl workspace,
             IProjectCodeModelFactory projectCodeModelFactory,
-            SVsServiceProvider serviceProvider,
-            EditAndContinueLanguageService encService)
+            SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
             _projectFactory = projectFactory;
             _workspace = workspace;
             _projectCodeModelFactory = projectCodeModelFactory;
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
-            _encService = encService;
         }
 
         public ImmutableArray<string> EvaluationPropertyNames
@@ -146,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // Let EnC service known the checksum might not match, in case we need to diagnose related issue.
                 if (commandLineArgs.IsEmpty())
                 {
-                    _encService.LogPotentiallyMissingChecksumAlgorithm(_workspace.CurrentSolution.FilePath ?? "");
+                    ImmutableInterlocked.Update(ref _solutionsWithMissingChecksumAlgorithm, static (set, solutionPath) => set.Add(solutionPath), _workspace.CurrentSolution.FilePath ?? "");
                 }
             }
             else
