@@ -2160,6 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParamsArrayInLambdaOnly = 9100,
         ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
+        ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
 
         #endregion
 
