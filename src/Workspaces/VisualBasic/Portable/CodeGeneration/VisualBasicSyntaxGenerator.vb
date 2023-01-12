@@ -163,6 +163,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ExpressionGenerator.GenerateExpression(value)
         End Function
 
+        Private Protected Overrides Function WithKeywordIndicatingExtensionMethod(parameterDeclaration As SyntaxNode) As SyntaxNode
+            ' Unlike C#, VB doesn't have a concept of `this` parameter,
+            ' so we just return the original one without any modifications
+            Return parameterDeclaration
+        End Function
+
         Private Protected Overrides Function WithKeywordIndicatingParameterList(parameterDeclaration As SyntaxNode) As SyntaxNode
             Dim parameter = DirectCast(parameterDeclaration, ParameterSyntax)
             Return parameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamArrayKeyword))

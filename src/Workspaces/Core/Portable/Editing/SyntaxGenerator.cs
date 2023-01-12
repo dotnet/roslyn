@@ -275,11 +275,22 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
                 symbol.RefKind);
 
+            // If the given parameter is the first one of an extension method
+            // then add `this` modifier if neccessary. This is C#-specific,
+            // VB here changes nothing
+            if (symbol.ContainingSymbol is IMethodSymbol { IsExtensionMethod: true, Parameters: { Length: > 0 } parameters } &&
+                parameters[0].Equals(symbol))
+            {
+                parameter = WithKeywordIndicatingExtensionMethod(parameter);
+            }
+
             if (symbol.IsParams)
                 parameter = WithKeywordIndicatingParameterList(parameter);
 
             return parameter;
         }
+
+        private protected abstract SyntaxNode WithKeywordIndicatingExtensionMethod(SyntaxNode parameterDeclaration);
 
         private protected abstract SyntaxNode WithKeywordIndicatingParameterList(SyntaxNode parameterDeclaration);
 

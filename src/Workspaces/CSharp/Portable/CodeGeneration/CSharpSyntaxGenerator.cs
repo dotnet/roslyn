@@ -3329,6 +3329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
             => ExpressionGenerator.GenerateExpression(value);
 
+        private protected override SyntaxNode WithKeywordIndicatingExtensionMethod(SyntaxNode parameterDeclaration)
+        {
+            var parameter = (ParameterSyntax)parameterDeclaration;
+            return parameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+        }
+
         private protected override SyntaxNode WithKeywordIndicatingParameterList(SyntaxNode parameterDeclaration)
         {
             var parameter = (ParameterSyntax)parameterDeclaration;
