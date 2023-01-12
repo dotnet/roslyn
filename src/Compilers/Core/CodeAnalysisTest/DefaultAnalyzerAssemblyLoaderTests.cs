@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public sealed class DefaultAnalyzerAssemblyLoaderTests : TestBase
     {
 #if NETCOREAPP
-        private sealed class AssemblyLoadContextInvokeUtil
+        private sealed class InvokeUtil
         {
             public void Exec(string typeName, string methodName) => InvokeTestCode(typeName, methodName);
         }
 #else
-        private sealed class AppDomainInvokeUtil : MarshalByRefObject
+        private sealed class InvokeUtil : MarshalByRefObject
         {
             public void Exec(string typeName, string methodName)
             {
@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
 #if NETCOREAPP
             var alc = AssemblyLoadContextUtils.Create($"Test {memberName}");
-            var assembly = alc.LoadFromAssemblyName(typeof(AssemblyLoadContextInvokeUtil).Assembly.GetName());
-            var util = assembly.CreateInstance(typeof(AssemblyLoadContextInvokeUtil).FullName)!;
+            var assembly = alc.LoadFromAssemblyName(typeof(InvokeUtil).Assembly.GetName());
+            var util = assembly.CreateInstance(typeof(InvokeUtil).FullName)!;
             var method = util.GetType().GetMethod("Exec", BindingFlags.Public | BindingFlags.Instance)!;
             method.Invoke(util, new object[] { action.Method.DeclaringType!.FullName!, action.Method.Name });
 
@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             try
             {
                 appDomain = AppDomainUtils.Create($"Test {memberName}");
-                var type = typeof(AppDomainInvokeUtil);
-                var util = (AppDomainInvokeUtil)appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
+                var type = typeof(InvokeUtil);
+                var util = (InvokeUtil)appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
                 util.Exec(action.Method.DeclaringType.FullName, action.Method.Name);
             }
             finally
