@@ -2105,7 +2105,7 @@ record D(int X) : C(F(X, out int z), () => z)
         [WorkItem(32352, "https://github.com/dotnet/roslyn/issues/32352")]
         public void ClosureAllocationSequencePoints()
         {
-            var source = WithWindowsLineBreaks(@"
+            var source = @"
 using System;
 
 class C
@@ -2118,8 +2118,8 @@ class C
             var f = new Func<bool>(() => inner & outer);
         }
     }
-}");
-            var c = CompileAndVerify(source, targetFramework: TargetFramework.NetStandard20, options: TestOptions.DebugDll);
+}";
+            var c = CompileAndVerify(source);
 
             // TODO: https://github.com/dotnet/roslyn/issues/32352
             // The inner closure allocation on IL_0018 should be within the sequence point associated with opening brace of the if statement.
