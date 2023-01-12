@@ -2151,6 +2151,34 @@ public class C { } // end").Members[0];
 }");
         }
 
+        [Fact]
+        public void TestEnumWithUnderlyingTypeFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+@"public enum SecurityRuleSet : byte
+{
+    None = 0,
+    Level1 = 1,
+    Level2 = 2
+}");
+        }
+
+        [Fact, WorkItem(66381, "https://github.com/dotnet/roslyn/issues/66381")]
+        public void TestDelegateDeclarationFromSymbol()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public delegate void D();
+                """));
+
+            var type = compilation.GetTypeByMetadataName("D");
+
+            VerifySyntax<DelegateDeclarationSyntax>(Generator.Declaration(type), """
+                public delegate void D();
+                """);
+        }
+
         [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
         public void TestMethodDeclarationFromSymbol1()
         {
@@ -2193,20 +2221,6 @@ public class C { } // end").Members[0];
                 {
                 }
                 """);
-        }
-
-        [Fact]
-        public void TestEnumWithUnderlyingTypeFromSymbol()
-        {
-            VerifySyntax<EnumDeclarationSyntax>(
-                    Generator.Declaration(
-                        _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
-@"public enum SecurityRuleSet : byte
-{
-    None = 0,
-    Level1 = 1,
-    Level2 = 2
-}");
         }
 
         #endregion
