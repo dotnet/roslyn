@@ -11943,8 +11943,7 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
-                Assert.Empty(attr.NamedArguments);
+                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
             });
             verifier.VerifyDiagnostics();
         }
@@ -12077,8 +12076,7 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
-                Assert.Empty(attr.NamedArguments);
+                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
             });
             verifier.VerifyDiagnostics();
         }
@@ -12106,8 +12104,7 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
-                Assert.Empty(attr.NamedArguments);
+                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
             });
             verifier.VerifyDiagnostics();
         }
@@ -12137,8 +12134,7 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
-                Assert.Empty(attr.NamedArguments);
+                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
             });
             verifier.VerifyDiagnostics();
         }
