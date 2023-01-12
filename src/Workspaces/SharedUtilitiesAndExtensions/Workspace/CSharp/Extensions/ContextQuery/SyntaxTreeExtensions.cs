@@ -600,7 +600,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (container is IncompleteMemberSyntax incompleteMember)
                     return incompleteMember.Type.IsKind(SyntaxKind.RefType);
 
-                if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax or VariableDeclarationSyntax)
+                if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
+                    return true;
+
+                if (container is VariableDeclarationSyntax && modifierTokens.Contains(SyntaxKind.FileKeyword))
                     return true;
             }
 
