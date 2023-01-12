@@ -3678,7 +3678,7 @@ namespace Microsoft.Cci
 
                 var customAttributeArgsBuilder = PooledBlobBuilder.GetInstance();
                 var namedArgsEncoder = new BlobEncoder(customAttributeArgsBuilder).PermissionSetArguments(customAttribute.NamedArgumentCount);
-                SerializeCustomAttributeNamedArguments(in context, namedArgsEncoder, customAttribute);
+                SerializeCustomAttributeNamedArguments(GetEmitContextForAttribute(customAttribute), namedArgsEncoder, customAttribute);
                 writer.WriteCompressedInteger(customAttributeArgsBuilder.Count);
 
                 customAttributeArgsBuilder.WriteContentTo(writer);
