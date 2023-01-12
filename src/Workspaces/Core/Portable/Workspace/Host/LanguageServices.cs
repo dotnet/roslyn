@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public SolutionServices SolutionServices => _services.WorkspaceServices.SolutionServices;
 
-        [Obsolete]
+        [Obsolete("Only use to implement obsolete public API")]
         internal HostLanguageServices HostLanguageServices => _services;
 
         /// <inheritdoc cref="HostLanguageServices.Language"/>

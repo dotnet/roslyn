@@ -35,19 +35,17 @@ namespace Microsoft.CodeAnalysis
     internal partial class SolutionState
     {
         // the version of the workspace this solution is from
-        public readonly int WorkspaceVersion;
-
-        public readonly string? WorkspaceKind;
-        public readonly SolutionServices Services;
-        public readonly SolutionOptionSet Options;
-        public readonly bool PartialSemanticsEnabled;
+        public int WorkspaceVersion { get; }
+        public string? WorkspaceKind { get; }
+        public SolutionServices Services { get; }
+        public SolutionOptionSet Options { get; }
+        public bool PartialSemanticsEnabled { get; }
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
-
-        public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
 
         // Values for all these are created on demand.
         private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
@@ -239,6 +237,11 @@ namespace Microsoft.CodeAnalysis
                 newFrozenSourceGeneratedDocumentState);
         }
 
+        /// <summary>
+        /// Updates the solution with specified workspace kind, workspace version and services.
+        /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
+        /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
+        /// </summary>
         public SolutionState WithNewWorkspace(
             string? workspaceKind,
             int workspaceVersion,

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
-#pragma warning disable CS0612 // Type or member is obsolete (TODO: obsolete the property)
+#pragma warning disable CS0618 // Type or member is obsolete (TODO: obsolete the property)
                 return _state.Services.WorkspaceServices.Workspace;
 #pragma warning restore
             }
