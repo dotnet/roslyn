@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
+using Microsoft.CodeAnalysis.VisualBasic;
 #if NETCOREAPP
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
@@ -263,14 +264,33 @@ Delta: Gamma: Beta: Test B
             // all the DLLs we know are simply a part of the application and examine what is left.
             loadedAssemblies = AppDomain.CurrentDomain
                 .GetAssemblies()
-                .Where(x =>
+                .Where(x => isInLoadFromContext(loader, x));
+
+            static bool isInLoadFromContext(DefaultAnalyzerAssemblyLoader loader, Assembly assembly)
+            {
+                var undidHook = false;
+                try
                 {
-                    var name = x.GetName().Name;
-                    return
-                        name.StartsWith("Delta") ||
-                        name.StartsWith("Gamma") ||
-                        name.StartsWith("Epsilon");
-                });
+                    // Have to unhook resolve here otherwise calls to Load will hit the resolver and 
+                    // we will end up bringing these assemblies into the Load context by handling them
+                    // there.
+                    undidHook = loader.EnsureResolvedUnhooked();
+                    var name = assembly.FullName;
+                    var other = AppDomain.CurrentDomain.Load(name);
+                    return other is null || other != assembly;
+                }
+                catch
+                {
+                    return true;
+                }
+                finally
+                {
+                    if (undidHook)
+                    {
+                        loader.EnsureResolvedHooked();
+                    }
+                }
+            }
 
 #endif
             var data = assemblyPaths
