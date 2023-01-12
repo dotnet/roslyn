@@ -266,17 +266,10 @@ Delta: Gamma: Beta: Test B
                 .Where(x =>
                 {
                     var name = x.GetName().Name;
-                    if (name.StartsWith("System") ||
-                        name.StartsWith("Microsoft") ||
-                        name.StartsWith("xunit") ||
-                        name.StartsWith("Basic") ||
-                        name.StartsWith("netstandard") ||
-                        name.StartsWith("mscorlib"))
-                    {
-                        return false;
-                    }
-
-                    return true;
+                    return
+                        name.StartsWith("Delta") ||
+                        name.StartsWith("Gamma") ||
+                        name.StartsWith("Epsilon");
                 });
 
 #endif
@@ -463,7 +456,6 @@ Delta: Epsilon: Test E
                 Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon.Path);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
-
 
                 var actual = sb.ToString();
                 if (ExecutionConditionUtil.IsCoreClr)
