@@ -222,6 +222,11 @@
         <target state="translated">Składowa rekordu "{0}" musi być możliwą do odczytu właściwością wystąpienia typu "{1}", aby dopasować parametr pozycyjny "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Błąd składni wiersza polecenia: „{0}” nie jest prawidłową wartością dla opcji „{1}”. Wartość musi mieć postać „{2}”.</target>
@@ -1636,6 +1641,11 @@
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go przekonwertować na typ delegowany. Uzyskaj wskaźnik funkcji do tej metody.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
