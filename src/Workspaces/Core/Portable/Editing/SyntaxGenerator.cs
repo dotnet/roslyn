@@ -268,13 +268,20 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode ParameterDeclaration(IParameterSymbol symbol, SyntaxNode? initializer = null)
         {
-            return ParameterDeclaration(
+            var parameter = ParameterDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
                 initializer is not null ? initializer :
                 symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
                 symbol.RefKind);
+
+            if (symbol.IsParams)
+                parameter = WithKeywordIndicatingParameterList(parameter);
+
+            return parameter;
         }
+
+        private protected abstract SyntaxNode WithKeywordIndicatingParameterList(SyntaxNode parameterDeclaration);
 
         private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
 

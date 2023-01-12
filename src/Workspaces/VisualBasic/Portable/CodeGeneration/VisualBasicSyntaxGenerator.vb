@@ -163,6 +163,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ExpressionGenerator.GenerateExpression(value)
         End Function
 
+        Private Protected Overrides Function WithKeywordIndicatingParameterList(parameterDeclaration As SyntaxNode) As SyntaxNode
+            Dim parameter = DirectCast(parameterDeclaration, ParameterSyntax)
+            Return parameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamArrayKeyword))
+        End Function
+
         Private Protected Overrides Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference)
         End Function

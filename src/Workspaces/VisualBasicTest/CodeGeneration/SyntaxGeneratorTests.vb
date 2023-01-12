@@ -2310,6 +2310,22 @@ End Enum")
             Dim type = compilation.GetTypeByMetadataName("D")
             VerifySyntax(Of DelegateStatementSyntax)(Generator.Declaration(type), "Public Delegate Sub D()")
         End Sub
+
+        <Fact, WorkItem(65835, "https://github.com/dotnet/roslyn/issues/65835")>
+        Public Sub TestMethodDeclarationFromSymbol()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Sub M(ParamArray arr() As Integer)
+    End Sub
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("M").Single()
+
+            VerifySyntax(Of MethodBlockSyntax)(Generator.Declaration(method),
+"Public Sub M(ParamArray arr As System.Int32())
+End Sub")
+        End Sub
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"
