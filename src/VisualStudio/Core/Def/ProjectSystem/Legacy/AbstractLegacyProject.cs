@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     {
         public IVsHierarchy Hierarchy { get; }
         protected ProjectSystemProject ProjectSystemProject { get; }
-        internal VisualStudioProjectOptionsProcessor VisualStudioProjectOptionsProcessor { get; set; }
+        internal ProjectSystemProjectOptionsProcessor VisualStudioProjectOptionsProcessor { get; set; }
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
 

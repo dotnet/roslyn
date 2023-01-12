@@ -24,10 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly ProjectSystemProject _projectSystemProject;
 
         /// <summary>
-        /// The <see cref="VisualStudioProjectOptionsProcessor"/> we're using to parse command line options. Null if we don't
+        /// The <see cref="ProjectSystemProjectOptionsProcessor"/> we're using to parse command line options. Null if we don't
         /// have the ability to parse command line options.
         /// </summary>
-        private readonly VisualStudioProjectOptionsProcessor? _visualStudioProjectOptionsProcessor;
+        private readonly ProjectSystemProjectOptionsProcessor? _visualStudioProjectOptionsProcessor;
 
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // If we have a command line parser service for this language, also set up our ability to process options if they come in
             if (visualStudioWorkspace.Services.GetLanguageServices(projectSystemProject.Language).GetService<ICommandLineParserService>() != null)
             {
-                _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_projectSystemProject, visualStudioWorkspace.Services.SolutionServices);
+                _visualStudioProjectOptionsProcessor = new ProjectSystemProjectOptionsProcessor(_projectSystemProject, visualStudioWorkspace.Services.SolutionServices);
                 _visualStudioWorkspace.AddProjectRuleSetFileToInternalMaps(
                     projectSystemProject,
                     () => _visualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
