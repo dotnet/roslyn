@@ -20,7 +20,7 @@ internal sealed class LocalClientSettingsStorageLocation : ClientSettingsStorage
     public override bool IsMachineLocal => true;
 
     public LocalClientSettingsStorageLocation(string keyName)
-        : base(keyName)
+        : base(keyName, useEditorLanguageName: false)
     {
     }
 
