@@ -18,7 +18,9 @@ internal static class IdeAnalyzerOptionsStorage
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
     {
         var language = languageServices.Language;
-        var supportsLanguageSpecificOptions = languageServices.GetService<ISyntaxFormattingOptionsStorage>() != null;
+
+        // avoid throwing for languages other than C# and VB:
+        var supportsLanguageSpecificOptions = languageServices.GetService<ISyntaxFormattingService>() != null;
 
         return new()
         {
@@ -34,17 +36,17 @@ internal static class IdeAnalyzerOptionsStorage
     }
 
     public static readonly Option2<bool> CrashOnAnalyzerException = new(
-        "InternalDiagnosticsOptions", "CrashOnAnalyzerException", IdeAnalyzerOptions.CommonDefault.CrashOnAnalyzerException);
+        "InternalDiagnosticsOptions_CrashOnAnalyzerException", IdeAnalyzerOptions.CommonDefault.CrashOnAnalyzerException);
 
     public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls = new(
-        "ValidateFormatStringOption", "ReportInvalidPlaceholdersInStringDotFormatCalls", IdeAnalyzerOptions.CommonDefault.ReportInvalidPlaceholdersInStringDotFormatCalls);
+        "ValidateFormatStringOption_ReportInvalidPlaceholdersInStringDotFormatCalls", IdeAnalyzerOptions.CommonDefault.ReportInvalidPlaceholdersInStringDotFormatCalls);
 
     public static PerLanguageOption2<bool> ReportInvalidRegexPatterns = new(
-        "RegularExpressionsOptions", "ReportInvalidRegexPatterns", IdeAnalyzerOptions.CommonDefault.ReportInvalidRegexPatterns);
+        "RegularExpressionsOptions_ReportInvalidRegexPatterns", IdeAnalyzerOptions.CommonDefault.ReportInvalidRegexPatterns);
 
     public static PerLanguageOption2<bool> ReportInvalidJsonPatterns = new(
-        "JsonFeatureOptions", "ReportInvalidJsonPatterns", IdeAnalyzerOptions.CommonDefault.ReportInvalidJsonPatterns);
+        "JsonFeatureOptions_ReportInvalidJsonPatterns", IdeAnalyzerOptions.CommonDefault.ReportInvalidJsonPatterns);
 
     public static PerLanguageOption2<bool> DetectAndOfferEditorFeaturesForProbableJsonStrings = new(
-        "JsonFeatureOptions", "DetectAndOfferEditorFeaturesForProbableJsonStrings", IdeAnalyzerOptions.CommonDefault.DetectAndOfferEditorFeaturesForProbableJsonStrings);
+        "JsonFeatureOptions_DetectAndOfferEditorFeaturesForProbableJsonStrings", IdeAnalyzerOptions.CommonDefault.DetectAndOfferEditorFeaturesForProbableJsonStrings);
 }

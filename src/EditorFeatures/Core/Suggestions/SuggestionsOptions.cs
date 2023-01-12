@@ -8,9 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal sealed class SuggestionsOptions
     {
-        private const string FeatureName = "SuggestionsOptions";
-
-        public static readonly Option2<bool?> Asynchronous = new(FeatureName, "Asynchronous", defaultValue: null);
-        public static readonly Option2<bool> AsynchronousQuickActionsDisableFeatureFlag = new(FeatureName, "AsynchronousQuickActionsDisableFeatureFlag", defaultValue: false);
+        public static readonly Option2<bool?> Asynchronous = new("SuggestionsOptions_Asynchronous", defaultValue: null);
+        public static readonly Option2<bool> AsynchronousQuickActionsDisableFeatureFlag = new("SuggestionsOptions_AsynchronousQuickActionsDisableFeatureFlag", defaultValue: false);
     }
 }

@@ -163,7 +163,8 @@ namespace Microsoft.CodeAnalysis
                                                           generatedSources: getGeneratorSources(generatorState),
                                                           elapsedTime: generatorState.ElapsedTime,
                                                           namedSteps: generatorState.ExecutedSteps,
-                                                          outputSteps: generatorState.OutputSteps));
+                                                          outputSteps: generatorState.OutputSteps,
+                                                          hostOutputs: generatorState.HostOutputs));
             return new GeneratorDriverRunResult(results, _state.RunTime);
 
             static ImmutableArray<GeneratedSourceResult> getGeneratorSources(GeneratorState generatorState)
@@ -293,10 +294,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
                     var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
-                    (var sources, var generatorDiagnostics, var generatorRunStateTable) = context.ToImmutableAndFree();
+                    (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
-                    stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, generatorTimer.Elapsed);
+                    stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, hostOutputs, generatorTimer.Elapsed);
                 }
                 catch (UserFunctionException ufe)
                 {

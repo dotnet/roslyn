@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
@@ -84,7 +85,7 @@ internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsP
 internal static class CodeCleanupOptionsProviders
 {
 #if !CODE_STYLE
-    public static CodeCleanupOptions GetCodeCleanupOptions(this AnalyzerConfigOptions options, bool allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions, LanguageServices languageServices)
+    public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader options, bool allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions, LanguageServices languageServices)
         => new()
         {
             FormattingOptions = options.GetSyntaxFormattingOptions(fallbackOptions?.FormattingOptions, languageServices),

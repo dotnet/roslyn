@@ -26,5 +26,7 @@ internal static partial class Extensions
         => (placement.HasFlag(SpacePlacementWithinParentheses.Expressions) ? SpacePlacement.WithinExpressionParentheses : 0) |
            (placement.HasFlag(SpacePlacementWithinParentheses.TypeCasts) ? SpacePlacement.WithinCastParentheses : 0) |
            (placement.HasFlag(SpacePlacementWithinParentheses.ControlFlowStatements) ? SpacePlacement.WithinOtherParentheses : 0);
-}
 
+    public static SpacePlacementWithinParentheses WithFlagValue(this SpacePlacementWithinParentheses flags, SpacePlacementWithinParentheses flag, bool value)
+        => (flags & ~flag) | (value ? flag : 0);
+}

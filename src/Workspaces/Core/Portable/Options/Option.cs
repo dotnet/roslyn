@@ -7,31 +7,25 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <inheritdoc cref="Option2{T}"/>
-    public class Option<T> : ISingleValuedOption<T>
+    public class Option<T> : IPublicOption
     {
         private readonly OptionDefinition _optionDefinition;
 
-        /// <inheritdoc cref="OptionDefinition.Feature"/>
-        public string Feature => _optionDefinition.Feature;
+        public string Feature { get; }
 
-        /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => _optionDefinition.Group;
 
-        /// <inheritdoc cref="OptionDefinition.Name"/>
-        public string Name => _optionDefinition.Name;
+        public string Name { get; }
 
-        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
-        /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => _optionDefinition.Type;
 
-        /// <inheritdoc cref="Option2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         [Obsolete("Use a constructor that specifies an explicit default value.")]
@@ -43,53 +37,59 @@ namespace Microsoft.CodeAnalysis.Options
 
         public Option(string feature, string name, T defaultValue)
             : this(feature ?? throw new ArgumentNullException(nameof(feature)),
-                   OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
+                   OptionGroup.Default,
                    defaultValue,
-                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
+                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                   storageMapping: null,
+                   isEditorConfigOption: false)
         {
         }
 
         public Option(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
             : this(feature ?? throw new ArgumentNullException(nameof(feature)),
-                   OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
+                   OptionGroup.Default,
                    defaultValue,
-                   (storageLocations ?? throw new ArgumentNullException(nameof(storageLocations))).ToImmutableArray())
+                   PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations)).ToImmutableArray(),
+                   storageMapping: null,
+                   isEditorConfigOption: false)
+        {
+            // should not be used internally to create options
+            Debug.Assert(storageLocations.All(l => l is not IEditorConfigValueSerializer));
+        }
+
+        internal Option(
+            string feature,
+            string name,
+            OptionGroup group,
+            T defaultValue,
+            ImmutableArray<OptionStorageLocation> storageLocations,
+            OptionStorageMapping? storageMapping,
+            bool isEditorConfigOption)
+            : this(new OptionDefinition<T>(defaultValue, EditorConfigValueSerializer<T>.Unsupported, group, feature + "_" + name, storageMapping, isEditorConfigOption), feature, name, storageLocations)
         {
         }
 
-        internal Option(string? feature, OptionGroup group, string? name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(new OptionDefinition(feature, group, name, storageLocations.GetOptionConfigName(feature, name), defaultValue, typeof(T)), storageLocations)
+        internal Option(OptionDefinition optionDefinition, string feature, string name, ImmutableArray<OptionStorageLocation> storageLocations)
         {
-        }
-
-        internal Option(OptionDefinition optionDefinition, ImmutableArray<OptionStorageLocation> storageLocations)
-        {
+            Feature = feature;
+            Name = name;
             _optionDefinition = optionDefinition;
-            this.StorageLocations = storageLocations;
+            StorageLocations = storageLocations;
         }
-
-        OptionGroup IOptionWithGroup.Group => this.Group;
 
         object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => false;
 
-        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
+        IPublicOption? IOption2.PublicOption => null;
 
-        string? ISingleValuedOption.LanguageName
-        {
-            get
-            {
-                Debug.Fail("It's not expected that we access LanguageName property for Option<T>. The options we use should be Option2<T>.");
-                return null;
-            }
-        }
+        OptionDefinition IOption2.Definition => _optionDefinition;
 
         bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
-        public override string ToString() => _optionDefinition.PublicOptionDefinitionToString();
+        public override string ToString() => this.PublicOptionDefinitionToString();
 
         public override int GetHashCode() => _optionDefinition.GetHashCode();
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return true;
             }
 
-            return other is not null && _optionDefinition.PublicOptionDefinitionEquals(other.OptionDefinition);
+            return other is not null && this.PublicOptionDefinitionEquals(other);
         }
 
         public static implicit operator OptionKey(Option<T> option)

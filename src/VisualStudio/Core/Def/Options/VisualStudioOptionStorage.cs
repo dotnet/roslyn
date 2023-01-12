@@ -58,8 +58,8 @@ internal abstract class VisualStudioOptionStorage
                 _ => language // handles F#, TypeScript and Xaml
             });
 
-        public bool TryPersist(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
-            => persister.TryPersist(optionKey, GetKey(optionKey.Language), value);
+        public Task PersistAsync(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
+            => persister.PersistAsync(optionKey, GetKey(optionKey.Language), value);
 
         public bool TryFetch(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, out object? value)
             => persister.TryFetch(optionKey, GetKey(optionKey.Language), out value);
@@ -74,8 +74,11 @@ internal abstract class VisualStudioOptionStorage
             FlagName = flagName;
         }
 
-        public bool TryPersist(FeatureFlagPersister persister, object? value)
-            => persister.TryPersist(FlagName, value);
+        public Task PersistAsync(FeatureFlagPersister persister, object? value)
+        {
+            persister.Persist(FlagName, value);
+            return Task.CompletedTask;
+        }
 
         public bool TryFetch(FeatureFlagPersister persister, OptionKey2 optionKey, out object? value)
             => persister.TryFetch(optionKey, FlagName, out value);
@@ -92,8 +95,11 @@ internal abstract class VisualStudioOptionStorage
             _key = key;
         }
 
-        public bool TryPersist(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, object? value)
-            => persister.TryPersist(optionKey, _path, _key, value);
+        public Task PersistAsync(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, object? value)
+        {
+            persister.Persist(optionKey, _path, _key, value);
+            return Task.CompletedTask;
+        }
 
         public bool TryFetch(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, out object? value)
             => persister.TryFetch(optionKey, _path, _key, out value);
@@ -216,18 +222,6 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_var_for_built_in_types", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes")},
         {"csharp_style_var_when_type_is_apparent", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent")},
         {"csharp_using_directive_placement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferredUsingDirectivePlacement")},
-        {"CSharpFormattingOptions_NewLinesForBracesInAccessors", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInAccessors")},
-        {"CSharpFormattingOptions_NewLinesForBracesInAnonymousMethods", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousMethods")},
-        {"CSharpFormattingOptions_NewLinesForBracesInAnonymousTypes", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousTypes")},
-        {"CSharpFormattingOptions_NewLinesForBracesInControlBlocks", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInControlBlocks")},
-        {"CSharpFormattingOptions_NewLinesForBracesInLambdaExpressionBody", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInLambdaExpressionBody")},
-        {"CSharpFormattingOptions_NewLinesForBracesInMethods", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInMethods")},
-        {"CSharpFormattingOptions_NewLinesForBracesInObjectCollectionArrayInitializers", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInObjectCollectionArrayInitializers")},
-        {"CSharpFormattingOptions_NewLinesForBracesInProperties", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInProperties")},
-        {"CSharpFormattingOptions_NewLinesForBracesInTypes", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLinesForBracesInTypes")},
-        {"CSharpFormattingOptions_SpaceWithinCastParentheses", new RoamingProfileStorage("TextEditor.CSharp.Specific.SpaceWithinCastParentheses")},
-        {"CSharpFormattingOptions_SpaceWithinExpressionParentheses", new RoamingProfileStorage("TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses")},
-        {"CSharpFormattingOptions_SpaceWithinOtherParentheses", new RoamingProfileStorage("TextEditor.CSharp.Specific.SpaceWithinOtherParentheses")},
         {"DateAndTime_ProvideDateAndTimeCompletions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
         {"DiagnosticOptions_LogTelemetryForBackgroundAnalyzerExecution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
         {"DiagnosticOptions_LspPullDiagnosticsFeatureFlag", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},

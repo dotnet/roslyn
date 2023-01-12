@@ -1185,7 +1185,7 @@ public ref struct RS
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (8,16): error CS9101: Values of type 'RS' cannot be used in async methods or async lambda expressions.
+                // (8,16): error CS9104: Values of type 'RS' cannot be used in async methods or async lambda expressions.
                 //         using (default(RS)) { } // 1
                 Diagnostic(ErrorCode.ERR_BadSpecialByRef, "default(RS)").WithArguments("RS").WithLocation(8, 16),
                 // (9,16): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.

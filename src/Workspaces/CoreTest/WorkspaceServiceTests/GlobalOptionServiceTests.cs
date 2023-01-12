@@ -35,31 +35,35 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var optionKey = new OptionKey(new TestOption() { DefaultValue = 1 });
 
-            Assert.Equal(1, optionService.GetOption(optionKey));
+            Assert.Equal(1, optionService.GetExternallyDefinedOption(optionKey));
 
             optionService.SetOptions(
                 ImmutableArray<KeyValuePair<OptionKey2, object?>>.Empty,
                 ImmutableArray.Create(KeyValuePairUtil.Create(optionKey, (object?)2)));
 
-            Assert.Equal(2, optionService.GetOption(optionKey));
+            Assert.Equal(2, optionService.GetExternallyDefinedOption(optionKey));
 
             optionService.SetOptions(
                 ImmutableArray<KeyValuePair<OptionKey2, object?>>.Empty,
                 ImmutableArray.Create(KeyValuePairUtil.Create(optionKey, (object?)3)));
 
-            Assert.Equal(3, optionService.GetOption(optionKey));
+            Assert.Equal(3, optionService.GetExternallyDefinedOption(optionKey));
         }
 
-        [Fact]
-        public void ExternallyDefinedOption()
+        [Theory]
+        [CombinatorialData]
+        public void ExternallyDefinedOption(bool subclass)
         {
             using var workspace1 = new AdhocWorkspace();
             using var workspace2 = new AdhocWorkspace();
             var optionService = GetLegacyGlobalOptionService(workspace1.Services);
             var optionSet = new SolutionOptionSet(optionService);
 
-            var optionKey = new OptionKey(new TestOption());
-            var perLanguageOptionKey = new OptionKey(new TestOption() { IsPerLanguage = true }, "lang");
+            var option = subclass ? (IOption)new TestOption<int>(defaultValue: 1) : new TestOption() { DefaultValue = 1 };
+            var perLanguageOption = subclass ? (IOption)new PerLanguageTestOption<int>(defaultValue: 1) : new TestOption() { IsPerLanguage = true, DefaultValue = 1 };
+
+            var optionKey = new OptionKey(option);
+            var perLanguageOptionKey = new OptionKey(perLanguageOption, "lang");
 
             Assert.Equal(optionKey.Option.DefaultValue, optionSet.GetOption<int>(optionKey));
             Assert.Equal(perLanguageOptionKey.Option.DefaultValue, optionSet.GetOption<int>(perLanguageOptionKey));
@@ -164,9 +168,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var globalOptions = GetGlobalOptionService(workspace.Services);
-            var option1 = new Option2<int>("Feature1", "Name1", defaultValue: 1);
-            var option2 = new Option2<int>("Feature2", "Name2", defaultValue: 2);
-            var option3 = new Option2<int>("Feature3", "Name3", defaultValue: 3);
+            var option1 = new Option2<int>("test_option1", defaultValue: 1);
+            var option2 = new Option2<int>("test_option2", defaultValue: 2);
+            var option3 = new Option2<int>("test_option3", defaultValue: 3);
 
             var changedOptions = new List<OptionChangedEventArgs>();
 
@@ -184,9 +188,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             AssertEx.Equal(new[]
             {
-                "Name1=5",
-                "Name2=6",
-            }, changedOptions.Select(e => $"{e.OptionKey.Option.Name}={e.Value}"));
+                "test_option1=5",
+                "test_option2=6",
+            }, changedOptions.Select(e => $"{e.Option.Definition.ConfigName}={e.Value}"));
 
             values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey2(option1), new OptionKey2(option2), new OptionKey2(option3)));
             Assert.Equal(5, values[0]);
@@ -217,8 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void GettingOptionWithoutChangedOption()
         {
             using var workspace = new AdhocWorkspace();
-            var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var optionSet = new SolutionOptionSet(optionService);
+            var optionSet = new SolutionOptionSet(GetLegacyGlobalOptionService(workspace.Services));
 
             var optionFalse = new Option<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(optionFalse));
@@ -231,33 +234,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var trueKey = new OptionKey(optionTrue);
             Assert.True((bool?)optionSet.GetOption(trueKey));
-        }
-
-        [Fact]
-        public void GetKnownOptions()
-        {
-            using var workspace = new AdhocWorkspace();
-            var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
-            optionService.GetOption(option);
-
-            var optionSet = new SolutionOptionSet(optionService);
-            var value = optionSet.GetOption((Option<bool>)option);
-            Assert.True(value);
-        }
-
-        [Fact]
-        public void GetKnownOptionsKey()
-        {
-            using var workspace = new AdhocWorkspace();
-            var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
-            optionService.GetOption(option);
-
-            var optionSet = new SolutionOptionSet(optionService);
-            var optionKey = new OptionKey(option);
-            var value = (bool?)optionSet.GetOption(optionKey);
-            Assert.True(value);
         }
 
         [Fact]
@@ -294,24 +270,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void TestPerLanguageCodeStyleOptions()
         {
             using var workspace = new AdhocWorkspace();
-            var perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning)).WithPublicOption("test", "test");
             var perLanguageOption = perLanguageOption2.ToPublicOption();
             var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!perLanguageOption2.DefaultValue.Value, perLanguageOption2.DefaultValue.Notification);
             var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 
-            // Test "OptionKey" based overloads for get/set options on OptionSet and OptionService using different public and internal type combinations.
-
-            //  1. { PerLanguageOption, CodeStyleOption }
-            TestCodeStyleOptionsCommon(workspace, perLanguageOption, LanguageNames.CSharp, newValueCodeStyleOption);
-
-            //  2. { PerLanguageOption2, CodeStyleOption }
-            TestCodeStyleOptionsCommon(workspace, perLanguageOption2, LanguageNames.CSharp, newValueCodeStyleOption);
-
-            //  3. { PerLanguageOption, CodeStyleOption2 }
-            TestCodeStyleOptionsCommon(workspace, perLanguageOption, LanguageNames.CSharp, newValueCodeStyleOption2);
-
-            //  4. { PerLanguageOption2, CodeStyleOption2 }
-            TestCodeStyleOptionsCommon(workspace, perLanguageOption2, LanguageNames.CSharp, newValueCodeStyleOption2);
+            TestPublicOption(workspace, perLanguageOption, language: LanguageNames.CSharp, newValueCodeStyleOption);
+            TestInternalOption(workspace, perLanguageOption2, language: LanguageNames.CSharp, newValueCodeStyleOption2);
 
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
             var originalOptionSet = new SolutionOptionSet(optionService);
@@ -321,50 +286,38 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void TestLanguageSpecificCodeStyleOptions()
         {
             using var workspace = new AdhocWorkspace();
-            var option2 = new Option2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var option2 = new Option2<CodeStyleOption2<bool>>("test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning)).WithPublicOption("test", "test");
             var option = option2.ToPublicOption();
             var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!option2.DefaultValue.Value, option2.DefaultValue.Notification);
             var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 
-            // Test "OptionKey" based overloads for get/set options on OptionSet and OptionService using different public and internal type combinations.
-
-            //  1. { Option, CodeStyleOption }
-            TestCodeStyleOptionsCommon(workspace, option, language: null, newValueCodeStyleOption);
-
-            //  2. { Option2, CodeStyleOption }
-            TestCodeStyleOptionsCommon(workspace, option2, language: null, newValueCodeStyleOption);
-
-            //  3. { Option, CodeStyleOption2 }
-            TestCodeStyleOptionsCommon(workspace, option, language: null, newValueCodeStyleOption2);
-
-            //  4. { Option2, CodeStyleOption2 }
-            TestCodeStyleOptionsCommon(workspace, option2, language: null, newValueCodeStyleOption2);
+            TestPublicOption(workspace, option, language: null, newValueCodeStyleOption);
+            TestInternalOption(workspace, option2, language: null, newValueCodeStyleOption2);
         }
 
-        private static void TestCodeStyleOptionsCommon<TCodeStyleOption>(Workspace workspace, IOption2 option, string? language, TCodeStyleOption newValue)
-            where TCodeStyleOption : ICodeStyleOption
+        private static void TestPublicOption(Workspace workspace, IPublicOption option, string? language, CodeStyleOption<bool> newPublicValue)
         {
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
             var originalOptionSet = new SolutionOptionSet(optionService);
 
             var optionKey = new OptionKey(option, language);
 
-            // Value return from "object GetOption(OptionKey)" should always be public CodeStyleOption type.
-            var newPublicValue = newValue.AsPublicCodeStyleOption();
-
             //  1. WithChangedOption(OptionKey), GetOption(OptionKey)/GetOption<T>(OptionKey)
-            var newOptionSet = originalOptionSet.WithChangedOption(optionKey, newValue);
+            var newOptionSet = originalOptionSet.WithChangedOption(optionKey, newPublicValue);
             Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey));
-            // Value returned from public API should always be castable to public CodeStyleOption type.
-            Assert.NotNull((CodeStyleOption<bool>?)newOptionSet.GetOption(optionKey));
+            Assert.IsType<CodeStyleOption<bool>>(newOptionSet.GetOption(optionKey));
 
             // Verify "T GetOption<T>(OptionKey)" works for T being a public code style option type.
             Assert.Equal(newPublicValue, newOptionSet.GetOption<CodeStyleOption<bool>>(optionKey));
+        }
 
-            //  2. IOptionService.GetOption(OptionKey)
-            var changedOptions = ((SolutionOptionSet)newOptionSet).GetChangedOptions();
-            optionService.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
-            Assert.Equal(newPublicValue, optionService.GetOption(optionKey));
+        private static void TestInternalOption(Workspace workspace, IOption2 option, string? language, CodeStyleOption2<bool> newValue)
+        {
+            var optionService = GetLegacyGlobalOptionService(workspace.Services);
+            var optionKey = new OptionKey2(option, language);
+
+            optionService.SetOptions(ImmutableArray.Create(new KeyValuePair<OptionKey2, object?>(optionKey, newValue)), ImmutableArray<KeyValuePair<OptionKey, object?>>.Empty);
+            Assert.Equal(newValue, optionService.GlobalOptions.GetOption<CodeStyleOption2<bool>>(optionKey));
         }
     }
 }

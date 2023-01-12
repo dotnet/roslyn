@@ -44,7 +44,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
         private readonly AbstractPushOrPullDiagnosticsTaggerProvider<TTag> _callback;
 
-        protected override ImmutableArray<IOption> Options => _callback.Options;
+        protected override ImmutableArray<IOption2> Options => _callback.Options;
 
         public SingleDiagnosticKindPullTaggerProvider(
             AbstractPushOrPullDiagnosticsTaggerProvider<TTag> callback,

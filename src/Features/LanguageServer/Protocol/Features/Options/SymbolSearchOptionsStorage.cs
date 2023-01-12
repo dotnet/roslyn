@@ -15,12 +15,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 SearchNuGetPackages = globalOptions.GetOption(SearchNuGetPackages, language)
             };
 
-        private const string FeatureName = "SymbolSearchOptions";
-
         public static PerLanguageOption2<bool> SearchReferenceAssemblies =
-            new(FeatureName, "SuggestForTypesInReferenceAssemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies);
+            new("SymbolSearchOptions_SuggestForTypesInReferenceAssemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies);
 
         public static PerLanguageOption2<bool> SearchNuGetPackages =
-            new(FeatureName, "SuggestForTypesInNuGetPackages", SymbolSearchOptions.Default.SearchNuGetPackages);
+            new("SymbolSearchOptions_SuggestForTypesInNuGetPackages", SymbolSearchOptions.Default.SearchNuGetPackages);
     }
 }

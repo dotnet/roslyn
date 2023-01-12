@@ -2770,5 +2770,41 @@ public class C
             var actualAdditionalLocations = comp.GetDiagnostics().Single().AdditionalLocations;
             Assert.Equal(property.Locations.Single(), actualAdditionalLocations.Single());
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(66037, "https://github.com/dotnet/roslyn/issues/66037")]
+        public void TestAdditionalLocationOnCompilerDiagnostic(bool warnAsError)
+        {
+            var options = WithNullableEnable();
+            if (warnAsError)
+            {
+                options = options.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+            }
+
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+}
+public class C
+{
+    public B f;
+    static void Main()
+    {
+        new C() { f = { f2 = null }};
+    }
+}", options: options);
+
+            var diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (8,14): warning CS8618: Non-nullable field 'f' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public B f;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "f").WithArguments("field", "f").WithLocation(8, 14).WithWarningAsError(warnAsError));
+
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Single(diagnostic.AdditionalLocations);
+        }
+
     }
 }

@@ -105,6 +105,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                 {
                     // Otherwise we can just store normally
                     value = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+
+                    if (optionKey.Option.Type.IsEnum)
+                    {
+                        try
+                        {
+                            value = Enum.ToObject(optionKey.Option.Type, value);
+                        }
+                        catch (ArgumentException)
+                        {
+                            // the value may be out of range for the base type of the enum
+                            value = null;
+                            return false;
+                        }
+                    }
+
                     return true;
                 }
             }
@@ -113,12 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             return false;
         }
 
-        public bool TryPersist(OptionKey2 optionKey, string path, string key, object? value)
+        public void Persist(OptionKey2 optionKey, string path, string key, object? value)
         {
-            if (_registryKey == null)
-            {
-                throw new InvalidOperationException();
-            }
+            Contract.ThrowIfNull(_registryKey);
 
             lock (_gate)
             {
@@ -131,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                 {
                     Contract.ThrowIfNull(value);
                     subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
-                    return true;
+                    return;
                 }
 
                 if (optionType == typeof(long))
@@ -139,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                     Contract.ThrowIfNull(value);
 
                     subKey.SetValue(key, value, RegistryValueKind.QWord);
-                    return true;
+                    return;
                 }
 
                 if (optionType.IsEnum)
@@ -156,11 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                         subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
                     }
 
-                    return true;
+                    return;
                 }
 
                 subKey.SetValue(key, value);
-                return true;
             }
         }
     }

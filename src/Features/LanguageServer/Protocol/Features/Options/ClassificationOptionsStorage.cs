@@ -18,11 +18,11 @@ internal static class ClassificationOptionsStorage
         };
 
     public static PerLanguageOption2<bool> ClassifyReassignedVariables =
-        new("ClassificationOptions", "ClassifyReassignedVariables", ClassificationOptions.Default.ClassifyReassignedVariables);
+        new("ClassificationOptions_ClassifyReassignedVariables", ClassificationOptions.Default.ClassifyReassignedVariables);
 
     public static PerLanguageOption2<bool> ColorizeRegexPatterns =
-        new("RegularExpressionsOptions", "ColorizeRegexPatterns", ClassificationOptions.Default.ColorizeRegexPatterns);
+        new("RegularExpressionsOptions_ColorizeRegexPatterns", ClassificationOptions.Default.ColorizeRegexPatterns);
 
     public static PerLanguageOption2<bool> ColorizeJsonPatterns =
-        new("JsonFeatureOptions", "ColorizeJsonPatterns", ClassificationOptions.Default.ColorizeJsonPatterns);
+        new("JsonFeatureOptions_ColorizeJsonPatterns", ClassificationOptions.Default.ColorizeJsonPatterns);
 }

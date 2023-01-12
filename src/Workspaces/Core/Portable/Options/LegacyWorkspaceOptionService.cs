@@ -6,7 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
@@ -45,19 +46,10 @@ internal sealed class LegacyGlobalOptionService : ILegacyGlobalOptionService
         _currentExternallyDefinedOptionValues = ImmutableDictionary.Create<OptionKey, object?>();
     }
 
-    public object? GetOption(OptionKey key)
+    public object? GetExternallyDefinedOption(OptionKey key)
     {
-        if (key.Option is IOption2 internallyDefinedOption)
-        {
-            return GlobalOptions.GetOption<object?>(new OptionKey2(internallyDefinedOption, key.Language));
-        }
-
-        if (_currentExternallyDefinedOptionValues.TryGetValue(key, out var value))
-        {
-            return value;
-        }
-
-        return key.Option.DefaultValue;
+        Debug.Assert(key.Option is not IOption2);
+        return _currentExternallyDefinedOptionValues.TryGetValue(key, out var value) ? value : key.Option.DefaultValue;
     }
 
     /// <summary>
@@ -70,11 +62,13 @@ internal sealed class LegacyGlobalOptionService : ILegacyGlobalOptionService
         ImmutableArray<KeyValuePair<OptionKey2, object?>> internallyDefinedOptions,
         ImmutableArray<KeyValuePair<OptionKey, object?>> externallyDefinedOptions)
     {
+        // all values in internally defined options have internal representation:
+        Debug.Assert(internallyDefinedOptions.All(entry => OptionSet.IsInternalOptionValue(entry.Value)));
+
         var anyExternallyDefinedOptionChanged = false;
         foreach (var (optionKey, value) in externallyDefinedOptions)
         {
-            var existingValue = GetOption(optionKey);
-            if (Equals(value, existingValue))
+            if (Equals(value, GetExternallyDefinedOption(optionKey)))
             {
                 continue;
             }

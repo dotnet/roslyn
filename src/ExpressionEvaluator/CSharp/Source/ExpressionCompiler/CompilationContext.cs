@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             else if (expressionType.SpecialType == SpecialType.System_Void)
             {
                 flags |= DkmClrCompilationResultFlags.ReadOnlyResult;
-                Debug.Assert(expression.ConstantValue == null);
+                Debug.Assert(expression.ConstantValueOpt == null);
                 resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, isConstant: false);
                 return new BoundExpressionStatement(syntax, expression) { WasCompilerGenerated = true };
             }
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 flags |= DkmClrCompilationResultFlags.ReadOnlyResult;
             }
 
-            resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
+            resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValueOpt != null);
             return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
         }
 

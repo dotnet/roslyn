@@ -209,7 +209,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.Priority:
-                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
+                            content = ValueTypeCache.GetOrCreate(data.Priority switch
+                            {
+                                TaskListItemPriority.Low => VSTASKPRIORITY.TP_LOW,
+                                TaskListItemPriority.Medium => VSTASKPRIORITY.TP_NORMAL,
+                                TaskListItemPriority.High => VSTASKPRIORITY.TP_HIGH,
+                                _ => VSTASKPRIORITY.TP_NORMAL,
+                            });
                             return content != null;
                         case StandardTableKeyNames.Text:
                             content = data.Message;

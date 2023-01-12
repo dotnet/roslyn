@@ -57,20 +57,20 @@ internal interface SyntaxFormattingOptionsProvider :
 
 internal static partial class SyntaxFormattingOptionsProviders
 {
-    public static SyntaxFormattingOptions.CommonOptions GetCommonSyntaxFormattingOptions(this AnalyzerConfigOptions options, SyntaxFormattingOptions.CommonOptions? fallbackOptions)
+    public static SyntaxFormattingOptions.CommonOptions GetCommonSyntaxFormattingOptions(this IOptionsReader options, string language, SyntaxFormattingOptions.CommonOptions? fallbackOptions)
     {
         fallbackOptions ??= SyntaxFormattingOptions.CommonOptions.Default;
 
         return new()
         {
-            LineFormatting = options.GetLineFormattingOptions(fallbackOptions.LineFormatting),
-            SeparateImportDirectiveGroups = options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
-            AccessibilityModifiersRequired = options.GetEditorConfigOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, fallbackOptions.AccessibilityModifiersRequired),
+            LineFormatting = options.GetLineFormattingOptions(language, fallbackOptions.LineFormatting),
+            SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.SeparateImportDirectiveGroups),
+            AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language, fallbackOptions.AccessibilityModifiersRequired),
         };
     }
 
 #if !CODE_STYLE
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions, LanguageServices languageServices)
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, SyntaxFormattingOptions? fallbackOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options, fallbackOptions);
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)

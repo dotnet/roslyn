@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
         <source>A deconstruction variable cannot be declared as a ref local</source>
-        <target state="new">A deconstruction variable cannot be declared as a ref local</target>
+        <target state="translated">Ayrıştırma değişkeni, ref yerel olarak bildirilemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -759,7 +759,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
+        <target state="translated">Türü örtük olarak belirlenmiş lambda '{0}' parametresi varsayılan bir değere sahip olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1309,7 +1309,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">'{1}' başvuru değeri, '{0}' olarak atanamaz çünkü '{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1434,7 +1434,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
         <source>The 'scoped' modifier cannot be used with discard.</source>
-        <target state="new">The 'scoped' modifier cannot be used with discard.</target>
+        <target state="translated">'scoped' değiştiricisi atma ile kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1642,9 +1642,24 @@
         <target state="translated">'{0}', 'UnmanagedCallersOnly' özniteliğine sahip ve temsilci türüne dönüştürülemez. Bu yöntem için bir işlev işaretçisi edinin.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="translated">UnscopedRefAttribute varsayılan olarak kapsam dışı olduğundan bu öğeye uygulanamaz.</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="new">UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1784,12 +1799,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaOptionalParameters">
         <source>lambda optional parameters</source>
-        <target state="new">lambda optional parameters</target>
+        <target state="translated">lambda isteğe bağlı parametreleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaParamsArray">
         <source>lambda params array</source>
-        <target state="new">lambda params array</target>
+        <target state="translated">lambda parametreleri dizisi</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1884,7 +1899,7 @@
       </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
-        <target state="new">&lt;missing&gt;</target>
+        <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2124,12 +2139,12 @@
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch">
         <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
-        <target state="new">Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</target>
+        <target state="translated">{0} parametresi, lambdada '{1:10}' varsayılan değerine ancak temsilci türünde ise '{2:10}' değerine sahip.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
         <source>The default parameter value does not match in the target delegate type.</source>
-        <target state="new">The default parameter value does not match in the target delegate type.</target>
+        <target state="translated">Varsayılan parametre değeri hedef temsilci türünde eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2154,12 +2169,12 @@
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly">
         <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter {0} has params modifier in lambda but not in target delegate type.</target>
+        <target state="translated">{0} parametresi, lambda içinde parametre değiştiricisi içeriyor ancak hedef temsilci türünde içermiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter has params modifier in lambda but not in target delegate type.</target>
+        <target state="translated">Parametre, lambda içinde parametre değiştiricisi içeriyor ancak hedef temsilci türünde içermiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2219,12 +2234,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">Bu başvuru, '{1}' değerini '{0}' olarak atar ancak '{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
         <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
-        <target state="new">This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</target>
+        <target state="translated">Bu başvuru, hedeften daha geniş bir değer kaçış kapsamına sahip bir değer atadığından daha dar kaçış kapsamlarına sahip değerlerin hedefi üzerinden atamaya izin verir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -5308,7 +5323,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
-        <target state="new">A non ref-returning property or indexer may not be used as an out or ref value</target>
+        <target state="translated">Başvuru döndürmeyen bir özellik veya dizin oluşturucu, out veya ref değeri olarak kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8516,7 +8531,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
-        <target state="new">Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</target>
+        <target state="translated">Bu, zaman uyumsuz bir yöntem olduğundan, döndürme ifadesi '{1}' türü yerine '{0}' türünde olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9679,7 +9694,7 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
         <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
-        <target state="new">Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</target>
+        <target state="translated">'{0}', '{1}' döndüren bir zaman uyumsuz yöntem olduğundan döndürme anahtar sözcüğünün ardından nesne ifadesi gelmemelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11109,7 +11124,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
         <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
-        <target state="new">Async lambda expression converted to a '{0}' returning delegate cannot return a value</target>
+        <target state="translated">'{0}' döndüren zaman uyumsuz lambda ifadesi dönüştürülen temsilci, bir değer döndüremez</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

@@ -7368,7 +7368,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeUnsupportedTarget" xml:space="preserve">
-    <value>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</value>
+    <value>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeUnsupportedMemberTarget" xml:space="preserve">
+    <value>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to an interface implementation.</value>
+  </data>
+  <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
+    <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>

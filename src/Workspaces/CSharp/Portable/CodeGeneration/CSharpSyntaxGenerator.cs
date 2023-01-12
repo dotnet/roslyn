@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -1651,8 +1650,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
                     break;
                 case Accessibility.ProtectedOrInternal:
-                    list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     break;
                 case Accessibility.ProtectedAndInternal:
                     list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));

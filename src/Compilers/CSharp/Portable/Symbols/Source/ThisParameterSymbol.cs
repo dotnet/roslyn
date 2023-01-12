@@ -181,23 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool HasUnscopedRefAttribute
-        {
-            get
-            {
-                if (_containingMethod is { })
-                {
-                    if (_containingMethod.HasUnscopedRefAttribute == true)
-                    {
-                        return true;
-                    }
-                    if (_containingMethod.AssociatedSymbol is PropertySymbol { HasUnscopedRefAttribute: true })
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
+            => _containingMethod.HasUnscopedRefAttributeOnMethodOrProperty();
 
         internal sealed override bool UseUpdatedEscapeRules
             => _containingMethod?.UseUpdatedEscapeRules ?? _containingType.ContainingModule.UseUpdatedEscapeRules;
