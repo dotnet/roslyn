@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.DelegateDeclaration(
                 default,
-                AsModifierList(accessibility, modifiers & GetAllowedModifiers(SyntaxKind.DelegateDeclaration)),
+                AsModifierList(accessibility, modifiers, SyntaxKind.DelegateDeclaration),
                 returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
                 name.ToIdentifierToken(),
                 AsTypeParameterList(typeParameters),
