@@ -792,13 +792,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
         }
 
-        public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
         {
             try
             {
                 var log = EditAndContinueWorkspaceService.Log;
 
-                log.Write("EmitSolutionUpdate: '{0}'", solution.FilePath);
+                log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
 
                 using var _1 = ArrayBuilder<ModuleUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
@@ -935,6 +935,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
                         Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id));
+
+                        await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
@@ -947,23 +949,30 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, createBaselineDiagnostics));
                         Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineDiagnostics);
                         isBlocked = true;
+
+                        await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
-                    log.Write("Emitting update of '{0}'", newProject.Id);
+                    await LogDocumentChangesAsync(baselineGeneration + 1, cancellationToken).ConfigureAwait(false);
 
-                    if (log.FileLoggingEnabled)
+                    async ValueTask LogDocumentChangesAsync(int? generation, CancellationToken cancellationToken)
                     {
-                        foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
+                        if (log.FileLoggingEnabled)
                         {
-                            if (changedDocumentAnalysis.HasChanges)
+                            foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
                             {
-                                var oldDocument = await oldProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                                var newDocument = await newProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                                await log.WriteDocumentChangeAsync(oldDocument, newDocument, DebuggingSession.Id, baselineGeneration + 1, cancellationToken).ConfigureAwait(false);
+                                if (changedDocumentAnalysis.HasChanges)
+                                {
+                                    var oldDocument = await oldProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                                    var newDocument = await newProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                                    await log.WriteDocumentChangeAsync(oldDocument, newDocument, updateId, generation, cancellationToken).ConfigureAwait(false);
+                                }
                             }
                         }
                     }
+
+                    log.Write("Emitting update of '{0}'", newProject.Id);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

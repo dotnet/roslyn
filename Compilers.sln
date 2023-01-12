@@ -165,6 +165,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestDiscoveryWorker", "src\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj", "{FB617466-C4A1-4289-A512-A06182FC779F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExternalAccess", "ExternalAccess", "{67B6F694-CA27-4CDE-B1E5-E2B4105A2420}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler", "src\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj", "{8450EF6B-28BB-4F4D-B005-CD734B476800}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -423,6 +427,10 @@ Global
 		{FB617466-C4A1-4289-A512-A06182FC779F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB617466-C4A1-4289-A512-A06182FC779F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB617466-C4A1-4289-A512-A06182FC779F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8450EF6B-28BB-4F4D-B005-CD734B476800}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8450EF6B-28BB-4F4D-B005-CD734B476800}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8450EF6B-28BB-4F4D-B005-CD734B476800}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8450EF6B-28BB-4F4D-B005-CD734B476800}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -499,6 +507,8 @@ Global
 		{48C93F90-8776-4847-96D8-127B896D6C80} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{F3D9264A-7CAE-4265-AF48-0C863301F51E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{FB617466-C4A1-4289-A512-A06182FC779F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{67B6F694-CA27-4CDE-B1E5-E2B4105A2420} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{8450EF6B-28BB-4F4D-B005-CD734B476800} = {67B6F694-CA27-4CDE-B1E5-E2B4105A2420}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

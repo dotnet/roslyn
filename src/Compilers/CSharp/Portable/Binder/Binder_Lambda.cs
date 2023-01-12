@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<string> names = default;
             ImmutableArray<RefKind> refKinds = default;
-            ImmutableArray<DeclarationScope> scopes = default;
+            ImmutableArray<ScopedKind> scopes = default;
             ImmutableArray<TypeWithAnnotations> types = default;
             ImmutableArray<EqualsValueClauseSyntax?> defaultValues = default;
             RefKind returnRefKind = RefKind.None;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
-                var scopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance();
+                var scopesBuilder = ArrayBuilder<ScopedKind>.GetInstance();
                 var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
                 var defaultValueBuilder = ArrayBuilder<EqualsValueClauseSyntax?>.GetInstance();
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeSyntax = p.Type;
                     TypeWithAnnotations type = default;
                     var refKind = RefKind.None;
-                    var scope = DeclarationScope.Unscoped;
+                    var scope = ScopedKind.None;
 
                     if (typeSyntax == null)
                     {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
-                if (scopesBuilder.Any(s => s != DeclarationScope.Unscoped))
+                if (scopesBuilder.Any(s => s != ScopedKind.None))
                 {
                     scopes = scopesBuilder.ToImmutable();
                 }

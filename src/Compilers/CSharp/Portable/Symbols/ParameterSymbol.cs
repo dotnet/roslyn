@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The effective scope. This is from the declared scope, implicit scope and any
         /// <c>UnscopedRefAttribute</c>.
         /// </summary>
-        internal abstract DeclarationScope EffectiveScope { get; }
+        internal abstract ScopedKind EffectiveScope { get; }
 
         internal abstract bool HasUnscopedRefAttribute { get; }
 

@@ -859,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type.SpecialType != SpecialType.System_String &&
                 type is not ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte })
             {
-                return value.ConstantValue != ConstantValue.Null;
+                return value.ConstantValueOpt != ConstantValue.Null;
             }
 
             if ((object)type != null && type.IsPointerOrFunctionPointer())
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that used them were always considered used. We now consider interpolated strings that are
             // made up of only constant expressions to be constant values, but for backcompat we consider
             // the writes to be uses anyway.
-            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
+            if (value is { ConstantValueOpt: not null, Kind: not BoundKind.InterpolatedString }) return false;
 
             switch (value.Kind)
             {

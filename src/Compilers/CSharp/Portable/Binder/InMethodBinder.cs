@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -66,8 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-
-        internal override uint LocalScopeDepth => Binder.CurrentMethodScope;
 
         protected override bool InExecutableBinder => true;
 

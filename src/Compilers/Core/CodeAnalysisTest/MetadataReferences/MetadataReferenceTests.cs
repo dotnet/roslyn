@@ -56,14 +56,35 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 #endif
 
-        [Fact]
-        public void CreateFromImage()
+        [Theory, CombinatorialData]
+        public void CreateFromImage_Assembly(bool module, bool immutableArray, bool explicitProperties)
         {
-            var r = MetadataReference.CreateFromImage(ResourcesNet451.mscorlib);
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var properties = explicitProperties ? MetadataReferenceProperties.Assembly : default;
+            var r = immutableArray
+                ? MetadataReference.CreateFromImage(peImage.AsImmutable(), properties)
+                : MetadataReference.CreateFromImage(peImage.AsEnumerable(), properties);
 
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
             Assert.Null(r.FilePath);
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Theory, CombinatorialData]
+        public void CreateFromImage_Module(bool module, bool immutableArray)
+        {
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var r = immutableArray
+                ? MetadataReference.CreateFromImage(peImage.AsImmutable(), MetadataReferenceProperties.Module)
+                : MetadataReference.CreateFromImage(peImage.AsEnumerable(), MetadataReferenceProperties.Module);
+
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryModule, r.Display);
+            Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsEmpty);
         }
@@ -101,12 +122,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ((AssemblyMetadata)r.GetMetadataNoCopy()).GetAssembly().Identity.GetDisplayName());
         }
 
-        [Fact]
-        public void CreateFromFile_Assembly()
+        [Theory, CombinatorialData]
+        public void CreateFromStream_Assembly(bool module, bool explicitProperties)
         {
-            var file = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib);
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var r = MetadataReference.CreateFromStream(
+                new MemoryStream(peImage, writable: false),
+                explicitProperties ? MetadataReferenceProperties.Assembly : default);
 
-            var r = MetadataReference.CreateFromFile(file.Path);
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
+            Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Theory, CombinatorialData]
+        public void CreateFromStream_Module(bool module)
+        {
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var r = MetadataReference.CreateFromStream(
+                new MemoryStream(peImage, writable: false),
+                MetadataReferenceProperties.Module);
+
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
+            Assert.Null(r.FilePath);
+            Assert.Equal(CodeAnalysisResources.InMemoryModule, r.Display);
+            Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+        }
+
+        [Theory, CombinatorialData]
+        public void CreateFromFile_Assembly(bool module, bool explicitProperties)
+        {
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var file = Temp.CreateFile().WriteAllBytes(peImage);
+
+            var r = MetadataReference.CreateFromFile(file.Path,
+                explicitProperties ? MetadataReferenceProperties.Assembly : default);
+            Assert.IsAssignableFrom<AssemblyMetadata>(r.GetMetadata());
             Assert.Equal(file.Path, r.FilePath);
             Assert.Equal(file.Path, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
@@ -119,15 +175,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // check that the metadata is in memory and the file can be deleted:
             File.Delete(file.Path);
             var metadata = (AssemblyMetadata)r.GetMetadataNoCopy();
-            Assert.Equal("CommonLanguageRuntimeLibrary", metadata.GetModules()[0].Name);
+            Assert.Equal(module ? "ModuleCS00.netmodule" : "CommonLanguageRuntimeLibrary", metadata.GetModules()[0].Name);
         }
 
-        [Fact]
-        public void CreateFromFile_Module()
+        [Theory, CombinatorialData]
+        public void CreateFromFile_Module(bool module)
         {
-            var file = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.NetModule01.ModuleCS00);
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var file = Temp.CreateFile().WriteAllBytes(peImage);
 
             var r = MetadataReference.CreateFromFile(file.Path, MetadataReferenceProperties.Module);
+            Assert.IsAssignableFrom<ModuleMetadata>(r.GetMetadata());
             Assert.Equal(file.Path, r.FilePath);
             Assert.Equal(file.Path, r.Display);
             Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
@@ -140,7 +198,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // check that the metadata is in memory and the file can be deleted:
             File.Delete(file.Path);
             var metadata = (ModuleMetadata)r.GetMetadataNoCopy();
-            Assert.Equal("ModuleCS00.netmodule", metadata.Name);
+            Assert.Equal(module ? "ModuleCS00.netmodule" : "CommonLanguageRuntimeLibrary", metadata.Name);
         }
 
         [Fact]

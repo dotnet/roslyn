@@ -8,11 +8,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     internal sealed class SymbolSearchGlobalOptions
     {
-        private const string LocalRegistryPath = @"Roslyn\Features\SymbolSearch\";
-        private const string FeatureName = "SymbolSearchOptions";
-
-        public static readonly Option2<bool> Enabled = new(
-            FeatureName, "Enabled", defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Enabled"));
+        public static readonly Option2<bool> Enabled = new("SymbolSearchOptions_Enabled", defaultValue: true);
     }
 }
