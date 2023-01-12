@@ -245,7 +245,7 @@ Delta: Gamma: Beta: Test B
         }
 
         /// <summary>
-        /// Verify the set of asesmblies loaded as analyzer dependencies are the specified assembly paths
+        /// Verify the set of assemblies loaded as analyzer dependencies are the specified assembly paths
         /// </summary>
         private static void VerifyDependencyAssemblies(DefaultAnalyzerAssemblyLoader loader, params string[] assemblyPaths)
         {
