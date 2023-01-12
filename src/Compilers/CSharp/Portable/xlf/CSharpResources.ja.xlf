@@ -222,9 +222,9 @@
         <target state="translated">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティまたはフィールドである必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRef">
-        <source>Values of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">Values of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">

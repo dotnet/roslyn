@@ -2941,7 +2941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && ((MethodSymbol)containingSymbol).IsAsync
                 && type.IsRestrictedType())
             {
-                Error(diagnostics, reportOnTemp ? ErrorCode.ERR_BadSpecialByRef : ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
+                Error(diagnostics, reportOnTemp ? ErrorCode.ERR_BadSpecialByRefUsing : ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
             }
         }
 

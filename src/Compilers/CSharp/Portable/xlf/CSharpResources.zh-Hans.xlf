@@ -222,9 +222,9 @@
         <target state="translated">记录成员 '{0}' 必须为类型 '{1}' 的可读实例属性或字段，以匹配位置参数 '{2}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRef">
-        <source>Values of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">Values of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">

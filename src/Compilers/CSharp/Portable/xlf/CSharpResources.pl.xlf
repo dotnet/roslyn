@@ -222,9 +222,9 @@
         <target state="translated">Składowa rekordu "{0}" musi być możliwą do odczytu właściwością wystąpienia typu "{1}", aby dopasować parametr pozycyjny "{2}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRef">
-        <source>Values of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">Values of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">

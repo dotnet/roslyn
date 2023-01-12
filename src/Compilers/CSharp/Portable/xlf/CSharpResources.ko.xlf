@@ -222,9 +222,9 @@
         <target state="translated">위치 매개 변수 '{0}'과(와) 일치하려면 레코드 멤버 '{1}'이(가) 유형 '{2}'의 읽을 수 있는 인스턴스 속성 또는 필드여야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRef">
-        <source>Values of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">Values of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
