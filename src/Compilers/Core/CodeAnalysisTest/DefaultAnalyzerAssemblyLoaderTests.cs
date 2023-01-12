@@ -259,9 +259,8 @@ Delta: Gamma: Beta: Test B
             loadedAssemblies = alcs[0].Assemblies;
 #else
 
-            // Unfortunately in .NET Framework we cannot determine which Assemblies are in the LoadFrom context
-            // which is what we want here. Our ability to verify here is less robust and instead we filter out 
-            // all the DLLs we know are simply a part of the application and examine what is left.
+            // The assemblies in the LoadFrom context are the assemblies loaded from 
+            // analyzer dependencies.
             loadedAssemblies = AppDomain.CurrentDomain
                 .GetAssemblies()
                 .Where(x => isInLoadFromContext(loader, x));
