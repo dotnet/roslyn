@@ -4279,6 +4279,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
+
+                    if (constructor is SynthesizedPrimaryConstructor primaryConstructor && primaryConstructor.GetCapturedParameters().Any())
+                    {
+                        for (int i = 0; i < analyzedArguments.Arguments.Count; i++)
+                        {
+                            if (analyzedArguments.RefKind(i) is (RefKind.Ref or RefKind.Out))
+                            {
+                                continue;
+                            }
+
+                            BoundParameter boundParameter;
+
+                            switch (analyzedArguments.Argument(i))
+                            {
+                                case BoundParameter param:
+                                    boundParameter = param;
+                                    break;
+
+                                case BoundConversion { Conversion.IsIdentity: true, Operand: BoundParameter param }:
+                                    boundParameter = param;
+                                    break;
+
+                                default:
+                                    continue;
+                            }
+
+                            if (boundParameter.ParameterSymbol is { } parameter &&
+                                primaryConstructor.GetCapturedParameters().ContainsKey(parameter))
+                            {
+                                if (expanded)
+                                {
+                                    var baseParameter = GetCorrespondingParameter(i, resultMember.Parameters, argsToParamsOpt, expanded: true);
+
+                                    if (baseParameter.Ordinal == resultMember.ParameterCount - 1 && OverloadResolution.IsValidParamsParameter(baseParameter))
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                diagnostics.Add(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, boundParameter.Syntax.Location, parameter);
+                            }
+                        }
+                    }
+
                     BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();

@@ -312,6 +312,7 @@
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                     return true;
                 default:
                     return false;

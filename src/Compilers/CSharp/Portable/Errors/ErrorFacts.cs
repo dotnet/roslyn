@@ -524,6 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                     return 1;
                 default:
                     return 0;
@@ -2277,6 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
                 case ErrorCode.ERR_InvalidPrimaryConstructorParameterReference:
                 case ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
