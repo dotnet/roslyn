@@ -278,8 +278,7 @@ namespace Microsoft.CodeAnalysis.Editing
             // If the given parameter is the first one of an extension method
             // then add `this` modifier if neccessary. This is C#-specific,
             // VB here changes nothing
-            if (symbol.ContainingSymbol is IMethodSymbol { IsExtensionMethod: true, Parameters: { Length: > 0 } parameters } &&
-                parameters[0].Equals(symbol))
+            if (symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } })
             {
                 parameter = WithKeywordIndicatingExtensionMethod(parameter);
             }
