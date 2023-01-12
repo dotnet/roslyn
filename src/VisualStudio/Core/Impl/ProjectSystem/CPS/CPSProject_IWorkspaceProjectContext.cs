@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         /// The <see cref="ProjectSystemProjectOptionsProcessor"/> we're using to parse command line options. Null if we don't
         /// have the ability to parse command line options.
         /// </summary>
-        private readonly ProjectSystemProjectOptionsProcessor? _visualStudioProjectOptionsProcessor;
+        private readonly ProjectSystemProjectOptionsProcessor? _projectSystemProjectOptionsProcessor;
 
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
@@ -88,10 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // If we have a command line parser service for this language, also set up our ability to process options if they come in
             if (visualStudioWorkspace.Services.GetLanguageServices(projectSystemProject.Language).GetService<ICommandLineParserService>() != null)
             {
-                _visualStudioProjectOptionsProcessor = new ProjectSystemProjectOptionsProcessor(_projectSystemProject, visualStudioWorkspace.Services.SolutionServices);
+                _projectSystemProjectOptionsProcessor = new ProjectSystemProjectOptionsProcessor(_projectSystemProject, visualStudioWorkspace.Services.SolutionServices);
                 _visualStudioWorkspace.AddProjectRuleSetFileToInternalMaps(
                     projectSystemProject,
-                    () => _visualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
+                    () => _projectSystemProjectOptionsProcessor.EffectiveRuleSetFilePath);
             }
 
             Guid = projectGuid;
@@ -136,10 +136,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public ProjectId Id => _projectSystemProject.Id;
 
         public void SetOptions(string commandLineForOptions)
-            => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
+            => _projectSystemProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
 
         public void SetOptions(ImmutableArray<string> arguments)
-            => _visualStudioProjectOptionsProcessor?.SetCommandLine(arguments);
+            => _projectSystemProjectOptionsProcessor?.SetCommandLine(arguments);
 
         public void SetProperty(string name, string? value)
         {
@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void Dispose()
         {
             _projectCodeModel?.OnProjectClosed();
-            _visualStudioProjectOptionsProcessor?.Dispose();
+            _projectSystemProjectOptionsProcessor?.Dispose();
             _projectSystemProject.RemoveFromWorkspace();
         }
 

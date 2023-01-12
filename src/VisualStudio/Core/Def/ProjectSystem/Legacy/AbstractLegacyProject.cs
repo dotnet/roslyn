@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     {
         public IVsHierarchy Hierarchy { get; }
         protected ProjectSystemProject ProjectSystemProject { get; }
-        internal ProjectSystemProjectOptionsProcessor VisualStudioProjectOptionsProcessor { get; set; }
+        internal ProjectSystemProjectOptionsProcessor ProjectSystemProjectOptionsProcessor { get; set; }
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
 
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
             workspaceImpl.AddProjectRuleSetFileToInternalMaps(
                 ProjectSystemProject,
-                () => VisualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
+                () => ProjectSystemProjectOptionsProcessor.EffectiveRuleSetFilePath);
 
             // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
             // by assigning the value of the project's root namespace to it. So various feature can choose to 
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             _batchScopeCreator.StopTrackingProject(ProjectSystemProject);
 
-            VisualStudioProjectOptionsProcessor?.Dispose();
+            ProjectSystemProjectOptionsProcessor?.Dispose();
             ProjectCodeModel.OnProjectClosed();
             ProjectSystemProject.RemoveFromWorkspace();
 
