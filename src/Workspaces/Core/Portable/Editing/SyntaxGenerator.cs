@@ -8,11 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -628,13 +626,12 @@ namespace Microsoft.CodeAnalysis.Editing
                                 members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration));
                             break;
                         case TypeKind.Delegate:
-                            var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
-                            if (invoke != null)
+                            if (type.GetMembers("Invoke") is [IMethodSymbol invoke, ..])
                             {
                                 declaration = DelegateDeclaration(
                                     type.Name,
                                     parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
-                                    returnType: TypeExpression(invoke.ReturnType),
+                                    returnType: invoke.ReturnsVoid ? null : TypeExpression(invoke.ReturnType),
                                     accessibility: type.DeclaredAccessibility,
                                     modifiers: DeclarationModifiers.From(type));
                             }

@@ -2303,6 +2303,13 @@ End Enum")
     Level2 = CByte(2)
 End Enum")
         End Sub
+
+        <Fact, WorkItem(66381, "https://github.com/dotnet/roslyn/issues/66381")>
+        Public Sub TestDelegateDeclarationFromSymbol()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("Public Delegate Sub D()"))
+            Dim type = compilation.GetTypeByMetadataName("D")
+            VerifySyntax(Of DelegateStatementSyntax)(Generator.Declaration(type), "Public Delegate Sub D()")
+        End Sub
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"
