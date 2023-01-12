@@ -42,6 +42,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public event Action<Solution>? SolutionCommitted;
 
         /// <summary>
+        /// Solutions containing projects that use older compiler toolset that does not provide a checksum algorithm.
+        /// Used only for EnC issue diagnostics.
+        /// </summary>
+        private ImmutableHashSet<string> _solutionsWithMissingChecksumAlgorithm = ImmutableHashSet<string>.Empty;
+
+        /// <summary>
         /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
         /// unless the host implements debugger components.
         /// </summary>
@@ -353,5 +359,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return null;
             }
         }
+
+        internal void LogPotentiallyMissingChecksumAlgorithm(string solutionPath)
+            => ImmutableInterlocked.Update(ref _solutionsWithMissingChecksumAlgorithm, static (set, solutionPath) => set.Add(solutionPath), solutionPath);
     }
 }
