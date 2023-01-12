@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -206,7 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolInfo result;
 
             XmlNameAttributeSyntax attrSyntax;
-            CrefSyntax crefSyntax;
 
             if (model != null)
             {
@@ -268,10 +268,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if ((crefSyntax = node as CrefSyntax) != null)
+            else if (node is CrefSyntax crefSyntax)
             {
                 int adjustedPosition = GetAdjustedNodePosition(crefSyntax);
                 result = GetCrefSymbolInfo(adjustedPosition, crefSyntax, options, HasParameterList(crefSyntax));
+            }
+            else if (IsWithinIdentifierContainerDirectiveTrivia(node))
+            {
+                var identifierName = node as IdentifierNameSyntax;
+
+                result = SymbolInfo.None;
+
+                var info = this.GetPreprocessingSymbolInfo(node);
+                if (info.Symbol is not null)
+                {
+                    result = new SymbolInfo(info.Symbol);
+                }
             }
             else
             {
@@ -282,6 +294,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        private static bool IsWithinIdentifierContainerDirectiveTrivia(CSharpSyntaxNode node)
+        {
+            return node is IdentifierNameSyntax
+                && node.FirstAncestorOrSelf<CSharpSyntaxNode>(IsIdentifierContainerDirectiveTrivia)
+                is not null;
+        }
+        private static bool IsIdentifierContainerDirectiveTrivia(CSharpSyntaxNode node)
+        {
+            return SyntaxFacts.IsIdentifierContainerDirectiveTrivia(node.Kind());
         }
 
         internal override SymbolInfo GetCollectionInitializerSymbolInfoWorker(InitializerExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))

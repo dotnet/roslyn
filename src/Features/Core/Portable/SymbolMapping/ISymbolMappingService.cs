@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.SymbolMapping
     internal interface ISymbolMappingService : IWorkspaceService
     {
         /// <summary>
-        /// Given a <cref see="SymbolId"/> and the document whence the corresponding <cref see="ISymbol"/>
+        /// Given a <see cref="SymbolKey"/> and the document whence the corresponding <see cref="ISymbol"/>
         /// came, locate an identical symbol in the correct solution for performing common symbol operations
         /// (e.g. find references) as defined by this service.
         /// </summary>
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolMapping
         Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Given an <cref see="ISymbol"/> and the document whence the corresponding <cref see="ISymbol"/>
+        /// Given an <see cref="ISymbol"/> and the document whence the corresponding <see cref="ISymbol"/>
         /// came, locate an identical symbol in the correct solution for performing common symbol operations
         /// (e.g. find references) as defined by this service.
         /// </summary>

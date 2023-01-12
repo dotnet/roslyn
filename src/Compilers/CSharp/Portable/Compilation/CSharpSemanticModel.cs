@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            if (!isSpeculative && IsInStructuredTriviaOtherThanCrefOrNameAttribute(node))
+            if (!isSpeculative && IsInStructuredTriviaNotContainingIdentifiers(node))
             {
                 return false;
             }
@@ -955,6 +955,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CSharpTypeInfo.None;
             }
+            else if (IsInStructuredTriviaNotContainingIdentifiers(expression, out var decisiveParentSyntaxKind))
+            {
+                if (SyntaxFacts.IsIdentifierContainerDirectiveTrivia(decisiveParentSyntaxKind))
+                {
+                    return CSharpTypeInfo.None;
+                }
+            }
             else if (SyntaxFacts.IsDeclarationExpressionType(expression, out DeclarationExpressionSyntax parent))
             {
                 switch (parent.Designation.Kind())
@@ -1233,15 +1240,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.SyntaxTree == this.SyntaxTree;
         }
 
-        private static bool IsInStructuredTriviaOtherThanCrefOrNameAttribute(CSharpSyntaxNode node)
+        private static bool IsInStructuredTriviaNotContainingIdentifiers(CSharpSyntaxNode node)
         {
+            return IsInStructuredTriviaNotContainingIdentifiers(node, out _);
+        }
+        private static bool IsInStructuredTriviaNotContainingIdentifiers(CSharpSyntaxNode node, out SyntaxKind decisiveParentSyntaxKind)
+        {
+            decisiveParentSyntaxKind = default;
             while (node != null)
             {
-                if (node.Kind() == SyntaxKind.XmlCrefAttribute || node.Kind() == SyntaxKind.XmlNameAttribute)
+                decisiveParentSyntaxKind = node.Kind();
+                switch (decisiveParentSyntaxKind)
+                {
+                    case SyntaxKind.XmlCrefAttribute:
+                    case SyntaxKind.XmlNameAttribute:
+                        return false;
+                }
+
+                if (SyntaxFacts.IsIdentifierContainerDirectiveTrivia(decisiveParentSyntaxKind))
                 {
                     return false;
                 }
-                else if (node.IsStructuredTrivia)
+
+                if (node.IsStructuredTrivia)
                 {
                     return true;
                 }
@@ -4827,7 +4848,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
             {
                 bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
-                return new PreprocessingSymbolInfo(new Symbols.PublicModel.PreprocessingSymbol(node.Identifier.ValueText), isDefined);
+                var preprocessingSymbol = new Symbols.PublicModel.PreprocessingSymbol(
+                    node.Identifier.ValueText,
+                    Compilation.Assembly.ISymbol as IAssemblySymbol,
+                    Compilation.SourceModule.ISymbol as IModuleSymbol);
+                return new PreprocessingSymbolInfo(preprocessingSymbol, isDefined);
             }
 
             return PreprocessingSymbolInfo.None;

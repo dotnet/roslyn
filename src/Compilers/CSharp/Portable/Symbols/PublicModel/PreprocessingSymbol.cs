@@ -12,10 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
     internal sealed class PreprocessingSymbol : IPreprocessingSymbol
     {
         private readonly string _name;
+        private readonly IAssemblySymbol _assembly;
+        private readonly IModuleSymbol _module;
 
-        internal PreprocessingSymbol(string name)
+        internal PreprocessingSymbol(string name, IAssemblySymbol assembly, IModuleSymbol module)
         {
             _name = name;
+            _assembly = assembly;
+            _module = module;
         }
 
         ISymbol ISymbol.OriginalDefinition => this;
@@ -65,11 +69,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         Accessibility ISymbol.DeclaredAccessibility => Accessibility.NotApplicable;
 
-        void ISymbol.Accept(SymbolVisitor visitor) => throw new System.NotSupportedException();
+        void ISymbol.Accept(SymbolVisitor visitor)
+        {
+            visitor.DefaultVisit(this);
+        }
 
-        TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new System.NotSupportedException();
+        TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor)
+        {
+            return visitor.DefaultVisit(this)!;
+        }
 
-        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => throw new System.NotSupportedException();
+        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.DefaultVisit(this, argument);
+        }
 
         string? ISymbol.GetDocumentationCommentId() => null;
 
@@ -105,9 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         int ISymbol.MetadataToken => 0;
 
-        IAssemblySymbol? ISymbol.ContainingAssembly => null;
+        IAssemblySymbol? ISymbol.ContainingAssembly => _assembly;
 
-        IModuleSymbol? ISymbol.ContainingModule => null;
+        IModuleSymbol? ISymbol.ContainingModule => _module;
 
         INamespaceSymbol? ISymbol.ContainingNamespace => null;
 
