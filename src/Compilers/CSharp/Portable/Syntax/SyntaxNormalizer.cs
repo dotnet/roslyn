@@ -376,11 +376,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return 0;
             }
 
-            // If we are at the end of a property followed by another property
+            // If we are at the end of a single-line property followed by another property
             // group them together by having only 1 line break.
             // The current token here is a closing brace of an accessor list:
             // public int Prop { get; } <-- this one
-            if (currentTokenParent is AccessorListSyntax &&
+            if (currentTokenParent.Parent is PropertyDeclarationSyntax property &&
+                IsSingleLineProperty(property) &&
                 nextToken.Parent is PropertyDeclarationSyntax)
             {
                 return 1;
@@ -435,18 +436,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return 0;
             }
-            else if (currentToken.Parent.IsKind(SyntaxKind.PropertyDeclaration))
+            else if (currentToken.Parent is PropertyDeclarationSyntax property)
             {
                 // If the current semicolon token belongs to a property
                 // then it is a semicolon at the end of a property typically (but not always) after a property initializer:
                 // public int Prop { get; } = 1; <-- this one
                 // public int Prop { get; }; <-- this produces a syntax error, but the semicolon is still attached to the property
                 // In such cases we need to have 2 line breaks in order to have proper separation between members of a class, struct etc.
-                // The only exception is when the next token starts a new property.
+                // The only exception is when the next token starts a new single-line property.
                 // In such case we want to group these properties together by having only 1 line break.
                 // Note: case, when the property is the last member and needs only 1 line break after it is handled above (the next token is a closing brace then)
                 Debug.Assert(((PropertyDeclarationSyntax)currentToken.Parent).SemicolonToken == currentToken);
-                return nextToken.Parent is PropertyDeclarationSyntax ? 1 : 2;
+
+                if (IsSingleLineProperty(property) &&
+                    nextToken.Parent is PropertyDeclarationSyntax)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 2;
+                }
             }
             else
             {
@@ -1409,6 +1419,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             return IsSingleLineInitializerContext(node);
+        }
+
+        private static bool IsSingleLineProperty(PropertyDeclarationSyntax property)
+        {
+            // SyntaxNormalizer produces single-line properties for
+            // expression-bodied properties and auto-properties.
+            // In the first case accessor list of a property is null,
+            // in the second case all accessors in the accessor list don't have bodies.
+            return property.AccessorList is null || IsAccessorListWithoutAccessorsWithBlockBody(property.AccessorList);
         }
 
         public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
