@@ -1990,5 +1990,21 @@ public class C
 
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
+
+        [Fact]
+        public async Task TestIntroduceParameterOnOverload()
+        {
+            var code =
+@"M();
+int M(int _) => M([|1234|]);
+";
+
+            var expected =
+@"M();
+int M(int _, int v) => M(v, 1234);
+";
+
+            await TestInRegularAndScriptAsync(code, expected, 0);
+        }
     }
 }

@@ -218,7 +218,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         var parameter = member.Parameters[index];
                         if (parameter.Type.OriginalDefinition.TypeKind != TypeKind.TypeParameter)
                         {
-                            return parameter.Name;
+                            if (parameter.Name != "_")
+                            {
+                                return parameter.Name;
+                            }
                         }
                     }
                 }

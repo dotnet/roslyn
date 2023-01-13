@@ -512,6 +512,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         continue;
 
                     var invocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(argumentListSyntax);
+
+                    if (insertionIndex > invocationArguments.Count)
+                        continue;
+
                     parameterToArgumentMap.Clear();
                     MapParameterToArgumentsAtInvocation(parameterToArgumentMap, invocationArguments, invocationSemanticModel, cancellationToken);
 
