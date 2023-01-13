@@ -1745,7 +1745,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class A
                 {
                   public string Prop { get; }
-
                   public int Prop2 { get; set; }
                 }
                 """);
@@ -1754,7 +1753,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class A
                 {
                   public string Prop { get; } = "xyz";
-
                   public int Prop2 { get; set; }
                 }
                 """);
@@ -1763,7 +1761,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class A
                 {
                   public string Prop { get; set; }
-
                   public int Prop2 { get; set; }
                 }
                 """);
@@ -1772,7 +1769,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class A
                 {
                   public string Prop { get; set; } = "xyz";
-
                   public int Prop2 { get; set; }
                 }
                 """);
@@ -2414,6 +2410,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             TestNormalizeDeclaration(
+                "class a{b c;d e;}", """
+                class a
+                {
+                  b c;
+                  d e;
+                }
+                """);
+            TestNormalizeDeclaration(
                 "class a{b c=d;}", """
                 class a
                 {
@@ -2425,6 +2429,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class a
                 {
                   b c = d, e = f;
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class a{b c=d;e f=g;}", """
+                class a
+                {
+                  b c = d;
+                  e f = g;
                 }
                 """);
 
