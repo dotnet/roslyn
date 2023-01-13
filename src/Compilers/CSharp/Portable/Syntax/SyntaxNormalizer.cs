@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 // In such case we want to group these properties together by having only 1 line break.
                 // Note: case, when the property is the last member and needs only 1 line break after it is handled above (the next token is a closing brace then)
                 Debug.Assert(((PropertyDeclarationSyntax)currentToken.Parent).SemicolonToken == currentToken);
-                return nextToken is { Parent: PropertyDeclarationSyntax } ? 1 : 2;
+                return nextToken.Parent is PropertyDeclarationSyntax ? 1 : 2;
             }
             else
             {
