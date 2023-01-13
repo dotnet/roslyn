@@ -11035,7 +11035,7 @@ tryAgain:
                         continue;
 
                     case SyntaxKind.QuestionToken:
-                        if (CanStartConsequenceExpression(this.PeekToken(1).Kind))
+                        if (CanStartConsequenceExpression())
                         {
                             expr = _syntaxFactory.ConditionalAccessExpression(
                                 expr,
@@ -11056,14 +11056,34 @@ tryAgain:
             }
         }
 
-        private static bool CanStartConsequenceExpression(SyntaxKind kind)
+        private bool CanStartConsequenceExpression()
         {
-            return kind is SyntaxKind.DotToken or SyntaxKind.OpenBracketToken;
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
+            var nextToken = this.PeekToken(1);
+
+            // ?. is always the start of of a consequence expression.
+            if (nextToken.Kind == SyntaxKind.DotToken)
+                return true;
+
+            if (nextToken.Kind == SyntaxKind.OpenBracketToken)
+            {
+                // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
+                using var _ = GetDisposableResetPoint(resetOnDispose: true);
+
+                var collectionExpression = this.ParseCollectionCreationExpression();
+
+                // PROTOTYPE: Def back compat concern here.  What if the user has `x ? y?[0] : z` this would be legal,
+                // but will now change to `y?[0] : z` being a ternary.  Have to decide if this is acceptable break.
+                return this.CurrentToken.Kind != SyntaxKind.ColonToken;
+            }
+
+            // Anything else is just a normal ? and indicates the start of a ternary expression.
+            return false;
         }
 
         internal ExpressionSyntax ParseConsequenceSyntax()
         {
-            Debug.Assert(CanStartConsequenceExpression(this.CurrentToken.Kind));
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.OpenBracketToken);
             ExpressionSyntax expr = this.CurrentToken.Kind switch
             {
                 SyntaxKind.DotToken => _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
@@ -11096,7 +11116,7 @@ tryAgain:
                         continue;
 
                     case SyntaxKind.QuestionToken:
-                        return !CanStartConsequenceExpression(this.PeekToken(1).Kind)
+                        return !CanStartConsequenceExpression()
                             ? expr
                             : _syntaxFactory.ConditionalAccessExpression(
                                 expr,
