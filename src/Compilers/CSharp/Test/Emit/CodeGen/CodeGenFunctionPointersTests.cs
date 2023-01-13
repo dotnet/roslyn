@@ -10944,12 +10944,8 @@ unsafe
                 Diagnostic(ErrorCode.WRN_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
             );
 
-            // delegate*<,> parameter is implicitly scoped ref in C#11.
             comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
-                // (10,28): warning CS9080: Use of variable 'span' in this context may expose referenced variables outside of their declaration scope
-                //         return ref ptr(ref span);
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "span").WithArguments("span").WithLocation(10, 28),
                 // (10,28): warning CS9091: This returns local 'span' by reference but it is not a ref local
                 //         return ref ptr(ref span);
                 Diagnostic(ErrorCode.WRN_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)

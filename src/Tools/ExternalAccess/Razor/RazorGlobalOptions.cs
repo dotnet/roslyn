@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public bool UseTabs
         {
             get => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.UseTabs);
-            set => _globalOptions.SetGlobalOption(new OptionKey(RazorLineFormattingOptionsStorage.UseTabs), value);
+            set => _globalOptions.SetGlobalOption(RazorLineFormattingOptionsStorage.UseTabs, value);
         }
 
         public int TabSize
         {
             get => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
-            set => _globalOptions.SetGlobalOption(new OptionKey(RazorLineFormattingOptionsStorage.TabSize), value);
+            set => _globalOptions.SetGlobalOption(RazorLineFormattingOptionsStorage.TabSize, value);
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -55,20 +55,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public event EventHandler<OptionChangedEventArgs>? OptionChanged;
 #pragma warning restore
 
-            public T GetOption<T>(PerLanguageOption2<T> option, string? languageName)
+            public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
                 => default!;
 
             public T GetOption<T>(Option2<T> option) => throw new NotImplementedException();
-            public object? GetOption(OptionKey optionKey) => throw new NotImplementedException();
+            public T GetOption<T>(OptionKey2 optionKey) => throw new NotImplementedException();
             public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys) => throw new NotImplementedException();
-            public IEnumerable<IOption> GetRegisteredOptions() => throw new NotImplementedException();
-            public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => throw new NotImplementedException();
-            public void RefreshOption(OptionKey optionKey, object? newValue) => throw new NotImplementedException();
-            public void RegisterWorkspace(Workspace workspace) => throw new NotImplementedException();
-            public void SetGlobalOption(OptionKey optionKey, object? value) => throw new NotImplementedException();
-            public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values) => throw new NotImplementedException();
-            public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys) => throw new NotImplementedException();
-            public void UnregisterWorkspace(Workspace workspace) => throw new NotImplementedException();
+            public bool RefreshOption(OptionKey2 optionKey, object? newValue) => throw new NotImplementedException();
+            public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys) => throw new NotImplementedException();
+            public void SetGlobalOption<T>(Option2<T> option, T value) => throw new NotImplementedException();
+            public void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value) => throw new NotImplementedException();
+            public void SetGlobalOption(OptionKey2 optionKey, object? value) => throw new NotImplementedException();
+            public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options) => throw new NotImplementedException();
+
+            bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+            {
+                value = GetOption<T>(optionKey);
+                return true;
+            }
         }
     }
 }

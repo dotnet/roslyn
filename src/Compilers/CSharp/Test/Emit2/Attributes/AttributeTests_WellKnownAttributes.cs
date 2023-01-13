@@ -519,7 +519,7 @@ public class Bar
                     Assert.Equal(ParameterAttributes.HasDefault, theParameter.Flags); // native compiler has None instead
 
                     // let's find the attribute in the PE metadata
-                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
+                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute, out _);
                     Assert.True(attributeInfo.HasValue);
 
                     long attributeValue;

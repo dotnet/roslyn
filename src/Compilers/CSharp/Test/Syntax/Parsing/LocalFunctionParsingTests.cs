@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -2089,6 +2089,356 @@ class c
                                     N(SyntaxKind.PredefinedType);
                                     N(SyntaxKind.VoidKeyword);
                                     N(SyntaxKind.IdentifierToken, "F2");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs1()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        #pragma warning disable 1998, 8321
+                        async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,15): error CS1031: Type expected
+                //         async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,15): error CS1004: Duplicate 'async' modifier
+                //         async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (6,15): error CS1031: Type expected
+                //         async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs2()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        #pragma warning disable 1998, 8321
+                        async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,15): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,15): error CS1004: Duplicate 'async' modifier
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (6,15): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs3()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        #pragma warning disable 1998, 8321
+                        async async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,15): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,15): error CS1004: Duplicate 'async' modifier
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
+                // (6,27): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (6,15): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
+                // (6,27): error CS1031: Type expected
+                //         async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(32106, "https://github.com/dotnet/roslyn/issues/32106")]
+        public void DuplicateAsyncs4()
+        {
+            const string text = """
+                class Program
+                {
+                    void M()
+                    {
+                        #pragma warning disable 1998, 8321
+                        async async async async async void F() { }
+                    }
+                }
+                """;
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,15): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,15): error CS1004: Duplicate 'async' modifier
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
+                // (6,27): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27),
+                // (6,33): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 33));
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (6,15): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
+                // (6,21): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
+                // (6,27): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27),
+                // (6,33): error CS1031: Type expected
+                //         async async async async async void F() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 33));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
                                     N(SyntaxKind.ParameterList);
                                     {
                                         N(SyntaxKind.OpenParenToken);

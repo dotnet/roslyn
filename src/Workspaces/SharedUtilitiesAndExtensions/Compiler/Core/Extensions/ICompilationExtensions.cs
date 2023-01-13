@@ -236,5 +236,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? ValueTupleType(this Compilation compilation, int arity)
             => compilation.GetTypeByMetadataName($"System.ValueTuple`{arity}");
+
+        public static INamedTypeSymbol? ListOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
     }
 }

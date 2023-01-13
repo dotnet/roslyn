@@ -1454,8 +1454,8 @@ ulong.MinValue --> 0";
             var constants = BoundTreeSequencer.GetNodes(block).
                 Where(predicate).
                 OfType<BoundExpression>().
-                Where(node => node.ConstantValue != null).
-                Select(node => node.Syntax.ToFullString().Trim() + " --> " + ExtractValue(node.ConstantValue));
+                Where(node => node.ConstantValueOpt != null).
+                Select(node => node.Syntax.ToFullString().Trim() + " --> " + ExtractValue(node.ConstantValueOpt));
             var result = string.Join(Environment.NewLine, constants);
             return result;
         }

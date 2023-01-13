@@ -62,25 +62,25 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             var newReturnType = returnTypeSyntax;
 
             var returnType = methodSymbol.ReturnType;
-            if (returnType.OriginalDefinition.Equals(knownTypes._taskType))
+            if (returnType.OriginalDefinition.Equals(knownTypes.TaskType))
             {
                 // If the return type is Task, then make the new return type "void".
                 newReturnType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(returnTypeSyntax);
             }
-            else if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
+            else if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
             {
                 // If the return type is Task<T>, then make the new return type "T".
                 newReturnType = returnType.GetTypeArguments()[0].GenerateTypeSyntax().WithTriviaFrom(returnTypeSyntax);
             }
-            else if (returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt))
+            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTTypeOpt))
             {
                 // If the return type is IAsyncEnumerable<T>, then make the new return type IEnumerable<T>.
-                newReturnType = knownTypes._iEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                newReturnType = knownTypes.IEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
-            else if (returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTTypeOpt))
+            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt))
             {
                 // If the return type is IAsyncEnumerator<T>, then make the new return type IEnumerator<T>.
-                newReturnType = knownTypes._iEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                newReturnType = knownTypes.IEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
 
             return newReturnType;

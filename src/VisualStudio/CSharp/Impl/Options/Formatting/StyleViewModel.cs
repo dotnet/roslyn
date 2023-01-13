@@ -2309,25 +2309,25 @@ class C2
         private void AddParenthesesOptions(OptionStore optionStore)
         {
             AddParenthesesOption(
-                LanguageNames.CSharp, optionStore, CodeStyleOptions2.ArithmeticBinaryParentheses,
+                optionStore, CodeStyleOptions2.ArithmeticBinaryParentheses,
                 CSharpVSResources.In_arithmetic_binary_operators,
                 new[] { s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary },
                 defaultAddForClarity: true);
 
             AddParenthesesOption(
-                LanguageNames.CSharp, optionStore, CodeStyleOptions2.OtherBinaryParentheses,
+                optionStore, CodeStyleOptions2.OtherBinaryParentheses,
                 CSharpVSResources.In_other_binary_operators,
                 new[] { s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary },
                 defaultAddForClarity: true);
 
             AddParenthesesOption(
-                LanguageNames.CSharp, optionStore, CodeStyleOptions2.RelationalBinaryParentheses,
+                optionStore, CodeStyleOptions2.RelationalBinaryParentheses,
                 CSharpVSResources.In_relational_binary_operators,
                 new[] { s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary },
                 defaultAddForClarity: true);
 
             AddParenthesesOption(
-                LanguageNames.CSharp, optionStore, CodeStyleOptions2.OtherParentheses,
+                optionStore, CodeStyleOptions2.OtherParentheses,
                 ServicesVSResources.In_other_operators,
                 new[] { s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary },
                 defaultAddForClarity: false);
@@ -2481,7 +2481,7 @@ class C2
                 s_avoidUnusedParametersAllMethods
             };
 
-            AddUnusedParameterOption(LanguageNames.CSharp, optionStore, parameterPreferencesGroupTitle, examples);
+            AddUnusedParameterOption(optionStore, parameterPreferencesGroupTitle, examples);
         }
     }
 }
