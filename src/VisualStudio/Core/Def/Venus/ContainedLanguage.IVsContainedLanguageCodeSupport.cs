@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     {
                         succeeded = true;
                         itemId = this.ContainedDocument.FindItemIdOfDocument(targetDocument);
-                        if (itemId == (uint) VSITEMID.Nil)
+                        if (itemId == (uint)VSITEMID.Nil)
                         {
                             // The FindItemIdOfDocument call can fail when the point maps directly into the containing document. In this case, return the containing document's itemid.
                             itemId = GetContainingDocumentItemId();
