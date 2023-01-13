@@ -4622,7 +4622,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Special HasHome for fields. 
         /// Fields have readable homes when they are not constants.
-        /// Fields have writeable homes unless they are readonly and used outside of the constructor.
+        /// Fields have writeable homes unless they refer to readonly values and
+        /// are used outside of the constructor.
         /// </summary>
         private static bool FieldAccessHasHome(
             BoundFieldAccess fieldAccess,
@@ -4664,9 +4665,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Debug.Assert(field.RefKind is RefKind.None or RefKind.RefReadOnly);
+            if (field.RefKind == RefKind.RefReadOnly)
+            {
+                return false;
+            }
 
-            if (field.RefKind == RefKind.None && !field.IsReadOnly)
+            Debug.Assert(field.RefKind == RefKind.None);
+
+            if (!field.IsReadOnly)
             {
                 // in a case if we have a writeable struct field with a receiver that only has a readable home we would need to pass it via a temp.
                 // it would be advantageous to make a temp for the field, not for the outer struct, since the field is smaller and we can get to is by fetching references.
@@ -4705,8 +4711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return (containingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor } or FieldSymbol { IsStatic: false } or MethodSymbol { IsInitOnly: true }) &&
-                    fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference &&
-                    field.RefKind == RefKind.None;
+                    fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
             }
         }
     }
