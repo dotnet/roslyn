@@ -10078,11 +10078,10 @@ tryAgain:
                 case SyntaxKind.StackAllocKeyword:
                 case SyntaxKind.DotDotToken:
                 case SyntaxKind.RefKeyword:
+                case SyntaxKind.OpenBracketToken: // attributes on a lambda, or a collection literal.
                     return true;
                 case SyntaxKind.StaticKeyword:
                     return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression);
-                case SyntaxKind.OpenBracketToken:
-                    return allowAttributes && IsPossibleLambdaExpression(Precedence.Expression);
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
@@ -10802,11 +10801,9 @@ tryAgain:
                         }
                     }
                 case SyntaxKind.OpenBracketToken:
-                    if (!this.IsPossibleLambdaExpression(precedence))
-                    {
-                        goto default;
-                    }
-                    return this.ParseLambdaExpression();
+                    return this.IsPossibleLambdaExpression(precedence)
+                        ? this.ParseLambdaExpression()
+                        : this.ParseCollectionCreationExpression();
                 case SyntaxKind.ThisKeyword:
                     return _syntaxFactory.ThisExpression(this.EatToken());
                 case SyntaxKind.BaseKeyword:
@@ -11972,6 +11969,85 @@ tryAgain:
                 // assume object creation as default case
                 return this.ParseArrayOrObjectCreationExpression();
             }
+        }
+
+        private CollectionCreationExpressionSyntax ParseCollectionCreationExpression()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenBracketToken);
+            var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
+
+            var list = _pool.AllocateSeparated<CollectionElementSyntax>();
+
+            if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
+            {
+tryAgain:
+                if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    list.Add(this.ParseCollectionElement());
+
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
+                    {
+                        if (this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
+                        {
+                            break;
+                        }
+                        else if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                        {
+                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                            // check for exit case after legal trailing comma
+                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                            {
+                                break;
+                            }
+                            else if (!this.IsPossibleExpression())
+                            {
+                                goto tryAgain;
+                            }
+
+                            list.Add(this.ParseCollectionElement());
+                            continue;
+                        }
+                        else if (SkipBadCollectionCreationExpressionTokens(ref openBracket, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                        {
+                            break;
+                        }
+                    }
+                }
+                else if (SkipBadCollectionCreationExpressionTokens(ref openBracket, list, SyntaxKind.CommaToken) == PostSkipAction.Continue)
+                {
+                    goto tryAgain;
+                }
+            }
+
+            return _syntaxFactory.CollectionCreationExpression(
+                openBracket,
+                _pool.ToListAndFree(list),
+                this.EatToken(SyntaxKind.CloseBracketToken));
+        }
+
+        private PostSkipAction SkipBadCollectionCreationExpressionTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<CollectionElementSyntax> list, SyntaxKind expected)
+        {
+            return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
+                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
+                p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
+                expected);
+        }
+
+        private CollectionElementSyntax ParseCollectionElement()
+        {
+            var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
+
+            var expression = this.ParseExpression();
+            if (dotDotToken != null)
+                return _syntaxFactory.SpreadElement(dotDotToken, expression);
+
+            var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
+            if (colonToken != null)
+                return _syntaxFactory.DictionaryElement(expression, colonToken, this.ParseExpression());
+
+            return _syntaxFactory.ExpressionElement(expression);
         }
 
         private bool IsAnonymousType()
