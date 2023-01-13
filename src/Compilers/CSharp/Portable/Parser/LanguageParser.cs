@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // incomplete members must be processed before we add any nodes to the body:
                                 ReduceIncompleteMembers(ref pendingIncompleteMembers, ref openBraceOrSemicolon, ref body, ref initialBadNodes);
 
-                                var attribute = this.ParseAttributeDeclaration();
+                                var attribute = this.ParseAttributeDeclaration(inExpressionContext: parentKind == SyntaxKind.CompilationUnit);
                                 if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
                                 {
                                     RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
@@ -855,14 +855,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations()
+        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool inExpressionContext)
         {
             var attributes = _pool.Allocate<AttributeListSyntax>();
             var saveTerm = _termState;
             _termState |= TerminatorState.IsAttributeDeclarationTerminator;
 
             while (this.IsPossibleAttributeDeclaration())
-                attributes.Add(this.ParseAttributeDeclaration());
+            {
+                var attributeDeclaration = this.ParseAttributeDeclaration(inExpressionContext);
+                if (attributeDeclaration is null)
+                    break;
+
+                attributes.Add(attributeDeclaration);
+            }
 
             _termState = saveTerm;
 
@@ -875,12 +881,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 || this.IsPossibleAttributeDeclaration(); // start of a new one...
         }
 
-        private AttributeListSyntax ParseAttributeDeclaration()
+        private AttributeListSyntax? ParseAttributeDeclaration(bool inExpressionContext)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.AttributeList)
+            if (this.IsIncrementalAndFactoryContextMatches &&
+                this.CurrentNodeKind == SyntaxKind.AttributeList &&
+                !inExpressionContext)
             {
                 return (AttributeListSyntax)this.EatNode();
             }
+
+            using var resetPoint = GetDisposableResetPoint(resetOnDispose: false);
 
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
 
@@ -889,13 +899,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? _syntaxFactory.AttributeTargetSpecifier(ConvertToKeyword(this.EatToken()), this.EatToken(SyntaxKind.ColonToken))
                 : null;
 
-            var attributes = _pool.AllocateSeparated<AttributeSyntax>();
-            this.ParseAttributes(attributes);
-            return _syntaxFactory.AttributeList(
-                openBracket,
-                location,
-                _pool.ToListAndFree(attributes),
-                this.EatToken(SyntaxKind.CloseBracketToken));
+            var attributesBuilder = _pool.AllocateSeparated<AttributeSyntax>();
+            this.ParseAttributes(attributesBuilder);
+            var attributes = _pool.ToListAndFree(attributesBuilder);
+
+            var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
+            if (inExpressionContext && this.CurrentToken.Kind == SyntaxKind.DotToken)
+            {
+                // we're in an expression and we've seen `[A, B].`  This is actually the start of a collection literal
+                // that someone is explicitly accessing a member off of.
+                resetPoint.Reset();
+                return null;
+            }
+
+            return _syntaxFactory.AttributeList(openBracket, location, attributes, closeBracket);
         }
 
         private void ParseAttributes(SeparatedSyntaxListBuilder<AttributeSyntax> nodes)
@@ -2202,7 +2219,7 @@ tryAgain:
 
             var saveTermState = _termState;
 
-            var attributes = this.ParseAttributeDeclarations();
+            var attributes = this.ParseAttributeDeclarations(inExpressionContext: true);
             bool haveAttributes = (attributes.Count > 0);
 
             var afterAttributesPoint = this.GetResetPoint();
@@ -2776,7 +2793,7 @@ parse_member_name:;
 
             try
             {
-                var attributes = this.ParseAttributeDeclarations();
+                var attributes = this.ParseAttributeDeclarations(inExpressionContext: false);
 
                 bool isPossibleTypeDeclaration;
                 this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false, out isPossibleTypeDeclaration);
@@ -4049,7 +4066,7 @@ parse_member_name:;
 
             var accMods = _pool.Allocate();
 
-            var accAttrs = this.ParseAttributeDeclarations();
+            var accAttrs = this.ParseAttributeDeclarations(inExpressionContext: true);
             this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
@@ -4370,7 +4387,7 @@ tryAgain:
                 return (ParameterSyntax)this.EatNode();
             }
 
-            var attributes = this.ParseAttributeDeclarations();
+            var attributes = this.ParseAttributeDeclarations(inExpressionContext: true);
 
             var modifiers = _pool.Allocate();
             this.ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
@@ -5396,7 +5413,7 @@ tryAgain:
                 return (EnumMemberDeclarationSyntax)this.EatNode();
             }
 
-            var memberAttrs = this.ParseAttributeDeclarations();
+            var memberAttrs = this.ParseAttributeDeclarations(inExpressionContext: false);
             var memberName = this.ParseIdentifierToken();
             EqualsValueClauseSyntax equalsValue = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
@@ -5617,7 +5634,7 @@ tryAgain:
             {
                 var saveTerm = _termState;
                 _termState = TerminatorState.IsEndOfTypeArgumentList;
-                attrs = this.ParseAttributeDeclarations();
+                attrs = this.ParseAttributeDeclarations(inExpressionContext: true);
                 _termState = saveTerm;
             }
 
@@ -6013,7 +6030,7 @@ tryAgain:
 
                 var saveTerm = _termState;
                 _termState = TerminatorState.IsEndOfTypeArgumentList;
-                attrs = this.ParseAttributeDeclarations();
+                attrs = this.ParseAttributeDeclarations(inExpressionContext: false);
                 _termState = saveTerm;
             }
 
@@ -7448,7 +7465,7 @@ done:;
         }
 
         private StatementSyntax ParsePossiblyAttributedStatement()
-            => ParseStatementCore(ParseAttributeDeclarations(), isGlobal: false);
+            => ParseStatementCore(ParseAttributeDeclarations(inExpressionContext: true), isGlobal: false);
 
         /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
         /// At the top level in Script, we allow most statements *except* for local-decls/local-funcs.
@@ -8137,7 +8154,7 @@ done:;
             return null;
         }
 
-        private BlockSyntax ParsePossiblyAttributedBlock() => ParseBlock(this.ParseAttributeDeclarations());
+        private BlockSyntax ParsePossiblyAttributedBlock() => ParseBlock(this.ParseAttributeDeclarations(inExpressionContext: true));
 
         /// <summary>
         /// Used to parse the block-body for a method or accessor.  For blocks that appear *inside*
@@ -11506,7 +11523,7 @@ tryAgain:
                 // Advance past the open paren or comma.
                 this.EatToken();
 
-                ParseAttributeDeclarations();
+                ParseAttributeDeclarations(inExpressionContext: true);
 
                 bool hasModifier = false;
                 if (IsParameterModifierExcludingScoped(this.CurrentToken) || this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
@@ -11780,7 +11797,7 @@ tryAgain:
 
             if (CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
-                ParseAttributeDeclarations();
+                ParseAttributeDeclarations(inExpressionContext: true);
             }
 
             bool seenStatic;
@@ -12670,7 +12687,7 @@ tryAgain:
 
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
-            var attributes = ParseAttributeDeclarations();
+            var attributes = ParseAttributeDeclarations(inExpressionContext: true);
             var parentScopeIsInAsync = this.IsInAsync;
             var result = parseLambdaExpressionWorker();
             this.IsInAsync = parentScopeIsInAsync;
@@ -12832,7 +12849,7 @@ tryAgain:
 
         private ParameterSyntax ParseLambdaParameter()
         {
-            var attributes = ParseAttributeDeclarations();
+            var attributes = ParseAttributeDeclarations(inExpressionContext: true);
 
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
