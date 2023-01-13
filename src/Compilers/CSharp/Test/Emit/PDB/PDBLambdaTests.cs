@@ -2119,7 +2119,7 @@ class C
         }
     }
 }";
-            var c = CompileAndVerify(source);
+            var c = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             // TODO: https://github.com/dotnet/roslyn/issues/32352
             // The inner closure allocation on IL_0018 should be within the sequence point associated with opening brace of the if statement.
