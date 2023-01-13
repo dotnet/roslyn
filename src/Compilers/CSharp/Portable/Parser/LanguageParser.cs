@@ -7707,9 +7707,10 @@ done:;
 
             tk = this.CurrentToken.ContextualKind;
 
-            var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
-                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
-            if (isPossibleAttributeOrModifier)
+            var isPossibleModifier = IsAdditionalLocalFunctionModifier(tk)
+                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.ScopedKeyword)
+                || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+            if (isPossibleModifier)
             {
                 return true;
             }
