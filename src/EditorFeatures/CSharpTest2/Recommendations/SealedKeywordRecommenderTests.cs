@@ -256,7 +256,7 @@ $$");
 @"public $$");
         }
 
-        [Fact]
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
