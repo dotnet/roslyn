@@ -339,7 +339,7 @@ internal abstract class VisualStudioOptionStorage
         {"InlineHintsOptions_SuppressForParametersThatMatchMethodIntent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent")},
         {"InlineRename_CollapseRenameUI", new RoamingProfileStorage("TextEditor.CollapseRenameUI")},
         {"InlineRename_UseInlineAdornment", new RoamingProfileStorage("TextEditor.RenameUseInlineAdornment")},
-        {"InlineRenameSessionOptions_PreviewChanges", new RoamingProfileStorage("TextEditor..Specific.PreviewRename")},
+        {"InlineRenameSessionOptions_PreviewChanges", new RoamingProfileStorage("TextEditor.Specific.PreviewRename")},
         {"InlineRenameSessionOptions_RenameAsynchronously", new RoamingProfileStorage("TextEditor.Specific.RenameAsynchronously")},
         {"InlineRenameSessionOptions_RenameFile", new RoamingProfileStorage("TextEditor.Specific.RenameFile")},
         {"InlineRenameSessionOptions_RenameInComments", new RoamingProfileStorage("TextEditor.Specific.RenameInComments")},
