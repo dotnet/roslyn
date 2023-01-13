@@ -7421,4 +7421,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver" xml:space="preserve">
     <value>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</value>
   </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterPassedToBase" xml:space="preserve">
+    <value>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title" xml:space="preserve">
+    <value>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</value>
+  </data>
 </root>

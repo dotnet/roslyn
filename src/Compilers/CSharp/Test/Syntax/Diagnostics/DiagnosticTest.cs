@@ -273,6 +273,7 @@ class X
                         case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                         case ErrorCode.WRN_OptionalParamValueMismatch:
                         case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                        case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
