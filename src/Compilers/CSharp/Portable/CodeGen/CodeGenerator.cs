@@ -224,14 +224,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             hasStackAlloc = _sawStackalloc;
             Debug.Assert(_asyncCatchHandlerOffset >= 0);
 
-            asyncCatchHandlerOffset = _diagnostics.HasAnyErrors() ? -1 : _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
+            asyncCatchHandlerOffset = _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
 
             ArrayBuilder<int> yieldPoints = _asyncYieldPoints;
             ArrayBuilder<int> resumePoints = _asyncResumePoints;
 
             Debug.Assert((yieldPoints == null) == (resumePoints == null));
 
-            if (yieldPoints == null || _diagnostics.HasAnyErrors())
+            if (yieldPoints == null)
             {
                 asyncYieldPoints = ImmutableArray<int>.Empty;
                 asyncResumePoints = ImmutableArray<int>.Empty;

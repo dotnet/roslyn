@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1564,43 +1563,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type);
         }
 
-        public override BoundNode VisitComplexReceiver(BoundComplexReceiver node)
-        {
-            EnsureOnlyEvalStack();
-
-            var origStack = StackDepth();
-
-            PushEvalStack(null, ExprContext.None);
-
-            var cookie = GetStackStateCookie(); // implicit goto here 
-
-            SetStackDepth(origStack); // consequence is evaluated with original stack 
-
-            var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
-
-            EnsureStackState(cookie); // implicit label here 
-
-            SetStackDepth(origStack); // alternative is evaluated with original stack 
-
-            var unwrappedSequence = node.ReferenceTypeReceiver;
-
-            while (unwrappedSequence is BoundSequence sequence)
-            {
-                unwrappedSequence = sequence.Value;
-            }
-
-            if (unwrappedSequence is BoundLocal { LocalSymbol: { } localSymbol })
-            {
-                ShouldNotSchedule(localSymbol);
-            }
-
-            var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
-
-            EnsureStackState(cookie); // implicit label here 
-
-            return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type);
-        }
-
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
         {
             // checked(-x) is emitted as "0 - x"
@@ -2252,14 +2214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return null; }
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
-            SynthesizedLocalKind kind, SyntaxNode syntax
-#if DEBUG
-            ,
-            [CallerLineNumber] int createdAtLineNumber = 0,
-            [CallerFilePath] string createdAtFilePath = null
-#endif
-            )
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
             throw new NotImplementedException();
         }
