@@ -349,3 +349,6 @@ MigrationBackup/
 
 # dotnet tool local install directory
 .store/
+
+# mac-created file to track user view preferences for a directory
+.DS_Store
