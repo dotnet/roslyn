@@ -49,7 +49,7 @@ stages:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      queueName: Build.Ubuntu.1804.Amd64.Openn
+      queueName: Build.Ubuntu.1804.Amd64.Open
       restoreArguments: /p:GenerateSatelliteAssemblies=false
       buildArguments: /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
