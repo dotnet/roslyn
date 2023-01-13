@@ -4579,21 +4579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         stackLocalsOpt));
                     goto case BoundKind.ConditionalReceiver;
 
-                case BoundKind.ComplexReceiver:
-                    Debug.Assert(HasHome(
-                        ((BoundComplexReceiver)expression).ValueTypeReceiver,
-                        addressKind,
-                        containingSymbol,
-                        peVerifyCompatEnabled,
-                        stackLocalsOpt));
-                    Debug.Assert(HasHome(
-                        ((BoundComplexReceiver)expression).ReferenceTypeReceiver,
-                        addressKind,
-                        containingSymbol,
-                        peVerifyCompatEnabled,
-                        stackLocalsOpt));
-                    goto case BoundKind.ConditionalReceiver;
-
                 case BoundKind.ConditionalReceiver:
                     //ConditionalReceiver is a noop from Emit point of view. - it represents something that has already been pushed. 
                     //We should never need a temp for it. 

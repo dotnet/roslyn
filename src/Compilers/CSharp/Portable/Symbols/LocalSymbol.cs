@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
@@ -38,14 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract SyntaxNode ScopeDesignatorOpt { get; }
 
-        internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(
-            SynthesizedLocalKind kind, SyntaxNode syntax
-#if DEBUG
-            ,
-            [CallerLineNumber] int createdAtLineNumber = 0,
-            [CallerFilePath] string createdAtFilePath = null
-#endif
-            );
+        internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
 
         internal abstract bool IsImportedFromMetadata
         {
