@@ -1,0 +1,59 @@
+# Build windows on unix
+parameters:
+  - name: jobName
+    type: string
+    default: ''
+  - name: testArtifactName
+    type: string
+    default: ''
+  - name: configuration
+    type: string
+    default: 'Debug'
+  - name: queueName
+    type: string
+    default: ''
+  - name: vmImageName
+    type: string
+    default: ''
+  - name: restoreArguments
+    type: string
+    default: ''
+  - name: buildArguments
+    type: string
+    default: ''
+  
+  jobs:
+  - job: ${{ parameters.jobName }}
+    pool:
+      ${{ if ne(parameters.queueName, '') }}:
+        name: NetCore-Public
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+  
+      ${{ if ne(parameters.vmImageName, '') }}:
+        vmImage: ${{ parameters.vmImageName }}
+    timeoutInMinutes: 40
+    variables:
+      artifactName: ${{ parameters.testArtifactName }}
+  
+    steps:
+      - template: checkout-windows-on-unix-task.yml
+  
+      - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --solution Roslyn.sln --configuration ${{ parameters.configuration }} ${{ parameters.restoreArguments }}
+        displayName: Restore
+  
+      - script: ./eng/build.sh --ci --build --publish --pack --prepareMachine --binaryLog --skipDocumentation --solution Roslyn.sln --configuration ${{ parameters.configuration }} ${{ parameters.buildArguments }}
+        displayName: Build
+  
+      - script: ./eng/prepare-tests.sh --prepare-to-run-on-windows
+        displayName: Prepare Test Payload
+  
+      - task: PublishPipelineArtifact@1
+        displayName: Publish Test Payload
+        inputs:
+          targetPath: '$(Build.SourcesDirectory)/artifacts/testPayload'
+          artifactName: ${{ parameters.testArtifactName }}
+  
+      - template: publish-logs.yml
+        parameters:
+          configuration: ${{ parameters.configuration }}
+          jobName: ${{ parameters.jobName }}

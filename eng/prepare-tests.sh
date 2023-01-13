@@ -23,9 +23,26 @@ scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"
 
+prepare_to_run_on_windows=false
+
+while [[ $# > 0 ]]; do
+  opt="$(echo "$1" | awk '{print tolower($0)}')"
+  case "$opt" in
+    --prepare-to-run-on-windows)
+      prepare_to_run_on_windows=true
+      ;;
+  esac
+  shift
+done
+
 InitializeDotNetCli true
 
 # permissions issues make this a pain to do in PrepareTests itself.
 rm -rf "$repo_root/artifacts/testPayload"
+
+if [[ "$prepare_to_run_on_windows" = true ]]; then
+  dotnet "$repo_root/artifacts/bin/PrepareTests/Debug/net7.0/PrepareTests.dll" --source "$repo_root" --destination "$repo_root/artifacts/testPayload" --dotnetPath ${_InitializeDotNetCli}/dotnet
+  exit 0
+fi
 
 dotnet "$repo_root/artifacts/bin/PrepareTests/Debug/net7.0/PrepareTests.dll" --source "$repo_root" --destination "$repo_root/artifacts/testPayload" --unix --dotnetPath ${_InitializeDotNetCli}/dotnet

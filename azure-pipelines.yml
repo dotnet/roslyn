@@ -32,26 +32,26 @@ stages:
 - stage: Windows_Debug_Build
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-job.yml
+  - template: eng/pipelines/build-windows-on-unix-job.yml
     parameters:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: Build.Ubuntu.1804.Amd64.Open
+      restoreArguments: /p:GenerateSatelliteAssemblies=false
+      buildArguments: /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Windows_Release_Build
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-job.yml
+  - template: eng/pipelines/build-windows-on-unix-job.yml
     parameters:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: Build.Ubuntu.1804.Amd64.Openn
+      restoreArguments: /p:GenerateSatelliteAssemblies=false
+      buildArguments: /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Unix_Build
   dependsOn: []
