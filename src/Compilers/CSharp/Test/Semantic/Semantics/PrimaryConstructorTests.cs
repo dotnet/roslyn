@@ -11587,7 +11587,7 @@ class Base
         }
 
         [Fact]
-        public void ParameterCapturing_077_CapturedAndPassedToBase__NonIdentityConversion()
+        public void ParameterCapturing_077_CapturedAndPassedToBase_NonIdentityConversion()
         {
             var source = @"
 class C1(string p1) : Base(p1)
@@ -11601,6 +11601,96 @@ class C1(string p1) : Base(p1)
 class Base
 {
     public Base(object p1){}
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_078_CapturedAndPassedToBase_Params_Expanded()
+        {
+            var source = @"
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        _ = p1; 
+    }
+}
+
+class C2(int p1) : Base(p1, 1)
+{
+    void M()
+    {
+        _ = p1; 
+    }
+}
+
+class C3(int p1) : Base(p1, 1, 2)
+{
+    void M()
+    {
+        _ = p1; 
+    }
+}
+
+class Base
+{
+    public Base(int p1, params int[] p2){}
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (2,25): warning CS9502: Parameter 'int p1' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.
+                // class C1(int p1) : Base(p1)
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, "p1").WithArguments("int p1").WithLocation(2, 25),
+                // (10,25): warning CS9502: Parameter 'int p1' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.
+                // class C2(int p1) : Base(p1, 1)
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, "p1").WithArguments("int p1").WithLocation(10, 25),
+                // (18,25): warning CS9502: Parameter 'int p1' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.
+                // class C3(int p1) : Base(p1, 1, 2)
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, "p1").WithArguments("int p1").WithLocation(18, 25)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_079_CapturedAndPassedToBase_Params_Expanded()
+        {
+            var source = @"
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        _ = p1; 
+    }
+}
+
+class C2(int p1) : Base(p1, 1)
+{
+    void M()
+    {
+        _ = p1; 
+    }
+}
+
+class C3(int p1) : Base(p1, 1, 2)
+{
+    void M()
+    {
+        _ = p1; 
+    }
+}
+
+class Base
+{
+    public Base(long p1, params int[] p2){}
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
