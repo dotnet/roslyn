@@ -17,9 +17,13 @@ namespace Microsoft.CodeAnalysis.Options;
 internal abstract class ClientSettingsStorageLocation : OptionStorageLocation2
 {
     private readonly Func<string?, string> _keyNameFromLanguageName;
+    private readonly bool _useEditorLanguageName;
 
-    public ClientSettingsStorageLocation(string keyName)
-        => _keyNameFromLanguageName = _ => keyName;
+    public ClientSettingsStorageLocation(string keyName, bool useEditorLanguageName)
+    {
+        _keyNameFromLanguageName = _ => keyName;
+        _useEditorLanguageName = useEditorLanguageName;
+    }
 
     /// <summary>
     /// Creates a <see cref="ClientSettingsStorageLocation"/> that has different key names for different languages.
@@ -39,7 +43,7 @@ internal abstract class ClientSettingsStorageLocation : OptionStorageLocation2
             keyName = keyName.Replace("%LANGUAGE%", languageName switch
             {
                 LanguageNames.CSharp => "CSharp",
-                LanguageNames.VisualBasic => "VisualBasic",
+                LanguageNames.VisualBasic => _useEditorLanguageName ? "Basic" : "VisualBasic",
                 _ => languageName // handles F#, TypeScript and Xaml
             });
         }

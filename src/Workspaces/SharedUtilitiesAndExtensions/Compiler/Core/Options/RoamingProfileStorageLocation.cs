@@ -13,8 +13,8 @@ internal sealed class RoamingProfileStorageLocation : ClientSettingsStorageLocat
 {
     public override bool IsMachineLocal => false;
 
-    public RoamingProfileStorageLocation(string keyName)
-        : base(keyName)
+    public RoamingProfileStorageLocation(string keyName, bool useEditorLanguageName = false)
+        : base(keyName, useEditorLanguageName)
     {
     }
 

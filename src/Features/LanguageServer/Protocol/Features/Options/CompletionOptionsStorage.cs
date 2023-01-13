@@ -44,11 +44,11 @@ internal static class CompletionOptionsStorage
 
     public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
         "CompletionOptions", "HideAdvancedMembers", CompletionOptions.Default.HideAdvancedMembers,
-        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members"));
+        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members", useEditorLanguageName: true));
 
     public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(
         "CompletionOptions", "TriggerOnTyping", CompletionOptions.Default.TriggerOnTyping,
-        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Auto List Members"));
+        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Auto List Members", useEditorLanguageName: true));
 
     public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), CompletionOptions.Default.TriggerOnTypingLetters,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
