@@ -426,6 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var parent = initializer.Parent;
                 if (parent is ArrayCreationExpressionSyntax ||
+                    parent is StackAllocArrayCreationExpressionSyntax ||
                     parent is ImplicitArrayCreationExpressionSyntax ||
                     parent is EqualsValueClauseSyntax ||
                     parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
@@ -444,6 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var parent = anonymousObjectInitializer.Parent;
                 if (parent is ArrayCreationExpressionSyntax ||
+                    parent is StackAllocArrayCreationExpressionSyntax ||
                     parent is ImplicitArrayCreationExpressionSyntax ||
                     parent is EqualsValueClauseSyntax ||
                     parent is BaseObjectCreationExpressionSyntax ||
