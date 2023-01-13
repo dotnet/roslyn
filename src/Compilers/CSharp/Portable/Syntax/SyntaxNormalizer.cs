@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             // The current token here is a closing brace of an accessor list:
             // public int Prop { get; } <-- this one
             if (currentTokenParent is AccessorListSyntax &&
-                nextToken is { Parent: PropertyDeclarationSyntax })
+                nextToken.Parent is PropertyDeclarationSyntax)
             {
                 return 1;
             }
