@@ -230,7 +230,7 @@ namespace Roslyn.Test.Utilities
 
     public class IsEnglishLocal : ExecutionCondition
     {
-        public static readonly IsEnglishLocal Instance = new();
+        public static readonly IsEnglishLocal Instance = new IsEnglishLocal();
 
         public override bool ShouldSkip
         {
