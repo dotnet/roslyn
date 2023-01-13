@@ -235,15 +235,15 @@ if (editorconfigsDir.Length > 0 && Directory.Exists(editorconfigsDir))
 
 if (globalAnalyzerConfigsDir.Length > 0 && Directory.Exists(globalAnalyzerConfigsDir))
 {
-    foreach (string editorconfig in Directory.EnumerateFiles(globalAnalyzerConfigsDir))
+    foreach (string globalconfig in Directory.EnumerateFiles(globalAnalyzerConfigsDir))
     {
-        if (Path.GetExtension(editorconfig) == ".editorconfig")
+        if (Path.GetExtension(globalconfig) == ".globalconfig")
         {
-            result.AppendLine(FileElement(Path.Combine(globalAnalyzerConfigsDir, editorconfig), $"build\\config"));
+            result.AppendLine(FileElement(Path.Combine(globalAnalyzerConfigsDir, globalconfig), $"buildtransitive\\config"));
         }
         else
         {
-            throw new InvalidDataException($"Encountered a file with unexpected extension: {editorconfig}");
+            throw new InvalidDataException($"Encountered a file with unexpected extension: {globalconfig}");
         }
     }
 }
