@@ -4620,10 +4620,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Special HasHome for fields. 
-        /// Fields have readable homes when they are not constants.
-        /// Fields have writeable homes unless they refer to readonly values and
-        /// are used outside of the constructor.
+        /// Special HasHome for fields.
+        // A field has a readable home unless the field is a constant.
+        // A field has a writable home unless: the field is a readonly value and is used
+        // outside of a constructor or init method; or the field is ref readonly.
         /// </summary>
         private static bool FieldAccessHasHome(
             BoundFieldAccess fieldAccess,
