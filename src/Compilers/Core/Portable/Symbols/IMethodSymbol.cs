@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         bool IsGenericMethod { get; }
 
         /// <summary>
-        /// Returns true if this method is an extension method. 
+        /// Returns true if this method is an extension method.
         /// </summary>
         bool IsExtensionMethod { get; }
 
@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis
         /// Returns true if this method is an async method
         /// </summary>
         bool IsAsync { get; }
+
+        /// <summary>
+        /// Returns true if this method is an iterator method. Only symbols from source code can be
+        /// iterators.
+        /// </summary>
+        bool IsIterator { get; }
 
         /// <summary>
         /// Returns whether this method is using CLI VARARG calling convention. This is used for
@@ -64,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if this method hides base methods by name. This cannot be specified directly
         /// in the C# language, but can be true for methods defined in other languages imported from
-        /// metadata. The equivalent of the "hidebyname" flag in metadata. 
+        /// metadata. The equivalent of the "hidebyname" flag in metadata.
         /// </summary>
         bool HidesBaseMethodsByName { get; }
 
@@ -99,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         NullableAnnotation ReturnNullableAnnotation { get; }
 
         /// <summary>
-        /// Returns the type arguments that have been substituted for the type parameters. 
+        /// Returns the type arguments that have been substituted for the type parameters.
         /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
@@ -175,7 +181,7 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol? ReducedFrom { get; }
 
         /// <summary>
-        /// If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter. 
+        /// If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter.
         /// </summary>
         /// <param name="reducedFromTypeParameter">Type parameter of the corresponding <see cref="ReducedFrom"/> method.</param>
         /// <returns>Inferred type or Nothing if nothing was inferred.</returns>
@@ -194,13 +200,13 @@ namespace Microsoft.CodeAnalysis
         /// Returns interface methods explicitly implemented by this method.
         /// </summary>
         /// <remarks>
-        /// Methods imported from metadata can explicitly implement more than one method, 
+        /// Methods imported from metadata can explicitly implement more than one method,
         /// that is why return type is ImmutableArray.
         /// </remarks>
         ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the return type. 
+        /// Returns the list of custom modifiers, if any, associated with the return type.
         /// </summary>
         ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get; }
 
@@ -210,7 +216,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
-        /// Returns the list of custom attributes, if any, associated with the returned value. 
+        /// Returns the list of custom attributes, if any, associated with the returned value.
         /// </summary>
         ImmutableArray<AttributeData> GetReturnTypeAttributes();
 
@@ -234,7 +240,7 @@ namespace Microsoft.CodeAnalysis
         /// returns the property that this method is the getter or setter for.
         /// If this method has <see cref="MethodKind"/> of <see cref="MethodKind.EventAdd"/> or <see cref="MethodKind.EventRemove"/>,
         /// returns the event that this method is the adder or remover for.
-        /// Note, the set of possible associated symbols might be expanded in the future to 
+        /// Note, the set of possible associated symbols might be expanded in the future to
         /// reflect changes in the languages.
         /// </remarks>
         ISymbol? AssociatedSymbol { get; }
@@ -281,9 +287,9 @@ namespace Microsoft.CodeAnalysis
         DllImportData? GetDllImportData();
 
         /// <summary>
-        /// If this method is a Lambda method (MethodKind = MethodKind.LambdaMethod) and 
+        /// If this method is a Lambda method (MethodKind = MethodKind.LambdaMethod) and
         /// there is an anonymous delegate associated with it, returns this delegate.
-        /// 
+        ///
         /// Returns null if the symbol is not a lambda or if it does not have an
         /// anonymous delegate associated with it.
         /// </summary>

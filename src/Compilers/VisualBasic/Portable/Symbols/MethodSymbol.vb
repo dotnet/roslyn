@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
         ''' <summary>
-        ''' Returns the type arguments that have been substituted for the type parameters. 
+        ''' Returns the type arguments that have been substituted for the type parameters.
         ''' If nothing has been substituted for a give type parameters,
         ''' then the type parameter itself is consider the type argument.
         ''' </summary>
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property ReturnType As TypeSymbol
 
         ''' <summary>
-        ''' Returns the list of custom modifiers, if any, associated with the returned value. 
+        ''' Returns the list of custom modifiers, if any, associated with the returned value.
         ''' </summary>
         Public MustOverride ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
 
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
 
         ''' <summary>
-        ''' Should return syntax node that originated the method. 
+        ''' Should return syntax node that originated the method.
         ''' </summary>
         Friend MustOverride ReadOnly Property Syntax As SyntaxNode
 
@@ -287,15 +287,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' returns the property that this method is the getter or setter for.
         ''' If this method has MethodKind of MethodKind.EventAdd or MethodKind.EventRemove,
         ''' returns the event that this method is the adder or remover for.
-        ''' Note, the set of possible associated symbols might be expanded in the future to 
+        ''' Note, the set of possible associated symbols might be expanded in the future to
         ''' reflect changes in the languages.
         ''' </summary>
         Public MustOverride ReadOnly Property AssociatedSymbol As Symbol
 
         ''' <summary>
-        ''' If this method is a Lambda method (MethodKind = MethodKind.LambdaMethod) and 
+        ''' If this method is a Lambda method (MethodKind = MethodKind.LambdaMethod) and
         ''' there is an anonymous delegate associated with it, returns this delegate.
-        ''' 
+        '''
         ''' Returns Nothing if the symbol is not a lambda or if it does not have an
         ''' anonymous delegate associated with it.
         ''' </summary>
@@ -355,11 +355,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns true if this method is not implemented in IL of the assembly it is defined in.
         ''' </summary>
         ''' <remarks>
-        ''' External methods are 
-        ''' 1) Declare Subs and Declare Functions, 
-        ''' 2) methods marked by <see cref="System.Runtime.InteropServices.DllImportAttribute"/>, 
-        ''' 3) methods marked by <see cref="System.Runtime.CompilerServices.MethodImplAttribute"/> 
-        '''    with <see cref="T:System.Runtime.CompilerServices.MethodImplOptions.InternalCall"/> or 
+        ''' External methods are
+        ''' 1) Declare Subs and Declare Functions,
+        ''' 2) methods marked by <see cref="System.Runtime.InteropServices.DllImportAttribute"/>,
+        ''' 3) methods marked by <see cref="System.Runtime.CompilerServices.MethodImplAttribute"/>
+        '''    with <see cref="T:System.Runtime.CompilerServices.MethodImplOptions.InternalCall"/> or
         '''    <see cref="T:System.Runtime.CompilerServices.MethodCodeType.Runtime"/> flags.
         ''' 4) Synthesized constructors of ComImport types
         ''' </remarks>
@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride Function GetDllImportData() As DllImportData Implements IMethodSymbol.GetDllImportData
 
         ''' <summary>
-        ''' Marshalling information for return value (FieldMarshal in metadata). 
+        ''' Marshalling information for return value (FieldMarshal in metadata).
         ''' </summary>
         Friend MustOverride ReadOnly Property ReturnTypeMarshallingInformation As MarshalPseudoCustomAttributeData
 
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend MustOverride ReadOnly Property HasDeclarativeSecurity As Boolean
 
         ''' <summary>
-        ''' Returns true if this method is an extension method from the VB language perspective; 
+        ''' Returns true if this method is an extension method from the VB language perspective;
         ''' i.e., declared with an Extension attribute and meets other language requirements.
         ''' </summary>
         Public MustOverride ReadOnly Property IsExtensionMethod As Boolean
@@ -401,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns true if this method might be a reducible extension method. This method may return true
         ''' even if the method is not an extension method, but if it returns false, it must be the
         ''' case that this is not an extension method.
-        ''' 
+        '''
         ''' Allows checking extension methods from source in a quicker manner than fully binding attributes.
         ''' </summary>
         Friend Overridable ReadOnly Property MayBeReducibleExtensionMethod As Boolean
@@ -412,10 +412,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Returns true if this method hides a base method by name and signature.
-        ''' The equivalent of the "hidebysig" flag in metadata. 
+        ''' The equivalent of the "hidebysig" flag in metadata.
         ''' </summary>
         ''' <remarks>
-        ''' This property should not be confused with general method overloading in Visual Basic, and is not directly related. 
+        ''' This property should not be confused with general method overloading in Visual Basic, and is not directly related.
         ''' This property will only return true if this method hides a base method by name and signature (Overloads keyword).
         ''' </remarks>
         Public MustOverride ReadOnly Property IsOverloads As Boolean
@@ -462,10 +462,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ''' <summary> 
-        ''' Determines whether this method is a candidate for a default 
+        ''' <summary>
+        ''' Determines whether this method is a candidate for a default
         ''' assembly entry point. Any method called "Main" is.
-        ''' </summary> 
+        ''' </summary>
         ''' <returns>True if the method can be used as an entry point.</returns>
         Friend ReadOnly Property IsEntryPointCandidate As Boolean
             Get
@@ -513,10 +513,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return True
         End Function
 
-        ''' <summary> 
-        ''' Checks if the method has an entry point compatible signature, i.e. 
-        ''' - the return type is either void or int 
-        ''' - has either no parameter or a single parameter of type string[] 
+        ''' <summary>
+        ''' Checks if the method has an entry point compatible signature, i.e.
+        ''' - the return type is either void or int
+        ''' - has either no parameter or a single parameter of type string[]
         ''' </summary>
         Friend Function HasEntryPointSignature() As Boolean
             Dim returnType As TypeSymbol = Me.ReturnType
@@ -660,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
 
-            ' If the member is in an assembly with unified references, 
+            ' If the member is in an assembly with unified references,
             ' we check if its definition depends on a type from a unified reference.
             If errorInfo Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
@@ -688,7 +688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Return error code that has highest priority while calculating use site error for this symbol. 
+        ''' Return error code that has highest priority while calculating use site error for this symbol.
         ''' </summary>
         Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
             Return code = ERRID.ERR_UnsupportedMethod1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
@@ -740,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter. 
+        ''' If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter.
         ''' </summary>
         ''' <param name="reducedFromTypeParameter">Type parameter of the corresponding <see cref="ReducedFrom"/> method.</param>
         ''' <returns>Inferred type or Nothing if nothing was inferred.</returns>
@@ -763,9 +763,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' If this is an extension method that can be applied to a instance of the given type,
         ''' returns the reduced method symbol thus formed. Otherwise, returns Nothing.
-        ''' 
-        ''' Name lookup should use this method in order to capture proximity, which affects 
-        ''' overload resolution. 
+        '''
+        ''' Name lookup should use this method in order to capture proximity, which affects
+        ''' overload resolution.
         ''' </summary>
         Friend Function ReduceExtensionMethod(instanceType As TypeSymbol, proximity As Integer, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As MethodSymbol
             Return ReducedExtensionMethodSymbol.Create(instanceType, Me, proximity, useSiteInfo)
@@ -794,11 +794,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ''' <summary> 
-        ''' Returns bound block representing method's body. This method is called 
+        ''' <summary>
+        ''' Returns bound block representing method's body. This method is called
         ''' by 'method compiler' when it is ready to emit IL code for the method.
-        ''' 
-        ''' The bound method body is typically a high-level tree - it may contain 
+        '''
+        ''' The bound method body is typically a high-level tree - it may contain
         ''' lambdas, foreach etc... which will be processed in CompileMethod(...)
         ''' </summary>
         ''' <param name="compilationState">Enables synthesized methods to create <see cref="SyntheticBoundNodeFactory"/> instances.</param>
@@ -817,7 +817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property GenerateDebugInfo As Boolean
             Get
-                ' Dev11 generates debug info for embedded symbols. 
+                ' Dev11 generates debug info for embedded symbols.
                 ' There is no reason to do so since the source code is not available to the user.
                 Return GenerateDebugInfoImpl AndAlso Not IsEmbedded
             End Get
@@ -830,7 +830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks>
         ''' Syntax offset is a unique identifier for the local within the emitted method body.
         ''' It's based on position of the local declarator. In single-part method bodies it's simply the distance
-        ''' from the start of the method body syntax span. If a method body has multiple parts (such as a constructor 
+        ''' from the start of the method body syntax span. If a method body has multiple parts (such as a constructor
         ''' comprising of code for member initializers and constructor initializer calls) the offset is calculated
         ''' as if all source these parts were concatenated together and prepended to the constructor body.
         ''' The resulting syntax offset is then negative for locals defined outside of the constructor body.
@@ -861,7 +861,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' If this is a method of a tuple type, return corresponding underlying method from the
-        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' tuple underlying type. Otherwise, Nothing.
         ''' </summary>
         Public Overridable ReadOnly Property TupleUnderlyingMethod() As MethodSymbol
             Get
@@ -1088,6 +1088,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_IsIterator As Boolean Implements IMethodSymbol.IsIterator, IMethodSymbolInternal.IsIterator
+            Get
+                Return Me.IsIterator
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_HidesBaseMethodsByName As Boolean Implements IMethodSymbol.HidesBaseMethodsByName
             Get
                 Return True
@@ -1130,12 +1136,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End Region
 
 #Region "IMethodSymbolInternal"
-        Private ReadOnly Property IMethodSymbolInternal_IsIterator As Boolean Implements IMethodSymbolInternal.IsIterator
-            Get
-                Return Me.IsIterator
-            End Get
-        End Property
-
         Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
             Return CalculateLocalSyntaxOffset(localPosition, localTree)
         End Function

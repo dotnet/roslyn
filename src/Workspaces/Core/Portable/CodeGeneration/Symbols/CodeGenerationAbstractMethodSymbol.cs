@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public virtual bool IsAsync => this.Modifiers.IsAsync;
 
+        public virtual bool IsIterator => false;
+
         public virtual bool IsVararg => false;
 
         public bool IsCheckedBuiltin => false;
