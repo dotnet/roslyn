@@ -4093,19 +4093,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <remarks>
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
-    /// <item><description><see cref="SyntaxKind.CollectionExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.CollectionCreationExpression"/></description></item>
     /// </list>
     /// </remarks>
-    public sealed partial class CollectionExpressionSyntax : ExpressionSyntax
+    public sealed partial class CollectionCreationExpressionSyntax : ExpressionSyntax
     {
         private SyntaxNode? elements;
 
-        internal CollectionExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+        internal CollectionCreationExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
 
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CollectionExpressionSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CollectionCreationExpressionSyntax)this.Green).openBracketToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of CollectionElementSyntax representing the list of elements in the collection expression.</summary>
         public SeparatedSyntaxList<CollectionElementSyntax> Elements
@@ -4117,20 +4117,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CollectionExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CollectionCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.elements, 1)! : null;
 
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.elements : null;
 
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCollectionExpression(this);
-        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCollectionExpression(this);
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCollectionCreationExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCollectionCreationExpression(this);
 
-        public CollectionExpressionSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
+        public CollectionCreationExpressionSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
         {
             if (openBracketToken != this.OpenBracketToken || elements != this.Elements || closeBracketToken != this.CloseBracketToken)
             {
-                var newNode = SyntaxFactory.CollectionExpression(openBracketToken, elements, closeBracketToken);
+                var newNode = SyntaxFactory.CollectionCreationExpression(openBracketToken, elements, closeBracketToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -4138,11 +4138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public CollectionExpressionSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.Elements, this.CloseBracketToken);
-        public CollectionExpressionSyntax WithElements(SeparatedSyntaxList<CollectionElementSyntax> elements) => Update(this.OpenBracketToken, elements, this.CloseBracketToken);
-        public CollectionExpressionSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Elements, closeBracketToken);
+        public CollectionCreationExpressionSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.Elements, this.CloseBracketToken);
+        public CollectionCreationExpressionSyntax WithElements(SeparatedSyntaxList<CollectionElementSyntax> elements) => Update(this.OpenBracketToken, elements, this.CloseBracketToken);
+        public CollectionCreationExpressionSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Elements, closeBracketToken);
 
-        public CollectionExpressionSyntax AddElements(params CollectionElementSyntax[] items) => WithElements(this.Elements.AddRange(items));
+        public CollectionCreationExpressionSyntax AddElements(params CollectionElementSyntax[] items) => WithElements(this.Elements.AddRange(items));
     }
 
     public abstract partial class CollectionElementSyntax : CSharpSyntaxNode

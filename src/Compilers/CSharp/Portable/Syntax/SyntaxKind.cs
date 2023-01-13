@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ScopedType = 9075,
 
-        CollectionExpression = 9076,
+        CollectionCreationExpression = 9076,
         ExpressionElement = 9077,
         SpreadElement = 9078,
         DictionaryElement = 9079,

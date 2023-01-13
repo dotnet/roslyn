@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
         public virtual TResult? VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a CollectionExpressionSyntax node.</summary>
-        public virtual TResult? VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
+        /// <summary>Called when the visitor visits a CollectionCreationExpressionSyntax node.</summary>
+        public virtual TResult? VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExpressionElementSyntax node.</summary>
         public virtual TResult? VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
@@ -945,8 +945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
         public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a CollectionExpressionSyntax node.</summary>
-        public virtual void VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
+        /// <summary>Called when the visitor visits a CollectionCreationExpressionSyntax node.</summary>
+        public virtual void VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExpressionElementSyntax node.</summary>
         public virtual void VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
@@ -1674,7 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
             => node.Update(VisitToken(node.StackAllocKeyword), VisitToken(node.OpenBracketToken), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
 
-        public override SyntaxNode? VisitCollectionExpression(CollectionExpressionSyntax node)
+        public override SyntaxNode? VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Elements), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode? VisitExpressionElement(ExpressionElementSyntax node)
@@ -3357,17 +3357,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(InitializerExpressionSyntax initializer)
             => SyntaxFactory.ImplicitStackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), SyntaxFactory.Token(SyntaxKind.OpenBracketToken), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), initializer);
 
-        /// <summary>Creates a new CollectionExpressionSyntax instance.</summary>
-        public static CollectionExpressionSyntax CollectionExpression(SyntaxToken openBracketToken, SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
+        /// <summary>Creates a new CollectionCreationExpressionSyntax instance.</summary>
+        public static CollectionCreationExpressionSyntax CollectionCreationExpression(SyntaxToken openBracketToken, SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            return (CollectionExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionExpression((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, elements.Node.ToGreenSeparatedList<Syntax.InternalSyntax.CollectionElementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
+            return (CollectionCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionCreationExpression((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, elements.Node.ToGreenSeparatedList<Syntax.InternalSyntax.CollectionElementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
-        /// <summary>Creates a new CollectionExpressionSyntax instance.</summary>
-        public static CollectionExpressionSyntax CollectionExpression(SeparatedSyntaxList<CollectionElementSyntax> elements = default)
-            => SyntaxFactory.CollectionExpression(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), elements, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+        /// <summary>Creates a new CollectionCreationExpressionSyntax instance.</summary>
+        public static CollectionCreationExpressionSyntax CollectionCreationExpression(SeparatedSyntaxList<CollectionElementSyntax> elements = default)
+            => SyntaxFactory.CollectionCreationExpression(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), elements, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new ExpressionElementSyntax instance.</summary>
         public static ExpressionElementSyntax ExpressionElement(ExpressionSyntax expression)
