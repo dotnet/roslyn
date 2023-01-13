@@ -1367,8 +1367,8 @@ symIsHidden:;
                 {
                     if (binder is BuckStopsHereBinder lastBinder)
                     {
-                        // BuckStopsHereBinder.AssociatedFileIdentifier may be null from the EE.
-                        return lastBinder.AssociatedFileIdentifier.GetValueOrDefault();
+                        // we never expect to bind a file type in a context where the BuckStopsHereBinder lacks an AssociatedFileIdentifier
+                        return lastBinder.AssociatedFileIdentifier.Value;
                     }
                 }
 
