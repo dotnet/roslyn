@@ -46,7 +46,7 @@ stages:
 
 - stage: Build
   variables:
-    TreatWarningsAsErrors: true
+    MSBuildTreatWarningsAsErrors: true
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     BuildConfiguration: Release
     NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
