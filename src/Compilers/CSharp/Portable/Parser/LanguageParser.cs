@@ -524,25 +524,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case SyntaxKind.OpenBracketToken:
                             if (this.IsPossibleGlobalAttributeDeclaration())
                             {
-                                // incomplete members must be processed before we add any nodes to the body:
-                                ReduceIncompleteMembers(ref pendingIncompleteMembers, ref openBraceOrSemicolon, ref body, ref initialBadNodes);
-
-                                var attribute = this.ParseAttributeDeclaration(inExpressionContext: parentKind == SyntaxKind.CompilationUnit);
-                                if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
+                                // Could be an attribute, or it could be a collection literal at the top level.  e.g. `[1, 2, 3].XYZ();`
+                                var attribute = this.TryParseAttributeDeclaration(inExpressionContext: parentKind == SyntaxKind.CompilationUnit);
+                                if (attribute != null)
                                 {
-                                    RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
-                                    attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
-                                    this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
-                                }
-                                else
-                                {
-                                    body.Attributes.Add(attribute);
-                                    seen = NamespaceParts.GlobalAttributes;
-                                }
+                                    // incomplete members must be processed before we add any nodes to the body:
+                                    ReduceIncompleteMembers(ref pendingIncompleteMembers, ref openBraceOrSemicolon, ref body, ref initialBadNodes);
 
-                                reportUnexpectedToken = true;
-                                break;
+                                    if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
+                                    {
+                                        RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
+                                        attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
+                                        this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
+                                    }
+                                    else
+                                    {
+                                        body.Attributes.Add(attribute);
+                                        seen = NamespaceParts.GlobalAttributes;
+                                    }
+
+                                    reportUnexpectedToken = true;
+                                    break;
+                                }
                             }
+
 
                             goto default;
 
@@ -863,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             while (this.IsPossibleAttributeDeclaration())
             {
-                var attributeDeclaration = this.ParseAttributeDeclaration(inExpressionContext);
+                var attributeDeclaration = this.TryParseAttributeDeclaration(inExpressionContext);
                 if (attributeDeclaration is null)
                     break;
 
@@ -881,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 || this.IsPossibleAttributeDeclaration(); // start of a new one...
         }
 
-        private AttributeListSyntax? ParseAttributeDeclaration(bool inExpressionContext)
+        private AttributeListSyntax? TryParseAttributeDeclaration(bool inExpressionContext)
         {
             if (this.IsIncrementalAndFactoryContextMatches &&
                 this.CurrentNodeKind == SyntaxKind.AttributeList &&
