@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,14 +22,16 @@ internal abstract class VisualStudioOptionStorage
 {
     internal sealed class RoamingProfileStorage : VisualStudioOptionStorage
     {
+        private const string LanguagePlaceholder = "%LANGUAGE%";
+
         /// <summary>
-        /// Key may contain %LANGUAGE% placeholder that is replaced by the language name.
+        /// Key may contain <see cref="LanguagePlaceholder"/> that is replaced by the language name.
         /// </summary>
         public string Key { get; }
 
         /// <summary>
         /// VB specific key should only be specified for backward compat for a few speciifc options.
-        /// Language specific storage key should use %LANGUAGE% placeholder in <see cref="Key"/>.
+        /// Language specific storage key should use <see cref="LanguagePlaceholder"/> in <see cref="Key"/>.
         /// </summary>
         public string? VisualBasicKey { get; }
 
@@ -43,15 +46,20 @@ internal abstract class VisualStudioOptionStorage
         [Obsolete]
         public RoamingProfileStorage(string key, string vbKey)
         {
+            Debug.Assert(!vbKey.Contains(LanguagePlaceholder));
+
             Key = key;
             VisualBasicKey = vbKey;
         }
+
+        public bool IsPerLanguage
+            => Key.Contains(LanguagePlaceholder);
 
         private string GetKey(string? language)
             => (VisualBasicKey != null && language == LanguageNames.VisualBasic) ? VisualBasicKey : SubstituteLanguage(Key, language);
 
         private static string SubstituteLanguage(string keyName, string? language)
-            => keyName.Replace("%LANGUAGE%", language switch
+            => keyName.Replace(LanguagePlaceholder, language switch
             {
                 LanguageNames.CSharp => "CSharp",
                 LanguageNames.VisualBasic => "VisualBasic",
@@ -217,7 +225,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_utf8_string_literals", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferUtf8StringLiterals")},
         {"csharp_style_throw_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferThrowExpression")},
         {"csharp_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.CSharp.Specific.UnusedValueAssignmentPreference")},
-        {"csharp_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedValueExpressionStatementPreference")},
+        {"csharp_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.CSharp.Specific.UnusedValueExpressionStatementPreference")},
         {"csharp_style_var_elsewhere", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeWherePossible")},
         {"csharp_style_var_for_built_in_types", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes")},
         {"csharp_style_var_when_type_is_apparent", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent")},
@@ -231,7 +239,7 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning restore
         {"DocumentOutlineOptions_EnableDocumentOutline", new FeatureFlagStorage(@"Roslyn.DocumentOutline")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
-        {"dotnet_remove_unnecessary_suppression_exclusions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveUnnecessarySuppressionExclusions")},
+        {"dotnet_remove_unnecessary_suppression_exclusions", new RoamingProfileStorage("TextEditor..Specific.RemoveUnnecessarySuppressionExclusions")}, // Used to contain %LANGUAGE% but deosn't have per-language value, keeping the wrong name for compat.
         {"dotnet_separate_import_directive_groups", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
         {"dotnet_sort_system_directives_first", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")},
         {"dotnet_style_allow_multiple_blank_lines_experimental", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines")},
@@ -331,12 +339,12 @@ internal abstract class VisualStudioOptionStorage
         {"InlineHintsOptions_SuppressForParametersThatMatchMethodIntent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent")},
         {"InlineRename_CollapseRenameUI", new RoamingProfileStorage("TextEditor.CollapseRenameUI")},
         {"InlineRename_UseInlineAdornment", new RoamingProfileStorage("TextEditor.RenameUseInlineAdornment")},
-        {"InlineRenameSessionOptions_PreviewChanges", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreviewRename")},
-        {"InlineRenameSessionOptions_RenameAsynchronously", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RenameAsynchronously")},
-        {"InlineRenameSessionOptions_RenameFile", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RenameFile")},
-        {"InlineRenameSessionOptions_RenameInComments", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RenameInComments")},
-        {"InlineRenameSessionOptions_RenameInStrings", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RenameInStrings")},
-        {"InlineRenameSessionOptions_RenameOverloads", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RenameOverloads")},
+        {"InlineRenameSessionOptions_PreviewChanges", new RoamingProfileStorage("TextEditor..Specific.PreviewRename")},
+        {"InlineRenameSessionOptions_RenameAsynchronously", new RoamingProfileStorage("TextEditor.Specific.RenameAsynchronously")},
+        {"InlineRenameSessionOptions_RenameFile", new RoamingProfileStorage("TextEditor.Specific.RenameFile")},
+        {"InlineRenameSessionOptions_RenameInComments", new RoamingProfileStorage("TextEditor.Specific.RenameInComments")},
+        {"InlineRenameSessionOptions_RenameInStrings", new RoamingProfileStorage("TextEditor.Specific.RenameInStrings")},
+        {"InlineRenameSessionOptions_RenameOverloads", new RoamingProfileStorage("TextEditor.Specific.RenameOverloads")},
         {"InternalDiagnosticsOptions_CrashOnAnalyzerException", new LocalUserProfileStorage(@"Roslyn\Internal\Diagnostics", "CrashOnAnalyzerException")},
         {"InternalDiagnosticsOptions_EnableFileLoggingForDiagnostics", new LocalUserProfileStorage(@"Roslyn\Internal\Diagnostics", "EnableFileLoggingForDiagnostics")},
         {"InternalDiagnosticsOptions_NormalDiagnosticMode", new LocalUserProfileStorage(@"Roslyn\Internal\Diagnostics", "NormalDiagnosticMode")},
@@ -385,7 +393,7 @@ internal abstract class VisualStudioOptionStorage
         {"SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
         {"SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
         {"SplitCommentOptions_Enabled", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
-        {"SplitStringLiteralOptions_Enabled", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals")},
+        {"SplitStringLiteralOptions_Enabled", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
         {"StackTraceExplorerOptions_OpenOnFocus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
         {"SuggestionsOptions_Asynchronous", new RoamingProfileStorage("TextEditor.Specific.Suggestions.Asynchronous4")},
         {"SuggestionsOptions_AsynchronousQuickActionsDisableFeatureFlag", new FeatureFlagStorage(@"Roslyn.AsynchronousQuickActionsDisable2")},
