@@ -22,7 +22,7 @@
     <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.435" />
   </ItemGroup>
   <ItemGroup>
-    <!-- <GlobalPackageReference Include="Microsoft.SourceLink.AzureRepos.Git" Version="1.0.0" /> -->
+    <!-- <GlobalPackageReference Include="Microsoft.SourceLink.AzureRepos.Git" Version="1.1.1" /> -->
     <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
   </ItemGroup>
 </Project>
