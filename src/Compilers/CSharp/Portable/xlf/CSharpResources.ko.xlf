@@ -668,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">특성의 'typeof'에 함수 포인터 형식을 사용할 수 없습니다.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">특성의 'typeof'에 함수 포인터 형식을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">

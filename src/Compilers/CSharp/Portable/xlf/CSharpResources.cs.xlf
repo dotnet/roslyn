@@ -668,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">V typeof v atributu se nepodporuje používání typu ukazatele funkce.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">V typeof v atributu se nepodporuje používání typu ukazatele funkce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
