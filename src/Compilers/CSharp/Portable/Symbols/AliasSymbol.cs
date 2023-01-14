@@ -390,13 +390,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var syntax = usingDirective.Type;
             var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
             if (usingDirective.UnsafeKeyword != default)
+            {
+                this.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
                 flags |= BinderFlags.UnsafeRegion;
+            }
 
             var declarationBinder = ContainingSymbol.DeclaringCompilation
                 .GetBinderFactory(syntax.SyntaxTree)
                 .GetBinder(syntax)
                 .WithAdditionalFlags(flags);
-            return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
+
+            var annotatedNamespaceOrType = declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved);
+
+            // `using X = RefType?;` is not legal.
+            if (usingDirective.Type is NullableTypeSyntax nullableType &&
+                annotatedNamespaceOrType.TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated &&
+                annotatedNamespaceOrType.TypeWithAnnotations.Type?.IsReferenceType is true)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, nullableType.QuestionToken.GetLocation());
+            }
+
+            return annotatedNamespaceOrType.NamespaceOrTypeSymbol;
         }
 
         internal override bool RequiresCompletion

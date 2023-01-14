@@ -197,6 +197,11 @@
         <target state="translated">L'opzione '{0}' non è valida per /nullable. Deve essere 'disable', 'enable', 'warnings' o 'annotations'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
+        <source>Using alias cannot be a nullable reference type..</source>
+        <target state="new">Using alias cannot be a nullable reference type..</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
         <target state="translated">Non è possibile usare l'operatore typeof nel tipo riferimento nullable</target>

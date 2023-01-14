@@ -2168,6 +2168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadRefInUsingAlias = 9105,
         ERR_BadUnsafeInUsingDirective = 9106,
+        ERR_BadNullableReferenceTypeInUsingAlias = 9107,
 
         #endregion
 

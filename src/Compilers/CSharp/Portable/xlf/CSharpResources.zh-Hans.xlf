@@ -197,6 +197,11 @@
         <target state="translated">/nullable 的选项“{0}”无效；必须为“禁用”、“启用”、“警告”或“注释”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableReferenceTypeInUsingAlias">
+        <source>Using alias cannot be a nullable reference type..</source>
+        <target state="new">Using alias cannot be a nullable reference type..</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
         <target state="translated">不能在可为 null 的引用类型上使用 typeof 运算符</target>
