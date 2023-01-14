@@ -147,10 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool Instrument
             => !InstrumentationState.IsSuppressed;
 
-        private Instrumenter _instrumenter // TODO: rename
-        {
-            get => InstrumentationState.Instrumenter;
-        }
+        private Instrumenter Instrumenter
+            => InstrumentationState.Instrumenter;
 
         private PEModuleBuilder? EmitModule
         {
@@ -634,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundStatement original = originalStatements[i];
                             if (Instrument && !original.WasCompilerGenerated)
                             {
-                                rewritten = _instrumenter.InstrumentFieldOrPropertyInitializer(original, rewritten);
+                                rewritten = Instrumenter.InstrumentFieldOrPropertyInitializer(original, rewritten);
                             }
                         }
 
