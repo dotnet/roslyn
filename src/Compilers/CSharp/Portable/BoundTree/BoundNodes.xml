@@ -2360,6 +2360,7 @@
          type after inference. -->
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
+    <Field Name="IsTypeDefinedExplicitly" Type="bool"/>
   </Node>
 
   <Node Name="BoundThrowExpression" Base="BoundExpression">

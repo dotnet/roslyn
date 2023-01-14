@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -634,15 +636,63 @@ class Program
         }
 
         [Fact]
-        public void Bug50782()
+        public void Bug50782_2()
         {
+            string source = @"
+#nullable enable
+
+interface IOperation<T> { }
+
+public class StringOperation : IOperation<string?> { }
+
+public class C {   
+    static void Main() {
+        TestF(out var _);
+        TestF(out _);
+    }
+   
+    static void TestF(out string result) => result = """";
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // out _
+            ForEach(GetDiscardIdentifiers(tree), (IdentifierNameSyntax discardOut) => {
+                Assert.Null(model.GetDeclaredSymbol(discardOut));
+                var discardSymbol = (IDiscardSymbol)model.GetSymbolInfo(discardOut).Symbol;
+                Assert.Equal("System.String", discardSymbol.Type.ToTestDisplayString());
+                Assert.Equal("System.String", model.GetTypeInfo(discardOut).Type.ToTestDisplayString());
+            });
+
+
+            // out T _, out var _, out T? _
+            ForEach(GetDiscardDesignations(tree), (DiscardDesignationSyntax discardDecl) =>
+            {
+                Assert.Null(model.GetDeclaredSymbol(discardDecl));
+                Assert.Null(model.GetTypeInfo(discardDecl).Type);
+                Assert.Null(model.GetSymbolInfo(discardDecl).Symbol);
+                var declaration = (DeclarationExpressionSyntax)discardDecl.Parent;
+                Assert.Equal("System.String", model.GetTypeInfo(declaration).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(declaration).Symbol);
+            });
+        }
+
+        [Fact]
+        public void Bug50782_1() {
             string source = @"
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
+
 interface IOperation<T> { }
-class StringOperation : IOperation<string?> { }
-class C {   
-    void M() {
+
+public class StringOperation : IOperation<string?> { }
+
+public class C {   
+    static void Main() {
         TestA(new StringOperation(), out string? discardA);
         TestA(new StringOperation(), out string? _);
         TestA(new StringOperation(), out var _);
@@ -652,43 +702,86 @@ class C {
         TestB(new StringOperation(), out string? _);
         TestB(new StringOperation(), out var _);
         TestB(new StringOperation(), out _);
-
+        
         TestC<string?>(out string? discardC);
         TestC<string?>(out string? _);
         TestC<string?>(out var _);
         TestC<string?>(out _);
-
+        
         TestD<string?>(out string? discardD);
         TestD<string?>(out string? _);
         TestD<string?>(out var _);
         TestD<string?>(out _);
-
+        
         TestE(out string? discardE);
+        TestE(out var descardEVar);
         TestE(out string? _);
         TestE(out var _);
         TestE(out _);
-
+        
         TestF(out string? discardF);
         TestF(out string? _);
-        TestF(out var _);
-        TestF(out _);
     }
+   
+    static void TestA<T>(IOperation<T> operation, [MaybeNull] out T result) => result = default;
+    static void TestB<T>(IOperation<T> operation, out T result) => result = default;
     
-    void TestA<T>(IOperation<T> operation, [MaybeNull] out T result) => result = default;
-    void TestB<T>(IOperation<T> operation, out T result) => result = default;
-    
-    void TestC<T>([MaybeNull] out T result) => result = default;
-    void TestD<T>(out T result) => result = default;
+    static void TestC<T>([MaybeNull] out T result) => result = default;
+    static void TestD<T>(out T result) => result = default;
 
-    void TestE([MaybeNull] out string result) => result = default;
-    void TestF(out string result) => result = default;
+    static void TestE([MaybeNull] out string result) => result = default;
+    static void TestF(out string result) => result = """";
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(new[] {
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(40, 70), // We assume that T will be non-nullable.
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(43, 45), // We assume that T will be non-nullable.
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(46, 47) // We assume that T will be non-nullable.
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(new[] {
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(42, 77), // We assume that T will be non-nullable.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(45, 52), // We assume that T will be non-nullable.
             });
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // out _
+            ForEach(GetDiscardIdentifiers(tree), (IdentifierNameSyntax discardOut) => {
+                Assert.Null(model.GetDeclaredSymbol(discardOut));
+                var discardSymbol = (IDiscardSymbol)model.GetSymbolInfo(discardOut).Symbol;
+                Assert.Equal("System.String?", discardSymbol.Type.ToTestDisplayString());
+                Assert.Equal("System.String?", model.GetTypeInfo(discardOut).Type.ToTestDisplayString());
+            });
+
+
+            // out T _, out var _, out T? _
+            ForEach(GetDiscardDesignations(tree), (DiscardDesignationSyntax discardDecl) =>
+            {
+                Assert.Null(model.GetDeclaredSymbol(discardDecl));
+                Assert.Null(model.GetTypeInfo(discardDecl).Type);
+                Assert.Null(model.GetSymbolInfo(discardDecl).Symbol);
+                var declaration = (DeclarationExpressionSyntax)discardDecl.Parent;
+                Assert.Equal("System.String?", model.GetTypeInfo(declaration).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(declaration).Symbol);
+            });
+        }
+
+        //Nice to have as a extension method...
+        public static IEnumerable<T> ForEach<T>(IEnumerable<T> enumeration, Action<T> action)
+        {
+            foreach (T item in enumeration)
+            {
+                action(item);
+            }
+
+            return enumeration;
+        }
+
+        private static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
+        }
+
+        private static IEnumerable<IdentifierNameSyntax> GetDiscardIdentifiers(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
         }
 
         [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
