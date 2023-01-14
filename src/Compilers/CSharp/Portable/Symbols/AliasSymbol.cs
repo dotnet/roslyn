@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (usingDirective.Type is not NameSyntax)
                         MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(newDiagnostics, usingDirective.Type);
 
-                    symbol = ResolveAliasTarget(usingDirective.Type, newDiagnostics, basesBeingResolved);
+                    symbol = ResolveAliasTarget(usingDirective, newDiagnostics, basesBeingResolved);
                 }
 
                 if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
@@ -382,9 +382,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return target;
         }
 
-        private NamespaceOrTypeSymbol ResolveAliasTarget(TypeSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
+        private NamespaceOrTypeSymbol ResolveAliasTarget(
+            UsingDirectiveSyntax usingDirective,
+            BindingDiagnosticBag diagnostics,
+            ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var declarationBinder = ContainingSymbol.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+            var syntax = usingDirective.Type;
+            var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
+            if (usingDirective.UnsafeKeyword != default)
+                flags |= BinderFlags.UnsafeRegion;
+
+            var declarationBinder = ContainingSymbol.DeclaringCompilation
+                .GetBinderFactory(syntax.SyntaxTree)
+                .GetBinder(syntax)
+                .WithAdditionalFlags(flags);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
         }
 
