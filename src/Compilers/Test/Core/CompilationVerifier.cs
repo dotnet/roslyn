@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     else
                     {
-                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}}{string.Join(Environment.NewLine, map.Keys)}");
+                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}{string.Join(Environment.NewLine, map.Keys)}");
                     }
                 }
 
