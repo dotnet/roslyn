@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.CSharp;
 
 /// <summary>
@@ -23,39 +20,13 @@ internal sealed class InstrumentationState
     public Instrumenter Instrumenter { get; set; } = Instrumenter.NoOp;
 
     public void RemoveDynamicAnalysisInstrumentation()
-        => Instrumenter = RemoveDynamicAnalysisInjectors(Instrumenter);
+        => Instrumenter = RemoveDynamicAnalysisInjector(Instrumenter);
 
-    public static Instrumenter RemoveDynamicAnalysisInjectors(Instrumenter instrumenter)
-    {
-        switch (instrumenter)
+    private static Instrumenter RemoveDynamicAnalysisInjector(Instrumenter instrumenter)
+        => instrumenter switch
         {
-            case DynamicAnalysisInjector { Previous: var previous }:
-                return RemoveDynamicAnalysisInjectors(previous);
-
-            case DebugInfoInjector { Previous: var previous } injector:
-                var newPrevious = RemoveDynamicAnalysisInjectors(previous);
-                if ((object)newPrevious == previous)
-                {
-                    return injector;
-                }
-                else if ((object)newPrevious == Instrumenter.NoOp)
-                {
-                    return DebugInfoInjector.Singleton;
-                }
-                else
-                {
-                    return new DebugInfoInjector(previous);
-                }
-
-            case CompoundInstrumenter compound:
-                // If we hit this it means a new kind of compound instrumenter is in use.
-                // Either add a new case or add an abstraction that lets us
-                // filter out the unwanted injectors in a more generalized way.
-                throw ExceptionUtilities.UnexpectedValue(compound);
-
-            default:
-                Debug.Assert((object)instrumenter == Instrumenter.NoOp);
-                return instrumenter;
-        }
-    }
+            DynamicAnalysisInjector { Previous: var previous } => RemoveDynamicAnalysisInjector(previous),
+            CompoundInstrumenter compound => compound.WithPrevious(RemoveDynamicAnalysisInjector(compound.Previous)),
+            _ => instrumenter,
+        };
 }

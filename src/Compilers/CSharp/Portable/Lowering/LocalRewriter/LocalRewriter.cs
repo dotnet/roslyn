@@ -94,15 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var instrumentationState = new InstrumentationState();
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics, instrumentationState);
 
-                var dynamicInstrumenter = instrumentForDynamicAnalysis ? DynamicAnalysisInjector.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, Instrumenter.NoOp) : null;
-                var instrumenter = dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton;
+                // create chain of instrumenters:
 
-#if DEBUG
-                // Ensure that only expected kinds of instrumenters are in use
-                _ = InstrumentationState.RemoveDynamicAnalysisInjectors(instrumenter);
-#endif
+                var instrumenter = Instrumenter.NoOp;
 
-                instrumentationState.Instrumenter = instrumenter;
+                DynamicAnalysisInjector? testCoverageInstrumenter = null;
+                if (instrumentForDynamicAnalysis &&
+                    DynamicAnalysisInjector.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, instrumenter, out testCoverageInstrumenter))
+                {
+                    instrumenter = testCoverageInstrumenter;
+                }
+
+                instrumentationState.Instrumenter = DebugInfoInjector.Create(instrumenter);
 
                 // We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
@@ -123,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
-                if (dynamicInstrumenter != null)
+                if (testCoverageInstrumenter != null)
                 {
-                    dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
+                    dynamicAnalysisSpans = testCoverageInstrumenter.DynamicAnalysisSpans;
                 }
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
