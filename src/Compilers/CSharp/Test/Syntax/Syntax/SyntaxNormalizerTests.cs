@@ -1769,6 +1769,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             TestNormalizeDeclaration(
+                "class A{public string Prop{get=>string.Empty;set=>_=value;}public int f;}", """
+                class A
+                {
+                  public string Prop { get => string.Empty; set => _ = value; }
+
+                  public int f;
+                }
+                """);
+            TestNormalizeDeclaration(
                 """class A{public string Prop=>"xyz";public int f;}""", """
                 class A
                 {
@@ -1834,6 +1843,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                   } = "xyz";
 
+                  public int Prop2 { get; set; }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get=>string.Empty;set=>_=value;}public int Prop2{get;set;}}", """
+                class A
+                {
+                  public string Prop { get => string.Empty; set => _ = value; }
                   public int Prop2 { get; set; }
                 }
                 """);
@@ -1915,6 +1932,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                     }
                   } = "xyz";
+
+                  public A()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get=>string.Empty;set=>_=value;}public A(){}}", """
+                class A
+                {
+                  public string Prop { get => string.Empty; set => _ = value; }
 
                   public A()
                   {
@@ -2009,6 +2037,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             TestNormalizeDeclaration(
+                "class A{public string Prop{get=>string.Empty;set=>_=value;}public void M(){}}", """
+                class A
+                {
+                  public string Prop { get => string.Empty; set => _ = value; }
+
+                  public void M()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
                 """class A{public string Prop=>"xyz";public void M(){}}""", """
                 class A
                 {
@@ -2079,6 +2118,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                     }
                   } = "xyz";
+
+                  public event EventHandler E;
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get=>string.Empty;set=>_=value;}public event EventHandler E;}", """
+                class A
+                {
+                  public string Prop { get => string.Empty; set => _ = value; }
 
                   public event EventHandler E;
                 }
@@ -2169,6 +2217,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             TestNormalizeDeclaration(
+                "class A{public string Prop{get=>string.Empty;set=>_=value;}public class Nested{}}", """
+                class A
+                {
+                  public string Prop { get => string.Empty; set => _ = value; }
+
+                  public class Nested
+                  {
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
                 """class A{public string Prop=>"xyz";public class Nested{}}""", """
                 class A
                 {
@@ -2239,6 +2298,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                     }
                   } = "xyz";
+
+                  public delegate int D();
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class A{public string Prop{get=>string.Empty;set=>_=value;}public delegate int D();}", """
+                class A
+                {
+                  public string Prop { get => string.Empty; set => _ = value; }
 
                   public delegate int D();
                 }
