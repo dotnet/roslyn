@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 matchPriority: DefaultMatchPriority));
         }
 
-        protected abstract bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
+        protected abstract bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken);
 
         public ImmutableArray<RecommendedKeyword> RecommendKeywords(
             int position,
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            var syntaxKind = RecommendKeyword(position, context, cancellationToken);
+            var syntaxKind = RecommendKeyword(context, cancellationToken);
             if (!syntaxKind.HasValue)
                 return ImmutableArray<RecommendedKeyword>.Empty;
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected virtual bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
-        private SyntaxKind? RecommendKeyword(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private SyntaxKind? RecommendKeyword(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // NOTE: The collector ensures that we're not in "NonUserCode" like comments, strings, inactive code
             // for perf reasons.
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return null;
             }
 
-            return IsValidContext(position, context, cancellationToken) ? KeywordKind : null;
+            return IsValidContext(context, cancellationToken) ? KeywordKind : null;
         }
 
         internal TestAccessor GetTestAccessor() => new(this);

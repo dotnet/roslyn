@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.UnsafeKeyword
         };
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ||
                 context.PrecedingModifiers.Contains(SyntaxKind.AsyncKeyword))
@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return false;
             }
 
+            var position = context.Position;
             return InMemberDeclarationContext(position, context, cancellationToken)
                 || context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.StaticKeyword, cancellationToken)
                 || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);

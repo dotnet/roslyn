@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // cases:
             //  using (goo) { }
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 IsUsingDirectiveContext(context, forGlobalKeyword: false, cancellationToken) ||
-                context.IsAwaitStatementContext(position, cancellationToken);
+                context.IsAwaitStatementContext(context.Position, cancellationToken);
         }
 
         internal static bool IsUsingDirectiveContext(CSharpSyntaxContext context, bool forGlobalKeyword, CancellationToken cancellationToken)

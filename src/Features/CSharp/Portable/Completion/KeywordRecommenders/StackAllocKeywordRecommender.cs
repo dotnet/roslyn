@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // Beginning with C# 8.0, stackalloc expression can be used inside other expressions
             // whenever a Span<T> or ReadOnlySpan<T> variable is allowed.

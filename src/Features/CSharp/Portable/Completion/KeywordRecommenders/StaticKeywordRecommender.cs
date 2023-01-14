@@ -76,8 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            var position = context.Position;
             return
                 context.IsGlobalStatementContext ||
                 context.TargetToken.IsUsingKeywordInUsingDirective() ||

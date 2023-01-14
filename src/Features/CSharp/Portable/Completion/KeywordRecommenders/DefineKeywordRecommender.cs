@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
             => context.IsPreProcessorKeywordContext &&
-               context.SyntaxTree.IsBeforeFirstToken(position, cancellationToken);
+               context.SyntaxTree.IsBeforeFirstToken(context.Position, cancellationToken);
     }
 }

@@ -22,7 +22,7 @@ internal class RequiredKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
     {
     }
 
-    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return context.IsMemberDeclarationContext(s_validModifiers, s_validTypeDeclarations, canBePartial: true, cancellationToken);
     }

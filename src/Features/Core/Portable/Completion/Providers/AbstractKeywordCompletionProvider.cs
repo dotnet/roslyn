@@ -42,27 +42,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, CompletionContext context, CancellationToken cancellationToken)
         {
-            var position = context.Position;
             var syntaxContext = (TContext)await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
-            var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
+            var keywords = await RecommendKeywordsAsync(document, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords.SelectAsArray(k => CreateItem(k, syntaxContext, cancellationToken));
         }
 
         private async Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(
             Document document,
-            int position,
             TContext context,
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
+            if (syntaxFacts.IsInNonUserCode(syntaxTree, context.Position, cancellationToken))
                 return ImmutableArray<RecommendedKeyword>.Empty;
 
             using var _ = ArrayBuilder<RecommendedKeyword>.GetInstance(out var result);
             foreach (var recommender in _keywordRecommenders)
             {
-                var keywords = recommender.RecommendKeywords(position, context, cancellationToken);
+                var keywords = recommender.RecommendKeywords(context.Position, context, cancellationToken);
                 result.AddRange(keywords.NullToEmpty());
             }
 

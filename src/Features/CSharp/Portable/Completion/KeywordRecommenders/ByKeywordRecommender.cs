@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // cases:
             //   group e |
@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             var lastToken = group.GroupExpression.GetLastToken(includeSkipped: true);
+            var position = context.Position;
 
             // group e |
             if (!token.IntersectsWith(position) &&

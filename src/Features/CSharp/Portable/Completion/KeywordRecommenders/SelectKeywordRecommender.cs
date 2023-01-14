@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var token = context.TargetToken;
+            var position = context.Position;
 
             // for orderby, ascending is the default so select should be available in the orderby direction context
             if (token.IsOrderByDirectionContext())

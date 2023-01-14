@@ -25,9 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         /// </summary>
         protected override int DefaultMatchPriority => MatchPriority.Default - 1;
 
-        protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContextWorker(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxTree = context.SyntaxTree;
+            var position = context.Position;
             return
                 context.IsAnyExpressionContext ||
                 context.IsDefiniteCastTypeContext ||

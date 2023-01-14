@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => context.SyntaxTree.IsValidContextForJoinClause(position, context.LeftToken);
+        protected override bool IsValidContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+            => context.SyntaxTree.IsValidContextForJoinClause(context.Position, context.LeftToken);
     }
 }
