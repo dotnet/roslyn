@@ -92,8 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (global != (usingDirective.GlobalKeyword != null))
                     continue;
 
+                if (usingDirective.Type is not Syntax.InternalSyntax.NameSyntax name)
+                    continue;
+
                 var aliasName = usingDirective.Alias.Name.Identifier.ValueText;
-                var symbolName = GetUnqualifiedName(usingDirective.Name).Identifier.ValueText;
+                var symbolName = GetUnqualifiedName(name).Identifier.ValueText;
                 aliases.Add((aliasName, symbolName));
             }
         }
