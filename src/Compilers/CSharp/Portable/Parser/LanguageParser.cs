@@ -819,8 +819,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 type = alias == null ? this.ParseQualifiedName() : this.ParseType();
-                if (type is not NameSyntax)
-                    type = CheckFeatureAvailability(type, MessageID.IDS_FeatureUsingTypeAlias);
 
                 if (type is RefTypeSyntax)
                     type = AddError(type, ErrorCode.ERR_BadRefInUsingAlias);
