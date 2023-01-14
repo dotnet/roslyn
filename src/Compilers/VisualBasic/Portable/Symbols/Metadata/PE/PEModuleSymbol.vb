@@ -79,6 +79,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyTypeNames As ICollection(Of String)
         Private _lazyNamespaceNames As ICollection(Of String)
 
+        Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
+
         Friend Sub New(assemblySymbol As PEAssemblySymbol, [module] As PEModule, importOptions As MetadataImportOptions, ordinal As Integer)
             Me.New(DirectCast(assemblySymbol, AssemblySymbol), [module], importOptions, ordinal)
             Debug.Assert(ordinal >= 0)
@@ -338,8 +340,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' First, check this module
             Dim currentModuleResult As NamedTypeSymbol = Me.LookupTopLevelMetadataType(emittedName)
+            Debug.Assert(If(Not currentModuleResult?.IsErrorType(), True))
 
-            If IsAcceptableSystemTypeSymbol(currentModuleResult) Then
+            If currentModuleResult IsNot Nothing Then
+                Debug.Assert(IsAcceptableSystemTypeSymbol(currentModuleResult))
+
                 ' It doesn't matter if there's another System.Type in a referenced assembly -
                 ' we prefer the one in the current module.
                 Return currentModuleResult
@@ -348,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' If we didn't find it in this module, check the referenced assemblies
             Dim referencedAssemblyResult As NamedTypeSymbol = Nothing
             For Each assembly As AssemblySymbol In Me.GetReferencedAssemblySymbols()
-                Dim currResult As NamedTypeSymbol = assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
+                Dim currResult As NamedTypeSymbol = assembly.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies:=Nothing)
                 If IsAcceptableSystemTypeSymbol(currResult) Then
                     If referencedAssemblyResult Is Nothing Then
                         referencedAssemblyResult = currResult
@@ -370,14 +375,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return referencedAssemblyResult
             End If
 
-            Debug.Assert(currentModuleResult IsNot Nothing)
-            Return currentModuleResult
+            Return New MissingMetadataTypeSymbol.TopLevel(Me, emittedName)
         End Function
 
-
         Private Shared Function IsAcceptableSystemTypeSymbol(candidate As NamedTypeSymbol) As Boolean
-            Return candidate.Kind <> SymbolKind.ErrorType AndAlso Not (TypeOf candidate Is MissingMetadataTypeSymbol)
-
+            Return candidate.Kind <> SymbolKind.ErrorType OrElse Not (TypeOf candidate Is MissingMetadataTypeSymbol)
         End Function
 
         Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute As Boolean
@@ -415,14 +417,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If scope Is Nothing Then
                 ' We failed to locate the namespace
-                isNoPiaLocalType = False
-                result = New MissingMetadataTypeSymbol.TopLevel(Me, emittedName)
+                result = Nothing
             Else
-                result = scope.LookupMetadataType(emittedName, isNoPiaLocalType)
-                Debug.Assert(result IsNot Nothing)
+                result = scope.LookupMetadataType(emittedName)
+
+                If result Is Nothing Then
+                    result = scope.UnifyIfNoPiaLocalType(emittedName)
+
+                    If result IsNot Nothing Then
+                        isNoPiaLocalType = True
+                        Return result
+                    End If
+                End If
             End If
 
-            Return result
+            isNoPiaLocalType = False
+            Return If(result, New MissingMetadataTypeSymbol.TopLevel(Me, emittedName))
         End Function
 
         ''' <summary>
@@ -466,23 +476,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Yield ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(name, Me, firstSymbol, secondSymbol)
                 Else
-                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=true)
+                    Yield firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(name, visitedAssemblies:=Nothing)
                 End If
             Next
-        End Function
-
-        Private Overloads Function GetReferencedAssemblySymbol(assemblyRef As AssemblyReferenceHandle) As AssemblySymbol
-            Dim referencedAssemblyIndex As Integer
-            Try
-                referencedAssemblyIndex = Me.Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)
-            Catch ex As BadImageFormatException
-                Return Nothing
-            End Try
-            Return GetReferencedAssemblySymbol(referencedAssemblyIndex)
         End Function
 
         Public Overrides Function GetMetadata() As ModuleMetadata
             Return _module.GetNonDisposableMetadata()
         End Function
+
+        Friend Function GetCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
+            If _lazyCachedCompilerFeatureRequiredDiagnosticInfo Is ErrorFactory.EmptyDiagnosticInfo Then
+                Interlocked.CompareExchange(
+                    _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, Me, EntityHandle.ModuleDefinition, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(Me)),
+                    ErrorFactory.EmptyDiagnosticInfo)
+            End If
+
+            Return If(_lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                      TryCast(ContainingAssembly, PEAssemblySymbol)?.GetCompilerFeatureRequiredDiagnosticInfo())
+        End Function
+
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+            Get
+                Dim info = GetCompilerFeatureRequiredDiagnostic()
+                If info IsNot Nothing Then
+                    Return info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer) OrElse MyBase.HasUnsupportedMetadata
+                End If
+
+                Return MyBase.HasUnsupportedMetadata
+            End Get
+        End Property
     End Class
 End Namespace

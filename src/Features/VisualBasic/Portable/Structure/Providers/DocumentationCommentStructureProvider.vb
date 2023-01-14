@@ -6,7 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
                                                   documentationComment As DocumentationCommentTriviaSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
             Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNull()
             Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNull()
@@ -32,8 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
-            Dim maxBannerLength = optionProvider.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.VisualBasic)
-            Dim bannerText = VisualBasicSyntaxFacts.Instance.GetBannerText(
+            Dim maxBannerLength = options.MaximumBannerLength
+            Dim bannerText = VisualBasicFileBannerFacts.Instance.GetBannerText(
                 documentationComment, maxBannerLength, cancellationToken)
 
             spans.AddIfNotNull(CreateBlockSpan(

@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     internal static class Utilities
     {
-        private const string MSBuildRoslynFolderName = "Roslyn";
-
         /// <summary>
         /// Copied from msbuild. ItemSpecs are normalized using this method.
         /// </summary>
@@ -152,6 +150,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static string? TryGetAssemblyPath(Assembly assembly)
         {
+#if NETFRAMEWORK
             if (assembly.GlobalAssemblyCache)
             {
                 return null;
@@ -164,6 +163,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return null;
+#else
+            return assembly.Location;
+#endif
         }
 
         /// <summary>

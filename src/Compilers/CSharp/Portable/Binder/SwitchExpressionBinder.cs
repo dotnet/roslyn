@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only report exhaustive warnings when the default label is reachable through some series of
             // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
-            bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors, out var nodes);
+            bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(SpecializedCollections.SingletonEnumerable(decisionDag.RootNode), nonNullSuccessors, out var nodes);
             // Since decisionDag.RootNode is acyclic by construction, its subset of nodes sorted here cannot be cyclic
             Debug.Assert(wasAcyclic);
             foreach (var n in nodes)
@@ -169,23 +170,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionArms(SwitchExpressionSyntax node, Binder originalBinder, BoundExpression inputExpression, BindingDiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
-            (TypeSymbol inputType, uint valEscape) = GetInputTypeAndValEscape(inputExpression);
+            TypeSymbol inputType = GetInputType(inputExpression);
             foreach (var arm in node.Arms)
             {
                 var armBinder = originalBinder.GetRequiredBinder(arm);
                 Debug.Assert(inputExpression.Type is not null);
-                var boundArm = armBinder.BindSwitchExpressionArm(arm, inputType, valEscape, diagnostics);
+                var boundArm = armBinder.BindSwitchExpressionArm(arm, inputType, diagnostics);
                 builder.Add(boundArm);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        internal (TypeSymbol GoverningType, uint GoverningValEscape) GetInputTypeAndValEscape(BoundExpression? inputExpression = null)
+        internal TypeSymbol GetInputType(BoundExpression? inputExpression = null)
         {
             inputExpression ??= BindSwitchGoverningExpression(BindingDiagnosticBag.Discarded);
             Debug.Assert(inputExpression.Type is not null);
-            return (inputExpression.Type, GetValEscape(inputExpression, LocalScopeDepth));
+            return inputExpression.Type;
         }
 
         private BoundExpression BindSwitchGoverningExpression(BindingDiagnosticBag diagnostics)

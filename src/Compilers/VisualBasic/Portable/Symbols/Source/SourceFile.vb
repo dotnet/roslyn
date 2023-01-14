@@ -31,8 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' lazily populate with quick attribute checker that is initialized with the imports.
         Private _lazyQuickAttributeChecker As QuickAttributeChecker
 
-        Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
-
         ''' <summary>
         ''' The bound information from a file.
         ''' </summary>
@@ -295,15 +293,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _membersSyntaxBuilder = membersSyntaxBuilder
             End Sub
 
-            Public Overrides Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition, dependencies.ToImmutableArray())
+            Public Overrides Sub AddMember(
+                    syntaxRef As SyntaxReference,
+                    member As NamespaceOrTypeSymbol,
+                    importsClausePosition As Integer,
+                    dependencies As IReadOnlyCollection(Of AssemblySymbol),
+                    isProjectImportDeclaration As Boolean)
+
+                ' Do not expose any locations for project level imports.  This matches the effective logic
+                ' we have for aliases, which are given NoLocation.Singleton (which never translates to a
+                ' DeclaringSyntaxReference).
+                Dim pair = New NamespaceOrTypeAndImportsClausePosition(
+                    member, importsClausePosition, If(isProjectImportDeclaration, Nothing, syntaxRef), dependencies.ToImmutableArray())
                 Members.Add(member)
                 _membersBuilder.Add(pair)
                 _membersSyntaxBuilder.Add(syntaxRef)
             End Sub
 
             Public Overrides Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Aliases.Add(name, New AliasAndImportsClausePosition([alias], importsClausePosition, dependencies.ToImmutableArray()))
+                Aliases.Add(name, New AliasAndImportsClausePosition([alias], importsClausePosition, syntaxRef, dependencies.ToImmutableArray()))
             End Sub
         End Class
 
@@ -466,17 +474,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Function Translate(moduleBuilder As Emit.PEModuleBuilder, diagnostics As DiagnosticBag) As Cci.IImportScope
-            If _lazyTranslatedImports.IsDefault Then
-                ImmutableInterlocked.InterlockedInitialize(_lazyTranslatedImports, TranslateImports(moduleBuilder, diagnostics))
+            If Not moduleBuilder.TryGetTranslatedImports(Me, Nothing) Then
+                moduleBuilder.GetOrAddTranslatedImports(Me, TranslateImports(moduleBuilder, diagnostics))
             End If
 
             Return Me
         End Function
 
-        Public Function GetUsedNamespaces() As ImmutableArray(Of Cci.UsedNamespaceOrType) Implements Cci.IImportScope.GetUsedNamespaces
+        Public Function GetUsedNamespaces(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType) Implements Cci.IImportScope.GetUsedNamespaces
+            Dim [imports] As ImmutableArray(Of Cci.UsedNamespaceOrType) = Nothing
+            Dim result = DirectCast(context.Module, Emit.PEModuleBuilder).TryGetTranslatedImports(Me, [imports])
             ' The imports should have been translated during code gen.
-            Debug.Assert(Not _lazyTranslatedImports.IsDefault)
-            Return _lazyTranslatedImports
+            Debug.Assert(result)
+            Debug.Assert(Not [imports].IsDefault)
+            Return [imports]
         End Function
 
         Private Function TranslateImports(moduleBuilder As Emit.PEModuleBuilder, diagnostics As DiagnosticBag) As ImmutableArray(Of Cci.UsedNamespaceOrType)

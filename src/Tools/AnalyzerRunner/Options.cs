@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace AnalyzerRunner
@@ -40,7 +41,7 @@ namespace AnalyzerRunner
         internal readonly string ProfileRoot;
 
         internal BackgroundAnalysisScope AnalysisScope
-            => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
+            => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
 
         public Options(
             string analyzerPath,
@@ -212,9 +213,9 @@ namespace AnalyzerRunner
                         }
                         else
                         {
-                            throw new InvalidDataException((arg.StartsWith("/", StringComparison.Ordinal) ?
-                             "Unrecognized option " + arg :
-                             "Unrecognized parameter " + arg));
+                            throw new InvalidDataException((arg.StartsWith("/", StringComparison.Ordinal)
+                             ? "Unrecognized option " + arg
+                             : "Unrecognized parameter " + arg));
                         }
                         break;
                 }

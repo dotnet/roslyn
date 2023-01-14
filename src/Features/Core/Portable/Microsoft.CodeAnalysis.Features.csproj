@@ -5,9 +5,9 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>
@@ -29,6 +29,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.UnitTesting" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
@@ -46,6 +47,7 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.UnitTests" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.TestWindow.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -55,6 +57,8 @@
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleTo Include="AnalyzerRunner" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
+    <InternalsVisibleTo Include="IdeBenchmarks" />
     <!-- BEGIN MONODEVELOP
     These MonoDevelop dependencies don't ship with Visual Studio, so can't break our
     binary insertions and are exempted from the ExternalAccess adapter assembly policies.
@@ -78,6 +82,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.IntegrationTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
@@ -109,14 +114,17 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\CodeStyle\Core\Analyzers\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />
-    <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FormattingCodeFixHelper.cs" Link="Formatting\FormattingCodeFixHelper.cs" />
+    <Compile Remove="SymbolSearch\Windows\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\PEWriter\CompilationOptionNames.cs" Link="PdbSourceDocument\CompilationOptionNames.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\TextUtilities.cs" Link="Shared\Utilities\TextUtilities.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Debugging\SourceHashAlgorithms.cs" Link="Debugging\SourceHashAlgorithms.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CodeCleanup\readme.md" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="FeaturesResources.resx" GenerateSource="true" />
@@ -126,13 +134,38 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
+    <!--
+      WARNING: All package references must have an OSS license since this assembly is shipped with dotnet-watch and dotnet-format.
+    -->
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\CodeFixes\CodeFixes.projitems" Label="Shared" />
+
+  <Target Name="GenerateRulesMissingDocumentation">
+    <PropertyGroup>
+      <AnalyzerDocumentationFileDir>$(RepoRoot)src\Features</AnalyzerDocumentationFileDir>
+      <EscapeDirectorySuffix Condition="'$(OS)' == 'Windows_NT'">\</EscapeDirectorySuffix>
+      <DotNetExecutable Condition="'$(OS)' == 'Windows_NT'">$(DotNetRoot)dotnet.exe</DotNetExecutable>
+      <DotNetExecutable Condition="'$(DotNetExecutable)' == ''">$(DotNetRoot)dotnet</DotNetExecutable>
+    </PropertyGroup>
+
+    <MSBuild Projects="$(RepoRoot)src\Tools\GenerateRulesMissingDocumentation\GenerateRulesMissingDocumentation.csproj" Targets="Build">
+      <Output TaskParameter="TargetOutputs" PropertyName="_GenerateRulesMissingDocumentationFilesPath" />
+    </MSBuild>
+
+    <MSBuild Projects="$(RepoRoot)src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
+    <MSBuild Projects="$(RepoRoot)src\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
+    <MSBuild Projects="$(RepoRoot)src\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
+
+    <!-- Only run validation in CI builds. Running them in local builds will prevent refreshing auto-generated files. -->
+    <Exec Command='"$(DotNetExecutable)" --roll-forward major "$(_GenerateRulesMissingDocumentationFilesPath)" "-validateOnly:$(ContinuousIntegrationBuild)" "$(AnalyzerDocumentationFileDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)"' />
+  </Target>
+
 </Project>

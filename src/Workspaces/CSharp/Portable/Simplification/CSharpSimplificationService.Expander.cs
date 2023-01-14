@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (type.IsDelegateType() &&
                     argument.IsParentKind(SyntaxKind.ArgumentList) &&
-                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreationExpression))
+                    argument.Parent?.Parent is ObjectCreationExpressionSyntax objectCreationExpression)
                 {
                     var objectCreationType = _semanticModel.GetTypeInfo(objectCreationExpression).Type;
                     if (objectCreationType.Equals(type))
@@ -644,8 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // if it's a namespace or type name, fully qualify it.
-                if (symbol.Kind == SymbolKind.NamedType ||
-                    symbol.Kind == SymbolKind.Namespace)
+                if (symbol.Kind is SymbolKind.NamedType or
+                    SymbolKind.Namespace)
                 {
                     var replacement = FullyQualifyIdentifierName(
                         (INamespaceOrTypeSymbol)symbol,
@@ -662,9 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // if it's a member access, we're fully qualifying the left side and make it a member access.
-                if (symbol.Kind == SymbolKind.Method ||
-                    symbol.Kind == SymbolKind.Field ||
-                    symbol.Kind == SymbolKind.Property)
+                if (symbol.Kind is SymbolKind.Method or
+                    SymbolKind.Field or
+                    SymbolKind.Property)
                 {
                     if (symbol.IsStatic ||
                         originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref) ||
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     foreach (var candidateToken in leftTokens)
                     {
-                        if (candidateToken.Kind() == SyntaxKind.LessThanToken || candidateToken.Kind() == SyntaxKind.GreaterThanToken)
+                        if (candidateToken.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken)
                         {
                             candidateTokens.Add(candidateToken);
                             continue;
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (((IMethodSymbol)symbol).TypeArguments.Length != 0)
                     {
                         var typeArguments = ((IMethodSymbol)symbol).TypeArguments;
-                        if (!typeArguments.Any(t => t.ContainsAnonymousType()))
+                        if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
                         {
                             var genericName = SyntaxFactory.GenericName(
                                             ((IdentifierNameSyntax)newNode).Identifier,
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 while (parent != null)
                 {
-                    if (parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
+                    if (parent.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
                     {
                         return currentNode.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                             object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
-                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
+                if (originalNode.Expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess)
                 {
                     var targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name);
 

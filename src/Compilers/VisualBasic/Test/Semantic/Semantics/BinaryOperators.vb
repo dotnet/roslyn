@@ -20,7 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class BinaryOperators
         Inherits BasicTestBase
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        ' The test uses double.ToString which has precision differences between English and non-English cultures
+        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test1()
 
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -356,7 +357,8 @@ False
             CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline4)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        ' The test uses double.ToString which has precision differences between English and non-English cultures
+        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test5()
 
             Dim compilationDef =
@@ -712,7 +714,6 @@ Module Module1
 End Module
     </file>
 </compilation>
-
 
             Dim expected =
 <expected>
@@ -1102,7 +1103,7 @@ End Class
 
                     Dim nonSpecialType = If(leftSpecial = SpecialType.System_Object, rightType, leftType)
 
-                    For Each m In nonSpecialType.GetMembers(OverloadResolution.TryGetOperatorName(op))
+                    For Each m In nonSpecialType.GetMembers(OverloadResolution.TryGetOperatorName(op, isChecked:=False))
                         If m.Kind = SymbolKind.Method Then
                             Dim method = DirectCast(m, MethodSymbol)
                             If method.MethodKind = MethodKind.UserDefinedOperator AndAlso
@@ -1201,13 +1202,32 @@ End Class
                                        OverloadResolution.TryGetOperatorName(
                                            If(op = BinaryOperatorKind.Add AndAlso resultType = SpecialType.System_String,
                                               BinaryOperatorKind.Concatenate,
-                                              op)),
+                                              op), symbol1.IsCheckedBuiltin),
                                        rightName,
                                        returnName),
                          symbol1.ToTestDisplayString())
 
+            Assert.Equal(String.Format("Public Shared Operator {0}(left As {1}, right As {2}) As {3}",
+                                       SyntaxFacts.GetText(OverloadResolution.GetOperatorTokenKind(
+                                           If(op = BinaryOperatorKind.Add AndAlso resultType = SpecialType.System_String,
+                                              BinaryOperatorKind.Concatenate,
+                                              op))),
+                                       symbol1.Parameters(0).Type.ToDisplayString(),
+                                       symbol1.Parameters(1).Type.ToDisplayString(),
+                                       symbol1.ReturnType.ToDisplayString()),
+                         symbol1.ToDisplayString())
+
+            If op = BinaryOperatorKind.Add AndAlso resultType = SpecialType.System_String Then
+                Assert.Equal("System.String System.String.op_Concatenate(System.String left, System.String right)", CSharp.SymbolDisplay.ToDisplayString(symbol1, SymbolDisplayFormat.TestFormat))
+                Assert.Equal("string.op_Concatenate(string, string)", CSharp.SymbolDisplay.ToDisplayString(symbol1))
+            End If
+
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind)
             Assert.True(symbol1.IsImplicitlyDeclared)
+
+            Dim synthesizedMethod = compilation.CreateBuiltinOperator(
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters(0).Type, symbol1.Parameters(1).Type)
+            Assert.Equal(synthesizedMethod, symbol1)
 
             Assert.Equal((op = BinaryOperatorKind.Multiply OrElse
                           op = BinaryOperatorKind.Add OrElse
@@ -1284,7 +1304,6 @@ End Class
 
         <Fact()>
         Public Sub CheckedIntrinsicSymbols()
-
 
             Dim source =
 <compilation>
@@ -1499,12 +1518,12 @@ End Module
         Private Sub EnumerateChildren(iop As IOperation, ByRef numChildren as Integer)
             numChildren += 1
             Assert.NotNull(iop)
-            For Each child in iop.Children
+            For Each child In iop.ChildOperations
                 EnumerateChildren(child, numChildren)
             Next
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        <ConditionalFact(GetType(NoIOperationValidation), AlwaysSkip:="https://github.com/dotnet/roslyn/issues/57806"), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
         Public Sub TestLargeStringConcatenation()
 
             Dim mid = New StringBuilder()

@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
-                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
+                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(context.FilterSpan, context.CancellationToken);
+                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(context.FilterSpan, context.CancellationToken);
 
                 ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
                 ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, IsSourceLocation);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private class CompilerDiagnostic : Diagnostic
+            private sealed class CompilerDiagnostic : Diagnostic
             {
                 private readonly Diagnostic _original;
                 private readonly ImmutableDictionary<string, string?> _properties;
@@ -104,11 +104,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return _original.GetMessage(formatProvider);
                 }
 
-                public override bool Equals(object? obj)
-                {
-                    return _original.Equals(obj);
-                }
-
                 public override int GetHashCode()
                 {
                     return _original.GetHashCode();
@@ -116,7 +111,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override bool Equals(Diagnostic? obj)
                 {
-                    return _original.Equals(obj);
+                    // We only support equality check with another instance of "CompilerDiagnostic".
+                    // Hosts that want to compare compiler diagnostics from different sources,
+                    // such as with diagnostic reported from compilation.GetDiagnostics(), should
+                    // use a custom equality comparer.
+                    return obj is CompilerDiagnostic other &&
+                        _original.Equals(other._original);
                 }
 
                 internal override Diagnostic WithLocation(Location location)

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,11 +27,12 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             public static async Task<State?> GenerateAsync(
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
+                NamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
                 if (!await state.TryInitializeAsync(
-                    selectedMembers, document, cancellationToken).ConfigureAwait(false))
+                    selectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -41,11 +43,12 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             private async Task<bool> TryInitializeAsync(
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
+                NamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 ContainingType = selectedMembers[0].ContainingType;
 
-                var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+                var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 var parametersForSelectedMembers = DetermineParameters(selectedMembers, rules);
 
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty) ||
@@ -108,7 +111,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 return constructorParams.All(parameter => parameter.RefKind == RefKind.None) &&
                     !constructor.IsImplicitlyDeclared &&
-                    !constructorParams.Any(p => p.IsParams) &&
+                    !constructorParams.Any(static p => p.IsParams) &&
                     !SelectedMembersAlreadyExistAsParameters(parameterNamesForSelectedMembers, constructorParams);
             }
 

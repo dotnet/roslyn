@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -33,12 +33,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionParams request,
             CodeActionsCache codeActionsCache,
             Document document,
+            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
+                document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return Array.Empty<VSInternalCodeAction>();
 
@@ -56,16 +57,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
                     if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
-                    {
                         continue;
-                    }
 
-                    // TO-DO: Re-enable code actions involving package manager once supported by LSP.
+                    // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
                     // https://github.com/dotnet/roslyn/issues/48698
-                    if (suggestedAction.OriginalCodeAction.Tags.Equals(WellKnownTagArrays.NuGet))
-                    {
+                    if (suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange))
                         continue;
-                    }
 
                     codeActions.Add(GenerateVSCodeAction(
                         request, documentText,
@@ -101,6 +98,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeAction = suggestedAction.OriginalCodeAction;
             currentTitle += codeAction.Title;
 
+            var diagnosticsForFix = GetApplicableDiagnostics(request.Context, suggestedAction);
+
             // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
             var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction, codeActionKind, ref currentHighestSetNumber, currentTitle);
 
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 Title = codeAction.Title,
                 Kind = codeActionKind,
-                Diagnostics = request.Context.Diagnostics,
+                Diagnostics = diagnosticsForFix,
                 Children = nestedActions,
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
@@ -146,6 +145,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
                 return nestedActions.ToArray();
             }
+
+            static LSP.Diagnostic[]? GetApplicableDiagnostics(LSP.CodeActionContext context, IUnifiedSuggestedAction action)
+            {
+                if (action is UnifiedCodeFixSuggestedAction codeFixAction && context.Diagnostics != null)
+                {
+                    // Associate the diagnostics from the request that match the diagnostic fixed by the code action by ID.
+                    // The request diagnostics are already restricted to the code fix location by the request.
+                    var diagnosticCodesFixedByAction = codeFixAction.CodeFix.Diagnostics.Select(d => d.Id);
+                    using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
+                    foreach (var requestDiagnostic in context.Diagnostics)
+                    {
+                        var diagnosticCode = requestDiagnostic.Code?.Value?.ToString();
+                        if (diagnosticCodesFixedByAction.Contains(diagnosticCode))
+                        {
+                            diagnosticsBuilder.Add(requestDiagnostic);
+                        }
+                    }
+
+                    return diagnosticsBuilder.ToArray();
+                }
+
+                return null;
+            }
         }
 
         /// <summary>
@@ -158,12 +180,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionsCache codeActionsCache,
             Document document,
             LSP.Range selection,
+            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+                document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return ImmutableArray<CodeAction>.Empty;
 
@@ -207,12 +230,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return new CodeActionWithNestedActions(
+            return CodeAction.CodeActionWithNestedActions.Create(
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
             Document document,
+            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
@@ -222,14 +246,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-                document.Project.Solution.Workspace, codeFixService, document, textSpan, CodeActionRequestPriority.None,
-                isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+                document.Project.Solution.Workspace, codeFixService, document, textSpan,
+                CodeActionRequestPriority.None,
+                fallbackOptions, isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, isBlocking: false,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, fallbackOptions, isBlocking: false,
                 addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
-            var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(codeFixes, codeRefactorings, textSpan);
+            var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
+                codeFixes, codeRefactorings, textSpan, currentActionCount: 0);
             return actionSets;
         }
 

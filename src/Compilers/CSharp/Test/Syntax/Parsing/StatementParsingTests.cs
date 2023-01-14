@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("y", tt.Elements[1].Identifier.ToString());
             Assert.Equal(2, tt.Elements.Count);
 
-
             tt = (TupleTypeSyntax)tt.Elements[1].Type;
 
             Assert.Equal("(U k, V l, W m)", tt.ToString());
@@ -2685,7 +2684,13 @@ class C
         using await var x = null;
     }
 }
-");
+",
+                // (6,15): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         using await var x = null;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 15),
+                // (6,25): error CS1002: ; expected
+                //         using await var x = null;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(6, 25));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3454,7 +3459,7 @@ class C
             tree.GetDiagnostics(root).Verify(
                 // (7,36): error CS1003: Syntax error, 'when' expected
                 //         catch (System.Exception e) if (true) { }
-                CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when").WithLocation(7, 36));
 
             var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
             Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());
@@ -3591,7 +3596,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 1),
                 // (1,1): error CS1003: Syntax error, '(' expected
                 // else {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 1),
                 // (1,1): error CS1525: Invalid expression term 'else'
                 // else {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 1),
@@ -3645,7 +3650,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 3),
                 // (1,3): error CS1003: Syntax error, '(' expected
                 // { else {} else {} }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 3),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 3),
                 // (1,3): error CS1525: Invalid expression term 'else'
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
@@ -3663,7 +3668,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 11),
                 // (1,11): error CS1003: Syntax error, '(' expected
                 // { else {} else {} }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 11),
                 // (1,11): error CS1525: Invalid expression term 'else'
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
@@ -3749,7 +3754,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 23),
                 // (1,23): error CS1003: Syntax error, '(' expected
                 // { if (a) { } else { } else { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 23),
                 // (1,23): error CS1525: Invalid expression term 'else'
                 // { if (a) { } else { } else { } }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 23),
@@ -3832,7 +3837,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 8),
                 // (1,8): error CS1003: Syntax error, '(' expected
                 // if (a) else {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 8),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 8),
                 // (1,8): error CS1525: Invalid expression term 'else'
                 // if (a) else {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
@@ -4179,7 +4184,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(1, 7),
                 // (1,7): error CS1003: Syntax error, ',' expected
                 // int []* p;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",", "*").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",").WithLocation(1, 7)
                 );
             N(SyntaxKind.LocalDeclarationStatement);
             {

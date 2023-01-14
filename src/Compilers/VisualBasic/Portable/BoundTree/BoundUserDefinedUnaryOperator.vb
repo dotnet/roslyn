@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(Type Is UnderlyingExpression.Type)
+            Debug.Assert(TypeSymbol.Equals(Type, UnderlyingExpression.Type, TypeCompareKind.ConsiderEverything))
             Debug.Assert((OperatorKind And UnaryOperatorKind.UserDefined) <> 0)
             Debug.Assert(UnderlyingExpression.Kind = BoundKind.BadExpression OrElse UnderlyingExpression.Kind = BoundKind.Call)
 

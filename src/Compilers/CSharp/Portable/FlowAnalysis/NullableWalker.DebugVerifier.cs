@@ -40,7 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotManagerOpt?.VerifyUpdatedSymbols();
 
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
-                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
+                if (verifier._analyzedNullabilityMap.Count > verifier._visitedExpressions.Count)
+                {
+                    foreach (var analyzedNode in verifier._analyzedNullabilityMap.Keys)
+                    {
+                        if (!verifier._visitedExpressions.Contains(analyzedNode))
+                        {
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {analyzedNode.GetDebuggerDisplay()}");
+                        }
+                    }
+                }
+
+                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}.");
             }
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
@@ -169,11 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
-                if (node.InterpolatedStringHandlerData is { } data)
-                {
-                    Visit(data.Construction);
-                }
-
                 VisitBinaryOperatorChildren(node);
                 return null;
             }
@@ -217,28 +223,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitListPattern(BoundListPattern node)
+            {
+                VisitList(node.Subpatterns);
+                Visit(node.VariableAccess);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+            {
+                this.Visit(node.Pattern);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
             public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
             {
                 this.Visit(node.Pattern);
                 // If the constant value of a when clause is true, it can be skipped by the dag
                 // generator as an optimization. In that case, it's a value type and will be set
                 // as not nullable in the output.
-                if (node.WhenClause?.ConstantValue != ConstantValue.True)
+                if (node.WhenClause?.ConstantValueOpt != ConstantValue.True)
                 {
                     this.Visit(node.WhenClause);
                 }
                 this.Visit(node.Value);
-                return null;
-            }
-
-            public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
-            {
-                // We're not handling nopia object creations correctly
-                // https://github.com/dotnet/roslyn/issues/45082
-                if (node.InitializerExpressionOpt is object)
-                {
-                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
-                }
                 return null;
             }
 
@@ -249,14 +259,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
+            public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
             {
-                if (node.InterpolationData is { Construction: var construction })
-                {
-                    Visit(construction);
-                }
-                base.VisitInterpolatedString(node);
+                Visit(node.Receiver);
+                Visit(node.Argument);
+                Visit(node.IndexerOrSliceAccess);
                 return null;
+            }
+
+            public override BoundNode? VisitConversion(BoundConversion node)
+            {
+                if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                {
+                    Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
+                }
+
+                return base.VisitConversion(node);
             }
         }
 #endif

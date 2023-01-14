@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             typeof(PostfixUnaryExpressionSyntax));
 
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
+            ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {

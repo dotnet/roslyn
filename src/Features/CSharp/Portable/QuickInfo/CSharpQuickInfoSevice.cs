@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpQuickInfoService(languageServices.WorkspaceServices.Workspace);
+            => new CSharpQuickInfoService(languageServices.LanguageServices);
     }
 
     internal class CSharpQuickInfoService : QuickInfoServiceWithProviders
     {
-        internal CSharpQuickInfoService(Workspace workspace)
-            : base(workspace, LanguageNames.CSharp)
+        internal CSharpQuickInfoService(LanguageServices services)
+            : base(services)
         {
         }
     }

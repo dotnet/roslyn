@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
     <[UseExportProvider]>
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
@@ -2183,6 +2183,18 @@ Namespace n
 End Namespace
 ")
 
+            VerifySyntax(Of CompilationUnitSyntax)(
+                Generator.AddAttributes(
+                    Generator.AddAttributes(
+                        Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
+                        Generator.Attribute("a")),
+                    Generator.Attribute("b")),
+"<Assembly:a>
+<Assembly:b>
+Namespace n
+End Namespace
+")
+
             VerifySyntax(Of DelegateStatementSyntax)(
                 Generator.AddAttributes(
                     Generator.DelegateDeclaration("d"),
@@ -2192,8 +2204,7 @@ Delegate Sub d()")
 
         End Sub
 
-        <Fact>
-        <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
+        <Fact, WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
         Public Sub TestAddAttributesOnAccessors()
             Dim prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"))
 
@@ -2291,6 +2302,13 @@ End Enum")
     Level1 = CByte(1)
     Level2 = CByte(2)
 End Enum")
+        End Sub
+
+        <Fact, WorkItem(66381, "https://github.com/dotnet/roslyn/issues/66381")>
+        Public Sub TestDelegateDeclarationFromSymbol()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("Public Delegate Sub D()"))
+            Dim type = compilation.GetTypeByMetadataName("D")
+            VerifySyntax(Of DelegateStatementSyntax)(Generator.Declaration(type), "Public Delegate Sub D()")
         End Sub
 #End Region
 
@@ -2554,7 +2572,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TestWithModifiers_Sealed()
+        Public Sub TestWithModifiers_Sealed_Class()
             Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
             Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
             VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
@@ -2563,6 +2581,17 @@ End Class")
             Dim classStatement = classBlock.ClassStatement
             Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
             VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
+        End Sub
+
+        <Fact, WorkItem(23410, "https://github.com/dotnet/roslyn/issues/23410")>
+        Public Sub TestWithModifiers_Sealed_Member()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            classBlock = DirectCast(Generator.AddMembers(classBlock, Generator.WithModifiers(Generator.MethodDeclaration("Goo"), DeclarationModifiers.Sealed)), ClassBlockSyntax)
+            VerifySyntax(Of ClassBlockSyntax)(classBlock, "Class C
+
+    NotOverridable Sub Goo()
+    End Sub
+End Class")
         End Sub
 
         <Fact>
@@ -2678,7 +2707,7 @@ End Function")
 
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
-            Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
         End Sub
 
         <Fact>
@@ -3194,8 +3223,7 @@ End Interface")
 
         End Sub
 
-        <Fact>
-        <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+        <Fact, WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
         Public Sub TestAddInterfaceWithEOLs()
             Dim classC = SyntaxFactory.ParseCompilationUnit("
 Public Class C

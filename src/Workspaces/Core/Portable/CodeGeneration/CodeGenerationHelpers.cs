@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return factory.ThrowStatement(exceptionCreationExpression);
         }
 
-        [return: NotNullIfNotNull("syntax")]
+        [return: NotNullIfNotNull(nameof(syntax))]
         public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode? syntax) where TSyntaxNode : SyntaxNode
             => symbol is CodeGenerationSymbol codeGenerationSymbol
                 ? syntax?.WithAdditionalAnnotations(codeGenerationSymbol.GetAnnotations())
@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public static void GetNameAndInnermostNamespace(
             INamespaceSymbol @namespace,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo info,
             out string name,
             out INamespaceSymbol innermostNamespace)
         {
-            if (options.GenerateMembers && options.MergeNestedNamespaces && @namespace.Name != string.Empty)
+            if (info.Context.GenerateMembers && info.Context.MergeNestedNamespaces && @namespace.Name != string.Empty)
             {
                 var names = new List<string>();
                 names.Add(@namespace.Name);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
+        public static bool IsSpecialType([NotNullWhen(true)] ITypeSymbol? type, SpecialType specialType)
             => type != null && type.SpecialType == specialType;
 
         public static int GetPreferredIndex(int index, IList<bool>? availableIndices, bool forward)
@@ -172,117 +172,112 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                             }).ToList();
         }
 
-        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options)
-            where T : SyntaxNode
+        public static T RemoveLeadingDirectiveTrivia<T>(T node) where T : SyntaxNode
         {
-            Contract.ThrowIfNull(symbol);
-
-            return options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1
-                ? symbol.DeclaringSyntaxReferences[0].GetSyntax() as T
-                : null;
+            var leadingTrivia = node.GetLeadingTrivia().Where(trivia => !trivia.IsDirective);
+            return node.WithLeadingTrivia(leadingTrivia);
         }
 
-        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
+        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationContextInfo info)
             where T : SyntaxNode
         {
             Contract.ThrowIfNull(attribute);
 
-            return options != null && options.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
-                attribute.ApplicationSyntaxReference.GetSyntax() as T :
-                null;
+            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null
+                ? attribute.ApplicationSyntaxReference.GetSyntax() as T
+                : null;
         }
 
         public static int GetInsertionIndex<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            CodeGenerationContextInfo info,
+            IList<bool>? availableIndices,
             IComparer<TDeclaration> comparerWithoutNameCheck,
             IComparer<TDeclaration> comparerWithNameCheck,
-            Func<SyntaxList<TDeclaration>, TDeclaration>? after = null,
-            Func<SyntaxList<TDeclaration>, TDeclaration>? before = null)
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
             where TDeclaration : SyntaxNode
         {
             Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
 
-            if (options != null)
+            // Try to strictly obey the after option by inserting immediately after the member containing the location
+            if (info.Context.AfterThisLocation?.SourceTree is { } afterSourceTree &&
+                afterSourceTree.FilePath == declarationList.FirstOrDefault()?.SyntaxTree.FilePath)
             {
-                // Try to strictly obey the after option by inserting immediately after the member containing the location
-                if (options.AfterThisLocation != null)
+                var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= info.Context.AfterThisLocation.SourceSpan.Start);
+                if (afterMember != null)
                 {
-                    var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.AfterThisLocation.SourceSpan.Start);
-                    if (afterMember != null)
+                    var index = declarationList.IndexOf(afterMember);
+                    index = GetPreferredIndex(index + 1, availableIndices, forward: true);
+                    if (index != -1)
                     {
-                        var index = declarationList.IndexOf(afterMember);
-                        index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
+                        return index;
                     }
                 }
+            }
 
-                // Try to strictly obey the before option by inserting immediately before the member containing the location
-                if (options.BeforeThisLocation != null)
+            // Try to strictly obey the before option by inserting immediately before the member containing the location
+            if (info.Context.BeforeThisLocation?.SourceTree is { } beforeSourceTree &&
+                beforeSourceTree.FilePath == declarationList.FirstOrDefault()?.SyntaxTree.FilePath)
+            {
+                var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= info.Context.BeforeThisLocation.SourceSpan.End);
+                if (beforeMember != null)
                 {
-                    var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.BeforeThisLocation.SourceSpan.End);
-                    if (beforeMember != null)
+                    var index = declarationList.IndexOf(beforeMember);
+                    index = GetPreferredIndex(index, availableIndices, forward: false);
+                    if (index != -1)
                     {
-                        var index = declarationList.IndexOf(beforeMember);
-                        index = GetPreferredIndex(index, availableIndices, forward: false);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
+                        return index;
                     }
                 }
+            }
 
-                if (options.AutoInsertionLocation)
+            if (info.Context.AutoInsertionLocation)
+            {
+                if (declarationList.IsEmpty())
                 {
-                    if (declarationList.IsEmpty())
-                    {
-                        return 0;
-                    }
+                    return 0;
+                }
 
-                    var desiredIndex = TryGetDesiredIndexIfGrouped(
-                        declarationList, declaration, availableIndices,
-                        comparerWithoutNameCheck, comparerWithNameCheck);
-                    if (desiredIndex.HasValue)
-                    {
-                        return desiredIndex.Value;
-                    }
+                var desiredIndex = TryGetDesiredIndexIfGrouped(
+                    declarationList, declaration, availableIndices,
+                    comparerWithoutNameCheck, comparerWithNameCheck);
+                if (desiredIndex.HasValue)
+                {
+                    return desiredIndex.Value;
+                }
 
-                    if (after != null)
+                if (after != null)
+                {
+                    var member = after(declarationList);
+                    if (member != null)
                     {
-                        var member = after(declarationList);
-                        if (member != null)
+                        var index = declarationList.IndexOf(member);
+                        if (index >= 0)
                         {
-                            var index = declarationList.IndexOf(member);
-                            if (index >= 0)
+                            index = GetPreferredIndex(index + 1, availableIndices, forward: true);
+                            if (index != -1)
                             {
-                                index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
+                                return index;
                             }
                         }
                     }
+                }
 
-                    if (before != null)
+                if (before != null)
+                {
+                    var member = before(declarationList);
+                    if (member != null)
                     {
-                        var member = before(declarationList);
-                        if (member != null)
-                        {
-                            var index = declarationList.IndexOf(member);
+                        var index = declarationList.IndexOf(member);
 
-                            if (index >= 0)
+                        if (index >= 0)
+                        {
+                            index = GetPreferredIndex(index, availableIndices, forward: false);
+                            if (index != -1)
                             {
-                                index = GetPreferredIndex(index, availableIndices, forward: false);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
+                                return index;
                             }
                         }
                     }
@@ -401,5 +396,25 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // Couldn't find anything with our name.  Just place us at the end of this group.
             return desiredGroupIndex;
         }
+
+        // from https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
+        public static bool IsCompilerInternalAttribute(AttributeData attribute)
+            => attribute.AttributeClass is
+            {
+                Name: "NullableAttribute" or "NullableContextAttribute" or "NativeIntegerAttribute" or "DynamicAttribute",
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Runtime.CompilerServices),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Runtime),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System),
+                            ContainingNamespace.IsGlobalNamespace: true,
+                        },
+                    },
+                },
+            };
     }
 }

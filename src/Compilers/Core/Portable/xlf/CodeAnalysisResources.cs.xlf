@@ -17,6 +17,21 @@
         <target state="translated">Sestavení, které obsahuje typ {0}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">Neplatný předdefinovaný název operátoru {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">Nepodporovaný předdefinovaný operátor: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">{0} nebyl platný předdefinovaný název operátoru</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">Změny musí spadat do mezí SourceText.</target>
@@ -39,14 +54,34 @@
         <target state="translated">Pokud chcete tento analyzátor zakázat, potlačte následující diagnostiku: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
       </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
+        <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
+        <target state="translated">Funkce Upravit a Pokračovat nemůže obnovit pozastavenou asynchronní metodu, protože odpovídající výraz await byl odstraněn.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
+        <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
+        <target state="translated">Funkce Upravit a pokračovat nemůže obnovit pozastavený iterátor, protože odpovídající příkaz yield return byl odstraněn.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">Generátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">Celková doba spuštění generátoru: {0} sekund.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
-        <target state="new">The hintName '{0}' contains an invalid character '{1}' at position {2}.</target>
+        <target state="translated">{0} hintName obsahuje neplatný znak {1} na pozici {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName '{0}' of the added source file must be unique within a generator.</target>
+        <target state="translated">{0} hintName přidaného zdrojového souboru musí být v rámci generátoru jedinečná.</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -126,7 +161,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
-        <target state="new">The SourceText with hintName '{0}' must have an explicit encoding set.</target>
+        <target state="translated">SourceText s hintName {0} musí mít explicitní sadu kódování.</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">

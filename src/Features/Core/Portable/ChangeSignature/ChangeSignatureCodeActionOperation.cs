@@ -4,9 +4,11 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     /// This is used instead of <see cref="ApplyChangesOperation"/> as we need to show a confirmation
     /// dialog to the user before applying the change.
     /// </summary>
-    internal class ChangeSignatureCodeActionOperation : CodeActionOperation
+    internal sealed class ChangeSignatureCodeActionOperation : CodeActionOperation
     {
         public Solution ChangedSolution { get; }
 
@@ -29,14 +31,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal override bool ApplyDuringTests => true;
 
-        public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-            => this.TryApply(workspace, new ProgressTracker(), cancellationToken);
-
         /// <summary>
         /// Show the confirmation message, if available, before attempting to apply the changes.
         /// </summary>
-        internal override bool TryApply(
-            Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        internal sealed override Task<bool> TryApplyAsync(
+            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            return ApplyWorker(workspace, originalSolution, progressTracker, cancellationToken) ? SpecializedTasks.True : SpecializedTasks.False;
+        }
+
+        private bool ApplyWorker(Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             if (ConfirmationMessage != null)
             {
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            return workspace.TryApplyChanges(ChangedSolution, progressTracker);
+            return ApplyChangesOperation.ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken);
         }
     }
 }

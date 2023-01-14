@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
@@ -33,20 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseDeconstructionDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Deconstruct_variable_declaration, nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var nodesToProcess = diagnostics.SelectAsArray(d => d.Location.FindToken(cancellationToken).Parent);
 
@@ -59,13 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return editor.ApplyMethodBodySemanticEditsAsync(
                 document, nodesToProcess,
                 (semanticModel, node) => true,
-                (semanticModel, currentRoot, node) => UpdateRoot(semanticModel, currentRoot, node, document.Project.Solution.Workspace, cancellationToken),
+                (semanticModel, currentRoot, node) => UpdateRoot(document, semanticModel, currentRoot, node, cancellationToken),
                 cancellationToken);
         }
 
-        private SyntaxNode UpdateRoot(SemanticModel semanticModel, SyntaxNode root, SyntaxNode node, Workspace workspace, CancellationToken cancellationToken)
+        private SyntaxNode UpdateRoot(
+            Document document,
+            SemanticModel semanticModel,
+            SyntaxNode root,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(root, workspace);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             // We use the callback form of ReplaceNode because we may have nested code that
             // needs to be updated in fix-all situations.  For example, nested foreach statements.
@@ -154,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // i.e.   (int x, int y) t = ...   will be converted to (int x, int y) = ...
             //
             // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
-            return typeNode.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleTypeSyntax)
-                ? (ExpressionSyntax)CreateTupleExpression(tupleTypeSyntax)
+            return typeNode is TupleTypeSyntax tupleTypeSyntax
+                ? CreateTupleExpression(tupleTypeSyntax)
                 : CreateDeclarationExpression(tupleType, typeNode);
         }
 
@@ -186,14 +187,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 SyntaxFactory.DeclarationExpression(
                     node.Type,
                     SyntaxFactory.SingleVariableDesignation(node.Identifier)));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Deconstruct_variable_declaration, createChangedDocument, CSharpAnalyzersResources.Deconstruct_variable_declaration)
-            {
-            }
         }
     }
 }

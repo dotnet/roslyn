@@ -7,7 +7,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -60,26 +60,17 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _initializedSymbol = null;
         }
 
+        protected abstract bool ShouldAnalyze();
         protected abstract void AddMatches(ArrayBuilder<TMatch> matches);
 
         protected ImmutableArray<TMatch>? AnalyzeWorker()
         {
-            if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
-            {
-                // Don't bother if this already has an initializer.
-                return null;
-            }
-
             if (!ShouldAnalyze())
-            {
                 return null;
-            }
 
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
-            {
                 return null;
-            }
 
             if (!TryInitializeVariableDeclarationCase() &&
                 !TryInitializeAssignmentCase())
@@ -188,7 +179,5 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             return false;
         }
-
-        protected abstract bool ShouldAnalyze();
     }
 }

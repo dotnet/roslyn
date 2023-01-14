@@ -4,8 +4,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -13,18 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
 {
     internal partial class CSharpOrganizeImportsService
     {
-        private class Rewriter : CSharpSyntaxRewriter
+        private sealed class Rewriter : CSharpSyntaxRewriter
         {
             private readonly bool _placeSystemNamespaceFirst;
             private readonly bool _separateGroups;
+            private readonly SyntaxTrivia _newLineTrivia;
 
             public readonly IList<TextChange> TextChanges = new List<TextChange>();
 
-            public Rewriter(bool placeSystemNamespaceFirst,
-                            bool separateGroups)
+            public Rewriter(OrganizeImportsOptions options)
             {
-                _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
-                _separateGroups = separateGroups;
+                _placeSystemNamespaceFirst = options.PlaceSystemNamespaceFirst;
+                _separateGroups = options.SeparateImportDirectiveGroups;
+                _newLineTrivia = CSharpSyntaxGeneratorInternal.Instance.EndOfLine(options.NewLine);
             }
 
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
@@ -33,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 UsingsAndExternAliasesOrganizer.Organize(
                     node.Externs, node.Usings,
                     _placeSystemNamespaceFirst, _separateGroups,
+                    _newLineTrivia,
                     out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);
@@ -57,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 UsingsAndExternAliasesOrganizer.Organize(
                     node.Externs, node.Usings,
                     _placeSystemNamespaceFirst, _separateGroups,
+                    _newLineTrivia,
                     out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);

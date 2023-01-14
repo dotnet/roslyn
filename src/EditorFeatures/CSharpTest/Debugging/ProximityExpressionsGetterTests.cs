@@ -22,6 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
     public partial class ProximityExpressionsGetterTests
     {
         private static string s_lazyTestFileContent;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         private static SyntaxTree GetTreeFromCode(string code)
             => SyntaxFactory.ParseSyntaxTree(code);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestWithinStatement_1()
         {
             var tree = GetTreeFromCode(@"using System;
@@ -83,17 +84,34 @@ namespace ConsoleApplication1
             await continuation(proximityExpressionsGetter, document, caretPosition);
         }
 
+        private static async Task TestTryDoInMainAsync(string body, bool topLevelStatement, params string[] expectedTerms)
+        {
+            string input;
+            if (topLevelStatement)
+            {
+                input = body;
+            }
+            else
+            {
+                input = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+{string.Join(Environment.NewLine, body.ReplaceLineEndings("\n").Split('\n').Select(line => line == "" ? line : $"        {line}"))}
+    }}
+}}";
+            }
+
+            await TestTryDoAsync(input, expectedTerms);
+        }
+
         private static async Task TestTryDoAsync(string input, params string[] expectedTerms)
         {
             await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
             {
                 var actualTerms = await getter.GetProximityExpressionsAsync(document, position, CancellationToken.None);
-
-                Assert.Equal(expectedTerms.Length == 0, actualTerms == null);
-                if (expectedTerms.Length > 0)
-                {
-                    AssertEx.Equal(expectedTerms, actualTerms);
-                }
+                Assert.True(actualTerms is null or { Count: > 0 });
+                AssertEx.Equal(expectedTerms, actualTerms ?? Array.Empty<string>());
             });
         }
 
@@ -106,42 +124,42 @@ namespace ConsoleApplication1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestTryDo1()
             => await TestTryDoAsync("class Class { void Method() { string local;$$ } }", "local", "this");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestNoParentToken()
             => await TestTryDoAsync("$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestIsValid1()
             => await TestIsValidAsync("class Class { void Method() { string local;$$ } }", "local", true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestIsValidWithDiagnostics()
         {
             // local doesn't exist in this context
             await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestIsValidReferencingLocalBeforeDeclaration()
             => await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", false);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestIsValidReferencingUndefinedVariable()
             => await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", false);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestIsValidNoTypeSymbol()
             => await TestIsValidAsync("namespace Namespace$$ { }", "goo", false);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestIsValidLocalAfterPosition()
             => await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", false);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestThis()
         {
             await TestTryDoAsync(@"
@@ -155,10 +173,12 @@ class Class
 }", "this");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestArrayCreationExpression()
+        [Theory, CombinatorialData]
+        public async Task TestArrayCreationExpression(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
+            if (!topLevelStatement)
+            {
+                await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -166,12 +186,19 @@ class Class
         int[] i = new int[] { 3 }$$;
     }
 }", "i", "this");
+            }
+
+            await TestTryDoInMainAsync(@"
+int[] i = new int[] { 3 }$$;
+", topLevelStatement, "i", "args");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestPostfixUnaryExpressionSyntax()
+        [Theory, CombinatorialData]
+        public async Task TestPostfixUnaryExpressionSyntax(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
+            if (!topLevelStatement)
+            {
+                await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -180,12 +207,19 @@ class Class
         i++$$;
     }
 }", "i", "this");
+            }
+
+            await TestTryDoInMainAsync(@"int i = 3;
+i++$$;
+", topLevelStatement, "i");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestLabeledStatement()
+        [Theory, CombinatorialData]
+        public async Task TestLabeledStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
+            if (!topLevelStatement)
+            {
+                await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -194,92 +228,63 @@ class Class
         label2$$: i++;
     }
 }", "i", "this");
+            }
+
+            await TestTryDoInMainAsync(@"label: int i = 3;
+label2$$: i++;
+", topLevelStatement, "i");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestThrowStatement()
+        [Theory, CombinatorialData]
+        public async Task TestThrowStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        e = new Exception();
-        thr$$ow e;
-    }
-}", "e");
+            await TestTryDoInMainAsync(@"e = new Exception();
+thr$$ow e;
+", topLevelStatement, "e");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestDoStatement()
+        [Theory, CombinatorialData]
+        public async Task TestDoStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        do$$ { } while (true);
-    }
-}");
+            await TestTryDoInMainAsync(@"do$$ { } while (true);
+", topLevelStatement, "args");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestLockStatement()
+        [Theory, CombinatorialData]
+        public async Task TestLockStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        lock(typeof(Cl$$ass)) { };
-    }
-}");
+            await TestTryDoInMainAsync(@"lock(typeof(Cl$$ass)) { };
+", topLevelStatement, "args");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestWhileStatement()
+        [Theory, CombinatorialData]
+        public async Task TestWhileStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        while(DateTime.Now <$$ DateTime.Now) { };
-    }
-}", "DateTime", "DateTime.Now");
+            await TestTryDoInMainAsync(@"while(DateTime.Now <$$ DateTime.Now) { };
+", topLevelStatement, "DateTime", "DateTime.Now", "args");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestForStatementWithDeclarators()
+        [Theory, CombinatorialData]
+        public async Task TestForStatementWithDeclarators(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        for(int i = 0; i < 10; i$$++) { }
-    }
-}", "i");
+            await TestTryDoInMainAsync(@"for(int i = 0; i < 10; i$$++) { }
+", topLevelStatement, "i", "args");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestForStatementWithInitializers()
+        [Theory, CombinatorialData]
+        public async Task TestForStatementWithInitializers(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        int i = 0;
-        for(i = 1; i < 10; i$$++) { }
-    }
-}", "i");
+            await TestTryDoInMainAsync(@"int i = 0;
+for(i = 1; i < 10; i$$++) { }
+", topLevelStatement, "i");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestUsingStatement()
+        [Theory, CombinatorialData]
+        public async Task TestUsingStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
+            if (!topLevelStatement)
+            {
+                await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -287,10 +292,13 @@ class Class
         using (FileStream fs = new FileStream($$)) { }
     }
 }", "this");
+            }
+
+            await TestTryDoInMainAsync(@"using (FileStream fs = new FileStream($$)) { }
+", topLevelStatement, "args");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        [WorkItem(538879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538879")]
+        [Fact, WorkItem(538879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538879")]
         public async Task TestValueInPropertySetter()
         {
             await TestTryDoAsync(@"
@@ -304,8 +312,7 @@ class Class
 }", "this", "value");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        [Fact, WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
         public async Task TestValueInPropertyInit()
         {
             await TestTryDoAsync(@"
@@ -319,7 +326,7 @@ class Class
 }", "this", "value");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestValueInEventAdd()
         {
             await TestTryDoAsync(@"
@@ -333,7 +340,7 @@ class Class
 }", "this", "value");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public async Task TestValueInEventRemove()
         {
             await TestTryDoAsync(@"
@@ -347,8 +354,7 @@ class Class
 }", "this", "value");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        [WorkItem(538880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538880")]
+        [Fact, WorkItem(538880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538880")]
         public async Task TestValueInIndexerSetter()
         {
             await TestTryDoAsync(@"
@@ -362,11 +368,13 @@ class Class
 }", "index", "this", "value");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Theory, CombinatorialData]
         [WorkItem(538881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538881")]
-        public async Task TestCatchBlock()
+        public async Task TestCatchBlock(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
+            if (!topLevelStatement)
+            {
+                await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -375,13 +383,20 @@ class Class
         catch(Exception ex) { int $$ }
     }
 }", "ex", "this");
+            }
+
+            await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { int $$ }
+", topLevelStatement, "ex");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Theory, CombinatorialData]
         [WorkItem(538881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538881")]
-        public async Task TestCatchBlockEmpty_OpenBrace()
+        public async Task TestCatchBlockEmpty_OpenBrace(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
+            if (!topLevelStatement)
+            {
+                await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -390,12 +405,19 @@ class Class
         catch(Exception ex) { $$ }
     }
 }", "ex", "this");
+            }
+
+            await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { $$ }
+", topLevelStatement, "ex");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task TestCatchBlockEmpty_CloseBrace()
+        [Theory, CombinatorialData]
+        public async Task TestCatchBlockEmpty_CloseBrace(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
+            if (!topLevelStatement)
+            {
+                await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -404,13 +426,20 @@ class Class
         catch(Exception ex) { } $$ 
     }
 }", "this");
+            }
+
+            await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { } $$ 
+", topLevelStatement);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Theory, CombinatorialData]
         [WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
-        public async Task TestObjectCreation()
+        public async Task TestObjectCreation(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"
+            if (!topLevelStatement)
+            {
+                await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -418,10 +447,13 @@ class Class
         $$Goo(new Bar(a).Baz);
     }
 }", "a", "new Bar(a).Baz", "Goo", "this");
+            }
+
+            await TestTryDoInMainAsync(@"$$Goo(new Bar(a).Baz);
+", topLevelStatement, "a", "new Bar(a).Baz", "Goo", "args");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        [WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
+        [Fact, WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
         public async Task Test2()
         {
             await TestIsValidAsync(@"
@@ -439,8 +471,7 @@ class Class
 }", "D.x", false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        [WorkItem(538890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538890")]
+        [Fact, WorkItem(538890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538890")]
         public async Task TestArrayCreation()
         {
             await TestTryDoAsync(@"
@@ -454,8 +485,7 @@ class Class
 }", "this");
         }
 
-        [WorkItem(751141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751141")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, WorkItem(751141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751141")]
         public async Task Bug751141()
         {
             await TestTryDoAsync(@"
@@ -475,461 +505,344 @@ class Program
 ", "System.Diagnostics.Debugger", "local_int", "m_double", "(int)m_double", "this");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ForLoopExpressionsInFirstStatementOfLoop1()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ForLoopExpressionsInFirstStatementOfLoop1(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"for(int i = 0; i < 5; i++)
 {
-    static void Main(string[] args)
-    {
-        for(int i = 0; i < 5; i++)
-        {
-            $$var x = 8;
-        }
-    }
-}", "i", "x");
+    $$var x = 8;
+}
+", topLevelStatement, "i", "x");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ForLoopExpressionsInFirstStatementOfLoop2()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ForLoopExpressionsInFirstStatementOfLoop2(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0, n = 0;
+
+for(i = 0; j < 5; k++)
 {
-    static void Main(string[] args)
-    {
-        int i = 0, j = 0, k = 0, m = 0, n = 0;
-
-        for(i = 0; j < 5; k++)
-        {
-            $$m = 8;
-            n = 7;
-        }
-    }
-}", "m", "i", "j", "k");
+    $$m = 8;
+    n = 7;
+}
+", topLevelStatement, "m", "i", "j", "k");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ForLoopExpressionsInFirstStatementOfLoop3()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ForLoopExpressionsInFirstStatementOfLoop3(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
+
+for(i = 0; j < 5; k++)
 {
-    static void Main(string[] args)
-    {
-        int i = 0, j = 0, k = 0, m = 0;
-
-        for(i = 0; j < 5; k++)
-        {
-            var m = 8;
-            $$var n = 7;
-        }
-    }
-}", "m", "n");
+    var m = 8;
+    $$var n = 7;
+}
+", topLevelStatement, "m", "n");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ForLoopExpressionsInFirstStatementOfLoop4()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ForLoopExpressionsInFirstStatementOfLoop4(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
+
+for(i = 0; j < 5; k++)
+    $$m = 8;
+", topLevelStatement, "m", "i", "j", "k");
+        }
+
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ForEachLoopExpressionsInFirstStatementOfLoop1(bool topLevelStatement)
+        {
+            await TestTryDoInMainAsync(@"foreach (var x in new int[] { 1, 2, 3 })
 {
-    static void Main(string[] args)
-    {
-        int i = 0, j = 0, k = 0, m = 0;
-
-        for(i = 0; j < 5; k++)
-            $$m = 8;
-    }
-}", "m", "i", "j", "k");
+    $$var z = 0;
+}
+", topLevelStatement, "x", "z");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ForEachLoopExpressionsInFirstStatementOfLoop1()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ForEachLoopExpressionsInFirstStatementOfLoop2(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"foreach (var x in new int[] { 1, 2, 3 })
+    $$var z = 0;
+", topLevelStatement, "x", "z");
+        }
+
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterForLoop1(bool topLevelStatement)
+        {
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0;
+
+for (a = 5; b < 1; b++)
 {
-    static void Main(string[] args)
-    {
-        foreach (var x in new int[] { 1, 2, 3 })
-        {
-            $$var z = 0;
-        }
-    }
-}", "x", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ForEachLoopExpressionsInFirstStatementOfLoop2()
-        {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        foreach (var x in new int[] { 1, 2, 3 })
-            $$var z = 0;
-    }
-}", "x", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterForLoop1()
-        {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0;
-
-        for (a = 5; b < 1; b++)
-        {
-            c = 8;
-            d = 9; // included
-        }
+    c = 8;
+    d = 9; // included
+}
         
-        $$var z = 0;
-    }
-}", "a", "b", "d", "z");
+$$var z = 0;
+", topLevelStatement, "a", "b", "d", "z");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterForLoop2()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterForLoop2(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0;
+
+for (a = 5; b < 1; b++)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0;
-
-        for (a = 5; b < 1; b++)
-        {
-            c = 8;
-            int d = 9; // not included
-        }
+    c = 8;
+    int d = 9; // not included
+}
         
-        $$var z = 0;
-    }
-}", "a", "b", "z");
+$$var z = 0;
+", topLevelStatement, "a", "b", "z");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterForEachLoop()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterForEachLoop(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0;
+
+foreach (var q in new int[] {1, 2, 3})
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0;
-
-        foreach (var q in new int[] {1, 2, 3})
-        {
-            c = 8;
-            d = 9; // included
-        }
+    c = 8;
+    d = 9; // included
+}
         
-        $$var z = 0;
-    }
-}", "q", "d", "z");
+$$var z = 0;
+", topLevelStatement, "q", "d", "z");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterNestedForLoop()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterNestedForLoop(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+for (a = 5; b < 1; b++)
 {
-    static void Main(string[] args)
+    c = 8;
+    d = 9;
+    for (a = 7; b < 9; b--)
     {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
-        for (a = 5; b < 1; b++)
-        {
-            c = 8;
-            d = 9;
-            for (a = 7; b < 9; b--)
-            {
-                e = 8;
-                f = 10; // included
-            }
-        }
+        e = 8;
+        f = 10; // included
+    }
+}
         
-        $$var z = 0;
-    }
-}", "a", "b", "f", "z");
+$$var z = 0;
+", topLevelStatement, "a", "b", "f", "z");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterCheckedStatement()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterCheckedStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+checked
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
-        checked
-        {
-            a = 7;
-            b = 0; // included
-        }
+    a = 7;
+    b = 0; // included
+}
         
-        $$var z = 0;
-    }
-}", "b", "z");
+$$var z = 0;
+", topLevelStatement, "b", "z");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterUncheckedStatement()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterUncheckedStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+unchecked
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
-        unchecked
-        {
-            a = 7;
-            b = 0; // included
-        }
+    a = 7;
+    b = 0; // included
+}
         
-        $$var z = 0;
-    }
-}", "b", "z");
+$$var z = 0;
+", topLevelStatement, "b", "z");
         }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterIfStatement()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterIfStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+if (a == 0)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    c = 8; 
+    d = 9; // included
+}
 
-        if (a == 0)
-        {
-            c = 8; 
-            d = 9; // included
+$$var z = 0;
+", topLevelStatement, "a", "d", "z");
         }
 
-        $$var z = 0;
-    }
-}", "a", "d", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterIfStatementWithElse()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterIfStatementWithElse(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+if (a == 0)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
-        if (a == 0)
-        {
-            c = 8; 
-            d = 9; // included
-        }
-        else
-        {
-            e = 1;
-            f = 2; // included
-        }
-
-        $$var z = 0;
-    }
-}", "a", "d", "f", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterLockStatement()
-        {
-            await TestTryDoAsync(@"class Program
+    c = 8; 
+    d = 9; // included
+}
+else
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    e = 1;
+    f = 2; // included
+}
 
-        lock (new object())
-        {
-            a = 2;
-            b = 3; // included
+$$var z = 0;
+", topLevelStatement, "a", "d", "f", "z");
         }
 
-        $$var z = 0;
-    }
-}", "b", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterSwitchStatement()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterLockStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+lock (new object())
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    a = 2;
+    b = 3; // included
+}
 
-        switch(a)
-        {
-            case 1:
-                b = 7;
-                c = 8; // included
-                break;
-            case 2:
-                d = 9;
-                e = 10; // included
-                break;
-            default:
-                f = 1;
-                g = 2; // included
-                break;
+$$var z = 0;
+", topLevelStatement, "b", "z");
         }
 
-        $$var z = 0;
-    }
-}", "a", "c", "e", "g", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterTryStatement()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterSwitchStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+switch(a)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    case 1:
+        b = 7;
+        c = 8; // included
+        break;
+    case 2:
+        d = 9;
+        e = 10; // included
+        break;
+    default:
+        f = 1;
+        g = 2; // included
+        break;
+}
 
-        try
-        {
-            a = 2;
-            b = 3; // included
-        }
-        catch (System.DivideByZeroException)
-        {
-            c = 2;
-            d = 5; // included
-        }
-        catch (System.EntryPointNotFoundException)
-        {
-            e = 8;
-            f = 9; // included
+$$var z = 0;
+", topLevelStatement, "a", "c", "e", "g", "z");
         }
 
-        $$var z = 0;
-    }
-}", "b", "d", "f", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterTryStatementWithFinally()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterTryStatement(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+try
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
-
-        try
-        {
-            a = 2;
-            b = 3;
-        }
-        catch (System.DivideByZeroException)
-        {
-            c = 2;
-            d = 5;
-        }
-        catch (System.EntryPointNotFoundException)
-        {
-            e = 8;
-            f = 9;
-        }
-        finally
-        {
-            g = 2; // included
-        }
-
-        $$var z = 0;
-    }
-}", "g", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterUsingStatement()
-        {
-            await TestTryDoAsync(@"class Program
+    a = 2;
+    b = 3; // included
+}
+catch (System.DivideByZeroException)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
-
-        using (null as System.IDisposable)
-        {
-            a = 4;
-            b = 8; // Included
-        }
-
-        $$var z = 0;
-    }
-}", "b", "z");
-        }
-
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsAfterWhileStatement()
-        {
-            await TestTryDoAsync(@"class Program
+    c = 2;
+    d = 5; // included
+}
+catch (System.EntryPointNotFoundException)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    e = 8;
+    f = 9; // included
+}
 
-        while (a < 5)
-        {
-            a++;
-            b = 8; // Included
+$$var z = 0;
+", topLevelStatement, "b", "d", "f", "z");
         }
 
-        $$var z = 0;
-    }
-}", "a", "b", "z");
-        }
-
-        [WorkItem(778215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778215")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public async Task ExpressionsInParenthesizedExpressions()
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterTryStatementWithFinally(bool topLevelStatement)
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+try
 {
-    static void Main(string[] args)
-    {
-        int i = 0, j = 0, k = 0, m = 0;
-        int flags = 7;
+    a = 2;
+    b = 3;
+}
+catch (System.DivideByZeroException)
+{
+    c = 2;
+    d = 5;
+}
+catch (System.EntryPointNotFoundException)
+{
+    e = 8;
+    f = 9;
+}
+finally
+{
+    g = 2; // included
+}
 
-        if((flags & i) == k)
-        {
-            $$ m = 8;
+$$var z = 0;
+", topLevelStatement, "g", "z");
         }
-    }
-}", "m", "flags", "i", "k");
+
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterUsingStatement(bool topLevelStatement)
+        {
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+using (null as System.IDisposable)
+{
+    a = 4;
+    b = 8; // Included
+}
+
+$$var z = 0;
+", topLevelStatement, "b", "z");
+        }
+
+        [Theory, WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+        public async Task ExpressionsAfterWhileStatement(bool topLevelStatement)
+        {
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+while (a < 5)
+{
+    a++;
+    b = 8; // Included
+}
+
+$$var z = 0;
+", topLevelStatement, "a", "b", "z");
+        }
+
+        [Theory, WorkItem(778215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778215"), CombinatorialData]
+        public async Task ExpressionsInParenthesizedExpressions(bool topLevelStatement)
+        {
+            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
+int flags = 7;
+
+if((flags & i) == k)
+{
+    $$ m = 8;
+}
+", topLevelStatement, "m", "flags", "i", "k");
+        }
+
+        [Theory, WorkItem(58337, "https://github.com/dotnet/roslyn/issues/58337"), CombinatorialData]
+        public async Task ExpressionsInTopLevelStatement(bool topLevelStatement)
+        {
+            await TestTryDoInMainAsync(@"int a = 1;
+int b = 2;
+$$ Console.WriteLine(""Hello, World!"");
+", topLevelStatement, "Console", "b");
         }
     }
 }

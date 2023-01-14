@@ -17,6 +17,11 @@
         <target state="translated">CodeLens başvuruları</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Proje semantiği kullanılabilirliği</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Demeti yapıya dönüştürme yeniden düzenlemesi</target>
@@ -62,6 +67,11 @@
         <target state="translated">Kullanımları bul</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">Tam olarak nitele</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
         <source>Global notification delivery</source>
         <target state="translated">Genel bildirim teslimi</target>
@@ -70,6 +80,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">Devralma boşluğu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">Çözüm Olayları</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
@@ -87,6 +102,11 @@
         <target state="translated">Gezinti çubuğu</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">İşlem telemetrisi</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">Proje telemetri koleksiyonu</target>
@@ -102,14 +122,14 @@
         <target state="translated">Anlamsal sınıflandırma</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Anlamsal sınıflandırma önbelleği</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Varlık sağlayıcısı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Yığın İzlemesi Gezgini</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
@@ -122,9 +142,14 @@
         <target state="translated">Sembol araması</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_TodoCommentsDiscovery">
-        <source>TODO comments discovery</source>
-        <target state="translated">TODO açıklamalarını bulma</target>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">Görev listesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">Birim testi araması</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">
@@ -134,7 +159,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">
         <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
+        <target state="translated">Değer Takibi</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

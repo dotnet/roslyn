@@ -13,13 +13,14 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptNavigateToSearchService : INavigateToSearchService
+    internal sealed class VSTypeScriptNavigateToSearchService : INavigateToSearchService
     {
         private readonly IVSTypeScriptNavigateToSearchService? _searchService;
 
@@ -35,10 +36,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
-        public async Task<NavigateToSearchLocation> SearchDocumentAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds,
+        public async Task SearchDocumentAsync(
+            Document document,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
-            bool isFullyLoaded, CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             if (_searchService != null)
             {
@@ -46,14 +50,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
-
-            return NavigateToSearchLocation.Latest;
         }
 
-        public async Task<NavigateToSearchLocation> SearchProjectAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
-            bool isFullyLoaded, CancellationToken cancellationToken)
+        public async Task SearchProjectAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             if (_searchService != null)
             {
@@ -61,8 +67,31 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
+        }
 
-            return NavigateToSearchLocation.Latest;
+        public Task SearchCachedDocumentsAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching cached documents.
+            return Task.CompletedTask;
+        }
+
+        public Task SearchGeneratedDocumentsAsync(
+            Project project,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching generated documents.
+            return Task.CompletedTask;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
@@ -108,36 +137,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             public string Summary => _result.Summary;
 
-            public INavigableItem? NavigableItem => _result.NavigableItem == null ? null : new WrappedNavigableItem(_result.NavigableItem);
-        }
+            public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
 
-        private class WrappedNavigableItem : INavigableItem
-        {
-            private readonly IVSTypeScriptNavigableItem _navigableItem;
-
-            public WrappedNavigableItem(IVSTypeScriptNavigableItem navigableItem)
-            {
-                _navigableItem = navigableItem;
-            }
-
-            public Glyph Glyph => _navigableItem.Glyph;
-
-            public ImmutableArray<TaggedText> DisplayTaggedParts => _navigableItem.DisplayTaggedParts;
-
-            public bool DisplayFileLocation => _navigableItem.DisplayFileLocation;
-
-            public bool IsImplicitlyDeclared => _navigableItem.IsImplicitlyDeclared;
-
-            public Document Document => _navigableItem.Document;
-
-            public TextSpan SourceSpan => _navigableItem.SourceSpan;
-
-            public bool IsStale => false;
-
-            public ImmutableArray<INavigableItem> ChildItems
-                => _navigableItem.ChildItems.IsDefault
-                    ? default
-                    : _navigableItem.ChildItems.SelectAsArray(i => (INavigableItem)new WrappedNavigableItem(i));
+            public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
         }
     }
 }

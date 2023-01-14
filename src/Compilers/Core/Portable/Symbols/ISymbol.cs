@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         string MetadataName { get; }
 
+        /// <summary>
+        /// Gets the metadata token associated with this symbol, or 0 if the symbol is not loaded from metadata.
+        /// </summary>
+        int MetadataToken { get; }
+
 #nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
 #pragma warning disable RS0041 // uses oblivious reference types
         /// <summary>
@@ -206,6 +211,7 @@ namespace Microsoft.CodeAnalysis
 
         void Accept(SymbolVisitor visitor);
         TResult? Accept<TResult>(SymbolVisitor<TResult> visitor);
+        TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument);
 
         /// <summary>
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't

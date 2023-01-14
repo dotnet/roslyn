@@ -17,19 +17,49 @@
         <target state="translated">Aggiungi case predefinito</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">Aggiungi cast esplicito</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">Aggiungi intestazione del file</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Correggi violazione del nome: {0}</target>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="translated">Tipo di alias '{0}' ambiguo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="translated">Converti il tipo in '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">Correggi tutte le occorrenze in</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="translated">Correggi violazione del nome: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="translated">Rendi la classe 'abstract'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="translated">Imposta come statici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="translated">Rendere il tipo parziale</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
@@ -42,9 +72,9 @@
         <target state="translated">Rimuovi l'assegnazione ridondante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">Elimina o configura problemi</target>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
+        <target state="translated">Elimina o configura i problemi</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

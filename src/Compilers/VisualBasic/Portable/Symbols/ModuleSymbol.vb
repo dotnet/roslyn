@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Full type name possibly with generic name mangling.
         ''' </param>
         ''' <returns>
-        ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        ''' Symbol for the type, or Nothing if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
         Friend MustOverride Function LookupTopLevelMetadataType(
@@ -326,6 +326,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitModule(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitModule(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool WeakIdentityPropertiesEquivalent(AssemblyIdentity identity1, AssemblyIdentity identity2);
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        protected struct ResolvedReference
+        protected readonly struct ResolvedReference
         {
             private readonly MetadataImageKind _kind;
             private readonly int _index;
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 

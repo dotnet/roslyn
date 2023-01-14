@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedNullableContextAttributeSymbol _lazyNullableContextAttribute;
         private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
         private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
+        private SynthesizedEmbeddedScopedRefAttributeSymbol _lazyScopedRefAttribute;
+        private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol _lazyRefSafetyRulesAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyNullableContextAttribute);
             builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
             builder.AddIfNotNull(_lazyNativeIntegerAttribute);
+            builder.AddIfNotNull(_lazyScopedRefAttribute);
+            builder.AddIfNotNull(_lazyRefSafetyRulesAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -249,6 +253,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNativeIntegerAttribute(member, arguments);
         }
 
+        internal override SynthesizedAttributeData SynthesizeScopedRefAttribute(WellKnownMember member)
+        {
+            if ((object)_lazyScopedRefAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyScopedRefAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeScopedRefAttribute(member);
+        }
+
+        internal override SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyRefSafetyRulesAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyRefSafetyRulesAttribute.Constructors[0],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeRefSafetyRulesAttribute(arguments);
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
@@ -297,7 +327,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 needsAttributes |= EmbeddableAttributes.NullablePublicOnlyAttribute;
             }
-            else if (needsAttributes == 0)
+
+            if (((SourceModuleSymbol)Compilation.SourceModule).RequiresRefSafetyRulesAttribute() &&
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.RefSafetyRulesAttribute, diagnostics, Location.None))
+            {
+                needsAttributes |= EmbeddableAttributes.RefSafetyRulesAttribute;
+            }
+
+            if (needsAttributes == 0)
             {
                 return;
             }
@@ -366,11 +403,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if ((needsAttributes & EmbeddableAttributes.NativeIntegerAttribute) != 0)
             {
+                Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
                 CreateAttributeIfNeeded(
                     ref _lazyNativeIntegerAttribute,
                     diagnostics,
                     AttributeDescription.NativeIntegerAttribute,
                     CreateNativeIntegerAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.ScopedRefAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyScopedRefAttribute,
+                    diagnostics,
+                    AttributeDescription.ScopedRefAttribute,
+                    CreateScopedRefAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RefSafetyRulesAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRefSafetyRulesAttribute,
+                    diagnostics,
+                    AttributeDescription.RefSafetyRulesAttribute,
+                    CreateRefSafetyRulesAttributeSymbol);
             }
         }
 
@@ -413,6 +469,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Boolean, diagnostics));
 
+        private SynthesizedEmbeddedScopedRefAttributeSymbol CreateScopedRefAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedScopedRefAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics));
+
+        private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol CreateRefSafetyRulesAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedRefSafetyRulesAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    GetSpecialType(SpecialType.System_Int32, diagnostics));
+
         private void CreateAttributeIfNeeded<T>(
             ref T symbol,
             BindingDiagnosticBag diagnostics,
@@ -438,17 +509,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+#nullable enable
+
         private void AddDiagnosticsForExistingAttribute(AttributeDescription description, BindingDiagnosticBag diagnostics)
         {
             var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
             var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+            Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+            Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
 
-            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+            if (userDefinedAttribute is not null)
             {
                 diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
             }
         }
+
+#nullable disable
 
         private NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
         {

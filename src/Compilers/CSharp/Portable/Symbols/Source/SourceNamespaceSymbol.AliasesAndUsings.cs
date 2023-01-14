@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
 #if DEBUG
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_NoAliasHere, location);
                             }
 
-                            SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, compilation, diagnostics, location);
+                            SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, compilation, diagnostics, location);
 
                             string identifierValueText = identifier.ValueText;
                             bool skipInLookup = false;
@@ -757,6 +757,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     var importedType = (NamedTypeSymbol)imported;
+                                    if (usingDirective.GlobalKeyword != default(SyntaxToken) && importedType.HasFileLocalTypes())
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_GlobalUsingStaticFileType, usingDirective.Name.Location, imported);
+                                    }
+
                                     if (!getOrCreateUniqueUsings(ref uniqueUsings, globalUsingNamespacesOrTypes).Add(importedType))
                                     {
                                         diagnostics.Add(!globalUsingNamespacesOrTypes.IsEmpty && getOrCreateUniqueGlobalUsingsNotInTree(ref uniqueGlobalUsings, globalUsingNamespacesOrTypes, declarationSyntax.SyntaxTree).Contains(imported) ?
@@ -1050,7 +1055,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 public DiagnosticBag? Diagnostics { get; init; }
             }
         }
-
 
         private class MergedGlobalAliasesAndUsings
         {

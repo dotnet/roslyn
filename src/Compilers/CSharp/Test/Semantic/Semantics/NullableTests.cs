@@ -209,7 +209,7 @@ class C
   }
 }";
 
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.FailsPEVerify);
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
@@ -268,7 +268,7 @@ class C
 ";
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.FailsPEVerify);
                 CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
@@ -977,7 +977,6 @@ class C
                 { "float", "float" },
            };
 
-
             string[,] shift1 =
             {
                 { "sbyte", "sbyte" },
@@ -1148,7 +1147,6 @@ class C
                 { "Base64FormattingOptions", "Base64FormattingOptions"},
             };
 
-
             // Use 2 instead of 0 so that we don't get divide by zero errors.
             var twos = new Dictionary<string, string>()
             {
@@ -1191,13 +1189,12 @@ class C
                 { "/", "divide" },
                 { "%", "remainder" },
                 { ">>", "rshift" },
+                { ">>>", "urshift" },
                 { "<<", "lshift" },
                 { "&", "and" },
                 { "|", "or" },
                 { "^", "xor" }
             };
-
-
 
             var source = new StringBuilder(@"
 using System; 
@@ -1266,8 +1263,6 @@ class C
     F(31, (x1 OP ynn).HasValue);
   }";
 
-
-
             List<Tuple<string, string[,]>> items = new List<Tuple<string, string[,]>>()
             {
                 Tuple.Create("*", numerics1),
@@ -1280,12 +1275,12 @@ class C
                 // UNDONE: so this test is disabled:
                 // UNDONE: Tuple.Create("-", enumSubtraction),
                 Tuple.Create(">>", shift1),
+                Tuple.Create(">>>", shift1),
                 Tuple.Create("<<", shift2),
                 Tuple.Create("&", logical1),
                 Tuple.Create("|", logical2),
                 Tuple.Create("^", logical3)
             };
-
 
             int m = 0;
 
@@ -1410,7 +1405,6 @@ class C
                 F((sxnn << null).HasValue);";
 
             source += "}}";
-
 
             var verifier = CompileAndVerify(source: source, expectedOutput: "");
         }
@@ -2036,7 +2030,6 @@ ttttfnnnn
 tttftfffnntnfnn
 ttttfnnnn";
 
-
             CompileAndVerify(source, expectedOutput: expected);
         }
 
@@ -2110,5 +2103,34 @@ class Test
         }
 
         #endregion
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+
+
+_ = (bool?)new S();
+bool? z;
+z = new S();
+
+z.GetValueOrDefault();
+
+struct S
+{
+    [System.Obsolete()]
+    public static implicit operator bool(S s) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // _ = (bool?)new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(bool?)new S()").WithArguments("S.implicit operator bool(S)").WithLocation(4, 5),
+                // (6,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // z = new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
+                );
+        }
     }
 }

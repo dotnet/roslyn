@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             var variable = declaration.Variables[0];
             var after = forStatement.Incrementors[0];
 
-            if (!(forStatement.Condition is BinaryExpressionSyntax condition))
+            if (forStatement.Condition is not BinaryExpressionSyntax condition)
                 return;
 
             var (document, _, cancellationToken) = context;
@@ -74,8 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                     return;
                 }
 
-                context.RegisterRefactoring(new MyCodeAction(
-                    c => ReverseForStatementAsync(document, forStatement, c)));
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        CSharpFeaturesResources.Reverse_for_statement,
+                        c => ReverseForStatementAsync(document, forStatement, c),
+                        nameof(CSharpFeaturesResources.Reverse_for_statement)));
             }
         }
 
@@ -135,8 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             out bool equals, [NotNullWhen(true)] out ExpressionSyntax? end)
         {
             // i < ...   i <= ...
-            if (condition.Kind() == SyntaxKind.LessThanExpression ||
-                condition.Kind() == SyntaxKind.LessThanOrEqualExpression)
+            if (condition.Kind() is SyntaxKind.LessThanExpression or
+                SyntaxKind.LessThanOrEqualExpression)
             {
                 end = condition.Right;
                 equals = condition.Kind() == SyntaxKind.LessThanOrEqualExpression;
@@ -144,8 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             }
 
             // ... > i   ... >= i
-            if (condition.Kind() == SyntaxKind.GreaterThanExpression ||
-                condition.Kind() == SyntaxKind.GreaterThanOrEqualExpression)
+            if (condition.Kind() is SyntaxKind.GreaterThanExpression or
+                SyntaxKind.GreaterThanOrEqualExpression)
             {
                 end = condition.Left;
                 equals = condition.Kind() == SyntaxKind.GreaterThanOrEqualExpression;
@@ -264,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
             var generator = editor.Generator;
             if (MatchesIncrementPattern(
                     variable, condition, after,
@@ -358,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 ? (condition.Left, operand)
                 : (operand, condition.Right);
 
-            var newOperatorKind = condition.Kind() == SyntaxKind.LessThanExpression || condition.Kind() == SyntaxKind.LessThanOrEqualExpression
+            var newOperatorKind = condition.Kind() is SyntaxKind.LessThanExpression or SyntaxKind.LessThanOrEqualExpression
                 ? SyntaxKind.GreaterThanEqualsToken
                 : SyntaxKind.LessThanEqualsToken;
 
@@ -391,14 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
             var newOpToken = SyntaxFactory.Token(newKind).WithTriviaFrom(opToken);
             return after.ReplaceToken(opToken, newOpToken);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument, nameof(CSharpFeaturesResources.Reverse_for_statement))
-            {
-            }
         }
     }
 }

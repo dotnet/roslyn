@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -864,7 +865,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OkAfterAsync()
+        public async Task NotOkAfterAsync()
         {
             var markup = @"
 using System.Threading.Tasks;
@@ -873,11 +874,11 @@ class Program
     async $$
 }";
 
-            await VerifyItemExistsAsync(markup, "T");
+            await VerifyItemIsAbsentAsync(markup, "T");
         }
 
-        [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
@@ -905,8 +906,8 @@ $$
             await VerifyItemInLinkedFilesAsync(markup, "T", null);
         }
 
-        [WorkItem(1020654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020654")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1020654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020654")]
         public async Task AfterAsyncTaskWithBraceCompletion()
         {
             var markup = @"
@@ -919,8 +920,7 @@ class Program
             await VerifyItemExistsAsync(markup, "T");
         }
 
-        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
-        [Fact]
+        [Fact, WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionReturnType()
         {

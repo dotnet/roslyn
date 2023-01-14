@@ -1334,7 +1334,7 @@ class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(6, 42),
                 // (6,42): error CS1003: Syntax error, ',' expected
                 //         delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 42),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 42),
                 // (6,45): error CS1002: ; expected
                 //         delegate*<void> ptr = &static () => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 45)

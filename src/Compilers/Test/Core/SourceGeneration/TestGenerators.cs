@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -13,22 +15,56 @@ namespace Roslyn.Test.Utilities.TestGenerators
 {
     internal class SingleFileTestGenerator : ISourceGenerator
     {
-        private readonly string _content;
-        private readonly string _hintName;
+        private readonly List<(string content, string hintName)> _sources = new();
 
-        public SingleFileTestGenerator(string content, string hintName = "generatedFile")
+        public SingleFileTestGenerator()
         {
-            _content = content;
-            _hintName = hintName;
+        }
+
+        public SingleFileTestGenerator(string content, string? hintName = null)
+        {
+            AddSource(content, hintName);
+        }
+
+        public void AddSource(string content, string? hintName = null)
+        {
+            hintName ??= "generatedFile" + (_sources.Any() ? (_sources.Count + 1).ToString() : "");
+            _sources.Add((content, hintName));
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            context.AddSource(this._hintName, SourceText.From(_content, Encoding.UTF8));
+            foreach (var (content, hintName) in _sources)
+                context.AddSource(hintName, SourceText.From(content, Encoding.UTF8));
         }
 
         public void Initialize(GeneratorInitializationContext context)
         {
+        }
+    }
+
+    /// <summary>
+    /// A generator that produces diagnostics against existng source trees, rather than generating new content.
+    /// </summary>
+    internal class DiagnosticProducingGenerator : ISourceGenerator
+    {
+        public static readonly DiagnosticDescriptor Descriptor =
+            new DiagnosticDescriptor(nameof(DiagnosticProducingGenerator), "Diagnostic Title", "Diagnostic Format", "Test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        private readonly Func<GeneratorExecutionContext, Location> _produceLocation;
+
+        public DiagnosticProducingGenerator(Func<GeneratorExecutionContext, Location> produceLocation)
+        {
+            _produceLocation = produceLocation;
+        }
+
+        public void Initialize(GeneratorInitializationContext context)
+        {
+        }
+
+        public void Execute(GeneratorExecutionContext context)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, _produceLocation(context)));
         }
     }
 
@@ -84,6 +120,12 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
         public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
 
+        internal class BinaryText : InMemoryAdditionalText
+        {
+            public BinaryText(string path) : base(path, string.Empty) { }
+
+            public override SourceText GetText(CancellationToken cancellationToken = default) => throw new InvalidDataException("Binary content not supported");
+        }
     }
 
     internal sealed class PipelineCallbackGenerator : IIncrementalGenerator

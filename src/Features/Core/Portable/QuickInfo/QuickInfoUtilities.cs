@@ -9,7 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -20,22 +21,22 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal static class QuickInfoUtilities
     {
-
-        public static Task<QuickInfoItem> CreateQuickInfoItemAsync(Workspace workspace, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
-            => CreateQuickInfoItemAsync(workspace, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, cancellationToken);
+        public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+            => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, cancellationToken);
 
         public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
-            Workspace workspace,
+            SolutionServices services,
             SemanticModel semanticModel,
             TextSpan span,
             ImmutableArray<ISymbol> symbols,
             SupportedPlatformData? supportedPlatforms,
             bool showAwaitReturn,
             NullableFlowState flowState,
+            SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
-            var descriptionService = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISymbolDisplayService>();
-            var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, span.Start, symbols, cancellationToken).ConfigureAwait(false);
+            var descriptionService = services.GetRequiredLanguageService<ISymbolDisplayService>(semanticModel.Language);
+            var groups = await descriptionService.ToDescriptionGroupsAsync(semanticModel, span.Start, symbols, options, cancellationToken).ConfigureAwait(false);
 
             using var _1 = ArrayBuilder<QuickInfoSection>.GetInstance(out var sections);
 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
 
                     var builder = ImmutableArray.CreateBuilder<TaggedText>();
-                    builder.AddText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex));
+                    builder.AddText(FeaturesResources.Awaited_task_returns_0[..symbolIndex]);
                     builder.AddRange(mainDescriptionTaggedParts);
                     builder.AddText(FeaturesResources.Awaited_task_returns_0[(symbolIndex + defaultSymbol.Length)..]);
 
@@ -73,8 +74,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
                 AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
 
-            var remarksDocumentation = GetRemarksDocumentationContent(workspace, groups, semanticModel);
-            if (!remarksDocumentation.IsDefaultOrEmpty)
+            if (options.QuickInfoOptions.ShowRemarksInQuickInfo &&
+                groups.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var remarksDocumentation) &&
+                !remarksDocumentation.IsEmpty)
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
                 if (!docParts.IsDefaultOrEmpty)
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.TypeParameters, builder.ToImmutable());
             }
 
-            if (TryGetGroupText(SymbolDescriptionGroups.AnonymousTypes, out var anonymousTypesText))
+            if (TryGetGroupText(SymbolDescriptionGroups.StructuralTypes, out var anonymousTypesText))
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
                 builder.AddLineBreak();
@@ -157,19 +159,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             void AddSection(string kind, ImmutableArray<TaggedText> taggedParts)
                 => sections.Add(QuickInfoSection.Create(kind, taggedParts));
-        }
-
-        private static ImmutableArray<TaggedText> GetRemarksDocumentationContent(
-            Workspace workspace,
-            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
-            SemanticModel semanticModel)
-        {
-            if (!workspace.Options.GetOption(QuickInfoOptions.ShowRemarksInQuickInfo, semanticModel.Language))
-                return default;
-
-            return sections.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var parts)
-                ? parts
-                : default;
         }
     }
 }

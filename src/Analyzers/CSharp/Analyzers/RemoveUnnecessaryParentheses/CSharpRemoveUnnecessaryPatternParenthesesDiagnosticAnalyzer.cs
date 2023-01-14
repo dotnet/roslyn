@@ -4,11 +4,11 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Precedence;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 
             var inner = parenthesizedPattern.Pattern;
             var innerPrecedence = inner.GetOperatorPrecedence();
-            var innerIsSimple = innerPrecedence == OperatorPrecedence.Primary ||
-                                innerPrecedence == OperatorPrecedence.None;
+            var innerIsSimple = innerPrecedence is OperatorPrecedence.Primary or
+                                OperatorPrecedence.None;
 
-            if (!(parenthesizedPattern.Parent is PatternSyntax))
+            if (parenthesizedPattern.Parent is not PatternSyntax)
             {
                 // We're parented by something not a pattern.  i.e. `x is (...)` or `case (...)`.
                 // These parentheses are never needed for clarity and can always be removed.
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                 return true;
             }
 
-            if (!(parenthesizedPattern.Parent is BinaryPatternSyntax parentPattern))
+            if (parenthesizedPattern.Parent is not BinaryPatternSyntax parentPattern)
             {
                 // We're parented by something other than a BinaryPattern.  These parentheses are never needed for
                 // clarity and can always be removed.

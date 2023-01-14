@@ -9,12 +9,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 {
     public class FormatDocumentRangeTests : AbstractLanguageServerProtocolTests
     {
+        public FormatDocumentRangeTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestFormatDocumentRangeAsync()
         {
@@ -34,8 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var rangeToFormat = locations["format"].Single();
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            var rangeToFormat = testLspServer.GetLocations("format").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
 
             var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat);
@@ -62,8 +67,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 			int i = 1;
 	}
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var rangeToFormat = locations["format"].Single();
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            var rangeToFormat = testLspServer.GetLocations("format").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
 
             var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat, insertSpaces: false, tabSize: 4);
@@ -80,8 +85,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             return await testLspServer.ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(
                 LSP.Methods.TextDocumentRangeFormattingName,
                 CreateDocumentRangeFormattingParams(location, insertSpaces, tabSize),
-                new LSP.ClientCapabilities(),
-                clientName: null,
                 CancellationToken.None);
         }
 

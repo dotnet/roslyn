@@ -8,33 +8,40 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
-    <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicCompletionServiceFactory
-        Implements ILanguageServiceFactory
-
-        <ImportingConstructor>
-        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
-        End Sub
-
-        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
-        End Function
-    End Class
-
     Partial Friend Class VisualBasicCompletionService
         Inherits CommonCompletionService
 
-        Private ReadOnly _workspace As Workspace
+        <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.VisualBasic), [Shared]>
+        Friend Class Factory
+            Implements ILanguageServiceFactory
 
-        Public Sub New(workspace As Workspace)
-            MyBase.New(workspace)
-            _workspace = workspace
+            Private ReadOnly _listenerProvider As IAsynchronousOperationListenerProvider
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New(listenerProvider As IAsynchronousOperationListenerProvider)
+                _listenerProvider = listenerProvider
+            End Sub
+
+            Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+                Return New VisualBasicCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider)
+            End Function
+        End Class
+
+        Private _latestRules As CompletionRules = CompletionRules.Create(
+            dismissIfEmpty:=True,
+            dismissIfLastCharacterDeleted:=True,
+            defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
+            defaultEnterKeyRule:=EnterKeyRule.Always)
+
+        Private Sub New(services As SolutionServices, listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(services, listenerProvider)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -43,19 +50,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Get
         End Property
 
-        Private _latestRules As CompletionRules = CompletionRules.Create(
-            dismissIfEmpty:=True,
-            dismissIfLastCharacterDeleted:=True,
-            defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
-            defaultEnterKeyRule:=EnterKeyRule.Always)
-
-        Public Overrides Function GetRules() As CompletionRules
-            Dim options = _workspace.Options
-
+        Friend Overrides Function GetRules(options As CompletionOptions) As CompletionRules
             ' Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# And VB
             ' In VB the default means Always to maintain previous behavior
-            Dim enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)
-            Dim snippetsRule = options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic)
+            Dim enterRule = options.EnterKeyBehavior
+            Dim snippetsRule = options.SnippetsBehavior
 
             If enterRule = EnterKeyRule.Default Then
                 enterRule = EnterKeyRule.Always
@@ -110,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         End Function
 
         Private Function GetChangeText(item As CompletionItem) As String
-            Dim provider = TryCast(GetProvider(item), CommonCompletionProvider)
+            Dim provider = TryCast(GetProvider(item, project:=Nothing), CommonCompletionProvider)
             If provider IsNot Nothing Then
                 ' TODO: Document Is Not available in this code path.. what about providers that need to reconstruct information before producing text?
                 Dim result = provider.GetTextChangeAsync(Nothing, item, Nothing, CancellationToken.None).Result
@@ -126,11 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return CompletionUtilities.GetCompletionItemSpan(text, caretPosition)
         End Function
 
-        Friend Overrides Function SupportsTriggerOnDeletion(options As OptionSet) As Boolean
+        Friend Overrides Function SupportsTriggerOnDeletion(options As CompletionOptions) As Boolean
             ' If the option is null (i.e. default) or 'true', then we want to trigger completion.
             ' Only if the option is false do we not want to trigger.
-            Dim opt = options.GetOption(CompletionOptions.TriggerOnDeletion, Me.Language)
-            Return If(opt = False, False, True)
+            Return If(options.TriggerOnDeletion = False, False, True)
         End Function
     End Class
 End Namespace

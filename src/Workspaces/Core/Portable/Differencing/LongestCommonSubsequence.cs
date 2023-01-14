@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             var max = Math.Max(oldLength, newLength);
             Debug.Assert(lcsLength <= max);
-            return 1.0 - (double)lcsLength / (double)max;
+            return 1.0 - lcsLength / (double)max;
         }
 
         /// <summary>

@@ -7,31 +7,35 @@ Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
         Inherits AbstractAddAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
 
-        Private Shared ReadOnly Property SyntaxFacts As VisualBasicSyntaxFacts = VisualBasicSyntaxFacts.Instance
-
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext,
-                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
+                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
+                compilationUnit As CompilationUnitSyntax)
 
             ProcessMembers(context, [option], compilationUnit.Members)
         End Sub
 
-        Private Sub ProcessMembers(context As SyntaxTreeAnalysisContext,
-                                   [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), members As SyntaxList(Of StatementSyntax))
+        Private Sub ProcessMembers(
+                context As SyntaxTreeAnalysisContext,
+                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
+                members As SyntaxList(Of StatementSyntax))
+
             For Each member In members
                 ProcessMember(context, [option], member)
             Next
         End Sub
 
-        Private Sub ProcessMember(context As SyntaxTreeAnalysisContext,
-                              [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), member As StatementSyntax)
+        Private Sub ProcessMember(
+                context As SyntaxTreeAnalysisContext,
+                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
+                member As StatementSyntax)
 
             If member.Kind() = SyntaxKind.NamespaceBlock Then
                 Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
@@ -48,7 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             End If
 
             Dim name As SyntaxToken = Nothing
-            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(SyntaxFacts, member, [option].Value, name) Then
+            Dim modifiersAdded As Boolean = False
+            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(VisualBasicAccessibilityFacts.Instance, member, [option].Value, name, modifiersAdded) Then
                 Return
             End If
 
@@ -59,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 name.GetLocation(),
                 [option].Notification.Severity,
                 additionalLocations:=additionalLocations,
-                properties:=Nothing))
+                If(modifiersAdded, ModifiersAddedProperties, Nothing)))
         End Sub
     End Class
 End Namespace

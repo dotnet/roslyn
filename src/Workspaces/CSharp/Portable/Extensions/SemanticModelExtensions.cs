@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using Humanizer;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else if (current is DeclarationExpressionSyntax decl)
                 {
-                    if (!(decl.Designation is SingleVariableDesignationSyntax name))
+                    if (decl.Designation is not SingleVariableDesignationSyntax name)
                     {
                         break;
                     }
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var topExpression = expression.WalkUpParentheses();
-            if (topExpression.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
+            if (topExpression?.Parent is ArgumentSyntax argument)
             {
                 if (argument.NameColon != null)
                 {

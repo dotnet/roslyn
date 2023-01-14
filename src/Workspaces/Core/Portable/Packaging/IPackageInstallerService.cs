@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -16,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Packaging
     {
         bool IsEnabled(ProjectId projectId);
 
-        bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
+        bool IsInstalled(ProjectId projectId, string packageName);
 
-        bool TryInstallPackage(
+        Task<bool> TryInstallPackageAsync(
             Workspace workspace, DocumentId documentId,
             string source, string packageName,
             string? version, bool includePrerelease,

@@ -15,8 +15,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
     ''' This provider is specifically around to handle fixing unnecessary parentheses 
     ''' whose current option is set to something other than 'Ignore'.
     ''' </summary>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
     Partial Public Class RemoveUnnecessaryParenthesesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+
+        Private Shared ReadOnly CheckOverflow As CompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, checkOverflow:=True)
+        Private Shared ReadOnly DoNotCheckOverflow As CompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, checkOverflow:=False)
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(Workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), New VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider())
@@ -32,17 +36,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
 
         Private Shadows Async Function TestAsync(initial As String, expected As String,
                                                  offeredWhenRequireAllParenthesesForClarityIsEnabled As Boolean,
-                                                 Optional ByVal index As Integer = 0) As Task
-            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, index:=index)
+                                                 Optional index As Integer = 0,
+                                                 Optional checkOverflow As Boolean = True) As Task
+            Dim compilationOptions = If(checkOverflow,
+                RemoveUnnecessaryParenthesesTests.CheckOverflow,
+                RemoveUnnecessaryParenthesesTests.DoNotCheckOverflow)
+
+            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, index:=index, compilationOptions:=compilationOptions)
 
             If (offeredWhenRequireAllParenthesesForClarityIsEnabled) Then
-                Await TestInRegularAndScriptAsync(initial, expected, options:=MyBase.RequireAllParenthesesForClarity, index:=index)
+                Await TestInRegularAndScriptAsync(initial, expected, options:=RequireAllParenthesesForClarity, index:=index, compilationOptions:=compilationOptions)
             Else
-                Await TestMissingAsync(initial, parameters:=New TestParameters(options:=MyBase.RequireAllParenthesesForClarity))
+                Await TestMissingAsync(initial, parameters:=New TestParameters(options:=RequireAllParenthesesForClarity, compilationOptions:=compilationOptions))
             End If
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestVariableInitializer_Always() As Task
             Await TestMissingAsync(
 "class C
@@ -52,8 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
 end class", New TestParameters(options:=IgnoreAllParentheses))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        <WorkItem(29736, "https://github.com/dotnet/roslyn/issues/29736")>
+        <Fact, WorkItem(29736, "https://github.com/dotnet/roslyn/issues/29736")>
         Public Async Function TestVariableInitializer_MissingParenthesis() As Task
             Await TestMissingAsync(
 "class C
@@ -63,7 +71,7 @@ end class", New TestParameters(options:=IgnoreAllParentheses))
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestArithmeticRequiredForClarity1() As Task
             Await TestMissingAsync(
 "class C
@@ -73,7 +81,7 @@ end class")
 end class", New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestArithmeticRequiredForClarity2() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -88,7 +96,7 @@ end class",
 end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestLogicalRequiredForClarity1() As Task
             Await TestMissingAsync(
 "class C
@@ -98,7 +106,7 @@ end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParen
 end class", New TestParameters(options:=RequireOtherBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestLogicalRequiredForClarity2() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -113,8 +121,8 @@ end class",
 end class", parameters:=New TestParameters(options:=RequireOtherBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        Public Async Function TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame1() As Task
+        <Fact>
+        Public Async Function TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame1_DoNotCheckOverflow() As Task
             Await TestAsync(
 "class C
     sub M()
@@ -125,10 +133,20 @@ end class",
     sub M()
         dim x = 1 + 2 + 3
     end sub
-end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True, checkOverflow:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
+        Public Async Function TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame1_CheckOverflow() As Task
+            Await TestMissingAsync(
+"class C
+    sub M()
+        dim x = 1 + $$(2 + 3)
+    end sub
+end class", New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
+        End Function
+
+        <Fact>
         Public Async Function TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame2() As Task
             Await TestAsync(
 "class C
@@ -143,7 +161,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1() As Task
             Await TestAsync(
 "class C
@@ -158,7 +176,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2() As Task
             Await TestAsync(
 "class C
@@ -173,7 +191,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestVariableInitializer_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -188,7 +206,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestReturnStatement_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -203,7 +221,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestLocalVariable_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -220,7 +238,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestLocalVariable_TestAvailableWithRequiredForClarity() As Task
             Await TestMissingAsync(
 "class C
@@ -231,7 +249,7 @@ end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
 end class", New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -248,7 +266,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestPrimaryAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -265,7 +283,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestCompoundAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -282,7 +300,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestCompoundPrimaryAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -299,7 +317,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestNestedParenthesizedExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -314,7 +332,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestLambdaBody_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -329,7 +347,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestArrayElement_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -344,7 +362,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestWhereClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -363,7 +381,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestCastExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -378,7 +396,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestAroundCastExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -393,7 +411,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestMissingForConditionalAccess() As Task
             Await TestMissingAsync(
 "class C
@@ -403,7 +421,7 @@ end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
 end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestMissingForConditionalIndex() As Task
             Await TestMissingAsync(
 "class C
@@ -413,7 +431,7 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses))
 end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestNonConditionalInInterpolation_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
@@ -428,7 +446,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestBinaryExpression_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity1() As Task
             Await TestAsync(
 "class C
@@ -443,7 +461,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestBinaryExpression_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity2() As Task
             Await TestAsync(
 "class C
@@ -458,7 +476,7 @@ end class",
 end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestForOverloadedOperatorOnLeft() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -481,7 +499,7 @@ end class",
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestMissingForOverloadedOperatorOnRight() As Task
             Await TestMissingAsync(
 "class C
@@ -495,7 +513,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestShiftRequiredForClarity1() As Task
             Await TestMissingAsync(
 "class C
@@ -505,7 +523,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestShiftRequiredForClarity2() As Task
             Await TestMissingAsync(
 "class C
@@ -515,7 +533,7 @@ end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParen
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestDoNotRemoveShiftIfDifferentPrecedence1() As Task
             Await TestMissingAsync(
 "class C
@@ -525,7 +543,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestDoNotRemoveShiftIfDifferentPrecedence2() As Task
             Await TestMissingAsync(
 "class C
@@ -535,7 +553,7 @@ end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParenthe
 end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestDoNotRemoveShiftIfKindsDiffer() As Task
             Await TestMissingAsync(
 "class C
@@ -545,7 +563,7 @@ end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParenthe
 end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact>
         Public Async Function TestRemoveShiftWithSamePrecedence() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -560,8 +578,7 @@ end class",
 end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
         End Function
 
-        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
         Public Async Function TestUnnecessaryParenthesisDiagnosticSingleLineExpression() As Task
             Dim parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 2, 16)
             Await TestDiagnosticsAsync(
@@ -572,8 +589,7 @@ end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParenthe
 end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), parentheticalExpressionDiagnostic)
         End Function
 
-        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
         Public Async Function TestUnnecessaryParenthesisDiagnosticInMultiLineExpression() As Task
             Dim firstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 +", 2, 16)
             Await TestDiagnosticsAsync(
@@ -585,9 +601,8 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), parent
 end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), firstLineParentheticalExpressionDiagnostic)
         End Function
 
-        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedExpression() As Task
+        <Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
+        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedExpression_DoNotCheckOverflow() As Task
             Dim outerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + (2 + 3) + 4)", 2, 16)
             Dim innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(2 + 3)", 2, 21)
             Dim expectedDiagnostics = New DiagnosticDescription() {outerParentheticalExpressionDiagnostic, innerParentheticalExpressionDiagnostic}
@@ -596,12 +611,11 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), firstL
     sub M()
         dim x = [|(1 + (2 + 3) + 4)|]
     end sub
-end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expectedDiagnostics)
+end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses, compilationOptions:=DoNotCheckOverflow), expectedDiagnostics)
         End Function
 
-        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression() As Task
+        <Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
+        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression_DoNotCheckOverflow() As Task
             Dim outerFirstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2 +", 2, 16)
             Dim innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(3 + 4)", 3, 12)
             Dim expectedDiagnostics = New DiagnosticDescription() {outerFirstLineParentheticalExpressionDiagnostic, innerParentheticalExpressionDiagnostic}
@@ -612,11 +626,10 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expect
             (3 + 4) +
             5 + 6)|]
     end sub
-end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expectedDiagnostics)
+end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses, compilationOptions:=DoNotCheckOverflow), expectedDiagnostics)
         End Function
 
-        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39529")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39529")>
         Public Async Function TestUnnecessaryParenthesisIncludesFadeLocations() As Task
             Dim input =
 "class C

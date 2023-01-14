@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     /// Caches suggested action sets between calls to <see cref="CodeActionsHandler"/> and
     /// <see cref="CodeActionResolveHandler"/>.
     /// </summary>
-    internal class CodeActionsCache
+    internal class CodeActionsCache : ILspService
     {
         /// <summary>
         /// Ensures we aren't making concurrent modifications to the list of cached items.

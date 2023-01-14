@@ -16,12 +16,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
+    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
     public class GenericNamePartiallyWrittenSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
         internal override Type GetSignatureHelpProviderType()
             => typeof(GenericNamePartiallyWrittenSignatureHelpProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task NestedGenericUnterminated()
         {
             var markup = @"
@@ -41,8 +42,51 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
+        public async Task NestedGenericUnterminatedWithAmbiguousShift()
+        {
+            var markup = @"
+class G<T> { };
+
+class C
+{
+    void Goo()
+    {
+        var x = G<G<G<int>>$$>
+
+        x = x;
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact]
+        public async Task NestedGenericUnterminatedWithAmbiguousUnsignedShift()
+        {
+            var markup = @"
+class G<T> { };
+
+class C
+{
+    void Goo()
+    {
+        var x = G<G<G<G<int>>>$$>
+
+        x = x;
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
         public async Task DeclaringGenericTypeWith1ParameterUnterminated()
         {
             var markup = @"
@@ -62,7 +106,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task CallingGenericAsyncMethod()
         {
             var markup = @"
@@ -87,8 +131,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericMethod_BrowsableAlways()
         {
             var markup = @"
@@ -120,8 +163,7 @@ public class C
                                                        referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericMethod_BrowsableNever()
         {
             var markup = @"
@@ -153,8 +195,7 @@ public class C
                                                        referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericMethod_BrowsableAdvanced()
         {
             var markup = @"
@@ -195,8 +236,7 @@ public class C
                                                        hideAdvancedMembers: true);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericMethod_BrowsableMixed()
         {
             var markup = @"
@@ -235,7 +275,7 @@ public class C
                                                        referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task GenericExtensionMethod()
         {
             var markup = @"
@@ -268,8 +308,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
         public async Task InvokingGenericMethodWith1ParameterUnterminated()
         {
             var markup = @"
@@ -294,7 +333,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnTriggerBracket()
         {
             var markup = @"
@@ -314,7 +353,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
@@ -334,8 +373,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
             var markup = @"

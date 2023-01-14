@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             public static async Task<CSharpTriviaResult> ProcessAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
             {
-                var preservationService = selectionResult.SemanticDocument.Document.Project.LanguageServices.GetService<ISyntaxTriviaService>();
+                var preservationService = selectionResult.SemanticDocument.Document.Project.Services.GetService<ISyntaxTriviaService>();
                 var root = selectionResult.SemanticDocument.Root;
                 var result = preservationService.SaveTriviaAroundSelection(root, selectionResult.FinalSpan);
                 return new CSharpTriviaResult(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode method)
             {
-                var isMethodOrLocalFunction = method is MethodDeclarationSyntax || method is LocalFunctionStatementSyntax;
+                var isMethodOrLocalFunction = method is MethodDeclarationSyntax or LocalFunctionStatementSyntax;
                 if (callsite == null || !isMethodOrLocalFunction)
                 {
                     return null;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override TriviaResolver GetTriviaResolver(SyntaxNode method)
             {
-                var isMethodOrLocalFunction = method is MethodDeclarationSyntax || method is LocalFunctionStatementSyntax;
+                var isMethodOrLocalFunction = method is MethodDeclarationSyntax or LocalFunctionStatementSyntax;
                 if (!isMethodOrLocalFunction)
                 {
                     return null;
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private static IEnumerable<SyntaxTrivia> AppendLeadingTrivia(PreviousNextTokenPair tokenPair)
             {
-                if (tokenPair.PreviousToken.RawKind == (int)SyntaxKind.OpenBraceToken ||
-                    tokenPair.PreviousToken.RawKind == (int)SyntaxKind.SemicolonToken)
+                if (tokenPair.PreviousToken.RawKind is ((int)SyntaxKind.OpenBraceToken) or
+                    ((int)SyntaxKind.SemicolonToken))
                 {
                     return tokenPair.NextToken.LeadingTrivia;
                 }
@@ -171,8 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private static IEnumerable<SyntaxTrivia> AppendTrailingTrivia(PreviousNextTokenPair tokenPair)
             {
-                if (tokenPair.PreviousToken.RawKind == (int)SyntaxKind.OpenBraceToken ||
-                    tokenPair.PreviousToken.RawKind == (int)SyntaxKind.SemicolonToken)
+                if (tokenPair.PreviousToken.RawKind is ((int)SyntaxKind.OpenBraceToken) or
+                    ((int)SyntaxKind.SemicolonToken))
                 {
                     return tokenPair.PreviousToken.TrailingTrivia;
                 }

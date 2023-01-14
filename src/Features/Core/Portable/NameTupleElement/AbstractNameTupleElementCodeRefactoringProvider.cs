@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -31,16 +31,17 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(
+                CodeAction.Create(
                     string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
-                    c => AddNamedElementAsync(document, span, cancellationToken)),
+                    c => AddNamedElementAsync(document, span, cancellationToken),
+                    nameof(FeaturesResources.Add_tuple_element_name_0) + "_" + elementName),
                 argument.Span);
         }
 
         private static async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfoAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return default;
             }
@@ -86,14 +87,6 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var newArgument = WithName(argument, elementName).WithTriviaFrom(argument);
             var newRoot = root.ReplaceNode(argument, newArgument);
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

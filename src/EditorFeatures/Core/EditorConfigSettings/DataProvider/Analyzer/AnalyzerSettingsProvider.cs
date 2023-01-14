@@ -6,35 +6,32 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer
 {
-    internal class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, DiagnosticSeverity>
+    internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, DiagnosticSeverity>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
         public AnalyzerSettingsProvider(string fileName, AnalyzerSettingsUpdater settingsUpdater, Workspace workspace, IDiagnosticAnalyzerService analyzerService)
-            : base(fileName, settingsUpdater, workspace)
+            : base(fileName, settingsUpdater, workspace, analyzerService.GlobalOptions)
         {
             _analyzerService = analyzerService;
             Update();
         }
 
-        protected override void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet _)
+        protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
         {
-            var solution = Workspace.CurrentSolution;
-            var projects = solution.GetProjectsForPath(FileName);
-            var analyzerReferences = projects.SelectMany(p => p.AnalyzerReferences).DistinctBy(a => a.Id).ToImmutableArray();
+            var analyzerReferences = projectsInScope.SelectMany(p => p.AnalyzerReferences).DistinctBy(a => a.Id).ToImmutableArray();
             foreach (var analyzerReference in analyzerReferences)
             {
-                var configSettings = GetSettings(analyzerReference, editorConfigOptions);
+                var configSettings = GetSettings(analyzerReference, options.EditorConfigOptions);
                 AddRange(configSettings);
             }
         }

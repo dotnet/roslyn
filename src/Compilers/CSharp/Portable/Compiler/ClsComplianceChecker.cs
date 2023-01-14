@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }), _cancellationToken));
             }
@@ -1089,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol containingType;
                     if (containingTypes.TryGetValue(contextBaseType.OriginalDefinition, out containingType))
                     {
-                        return !TypeSymbol.Equals(containingType, contextBaseType, TypeCompareKind.ConsiderEverything2);
+                        return !TypeSymbol.Equals(containingType, contextBaseType, TypeCompareKind.AllIgnoreOptions);
                     }
 
                     contextBaseType = contextBaseType.BaseTypeNoUseSiteDiagnostics;

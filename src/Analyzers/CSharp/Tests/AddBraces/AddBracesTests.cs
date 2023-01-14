@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -18,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
     public partial class AddBracesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AddBracesTests(ITestOutputHelper logger)
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAddBracesDiagnosticAnalyzer(), new CSharpAddBracesCodeFixProvider());
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -132,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -201,7 +200,7 @@ class Fizz : IDisposable
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -236,7 +235,7 @@ class Buzz : IDisposable
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -257,7 +256,7 @@ class Buzz : IDisposable
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -278,7 +277,7 @@ class Buzz : IDisposable
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -298,7 +297,7 @@ class Buzz : IDisposable
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -329,7 +328,7 @@ class Buzz : IDisposable
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -360,7 +359,26 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory, WorkItem(57770, "https://github.com/dotnet/roslyn/issues/57770")]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfWithoutBracesTopLevel(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+@"
+[|if|] (true) return;
+",
+@"
+if (true)
+{
+    return;
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -393,7 +411,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -426,7 +444,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -448,16 +466,17 @@ class Program
 {
     static void Main()
     {
-{}
         else
+        {
             return;
+        }
     }
 }",
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -490,7 +509,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -531,7 +550,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -576,7 +595,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -620,7 +639,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -672,7 +691,7 @@ class Program
         /// portion also used braces (which would be required if the true portion was considered multiline.
         /// </summary>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -716,7 +735,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -747,7 +766,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -782,7 +801,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -815,7 +834,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -849,7 +868,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -880,7 +899,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -911,7 +930,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -943,7 +962,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -977,7 +996,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1011,7 +1030,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1059,7 +1078,7 @@ class Fizz : IDisposable
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1125,7 +1144,7 @@ class Buzz : IDisposable
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1193,7 +1212,7 @@ class Buzz : IDisposable
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1261,7 +1280,7 @@ class Buzz : IDisposable
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1295,7 +1314,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1335,7 +1354,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -1358,7 +1377,7 @@ class Program
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -1381,7 +1400,7 @@ class Program
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
@@ -1406,7 +1425,7 @@ class Program
                 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption2.Silent)));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1449,7 +1468,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1492,7 +1511,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1535,7 +1554,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1578,7 +1597,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1625,7 +1644,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1672,7 +1691,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1711,7 +1730,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1750,7 +1769,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1791,7 +1810,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]

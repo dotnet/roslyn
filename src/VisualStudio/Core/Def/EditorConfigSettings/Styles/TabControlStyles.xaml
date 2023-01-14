@@ -1,0 +1,61 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+                    xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0">
+
+    <!-- Inherit Themed Dialog styles -->
+    <Style TargetType="TabControl" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTabControlNavigationStyleKey}}" />
+
+    <Style TargetType="TabItem">
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}" />
+        <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment122PercentFontSizeKey}}"/>
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}" />
+        <Setter Property="Padding" Value="20,0,20,0" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource ControlsFocusVisualStyle}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TabItem}">
+                    <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+                        <Border x:Name="mainBorder" Background="{TemplateBinding Background}" BorderThickness="0" Margin="0">
+                        </Border>
+                        <ContentPresenter  Grid.Row="0" x:Name="contentPresenter" ContentSource="Header" Focusable="False" HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                        <!-- the line under the text to indicate that this label is selected -->
+                        <Rectangle
+                            x:Name="_underline"
+                            Grid.Row="1"
+                            Height="3"
+                            Visibility="Collapsed"
+                            Width="{Binding ActualWidth, ElementName=contentPresenter}"
+                            HorizontalAlignment="Center"
+                            Fill="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey}}"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="true"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" TargetName="_underline" Value="Visible" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabSelectedTextBrushKey }}" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource Self}}" Value="true" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabTextFocusedBrushKey}}" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabTextHoverBrushKey }}" />
+                        </MultiDataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

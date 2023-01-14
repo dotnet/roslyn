@@ -54,10 +54,10 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "( 1 ").WithLocation(8, 26),
                 // CS1003: Syntax error, '[' expected
                 //         /*<bind>*/int x, ( 1 );/*</bind>*/
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 26),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(8, 26),
                 // CS1003: Syntax error, ']' expected
                 //         /*<bind>*/int x, ( 1 );/*</bind>*/
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(8, 30),
                 // CS0168: The variable 'x' is declared but never used
                 //         /*<bind>*/int x, ( 1 );/*</bind>*/
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 23)
@@ -90,7 +90,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
   Switch expression: 
     IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
       Children(1):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+          IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
   Sections:
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'case 1: ... break;')
           Clauses:

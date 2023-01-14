@@ -46,16 +46,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return ImmutableArray<ValueTrackedItem>.Empty;
                 }
 
-                using var _ = PooledObjects.ArrayBuilder<ValueTrackedItem>.GetInstance(out var builder);
-
-                foreach (var item in result.Value)
-                {
-                    var rehydratedItem = await item.RehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(rehydratedItem);
-                    builder.Add(rehydratedItem);
-                }
-
-                return builder.ToImmutable();
+                return await result.Value.SelectAsArrayAsync(
+                    (item, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
 
             var progressTracker = new ValueTrackingProgressCollector();
@@ -84,20 +76,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return ImmutableArray<ValueTrackedItem>.Empty;
                 }
 
-                using var _ = PooledObjects.ArrayBuilder<ValueTrackedItem>.GetInstance(out var builder);
-
-                foreach (var item in result.Value)
-                {
-                    var rehydratedItem = await item.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-                    if (rehydratedItem is null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    builder.Add(rehydratedItem);
-                }
-
-                return builder.ToImmutable();
+                return await result.Value.SelectAsArrayAsync(
+                    (item, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
 
             var progressTracker = new ValueTrackingProgressCollector();

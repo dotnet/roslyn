@@ -1757,6 +1757,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_OverridingInitOnlyProperty = 37312
         ERR_PropertyDoesntImplementInitOnly = 37313
 
+        ERR_BadAbstractStaticMemberAccess = 37314
+        ERR_UnimplementedSharedMember = 37315
+
+        ERR_UnmanagedCallersOnlyNotSupported = 37316
+        ERR_MultipleAnalyzerConfigsInSameDir = 37317
+        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 37318
+
+        ERR_UnsupportedCompilerFeature = 37319
+        ERR_DoNotUseCompilerFeatureRequired = 37320
+
+        ERR_NextAvailable = 37321
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001
@@ -1955,8 +1967,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'WRN_PDBConstantStringValueTooLong = 42363  we gave up on this warning. See comments in commonCompilation.Emit()
         WRN_ReturnTypeAttributeOnWriteOnlyProperty = 42364
 
-        ERR_UnmanagedCallersOnlyNotSupported = 42365
-
         WRN_InvalidVersionFormat = 42366
         WRN_MainIgnored = 42367
         WRN_EmptyPrefixAndXmlnsLocalName = 42368
@@ -1980,7 +1990,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_Experimental = 42380
 
         WRN_AttributeNotSupportedInVB = 42381
-        ERR_MultipleAnalyzerConfigsInSameDir = 42500
         WRN_GeneratorFailedDuringInitialization = 42501
         WRN_GeneratorFailedDuringGeneration = 42502
         WRN_AnalyzerReferencesFramework = 42503
@@ -1988,13 +1997,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_CallerArgumentExpressionAttributeSelfReferential = 42504
         WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42505
 
+        WRN_AnalyzerReferencesNewerCompiler = 42506
+        WRN_DuplicateAnalyzerReference = 42507
+
         ' // AVAILABLE                             42600 - 49998
-        ERRWRN_NextAvailable = 42600
+        WRN_NextAvailable = 42600
+
+        ' NOTE: On adding a new ERRID, you will need to update ErrorFacts.IsBuildOnlyDiagnostic to handle it.
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
         HDN_UnusedImportStatement = 50001
         INF_UnableToLoadSomeTypesInAnalyzer = 50002
+
+        HDN_NextAvailable = 50003
 
         ' // AVAILABLE                             50003 - 54999   
 
@@ -2012,7 +2028,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LangVersions = 56010
         IDS_ToolName = 56011
 
-        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 56032
+        IDS_NextAvailable = 56012
 
         ' Feature codes
         FEATURE_AutoProperties

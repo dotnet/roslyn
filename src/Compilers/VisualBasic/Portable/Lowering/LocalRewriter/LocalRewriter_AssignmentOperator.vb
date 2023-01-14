@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return RewriteReceiverArgumentsAndGenerateAccessorCall(node.Syntax,
                                   setMethod,
                                   setNode.ReceiverOpt,
-                                  setNode.Arguments.Concat(ImmutableArray.Create(node.Right)),
+                                  setNode.Arguments.Concat(node.Right),
                                   node.ConstantValueOpt,
                                   isLValue:=False,
                                   suppressObjectClone:=False,

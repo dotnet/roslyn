@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Completion
 {
     /// <summary>
@@ -12,6 +10,12 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public static class MatchPriority
     {
+        /// <summary>
+        /// The matching algorithm should not select this item unless it's a dramatically 
+        /// better text-based match than other items.
+        /// </summary>
+        internal const int Deprioritize = int.MinValue / 2;
+
         /// <summary>
         /// The matching algorithm should give this item no special treatment.
         /// 

@@ -53,6 +53,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// An id used to match references to the same intermediate result.
         /// </summary>
         CaptureId Id { get; }
+        /// <summary>
+        /// True if this reference to the capture initializes the capture. Used when the capture is being initialized by being passed as an <code>out</code> parameter.
+        /// </summary>
+        bool IsInitialization { get; }
     }
     /// <summary>
     /// Represents result of checking whether the <see cref="Operand" /> is null.

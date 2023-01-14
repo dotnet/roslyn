@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -21,15 +21,16 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.ErrorSquiggles), Trait(Traits.Feature, Traits.Features.Tagging)>
     Public Class ErrorSquiggleProducerTests
 
         Private Shared Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Return (Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace)).Item2
+                Return (Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function ErrorTagGeneratedForSimpleError() As Task
             ' Make sure we have errors from the tree
             Dim spans = Await ProduceSquiggles("^")
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function ArgOutOfRangeExceptionBug_904382() As Task
             Dim spans = Await ProduceSquiggles(
 "Class C1
@@ -50,7 +51,7 @@ End Class")
             Dim count = spans.Count
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function ErrorDoesNotCrashPastEOF() As Task
             Dim spans = Await ProduceSquiggles(
 "Class C1
@@ -61,15 +62,15 @@ End Class")
             Assert.Equal(5, spans.Count())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function SemanticError() As Task
             Using workspace = TestWorkspace.CreateVisualBasic("Class C1
     Sub Goo(b as Bar)
     End Sub
 End Class")
 
-                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace)
-                Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagostic, span) (diagostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
+                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace)
+                Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagnostic, span) (diagnostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(1, spans.Count())
 
@@ -82,13 +83,13 @@ End Class")
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "BC30002", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC30002)", UriKind.Absolute)), "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC30002)"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, firstSpan.diagostic.Message)))
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, firstSpan.diagnostic.Message)))
 
                 ToolTipAssert.EqualContent(expectedToolTip, firstSpan.span.Tag.ToolTipContent)
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function CustomizableTagsForUnnecessaryCode() As Task
 
             Dim content = "
@@ -115,15 +116,13 @@ End Class"
             }
 
             Using workspace = TestWorkspace.CreateVisualBasic(content, composition:=SquiggleUtilities.CompositionWithSolutionCrawler)
-                Dim options As New Dictionary(Of OptionKey2, Object)
                 Dim language = workspace.Projects.Single().Language
-                Dim preferIntrinsicPredefinedTypeOption = New OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
-                Dim preferIntrinsicPredefinedTypeOptionValue = New CodeStyleOption2(Of Boolean)(value:=True, notification:=NotificationOption2.Error)
-                options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
-                workspace.ApplyOptions(options)
 
-                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace, analyzerMap)
-                Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagostic, span) (diagostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
+                workspace.GlobalOptions.SetGlobalOption(
+                    CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language, New CodeStyleOption2(Of Boolean)(value:=True, notification:=NotificationOption2.Error))
+
+                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider, IErrorTag).GetDiagnosticsAndErrorSpans(workspace, analyzerMap)
+                Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagnostic, span) (diagnostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(2, spans.Length)
                 Dim first = spans(0)
@@ -132,7 +131,7 @@ End Class"
                 Dim expectedToolTip = New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, VisualBasicAnalyzersResources.Imports_statement_is_unnecessary)))
@@ -145,10 +144,10 @@ End Class"
                 expectedToolTip = New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049", UriKind.Absolute)), "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, WorkspacesResources.Name_can_be_simplified)))
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, AnalyzersResources.Name_can_be_simplified)))
 
                 Assert.Equal(PredefinedErrorTypeNames.SyntaxError, second.span.Tag.ErrorType)
                 ToolTipAssert.EqualContent(expectedToolTip, second.span.Tag.ToolTipContent)

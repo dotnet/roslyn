@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.DocumentHighlighting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
@@ -11,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
     Public Class DocumentHighlightsServiceTests
 
-        <WorkItem(441151, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
         <Theory, CombinatorialData>
+        <WorkItem(441151, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
         Public Async Function TestMultipleLanguagesPassedToAPI(testHost As TestHost) As Task
             Dim workspaceElement =
                 <Workspace>
@@ -40,10 +41,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim solution = workspace.CurrentSolution
                 Dim csharpDocument = solution.Projects.Single(Function(p) p.Language = LanguageNames.CSharp).Documents.Single()
                 Dim vbDocument = solution.Projects.Single(Function(p) p.Language = LanguageNames.VisualBasic).Documents.Single()
+                Dim options = New HighlightingOptions()
 
-                Dim service = csharpDocument.GetLanguageService(Of DocumentHighlighting.IDocumentHighlightsService)
+                Dim service = csharpDocument.GetLanguageService(Of IDocumentHighlightsService)
                 Dim highlights = Await service.GetDocumentHighlightsAsync(
-                    csharpDocument, position, ImmutableHashSet.Create(csharpDocument, vbDocument), CancellationToken.None)
+                    csharpDocument, position, ImmutableHashSet.Create(csharpDocument, vbDocument), options, CancellationToken.None)
 
                 AssertEx.Equal(
                     {"Test1.cs: Reference [102..108)"},

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
@@ -201,6 +202,28 @@ public class C
 }
 ";
             await VerifyCSharp9Async(source, fixedSource);
+        }
+
+        [Fact, WorkItem(58377, "https://github.com/dotnet/roslyn/issues/58377")]
+        public async Task TestNotInExpressionTree()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+
+class SomeClass
+{
+    void M()
+    {
+        Bar(s => s is object ? 0 : 1);
+    }
+
+    private void Bar(Expression<Func<object, int>> p)
+    {
+    }
+}
+";
+            await VerifyCSharp9Async(source, source);
         }
     }
 }

@@ -10,7 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -38,34 +39,52 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="position">The character position within the document.</param>
         /// <param name="workspace">A workspace to provide context.</param>
         /// <param name="cancellationToken">A CancellationToken.</param>
-        public static async Task<ISymbol> FindSymbolAtPositionAsync(
+        public static Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
             CancellationToken cancellationToken = default)
         {
-            if (semanticModel is null)
-                throw new ArgumentNullException(nameof(semanticModel));
             if (workspace is null)
                 throw new ArgumentNullException(nameof(workspace));
 
+            return FindSymbolAtPositionAsync(semanticModel, position, workspace.Services.SolutionServices, cancellationToken);
+        }
+
+        /// <summary>
+        /// Finds the symbol that is associated with a position in the text of a document.
+        /// </summary>
+        /// <param name="semanticModel">The semantic model associated with the document.</param>
+        /// <param name="position">The character position within the document.</param>
+        /// <param name="cancellationToken">A CancellationToken.</param>
+        internal static async Task<ISymbol> FindSymbolAtPositionAsync(
+            SemanticModel semanticModel,
+            int position,
+            SolutionServices services,
+            CancellationToken cancellationToken = default)
+        {
+            if (semanticModel is null)
+                throw new ArgumentNullException(nameof(semanticModel));
+            if (services is null)
+                throw new ArgumentNullException(nameof(services));
+
             var semanticInfo = await GetSemanticInfoAtPositionAsync(
-                semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+                semanticModel, position, services, cancellationToken).ConfigureAwait(false);
             return semanticInfo.GetAnySymbol(includeType: false);
         }
 
         internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            Workspace workspace,
+            SolutionServices services,
             CancellationToken cancellationToken)
         {
-            var token = await GetTokenAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
+            var token = await GetTokenAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
 
             if (token != default &&
                 token.Span.IntersectsWith(position))
             {
-                return semanticModel.GetSemanticInfo(token, workspace, cancellationToken);
+                return semanticModel.GetSemanticInfo(token, services, cancellationToken);
             }
 
             return TokenSemanticInfo.Empty;
@@ -74,11 +93,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Task<SyntaxToken> GetTokenAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            Workspace workspace,
+            SolutionServices services,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
-            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
+            var syntaxFacts = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
 
             return syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
         }
@@ -92,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(document));
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
+            return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -156,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
             }
-            else if (!symbol.Locations.Any(loc => loc.IsInMetadata))
+            else if (!symbol.Locations.Any(static loc => loc.IsInMetadata))
             {
                 // We have a symbol that's neither in source nor metadata
                 return null;
@@ -184,7 +203,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool InSource(ISymbol symbol)
         {
-            return symbol.Locations.Any(loc => loc.IsInSource);
+            return symbol.Locations.Any(static loc => loc.IsInSource);
         }
 
         /// <summary>
@@ -245,7 +264,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                 if (originalDocument == null)
                 {
-                    Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                    Debug.Assert(solution.WorkspaceKind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
                     continue;
                 }
 

@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
@@ -13,38 +14,35 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class ViewSpanChangedEventSource : ITaggerEventSource
+        private class ViewSpanChangedEventSource : AbstractTaggerEventSource
         {
-            private readonly ForegroundThreadAffinitizedObject _foregroundObject;
-
+            private readonly IThreadingContext _threadingContext;
             private readonly ITextView _textView;
 
             private Span? _span;
 
-            public event EventHandler<TaggerEventArgs>? Changed;
-
             public ViewSpanChangedEventSource(IThreadingContext threadingContext, ITextView textView)
             {
                 Debug.Assert(textView != null);
-                _foregroundObject = new ForegroundThreadAffinitizedObject(threadingContext);
+                _threadingContext = threadingContext;
                 _textView = textView;
             }
 
-            public void Connect()
+            public override void Connect()
             {
-                _foregroundObject.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 _textView.LayoutChanged += OnLayoutChanged;
             }
 
-            public void Disconnect()
+            public override void Disconnect()
             {
-                _foregroundObject.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 _textView.LayoutChanged -= OnLayoutChanged;
             }
 
             private void OnLayoutChanged(object? sender, TextViewLayoutChangedEventArgs e)
             {
-                _foregroundObject.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 // The formatted span refers to the span of the textview's buffer that is visible.
                 // If it changes, then we want to reclassify.  Note: the span might not change if
                 // text were overwritten.  However, in the case of text-edits, we'll hear about 
@@ -64,9 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     RaiseChanged();
                 }
             }
-
-            private void RaiseChanged()
-                => this.Changed?.Invoke(this, new TaggerEventArgs());
         }
     }
 }

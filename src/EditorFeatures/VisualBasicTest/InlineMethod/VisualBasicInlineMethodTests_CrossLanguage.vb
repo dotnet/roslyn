@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
         End Function
 
         Private Async Function TestNoActionIsProvided(initialMarkup As String) As Task
-            Dim workspace = CreateWorkspaceFromOptions(initialMarkup, Nothing)
+            Dim workspace = CreateWorkspaceFromOptions(initialMarkup)
             Dim actions = Await GetCodeActionsAsync(workspace, Nothing).ConfigureAwait(False)
             Assert.True(actions.Item1.IsEmpty())
         End Function

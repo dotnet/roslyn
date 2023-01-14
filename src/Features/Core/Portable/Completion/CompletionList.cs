@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -15,12 +16,21 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public sealed class CompletionList
     {
-        private readonly bool _isExclusive;
+        private readonly Lazy<ImmutableArray<CompletionItem>> _lazyItems;
 
         /// <summary>
         /// The completion items to present to the user.
         /// </summary>
-        public ImmutableArray<CompletionItem> Items { get; }
+        [Obsolete($"This property is obsolete. Use {nameof(ItemsList)} instead", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public ImmutableArray<CompletionItem> Items => _lazyItems.Value;
+
+        /// <summary>
+        /// The completion items to present to the user.
+        /// This property is preferred over `Items` because of the flexibility it provides. 
+        /// For example, the list can be backed by types like SegmentedList to avoid LOH allocations.
+        /// </summary>
+        public IReadOnlyList<CompletionItem> ItemsList { get; }
 
         /// <summary>
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.
@@ -46,28 +56,34 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
-        /// Suggestion mode disables autoselection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
+        /// Suggestion mode disables auto-selection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
         /// Specifying a <see cref="SuggestionModeItem"/> is a request that the completion host operate in suggestion mode.
         /// The item specified determines the text displayed and the description associated with it unless a different item is manually selected.
         /// No text is ever inserted when this item is completed, leaving the text the user typed instead.
         /// </summary>
-        public CompletionItem SuggestionModeItem { get; }
+        public CompletionItem? SuggestionModeItem { get; }
+
+        /// <summary>
+        /// Whether the items in this list should be the only items presented to the user.
+        /// </summary>
+        internal bool IsExclusive { get; }
 
         private CompletionList(
             TextSpan defaultSpan,
-            ImmutableArray<CompletionItem> items,
-            CompletionRules rules,
-            CompletionItem suggestionModeItem,
+            IReadOnlyList<CompletionItem> itemsList,
+            CompletionRules? rules,
+            CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             Span = defaultSpan;
+            ItemsList = itemsList;
+            _lazyItems = new(() => ItemsList.ToImmutableArrayOrEmpty(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
 
-            Items = items.NullToEmpty();
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
-            _isExclusive = isExclusive;
+            IsExclusive = isExclusive;
 
-            foreach (var item in Items)
+            foreach (var item in ItemsList)
             {
                 item.Span = defaultSpan;
             }
@@ -84,35 +100,35 @@ namespace Microsoft.CodeAnalysis.Completion
         public static CompletionList Create(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules = null,
-            CompletionItem suggestionModeItem = null)
+            CompletionRules? rules = null,
+            CompletionItem? suggestionModeItem = null)
         {
             return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false);
         }
 
         internal static CompletionList Create(
             TextSpan defaultSpan,
-            ImmutableArray<CompletionItem> items,
-            CompletionRules rules,
-            CompletionItem suggestionModeItem,
+            IReadOnlyList<CompletionItem> itemsList,
+            CompletionRules? rules,
+            CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
-            return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive);
+            return new CompletionList(defaultSpan, itemsList, rules, suggestionModeItem, isExclusive);
         }
 
         private CompletionList With(
             Optional<TextSpan> span = default,
-            Optional<ImmutableArray<CompletionItem>> items = default,
+            Optional<IReadOnlyList<CompletionItem>> itemsList = default,
             Optional<CompletionRules> rules = default,
             Optional<CompletionItem> suggestionModeItem = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
-            var newItems = items.HasValue ? items.Value : Items;
+            var newItemsList = itemsList.HasValue ? itemsList.Value : ItemsList;
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
 
             if (newSpan == Span &&
-                newItems == Items &&
+                newItemsList == ItemsList &&
                 newRules == Rules &&
                 newSuggestionModeItem == SuggestionModeItem)
             {
@@ -120,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return Create(newSpan, newItems, newRules, newSuggestionModeItem);
+                return Create(newSpan, newItemsList, newRules, newSuggestionModeItem, IsExclusive);
             }
         }
 
@@ -134,11 +150,19 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionList WithSpan(TextSpan span)
             => With(span: span);
 
+#pragma warning disable RS0030 // Do not used banned APIs
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="Items"/> property changed.
         /// </summary>
         public CompletionList WithItems(ImmutableArray<CompletionItem> items)
-            => With(items: items);
+#pragma warning restore RS0030 // Do not used banned APIs
+            => With(itemsList: items);
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="ItemsList"/> property changed.
+        /// </summary>
+        internal CompletionList WithItemsList(IReadOnlyList<CompletionItem> itemsList)
+            => With(itemsList: new(itemsList));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="Rules"/> property changed.
@@ -156,20 +180,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
         public static readonly CompletionList Empty = new(
-            default, default, CompletionRules.Default,
+            default, ImmutableArray<CompletionItem>.Empty, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
 
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly CompletionList _completionList;
-
-            public TestAccessor(CompletionList completionList)
-                => _completionList = completionList;
-
-            internal bool IsExclusive => _completionList._isExclusive;
-        }
+        internal bool IsEmpty => ItemsList.Count == 0 && SuggestionModeItem is null;
     }
 }

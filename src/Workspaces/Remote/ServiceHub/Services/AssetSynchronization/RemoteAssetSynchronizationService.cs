@@ -13,9 +13,9 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// This service is used by the <see cref="SolutionChecksumUpdater"/> to proactively update the solution snapshot in
-    /// the out-of-process workspace. We do this to limit the amount of time required to synchronize a solution over after an edit
-    /// once a feature is asking for a snapshot.
+    /// This service is used by the SolutionChecksumUpdater to proactively update the solution snapshot in the
+    /// out-of-process workspace. We do this to limit the amount of time required to synchronize a solution over after
+    /// an edit once a feature is asking for a snapshot.
     /// </summary>
     internal sealed class RemoteAssetSynchronizationService : BrokeredServiceBase, IRemoteAssetSynchronizationService
     {
@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
+        public ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, solutionChecksum, cancellationToken))
                 {
                     var workspace = GetWorkspace();
-                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
-                    var text = await TryGetSourceTextAsync().ConfigureAwait(false);
+                    // Try to get the text associated with baseTextChecksum
+                    var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
                     if (text == null)
                     {
                         // it won't bring in base text if it is not there already.
@@ -61,26 +62,27 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
+                    // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
+                    // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
+                    // the entire document.
                     var newText = new SerializableSourceText(text.WithChanges(textChanges));
                     var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
 
-                    // save new text in the cache so that when asked, the data is most likely already there
-                    //
-                    // this cache is very short live. and new text created above is ChangedText which share
-                    // text data with original text except the changes.
-                    // so memory wise, this doesn't put too much pressure on the cache. it will not duplicates
-                    // same text multiple times.
-                    //
-                    // also, once the changes are picked up and put into Workspace, normal Workspace 
-                    // caching logic will take care of the text
-                    WorkspaceManager.SolutionAssetCache.TryAddAsset(newChecksum, newText);
+                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newText);
                 }
 
-                async Task<SourceText?> TryGetSourceTextAsync()
+                return;
+
+                async static Task<SourceText?> TryGetSourceTextAsync(
+                    RemoteWorkspaceManager workspaceManager,
+                    Workspace workspace,
+                    DocumentId documentId,
+                    Checksum baseTextChecksum,
+                    CancellationToken cancellationToken)
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
-                    if (WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(baseTextChecksum, out var serializableSourceText))
+                    if (workspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(baseTextChecksum, out var serializableSourceText))
                     {
                         return await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     }

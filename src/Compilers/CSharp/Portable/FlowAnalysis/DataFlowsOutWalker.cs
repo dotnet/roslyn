@@ -117,14 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (node.Kind)
                 {
+                    case BoundKind.ListPattern:
+                    case BoundKind.RecursivePattern:
                     case BoundKind.DeclarationPattern:
                         {
-                            return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
-                        }
-
-                    case BoundKind.RecursivePattern:
-                        {
-                            return ((BoundRecursivePattern)node).Variable as LocalSymbol;
+                            return ((BoundObjectPattern)node).Variable as LocalSymbol;
                         }
 
                     case BoundKind.FieldAccess:

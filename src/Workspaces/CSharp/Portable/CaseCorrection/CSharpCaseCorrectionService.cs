@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection
             SemanticModel? semanticModel,
             SyntaxNode root,
             ImmutableArray<TextSpan> spans,
-            Workspace workspace,
             ConcurrentDictionary<SyntaxToken, SyntaxToken> replacements,
             CancellationToken cancellationToken)
         {

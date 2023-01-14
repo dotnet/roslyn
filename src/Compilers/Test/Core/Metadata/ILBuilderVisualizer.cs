@@ -197,13 +197,6 @@ namespace Roslyn.Test.Utilities
             return sb.ToString();
         }
 
-        private static string BasicBlockToString(ILBuilder.BasicBlock block)
-        {
-            StringBuilder sb = new StringBuilder();
-            DumpBlockIL(block, sb);
-            return sb.ToString();
-        }
-
         private static void DumpBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
         {
             if (block is ILBuilder.SwitchBlock switchBlock)

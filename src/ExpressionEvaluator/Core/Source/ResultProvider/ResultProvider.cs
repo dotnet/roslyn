@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         static ResultProvider()
         {
-            FatalError.Handler = FailFast.OnFatalException;
+            FatalError.Handler = FailFast.Handler;
         }
 
         internal ResultProvider(IDkmClrFormatter2 formatter2, IDkmClrFullNameProvider fullNameProvider)
@@ -63,10 +63,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
         {
-            if (formatSpecifiers == null)
-            {
-                formatSpecifiers = Formatter.NoFormatSpecifiers;
-            }
+            formatSpecifiers ??= Formatter.NoFormatSpecifiers;
             if (resultFullName != null)
             {
                 ReadOnlyCollection<string> otherSpecifiers;
@@ -105,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -208,7 +205,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -231,9 +228,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else
             {
                 var typeDeclaringMember = row.TypeDeclaringMemberAndInfo;
-                var name = (typeDeclaringMember.Type == null) ?
-                    row.Name :
-                    GetQualifiedMemberName(row.InspectionContext, typeDeclaringMember, row.Name, FullNameProvider);
+                var name = (typeDeclaringMember.Type == null)
+                    ? row.Name
+                    : GetQualifiedMemberName(row.InspectionContext, typeDeclaringMember, row.Name, FullNameProvider);
                 row.Value.SetDataItem(DkmDataCreationDisposition.CreateAlways, new FavoritesDataItem(row.CanFavorite, row.IsFavorite));
                 row.Value.GetResult(
                     workList.InnerWorkList,
@@ -514,9 +511,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // Generate the declared type name without tuple element names.
                 var declaredTypeInfoNoTupleElementNames = declaredTypeInfo.WithNoTupleElementNames();
-                var declaredTypeNameNoTupleElementNames = (declaredTypeInfo == declaredTypeInfoNoTupleElementNames) ?
-                    declaredTypeName :
-                    inspectionContext.GetTypeName(declaredType, declaredTypeInfoNoTupleElementNames, Formatter.NoFormatSpecifiers);
+                var declaredTypeNameNoTupleElementNames = (declaredTypeInfo == declaredTypeInfoNoTupleElementNames)
+                    ? declaredTypeName
+                    : inspectionContext.GetTypeName(declaredType, declaredTypeInfoNoTupleElementNames, Formatter.NoFormatSpecifiers);
                 // Generate the runtime type name with no tuple element names and no dynamic.
                 var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
                 // If the two names are distinct, include both.
@@ -608,12 +605,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     formatSpecifiers,
                     flags,
                     Formatter2.GetEditableValueString(value, inspectionContext, declaredTypeAndInfo.Info));
-                if (expansion == null)
-                {
-                    expansion = value.HasExceptionThrown()
+                expansion ??= value.HasExceptionThrown()
                         ? this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(value.Type), value, expansionFlags, supportsFavorites: false)
                         : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags, supportsFavorites: supportsFavorites);
-                }
             }
 
             return new EvalResult(
@@ -751,9 +745,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 else
                 {
                     var useDebuggerDisplay = (inspectionContext.EvaluationFlags & NotRoot) != 0;
-                    var expansionFlags = (inspectionContext.EvaluationFlags & NoResults) != 0 ?
-                        ExpansionFlags.IncludeBaseMembers :
-                        ExpansionFlags.All;
+                    var expansionFlags = (inspectionContext.EvaluationFlags & NoResults) != 0
+                        ? ExpansionFlags.IncludeBaseMembers
+                        : ExpansionFlags.All;
                     var favortiesDataItem = value.GetDataItem<FavoritesDataItem>();
                     dataItem = CreateDataItem(
                         inspectionContext,
@@ -1035,9 +1029,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var typeName = fullNameProvider.GetClrTypeName(inspectionContext, typeDeclaringMember.ClrType, typeDeclaringMember.Info) ??
                 inspectionContext.GetTypeName(typeDeclaringMember.ClrType, typeDeclaringMember.Info, Formatter.NoFormatSpecifiers);
-            return typeDeclaringMember.Type.IsInterface ?
-                $"{typeName}.{memberName}" :
-                $"{memberName} ({typeName})";
+            return typeDeclaringMember.Type.IsInterface
+                ? $"{typeName}.{memberName}"
+                : $"{memberName} ({typeName})";
         }
 
         // Track remaining evaluations so that each subsequent evaluation

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -132,6 +133,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
 
+        public static bool IsValidNullableTypeArgument(this TypeSymbol type)
+        {
+            return type is { IsValueType: true }
+                   && !type.IsNullableType()
+                   && !type.IsPointerOrFunctionPointer()
+                   && !type.IsRestrictedType();
+        }
+
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
         {
             return type.GetNullableUnderlyingTypeWithAnnotations().Type;
@@ -156,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetEnumUnderlyingType() ?? type;
         }
 
-        public static bool IsNativeIntegerOrNullableNativeIntegerType(this TypeSymbol? type)
+        public static bool IsNativeIntegerOrNullableThereof(this TypeSymbol? type)
         {
             return type?.StrippedType().IsNativeIntegerType == true;
         }
@@ -383,34 +392,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// return true if the type is constructed from System.Linq.Expressions.Expression`1
+        /// Returns true if the type is constructed from a generic type named "System.Linq.Expressions.Expression"
+        /// with one type parameter.
         /// </summary>
         public static bool IsExpressionTree(this TypeSymbol type)
         {
             return type.IsGenericOrNonGenericExpressionType(out bool isGenericType) && isGenericType;
         }
 
+        /// <summary>
+        /// Returns true if the type is a non-generic type named "System.Linq.Expressions.Expression"
+        /// or "System.Linq.Expressions.LambdaExpression".
+        /// </summary>
         public static bool IsNonGenericExpressionType(this TypeSymbol type)
         {
             return type.IsGenericOrNonGenericExpressionType(out bool isGenericType) && !isGenericType;
         }
 
+        /// <summary>
+        /// Returns true if the type is constructed from a generic type named "System.Linq.Expressions.Expression"
+        /// with one type parameter, or if the type is a non-generic type named "System.Linq.Expressions.Expression"
+        /// or "System.Linq.Expressions.LambdaExpression".
+        /// </summary>
         public static bool IsGenericOrNonGenericExpressionType(this TypeSymbol _type, out bool isGenericType)
         {
-            if (_type.OriginalDefinition is NamedTypeSymbol type &&
-                type.Name == "Expression" &&
-                CheckFullName(type.ContainingSymbol, s_expressionsNamespaceName))
+            if (_type.OriginalDefinition is NamedTypeSymbol type)
             {
-                if (type.Arity == 0)
+                switch (type.Name)
                 {
-                    isGenericType = false;
-                    return true;
-                }
-                if (type.Arity == 1 &&
-                    type.MangleName)
-                {
-                    isGenericType = true;
-                    return true;
+                    case "Expression":
+                        if (IsNamespaceName(type.ContainingSymbol, s_expressionsNamespaceName))
+                        {
+                            if (type.Arity == 0)
+                            {
+                                isGenericType = false;
+                                return true;
+                            }
+                            if (type.Arity == 1 &&
+                                type.MangleName)
+                            {
+                                isGenericType = true;
+                                return true;
+                            }
+                        }
+                        break;
+                    case "LambdaExpression":
+                        if (IsNamespaceName(type.ContainingSymbol, s_expressionsNamespaceName) &&
+                            type.Arity == 0)
+                        {
+                            isGenericType = false;
+                            return true;
+                        }
+                        break;
                 }
             }
             isGenericType = false;
@@ -444,10 +477,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        {
+            return type.IsErrorType() || type.IsRefLikeType;
+        }
+
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
-        private static bool CheckFullName(Symbol symbol, string[] names)
+        private static bool IsNamespaceName(Symbol symbol, string[] names)
         {
+            if (symbol.Kind != SymbolKind.Namespace)
+            {
+                return false;
+            }
+
             for (int i = 0; i < names.Length; i++)
             {
                 if ((object)symbol == null || symbol.Name != names[i]) return false;
@@ -466,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static ImmutableArray<ParameterSymbol> DelegateParameters(this TypeSymbol type)
         {
             var invokeMethod = type.DelegateInvokeMethod();
-            if ((object)invokeMethod == null)
+            if (invokeMethod is null)
             {
                 return default(ImmutableArray<ParameterSymbol>);
             }
@@ -499,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public static MethodSymbol DelegateInvokeMethod(this TypeSymbol type)
+        public static MethodSymbol? DelegateInvokeMethod(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
             RoslynDebug.Assert(type.IsDelegateType() || type.IsExpressionTree());
@@ -600,7 +643,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this TypeSymbol type,
             Func<TypeSymbol, T, bool, bool> predicate,
             T arg,
-            bool canDigThroughNullable = false)
+            bool canDigThroughNullable = false,
+            bool visitCustomModifiers = false)
         {
             return VisitType(
                 typeWithAnnotationsOpt: default,
@@ -608,7 +652,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeWithAnnotationsPredicate: null,
                 typePredicate: predicate,
                 arg,
-                canDigThroughNullable);
+                canDigThroughNullable,
+                visitCustomModifiers: visitCustomModifiers);
         }
 
         /// <summary>
@@ -629,10 +674,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Func<TypeSymbol, T, bool, bool>? typePredicate,
             T arg,
             bool canDigThroughNullable = false,
-            bool useDefaultType = false)
+            bool useDefaultType = false,
+            bool visitCustomModifiers = false)
         {
             RoslynDebug.Assert(typeWithAnnotationsOpt.HasType == (type is null));
             RoslynDebug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
+            RoslynDebug.Assert(canDigThroughNullable == false || visitCustomModifiers == false);
+            RoslynDebug.Assert(visitCustomModifiers == false || typePredicate is { });
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -656,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType);
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType, visitCustomModifiers);
                                 if (result is object)
                                 {
                                     return result;
@@ -685,6 +733,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                if (visitCustomModifiers && typeWithAnnotationsOpt.HasType)
+                {
+                    foreach (var customModifier in typeWithAnnotationsOpt.CustomModifiers)
+                    {
+                        var result = VisitType(
+                            typeWithAnnotationsOpt: default, type: ((CSharpCustomModifier)customModifier).ModifierSymbol,
+                            typeWithAnnotationsPredicate, typePredicate, arg,
+                            canDigThroughNullable, useDefaultType, visitCustomModifiers);
+                        if (result is object)
+                        {
+                            return result;
+                        }
+                    }
+                }
+
                 TypeWithAnnotations next;
 
                 switch (current.TypeKind)
@@ -700,32 +763,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                        if (typeArguments.IsEmpty)
-                        {
-                            return null;
-                        }
 
-                        int i;
-                        for (i = 0; i < typeArguments.Length - 1; i++)
+                        if (current.IsAnonymousType)
                         {
-                            // Let's try to avoid early resolution of nullable types
-                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
-                            var result = VisitType(
-                                typeWithAnnotationsOpt: nextTypeWithAnnotations,
-                                type: nextType,
-                                typeWithAnnotationsPredicate,
-                                typePredicate,
-                                arg,
-                                canDigThroughNullable,
-                                useDefaultType);
-                            if (result is object)
+                            var anonymous = (AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)current;
+                            var fields = anonymous.TypeDescriptor.Fields;
+
+                            if (fields.IsEmpty)
                             {
-                                return result;
+                                return null;
                             }
+
+                            int i;
+                            for (i = 0; i < fields.Length - 1; i++)
+                            {
+                                // Let's try to avoid early resolution of nullable types
+                                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(fields[i].TypeWithAnnotations, canDigThroughNullable);
+                                var result = VisitType(
+                                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                    type: nextType,
+                                    typeWithAnnotationsPredicate,
+                                    typePredicate,
+                                    arg,
+                                    canDigThroughNullable,
+                                    useDefaultType,
+                                    visitCustomModifiers);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+
+                            next = fields[i].TypeWithAnnotations;
+                        }
+                        else
+                        {
+                            var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+
+                            if (typeArguments.IsEmpty)
+                            {
+                                return null;
+                            }
+
+                            int i;
+                            for (i = 0; i < typeArguments.Length - 1; i++)
+                            {
+                                // Let's try to avoid early resolution of nullable types
+                                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
+                                var result = VisitType(
+                                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                    type: nextType,
+                                    typeWithAnnotationsPredicate,
+                                    typePredicate,
+                                    arg,
+                                    canDigThroughNullable,
+                                    useDefaultType,
+                                    visitCustomModifiers);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+
+                            next = typeArguments[i];
                         }
 
-                        next = typeArguments[i];
                         break;
 
                     case TypeKind.Array:
@@ -738,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.FunctionPointer:
                         {
-                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, out next);
+                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, visitCustomModifiers, out next);
                             if (result is object)
                             {
                                 return result;
@@ -759,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static (TypeWithAnnotations, TypeSymbol?) getNextIterationElements(TypeWithAnnotations type, bool canDigThroughNullable)
                 => canDigThroughNullable ? (default(TypeWithAnnotations), type.NullableUnderlyingTypeOrSelf) : (type, null);
 
-            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, out TypeWithAnnotations next)
+            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, bool visitCustomModifiers, out TypeWithAnnotations next)
             {
                 MethodSymbol currentPointer = type.Signature;
                 if (currentPointer.ParameterCount == 0)
@@ -775,7 +877,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typePredicate,
                     arg,
                     canDigThroughNullable,
-                    useDefaultType);
+                    useDefaultType,
+                    visitCustomModifiers);
                 if (result is object)
                 {
                     next = default;
@@ -793,7 +896,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         typePredicate,
                         arg,
                         canDigThroughNullable,
-                        useDefaultType);
+                        useDefaultType,
+                        visitCustomModifiers);
                     if (result is object)
                     {
                         next = default;
@@ -806,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static bool IsAsRestrictive(this Symbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -1051,15 +1155,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
-        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeSymbol type)
         {
-            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerType, (object?)null, canDigThroughNullable: true);
+            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerWrapperType, (object?)null, canDigThroughNullable: true);
             return result is object;
         }
 
-        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeWithAnnotations type)
         {
-            return type.Type?.ContainsNativeInteger() == true;
+            return type.Type?.ContainsNativeIntegerWrapperType() == true;
         }
 
         internal static bool ContainsErrorType(this TypeSymbol type)
@@ -1167,6 +1271,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsSpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1" or "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
@@ -1222,6 +1359,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsPartial(this TypeSymbol type)
         {
             return type is SourceNamedTypeSymbol { IsPartial: true };
+        }
+
+        public static bool HasFileLocalTypes(this TypeSymbol type)
+        {
+            var foundType = type.VisitType(predicate: (type, _, _) => type is SourceMemberContainerTypeSymbol { IsFileLocal: true }, arg: (object?)null);
+            return foundType is not null;
+        }
+
+        internal static string? GetFileLocalTypeMetadataNamePrefix(this NamedTypeSymbol type)
+        {
+            if (type.AssociatedFileIdentifier is not FileIdentifier identifier)
+            {
+                return null;
+            }
+            return GeneratedNames.MakeFileTypeMetadataNamePrefix(identifier.DisplayFilePath, identifier.FilePathChecksumOpt);
         }
 
         public static bool IsPointerType(this TypeSymbol type)
@@ -1849,7 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-                if (type.Type.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
                 {
                     addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
                 }
@@ -1904,15 +2056,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsCompilerServicesTopLevelType(this TypeSymbol typeSymbol)
             => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
 
-        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
+        internal static bool IsWellKnownSetsRequiredMembersAttribute(this TypeSymbol type)
+            => type.Name == "SetsRequiredMembersAttribute" && type.IsWellKnownDiagnosticsCodeAnalysisTopLevelType();
+
+        internal static bool IsWellKnownINumberBaseType(this TypeSymbol type)
         {
-            var innerNamespace = typeSymbol.ContainingNamespace;
-            if (innerNamespace?.Name != innerNS)
+            type = type.OriginalDefinition;
+            return type is NamedTypeSymbol { Name: "INumberBase", IsInterface: true, Arity: 1, ContainingType: null } &&
+                   IsContainedInNamespace(type, "System", "Numerics");
+        }
+
+        private static bool IsWellKnownDiagnosticsCodeAnalysisTopLevelType(this TypeSymbol typeSymbol)
+            => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Diagnostics", "CodeAnalysis");
+
+        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string? innerNS = null)
+        {
+            NamespaceSymbol? midNamespace;
+
+            if (innerNS != null)
             {
-                return false;
+                var innerNamespace = typeSymbol.ContainingNamespace;
+                if (innerNamespace?.Name != innerNS)
+                {
+                    return false;
+                }
+                midNamespace = innerNamespace.ContainingNamespace;
+            }
+            else
+            {
+                midNamespace = typeSymbol.ContainingNamespace;
             }
 
-            var midNamespace = innerNamespace.ContainingNamespace;
             if (midNamespace?.Name != midNS)
             {
                 return false;

@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -43,13 +44,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The implementation part is not listed among the "members" of the enclosing type.
         ''' </summary>
         Private _otherPartOfPartial As SourceMemberMethodSymbol
-
-        ''' <summary>
-        ''' In case the method is an 'Async' method, stores the reference to a state machine type 
-        ''' synthesized in AsyncRewriter. Note, that this field is mutable and is being assigned  
-        ''' by calling AssignAsyncStateMachineType(...).
-        ''' </summary>
-        Private ReadOnly _asyncStateMachineType As NamedTypeSymbol = Nothing
 
         ' lazily evaluated state of the symbol (StateFlags)
         Private _lazyState As Integer
@@ -181,11 +175,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If Me.IsAsync OrElse Me.IsIterator Then
-                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
+                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, moduleBuilder.CompilationState))
 
                 If Me.IsAsync Then
                     ' Async kick-off method calls MoveNext, which contains user code. 
@@ -703,7 +697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     witheventsPropertyInCurrentClass = witheventsProperty
                 End If
 
-                typeBinder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, witheventsPropertyInCurrentClass, singleHandleClause.EventContainer)
+                typeBinder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, witheventsPropertyInCurrentClass, singleHandleClause.EventContainer)
             Else
                 Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_HandlesSyntaxInClass)
                 Return Nothing
@@ -733,7 +727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            typeBinder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, eventSymbol, singleHandleClause.EventMember)
+            typeBinder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, eventSymbol, singleHandleClause.EventMember)
 
             Binder.ReportUseSite(diagBag, singleHandleClause.EventMember, eventSymbol)
 
@@ -821,7 +815,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                        LookupResultKind.Good,
                                        receiverOpt,
                                        qualificationKind:=qualificationKind)
-
 
             ' AddressOf currentMethod
             Dim syntheticAddressOf = New BoundAddressOfOperator(singleHandleClause, typeBinder, diagBag.AccumulatesDependencies, syntheticMethodGroup).MakeCompilerGenerated
@@ -964,7 +957,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 For Each symbol In symbols
                     If symbol.Kind = SymbolKind.Property Then
-
 
                         'Function ValidEventSourceProperty( _
                         '    ByVal [Property] As BCSym.[Property] _

@@ -56,11 +56,8 @@
     <Import Include="Microsoft.CodeAnalysis.Editor" />
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
     <Import Include="Roslyn.Test.Utilities" />
-    <Import Include="System.Threading.Tasks"/>
+    <Import Include="System.Threading.Tasks" />
     <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="My Project\" />
   </ItemGroup>
 </Project>

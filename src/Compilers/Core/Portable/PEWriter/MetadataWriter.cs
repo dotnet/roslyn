@@ -69,7 +69,6 @@ namespace Microsoft.Cci
         /// </remarks>
         internal const int PdbLengthLimit = 2046; // Empirical, based on when ISymUnmanagedWriter2 methods start throwing.
 
-        private readonly int _numTypeDefsEstimate;
         private readonly bool _deterministic;
 
         internal readonly bool MetadataOnly;
@@ -108,8 +107,6 @@ namespace Microsoft.Cci
             // much of the reallocation that would occur when growing these from empty.
             _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
 
-            _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
-
             this.Context = context;
             this.messageProvider = messageProvider;
             _cancellationToken = cancellationToken;
@@ -118,9 +115,8 @@ namespace Microsoft.Cci
             _debugMetadataOpt = debugMetadataOpt;
             _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
             _smallMethodBodies = new Dictionary<(ImmutableArray<byte>, bool), int>(ByteSequenceBoolTupleComparer.Instance);
+            _scopeIndex = new Dictionary<IImportScope, ImportScopeHandle>(new ImportScopeEqualityComparer(context));
         }
-
-        private int NumberOfTypeDefsEstimate { get { return _numTypeDefsEstimate; } }
 
         /// <summary>
         /// Returns true if writing full metadata, false if writing delta.
@@ -921,13 +917,13 @@ namespace Microsoft.Cci
             return (uint)result;
         }
 
-        public static string GetMangledName(INamedTypeReference namedType, int generation)
+        public static string GetMetadataName(INamedTypeReference namedType, int generation)
         {
-            string unmangledName = (generation == 0) ? namedType.Name : namedType.Name + "#" + generation;
-
-            return namedType.MangleName
-                ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount)
-                : unmangledName;
+            string nameWithGeneration = (generation == 0) ? namedType.Name : namedType.Name + "#" + generation;
+            string fileIdentifier = namedType.AssociatedFileIdentifier;
+            return namedType.MangleName || fileIdentifier != null
+                ? MetadataHelpers.ComposeAritySuffixedMetadataName(nameWithGeneration, namedType.GenericParameterCount, fileIdentifier)
+                : nameWithGeneration;
         }
 
         internal MemberReferenceHandle GetMemberReferenceHandle(ITypeMemberReference memberRef)
@@ -1104,7 +1100,7 @@ namespace Microsoft.Cci
             {
                 IFieldReference fieldReference => this.GetFieldSignatureIndex(fieldReference),
                 IMethodReference methodReference => this.GetMethodSignatureHandle(methodReference),
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
         }
 
@@ -1592,7 +1588,7 @@ namespace Microsoft.Cci
                 return GetMethodDefinitionHandle(genMethPar.DefiningMethod);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private TypeReferenceHandle GetTypeReferenceHandle(ITypeReference typeReference)
@@ -1683,7 +1679,7 @@ namespace Microsoft.Cci
                 IFieldDefinition fieldDef => GetFieldDefinitionHandle(fieldDef),
                 IEventDefinition eventDef => GetEventDefinitionHandle(eventDef),
                 IPropertyDefinition propertyDef => GetPropertyDefIndex(propertyDef),
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
         }
 
@@ -1798,13 +1794,18 @@ namespace Microsoft.Cci
 
                 DefineModuleImportScope();
 
+                EmbedTypeDefinitionDocumentInformation(module);
+
                 if (module.SourceLinkStreamOpt != null)
                 {
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                EmbedCompilationOptions(module);
-                EmbedMetadataReferenceInformation(module);
+                if (!module.IsEncDelta)
+                {
+                    EmbedCompilationOptions(module);
+                    EmbedMetadataReferenceInformation(module);
+                }
             }
 
             int[] methodBodyOffsets;
@@ -2219,10 +2220,10 @@ namespace Microsoft.Cci
                 if ((namespaceTypeRef = exportedType.Type.AsNamespaceTypeReference) != null)
                 {
                     // exported types are not emitted in EnC deltas (hence generation 0):
-                    string mangledTypeName = GetMangledName(namespaceTypeRef, generation: 0);
+                    string metadataTypeName = GetMetadataName(namespaceTypeRef, generation: 0);
 
-                    typeName = GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                    typeNamespace = GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                    typeName = GetStringHandleForNameAndCheckLength(metadataTypeName, namespaceTypeRef);
+                    typeNamespace = GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, metadataTypeName);
                     implementation = GetExportedTypeImplementation(namespaceTypeRef);
                     attributes = exportedType.IsForwarder ? TypeAttributes.NotPublic | Constants.TypeAttributes_TypeForwarder : TypeAttributes.Public;
                 }
@@ -2231,9 +2232,9 @@ namespace Microsoft.Cci
                     Debug.Assert(exportedType.ParentIndex != -1);
 
                     // exported types are not emitted in EnC deltas (hence generation 0):
-                    string mangledTypeName = GetMangledName(nestedRef, generation: 0);
+                    string metadataTypeName = GetMetadataName(nestedRef, generation: 0);
 
-                    typeName = GetStringHandleForNameAndCheckLength(mangledTypeName, nestedRef);
+                    typeName = GetStringHandleForNameAndCheckLength(metadataTypeName, nestedRef);
                     typeNamespace = default(StringHandle);
                     implementation = MetadataTokens.ExportedTypeHandle(exportedType.ParentIndex + 1);
                     attributes = exportedType.IsForwarder ? TypeAttributes.NotPublic : TypeAttributes.NestedPublic;
@@ -2315,7 +2316,15 @@ namespace Microsoft.Cci
                     continue;
                 }
 
+                // The compiler always aligns each RVA data field to an 8-byte boundary; this accomodates the alignment
+                // needs for all primitive types, regardless of which type is actually being used, at the expense of
+                // potentially wasting up to 7 bytes per field if the alignment needs are less. In the future, this
+                // potentially could be tightened to align each field only as much as is actually required by that
+                // field, saving a few bytes per field.
                 int offset = mappedFieldDataWriter.Count;
+                Debug.Assert(offset % ManagedPEBuilder.MappedFieldDataAlignment == 0, "Expected last write to end at alignment boundary");
+                Debug.Assert(ManagedPEBuilder.MappedFieldDataAlignment == 8, "Expected alignment to be 8");
+
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
                 mappedFieldDataWriter.Align(ManagedPEBuilder.MappedFieldDataAlignment);
 
@@ -2710,13 +2719,13 @@ namespace Microsoft.Cci
                 var moduleBuilder = Context.Module;
                 int generation = moduleBuilder.GetTypeDefinitionGeneration(typeDef);
 
-                string mangledTypeName = GetMangledName(typeDef, generation);
+                string metadataTypeName = GetMetadataName(typeDef, generation);
                 ITypeReference baseType = typeDef.GetBaseClass(Context);
 
                 metadata.AddTypeDefinition(
                     attributes: GetTypeAttributes(typeDef),
-                    @namespace: (namespaceType != null) ? GetStringHandleForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringHandle),
-                    name: GetStringHandleForNameAndCheckLength(mangledTypeName, typeDef),
+                    @namespace: (namespaceType != null) ? GetStringHandleForNamespaceAndCheckLength(namespaceType, metadataTypeName) : default(StringHandle),
+                    name: GetStringHandleForNameAndCheckLength(metadataTypeName, typeDef),
                     baseType: (baseType != null) ? GetTypeHandle(baseType) : default(EntityHandle),
                     fieldList: GetFirstFieldDefinitionHandle(typeDef),
                     methodList: GetFirstMethodDefinitionHandle(typeDef));
@@ -2785,9 +2794,9 @@ namespace Microsoft.Cci
 
                     // It's not possible to reference newer versions of reloadable types from another assembly, hence generation 0:
                     // TODO: https://github.com/dotnet/roslyn/issues/54981
-                    string mangledTypeName = GetMangledName(nestedTypeRef, generation: 0);
+                    string metadataTypeName = GetMetadataName(nestedTypeRef, generation: 0);
 
-                    name = this.GetStringHandleForNameAndCheckLength(mangledTypeName, nestedTypeRef);
+                    name = this.GetStringHandleForNameAndCheckLength(metadataTypeName, nestedTypeRef);
                     @namespace = default(StringHandle);
                 }
                 else
@@ -2802,10 +2811,10 @@ namespace Microsoft.Cci
 
                     // It's not possible to reference newer versions of reloadable types from another assembly, hence generation 0:
                     // TODO: https://github.com/dotnet/roslyn/issues/54981
-                    string mangledTypeName = GetMangledName(namespaceTypeRef, generation: 0);
+                    string metadataTypeName = GetMetadataName(namespaceTypeRef, generation: 0);
 
-                    name = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                    @namespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                    name = this.GetStringHandleForNameAndCheckLength(metadataTypeName, namespaceTypeRef);
+                    @namespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, metadataTypeName);
                 }
 
                 metadata.AddTypeReference(
@@ -3331,7 +3340,16 @@ namespace Microsoft.Cci
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
         {
+            Debug.Assert(fieldReference.RefCustomModifiers.Length == 0 || fieldReference.IsByReference);
+
+            // https://github.com/dotnet/roslyn/issues/61385: Use System.Reflection.Metadata.Ecma335.FieldTypeEncoder
+            // instead, since that type supports ref fields directly.
             var typeEncoder = new BlobEncoder(builder).FieldSignature();
+            SerializeCustomModifiers(new CustomModifiersEncoder(builder), fieldReference.RefCustomModifiers);
+            if (fieldReference.IsByReference)
+            {
+                typeEncoder.Builder.WriteByte((byte)SignatureTypeCode.ByReference);
+            }
             SerializeTypeReference(typeEncoder, fieldReference.GetType(Context));
         }
 
@@ -3345,6 +3363,22 @@ namespace Microsoft.Cci
             }
         }
 
+        private EmitContext GetEmitContextForAttribute(ICustomAttribute customAttribute)
+        {
+            if (customAttribute is AttributeData attributeData &&
+                attributeData.ApplicationSyntaxReference?.GetSyntax(_cancellationToken) is { } syntaxNode)
+            {
+                return new EmitContext(
+                    Context.Module,
+                    Context.Diagnostics,
+                    metadataOnly: Context.MetadataOnly,
+                    includePrivateMembers: Context.IncludePrivateMembers,
+                    syntaxNode,
+                    Context.RebuildData);
+            }
+            return Context;
+        }
+
         private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder builder)
         {
             var parameters = customAttribute.Constructor(Context, reportDiagnostics: false).GetParameters(Context);
@@ -3355,15 +3389,17 @@ namespace Microsoft.Cci
             CustomAttributeNamedArgumentsEncoder namedArgsEncoder;
             new BlobEncoder(builder).CustomAttributeSignature(out fixedArgsEncoder, out namedArgsEncoder);
 
+            var attributeContext = GetEmitContextForAttribute(customAttribute);
+
             for (int i = 0; i < parameters.Length; i++)
             {
-                SerializeMetadataExpression(fixedArgsEncoder.AddArgument(), arguments[i], parameters[i].GetType(Context));
+                SerializeMetadataExpression(in attributeContext, fixedArgsEncoder.AddArgument(), arguments[i], parameters[i].GetType(Context));
             }
 
-            SerializeCustomAttributeNamedArguments(namedArgsEncoder.Count(customAttribute.NamedArgumentCount), customAttribute);
+            SerializeCustomAttributeNamedArguments(in attributeContext, namedArgsEncoder.Count(customAttribute.NamedArgumentCount), customAttribute);
         }
 
-        private void SerializeCustomAttributeNamedArguments(NamedArgumentsEncoder encoder, ICustomAttribute customAttribute)
+        private void SerializeCustomAttributeNamedArguments(in EmitContext context, NamedArgumentsEncoder encoder, ICustomAttribute customAttribute)
         {
             foreach (IMetadataNamedArgument namedArgument in customAttribute.GetNamedArguments(Context))
             {
@@ -3372,17 +3408,17 @@ namespace Microsoft.Cci
                 LiteralEncoder literalEncoder;
                 encoder.AddArgument(namedArgument.IsField, out typeEncoder, out nameEncoder, out literalEncoder);
 
-                SerializeNamedArgumentType(typeEncoder, namedArgument.Type);
+                SerializeNamedArgumentType(in context, typeEncoder, namedArgument.Type);
                 nameEncoder.Name(namedArgument.ArgumentName);
-                SerializeMetadataExpression(literalEncoder, namedArgument.ArgumentValue, namedArgument.Type);
+                SerializeMetadataExpression(in context, literalEncoder, namedArgument.ArgumentValue, namedArgument.Type);
             }
         }
 
-        private void SerializeNamedArgumentType(NamedArgumentTypeEncoder encoder, ITypeReference type)
+        private void SerializeNamedArgumentType(in EmitContext context, NamedArgumentTypeEncoder encoder, ITypeReference type)
         {
             if (type is IArrayTypeReference arrayType)
             {
-                SerializeCustomAttributeArrayType(encoder.SZArray(), arrayType);
+                SerializeCustomAttributeArrayType(in context, encoder.SZArray(), arrayType);
             }
             else if (module.IsPlatformType(type, PlatformType.SystemObject))
             {
@@ -3390,11 +3426,11 @@ namespace Microsoft.Cci
             }
             else
             {
-                SerializeCustomAttributeElementType(encoder.ScalarType(), type);
+                SerializeCustomAttributeElementType(in context, encoder.ScalarType(), type);
             }
         }
 
-        private void SerializeMetadataExpression(LiteralEncoder encoder, IMetadataExpression expression, ITypeReference targetType)
+        private void SerializeMetadataExpression(in EmitContext context, LiteralEncoder encoder, IMetadataExpression expression, ITypeReference targetType)
         {
             if (expression is MetadataCreateArray a)
             {
@@ -3407,7 +3443,7 @@ namespace Microsoft.Cci
 
                     CustomAttributeArrayTypeEncoder arrayTypeEncoder;
                     encoder.TaggedVector(out arrayTypeEncoder, out vectorEncoder);
-                    SerializeCustomAttributeArrayType(arrayTypeEncoder, a.ArrayType);
+                    SerializeCustomAttributeArrayType(in context, arrayTypeEncoder, a.ArrayType);
 
                     targetElementType = a.ElementType;
                 }
@@ -3425,7 +3461,7 @@ namespace Microsoft.Cci
 
                 foreach (IMetadataExpression elemValue in a.Elements)
                 {
-                    SerializeMetadataExpression(literalsEncoder.AddLiteral(), elemValue, targetElementType);
+                    SerializeMetadataExpression(in context, literalsEncoder.AddLiteral(), elemValue, targetElementType);
                 }
             }
             else
@@ -3447,7 +3483,7 @@ namespace Microsoft.Cci
                     }
                     else
                     {
-                        SerializeCustomAttributeElementType(typeEncoder, expression.Type);
+                        SerializeCustomAttributeElementType(in context, typeEncoder, expression.Type);
                     }
                 }
                 else
@@ -3468,7 +3504,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    scalarEncoder.SystemType(((MetadataTypeOf)expression).TypeToGet.GetSerializedTypeName(Context));
+                    scalarEncoder.SystemType(((MetadataTypeOf)expression).TypeToGet.GetSerializedTypeName(context));
                 }
             }
         }
@@ -3642,7 +3678,7 @@ namespace Microsoft.Cci
 
                 var customAttributeArgsBuilder = PooledBlobBuilder.GetInstance();
                 var namedArgsEncoder = new BlobEncoder(customAttributeArgsBuilder).PermissionSetArguments(customAttribute.NamedArgumentCount);
-                SerializeCustomAttributeNamedArguments(namedArgsEncoder, customAttribute);
+                SerializeCustomAttributeNamedArguments(GetEmitContextForAttribute(customAttribute), namedArgsEncoder, customAttribute);
                 writer.WriteCompressedInteger(customAttributeArgsBuilder.Count);
 
                 customAttributeArgsBuilder.WriteContentTo(writer);
@@ -3891,7 +3927,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeCustomAttributeArrayType(CustomAttributeArrayTypeEncoder encoder, IArrayTypeReference arrayTypeReference)
+        private void SerializeCustomAttributeArrayType(in EmitContext context, CustomAttributeArrayTypeEncoder encoder, IArrayTypeReference arrayTypeReference)
         {
             // A single-dimensional, zero-based array is specified as a single byte 0x1D followed by the FieldOrPropType of the element type. 
 
@@ -3908,11 +3944,11 @@ namespace Microsoft.Cci
             }
             else
             {
-                SerializeCustomAttributeElementType(encoder.ElementType(), elementType);
+                SerializeCustomAttributeElementType(in context, encoder.ElementType(), elementType);
             }
         }
 
-        private void SerializeCustomAttributeElementType(CustomAttributeElementTypeEncoder encoder, ITypeReference typeReference)
+        private void SerializeCustomAttributeElementType(in EmitContext context, CustomAttributeElementTypeEncoder encoder, ITypeReference typeReference)
         {
             // Spec:
             // The FieldOrPropType shall be exactly one of:
@@ -3932,7 +3968,7 @@ namespace Microsoft.Cci
             else
             {
                 Debug.Assert(typeReference.IsEnum);
-                encoder.Enum(typeReference.GetSerializedTypeName(this.Context));
+                encoder.Enum(typeReference.GetSerializedTypeName(context));
             }
         }
 
@@ -4049,12 +4085,17 @@ namespace Microsoft.Cci
                 encLocalSlots = GetLocalSlotDebugInfos(encSlotInfo);
             }
 
-            return new EditAndContinueMethodDebugInformation(methodBody.MethodId.Ordinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
+            return new EditAndContinueMethodDebugInformation(
+                methodBody.MethodId.Ordinal,
+                encLocalSlots,
+                methodBody.ClosureDebugInfo,
+                methodBody.LambdaDebugInfo,
+                methodBody.StateMachineStatesDebugInfo.States);
         }
 
         internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<ILocalDefinition> locals)
         {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            if (!locals.Any(static variable => !variable.SlotInfo.Id.IsNone))
             {
                 return ImmutableArray<LocalSlotDebugInfo>.Empty;
             }
@@ -4064,7 +4105,7 @@ namespace Microsoft.Cci
 
         internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<EncHoistedLocalInfo> locals)
         {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            if (!locals.Any(static variable => !variable.SlotInfo.Id.IsNone))
             {
                 return ImmutableArray<LocalSlotDebugInfo>.Empty;
             }
@@ -4111,8 +4152,8 @@ namespace Microsoft.Cci
                 Debug.Assert(!this.TryGetValue(item, out i));
 #endif
                 int index = _firstRowId + _rows.Count;
-                this.AddItem(item, index);
                 _rows.Add(item);
+                this.AddItem(item, index);
                 return index;
             }
 

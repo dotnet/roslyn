@@ -290,11 +290,12 @@ static class Program
         Console.WriteLine(x);
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 21 }
             CompileAndVerify(source, expectedOutput:
 @"ABC
 123
 123
-xyz");
+xyz", verify: Verification.FailsILVerify);
         }
 
         [WorkItem(541143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541143")]
@@ -376,7 +377,8 @@ static class Program
     static void Goo<T>(this T x) { }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "2");
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 7 }
+            CompileAndVerify(source, expectedOutput: "2", verify: Verification.FailsILVerify);
         }
 
         [WorkItem(528426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528426")]
@@ -676,7 +678,7 @@ namespace N4
                 // (10,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(10, 22),
-                // (11,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
+                // (11,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'N1.N2.C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(11, 22),
                 // (12,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
@@ -694,7 +696,7 @@ namespace N4
                 // (41,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(41, 22),
-                // (42,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
+                // (42,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'N1.N2.C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(42, 22),
                 // (43,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
@@ -873,7 +875,8 @@ static class B
     internal static void F(this object x, object y) { }
     internal static void G(this object x, object y) { }
 }";
-            var compilation = CompileAndVerify(source);
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify);
             compilation.VerifyIL("N.C.M",
 @"{
   // Code size       71 (0x47)
@@ -939,7 +942,8 @@ static class S2
     internal static void F3(this object x, int y) { }
     internal static void F4(this object x, object y) { }
 }";
-            var compilation = CompileAndVerify(source);
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify);
             compilation.VerifyIL("N.C.M",
 @"
 {
@@ -1443,7 +1447,10 @@ static class S
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "E").WithArguments("E", "object").WithLocation(5, 18));
 
             compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (5,16): warning CS8974: Converting method group 'E' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         return o.E;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "o.E").WithArguments("E", "object").WithLocation(5, 16));
         }
 
         [Fact]
@@ -1920,7 +1927,8 @@ static class S
         System.Console.Write(c.P * i);
     }
 }";
-            CompileAndVerify(source, expectedOutput: "6");
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 11 }
+            CompileAndVerify(source, expectedOutput: "6", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -2252,7 +2260,7 @@ class C
   IL_0024:  call       ""string System.Linq.Enumerable.Aggregate<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, string, string>)""
   IL_0029:  ret       
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "orange, apple");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: "orange, apple");
             compilation.VerifyIL("C.F", code);
             compilation.VerifyIL("C.G", code);
         }
@@ -2290,11 +2298,12 @@ static class C
         a();
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor.
             var compilation = CompileAndVerify(source, expectedOutput:
 @"F: System.Int32
 F: S
 G: System.Int32
-G: S");
+G: S", verify: Verification.FailsILVerify);
             compilation.VerifyIL("C.Main",
 @"{
   // Code size      105 (0x69)
@@ -2370,12 +2379,13 @@ static class E
         Console.WriteLine(""{0}"", o.GetType());
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 12 }
             var compilation = CompileAndVerify(source, expectedOutput:
 @"System.Object
 System.Object
 System.Int32
 B
-B");
+B", verify: Verification.FailsILVerify);
             compilation.VerifyIL("C.M<T1, T2, T3, T4, T5>",
 @"{
   // Code size      112 (0x70)
@@ -2726,7 +2736,7 @@ class Program
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
             var parameter = methodSymbol.ThisParameter;
-            Assert.Equal(parameter.Ordinal, -1);
+            Assert.Equal(-1, parameter.Ordinal);
             Assert.Equal(parameter.ContainingSymbol, methodSymbol);
 
             // Get the GenericNameSyntax node Cast<T1> for binding
@@ -2768,10 +2778,10 @@ class Program
                 // (5,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         x.M(x, y);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(5, 11),
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S.M(object, object)'
                 //         x.M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(6, 11),
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S.M(object, object)'
                 //         M(x);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(7, 9));
         }
@@ -2853,7 +2863,6 @@ public struct MyStruct<T>
 
             reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
             Assert.NotNull(reducedWithReceiver);
-
 
             compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular7);
             compilation2.VerifyDiagnostics(

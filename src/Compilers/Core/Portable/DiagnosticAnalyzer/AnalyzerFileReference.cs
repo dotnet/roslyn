@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> defined in this assembly reference of given <paramref name="language"/>.
         /// </summary>
-        internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language)
+        internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language, Func<DiagnosticAnalyzer, bool>? shouldInclude = null)
         {
-            _diagnosticAnalyzers.AddExtensions(builder, language);
+            _diagnosticAnalyzers.AddExtensions(builder, language, shouldInclude);
         }
 
         /// <summary>
@@ -198,9 +198,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
-            // unwrap:
-            e = (e as TargetInvocationException) ?? e;
-
             // remove all line breaks from the exception message
             string message = e.Message.Replace("\r", "").Replace("\n", "");
 
@@ -460,6 +457,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     analyzerAssembly = _reference.GetAssembly();
+                    if (CheckAssemblyReferencesNewerCompiler(analyzerAssembly))
+                    {
+                        return;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -490,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language)
+            internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language, Func<TExtension, bool>? shouldInclude = null)
             {
                 ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
                 Assembly analyzerAssembly;
@@ -506,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     analyzerAssembly = _reference.GetAssembly();
-                    if (analyzerAssembly == null)
+                    if (analyzerAssembly == null || CheckAssemblyReferencesNewerCompiler(analyzerAssembly))
                     {
                         // This can be null if NoOpAnalyzerAssemblyLoader is used.
                         return;
@@ -518,19 +519,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                var initialCount = builder.Count;
                 var reportedError = false;
 
                 // Add language specific analyzers.
                 var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
+                var hasAnalyzers = !analyzers.IsEmpty;
+
+                if (shouldInclude != null)
+                {
+                    analyzers = analyzers.WhereAsArray(shouldInclude);
+                }
+
                 builder.AddRange(analyzers);
 
                 // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
                 // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
-                if (builder.Count == initialCount && !reportedError)
+                if (!hasAnalyzers && !reportedError)
                 {
                     _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
                 }
+            }
+
+            bool CheckAssemblyReferencesNewerCompiler(Assembly analyzerAssembly)
+            {
+                var runningCompilerAssemblyName = typeof(AnalyzerFileReference).Assembly.GetName();
+                foreach (var referencedAssemblyName in analyzerAssembly.GetReferencedAssemblies())
+                {
+                    if (string.Equals(referencedAssemblyName.Name, runningCompilerAssemblyName.Name, StringComparison.OrdinalIgnoreCase)
+                        && referencedAssemblyName.Version > runningCompilerAssemblyName.Version)
+                    {
+                        // note: we introduce an actual message for this scenario when handling the failed event.
+                        _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler, message: "") { ReferencedCompilerVersion = referencedAssemblyName.Version });
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private ImmutableArray<TExtension> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)

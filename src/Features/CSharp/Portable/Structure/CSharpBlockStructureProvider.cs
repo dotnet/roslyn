@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider>();
             builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider>();
             builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider>();
+            builder.Add<FileScopedNamespaceDeclarationSyntax, FileScopedNamespaceDeclarationStructureProvider>();
             builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider>();
             builder.Add<InitializerExpressionSyntax, InitializerExpressionStructureProvider>();
             builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider>();
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var builder = ImmutableDictionary.CreateBuilder<int, ImmutableArray<AbstractSyntaxStructureProvider>>();
 
             builder.Add((int)SyntaxKind.DisabledTextTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new DisabledTextTriviaStructureProvider()));
+            builder.Add((int)SyntaxKind.MultiLineCommentTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new MultilineCommentBlockStructureProvider()));
 
             return builder.ToImmutable();
         }

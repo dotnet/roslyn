@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (_contextFile?.AdditionalFile != null &&
                         diagnostic.Location is ExternalFileLocation externalFileLocation)
                     {
-                        return PathUtilities.Comparer.Equals(_contextFile.Value.AdditionalFile.Path, externalFileLocation.FilePath);
+                        return PathUtilities.Comparer.Equals(_contextFile.Value.AdditionalFile.Path, externalFileLocation.GetLineSpan().Path);
                     }
 
                     return false;

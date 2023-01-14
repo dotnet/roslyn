@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 CancellationToken cancellationToken)
             {
                 var syntaxFactsService = documentToEdit.GetLanguageService<ISyntaxFactsService>();
-                var childNodes = syntaxFactsService.GetMembersOfNamespaceDeclaration(namespaceDeclaration);
+                var childNodes = syntaxFactsService.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration);
 
                 if (childNodes.Count <= 1)
                 {

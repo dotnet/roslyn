@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override bool HasDeclaredRequiredMembers => _underlyingType.HasDeclaredRequiredMembers;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());
@@ -133,20 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers(name));
-        }
-
-        public override void InitializeTupleFieldDefinitionsToIndexMap()
-        {
-            Debug.Assert(this.IsTupleType);
-            Debug.Assert(this.IsDefinition); // we only store a map for definitions
-
-            var retargetedMap = new SmallDictionary<FieldSymbol, int>(ReferenceEqualityComparer.Instance);
-            foreach ((FieldSymbol field, int index) in _underlyingType.TupleFieldDefinitionsToIndexMap)
-            {
-                retargetedMap.Add(this.RetargetingTranslator.Retarget(field), index);
-            }
-
-            this.TupleData!.SetFieldDefinitionsToIndexMap(retargetedMap);
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
@@ -262,14 +250,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override NamedTypeSymbol LookupMetadataType(ref MetadataTypeName typeName)
+#nullable enable
+
+        internal override NamedTypeSymbol? LookupMetadataType(ref MetadataTypeName typeName)
         {
-            return this.RetargetingTranslator.Retarget(_underlyingType.LookupMetadataType(ref typeName), RetargetOptions.RetargetPrimitiveTypesByName);
+            NamedTypeSymbol? underlyingResult = _underlyingType.LookupMetadataType(ref typeName);
+
+            if (underlyingResult is null)
+            {
+                return null;
+            }
+
+            Debug.Assert(!underlyingResult.IsErrorType());
+            Debug.Assert((object)_underlyingType == underlyingResult.ContainingSymbol);
+
+            return this.RetargetingTranslator.Retarget(underlyingResult, RetargetOptions.RetargetPrimitiveTypesByName);
         }
 
-        private static ExtendedErrorTypeSymbol CyclicInheritanceError(RetargetingNamedTypeSymbol type, TypeSymbol declaredBase)
+#nullable disable
+
+        private static ExtendedErrorTypeSymbol CyclicInheritanceError(TypeSymbol declaredBase)
         {
-            var info = new CSDiagnosticInfo(ErrorCode.ERR_ImportedCircularBase, declaredBase, type);
+            var info = new CSDiagnosticInfo(ErrorCode.ERR_ImportedCircularBase, declaredBase);
             return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable, info, true);
         }
 
@@ -293,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     if ((object)acyclicBase != null && BaseTypeAnalysis.TypeDependsOn(acyclicBase, this))
                     {
-                        return CyclicInheritanceError(this, acyclicBase);
+                        return CyclicInheritanceError(acyclicBase);
                     }
 
                     Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType);
@@ -315,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 ImmutableArray<NamedTypeSymbol> result = declaredInterfaces
-                    .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
+                    .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(t) : t);
 
                 ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterfaces, result, default(ImmutableArray<NamedTypeSymbol>));
             }
@@ -384,18 +386,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
-        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
         internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
-
-        internal override bool HasFieldInitializers() => _underlyingType.HasFieldInitializers();
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {

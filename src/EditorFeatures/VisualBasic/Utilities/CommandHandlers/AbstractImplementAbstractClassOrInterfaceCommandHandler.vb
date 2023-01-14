@@ -4,8 +4,11 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.ImplementType
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -21,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
         Implements ICommandHandler(Of ReturnKeyCommandArgs)
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
             Get
@@ -28,12 +32,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             End Get
         End Property
 
-        Protected Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService)
+        Protected Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
+                          globalOptions As IGlobalOptionService)
             _editorOperationsFactoryService = editorOperationsFactoryService
+            _globalOptions = globalOptions
         End Sub
 
         Protected MustOverride Overloads Function TryGetNewDocument(
             document As Document,
+            options As ImplementTypeGenerationOptions,
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken) As Document
 
@@ -100,15 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
         End Function
 
         Private Overloads Function TryExecute(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
-            Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
-            Dim text = textSnapshot.AsText()
-
-            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
-            If document Is Nothing Then
-                Return False
-            End If
-
-            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers) Then
+            If Not _globalOptions.GetOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic) Then
                 Return False
             End If
 
@@ -122,8 +121,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
+            Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
+            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            If document Is Nothing Then
+                Return False
+            End If
+
             Dim syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim token = syntaxRoot.FindTokenOnLeftOfPosition(caretPosition)
+            Dim text = textSnapshot.AsText()
 
             If text.Lines.IndexOf(token.SpanStart) <> text.Lines.IndexOf(caretPosition) Then
                 Return False
@@ -158,16 +164,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim newDocument = TryGetNewDocument(document, identifier, cancellationToken)
+            Dim newDocument = TryGetNewDocument(document, _globalOptions.GetImplementTypeGenerationOptions(document.Project.Services), identifier, cancellationToken)
 
             If newDocument Is Nothing Then
                 Return False
             End If
 
-            newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, Nothing, cancellationToken).WaitAndGetResult(cancellationToken)
-            newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim cleanupOptions = newDocument.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
 
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
+            newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+            newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+
+            Dim changes = newDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+            args.SubjectBuffer.ApplyChanges(changes)
 
             ' Place the cursor back to where it logically was after this
             token = newDocument.GetSyntaxRootSynchronously(cancellationToken).

@@ -17,6 +17,21 @@
         <target state="translated">Zestaw zawierający typ „{0}” odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">Niedozwolona nazwa wbudowanego operatora „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">Nieobsługiwany wbudowany operator: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">„{0}” nie była prawidłową wbudowaną nazwą operatora</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">Zmiany muszą należeć do zakresu elementu SourceText</target>
@@ -39,14 +54,34 @@
         <target state="translated">Pomiń następującą diagnostykę, aby wyłączyć ten analizator: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
       </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
+        <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
+        <target state="translated">Funkcja Edytuj i kontynuuj nie może wznowić wstrzymanej metody asynchronicznej, ponieważ odpowiednie wyrażenie oczekujące zostało usunięte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
+        <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
+        <target state="translated">Funkcja Edytuj i kontynuuj nie może wznowić wstrzymanego iteratora, ponieważ odpowiadająca jej instrukcja yield return została usunięta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">Generator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">Całkowity czas wykonywania generatora: {0} sekund.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
-        <target state="new">The hintName '{0}' contains an invalid character '{1}' at position {2}.</target>
+        <target state="translated">Element hintName „{0}” zawiera nieprawidłowy znak „{1}” na pozycji {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName '{0}' of the added source file must be unique within a generator.</target>
+        <target state="translated">Element hintName „{0}” dodanego pliku źródłowego musi być unikatowy w generatorze.</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -126,7 +161,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
-        <target state="new">The SourceText with hintName '{0}' must have an explicit encoding set.</target>
+        <target state="translated">Element SourceText o nazwie hintName „{0}” musi mieć ustawione jawne kodowanie.</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">

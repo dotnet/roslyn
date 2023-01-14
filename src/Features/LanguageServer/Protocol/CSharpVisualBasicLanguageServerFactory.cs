@@ -4,52 +4,53 @@
 
 using System;
 using System.Composition;
+using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using StreamJsonRpc;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [Export(typeof(ILanguageServerFactory)), Shared]
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
-        public const string UserVisibleName = "Roslyn Language Server Client";
-
-        private readonly RequestDispatcherFactory _dispatcherFactory;
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly AbstractLspServiceProvider _lspServiceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVisualBasicLanguageServerFactory(
-            RequestDispatcherFactory dispatcherFactory,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService globalOptions)
+            CSharpVisualBasicLspServiceProvider lspServiceProvider)
         {
-            _dispatcherFactory = dispatcherFactory;
-            _listenerProvider = listenerProvider;
-            _globalOptions = globalOptions;
+            _lspServiceProvider = lspServiceProvider;
         }
 
-        public ILanguageServerTarget Create(
+        public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
-            ILspLogger logger)
+            WellKnownLspServerKinds serverKind,
+            ILspServiceLogger logger,
+            HostServices hostServices)
         {
-            return new LanguageServerTarget(
-                _dispatcherFactory,
+            var server = new RoslynLanguageServer(
+                _lspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
-                workspaceRegistrationService,
-                _globalOptions,
-                _listenerProvider,
                 logger,
+                hostServices,
                 ProtocolConstants.RoslynLspLanguages,
-                clientName: null,
-                userVisibleServerName: UserVisibleName,
-                telemetryServerTypeName: this.GetType().Name);
+                serverKind);
+
+            return server;
+        }
+
+        public AbstractLanguageServer<RequestContext> Create(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, ILspServiceLogger logger, HostServices hostServices)
+        {
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
+            return Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, logger, hostServices);
         }
     }
 }

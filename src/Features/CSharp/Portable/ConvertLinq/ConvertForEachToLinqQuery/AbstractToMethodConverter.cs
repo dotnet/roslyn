@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             lastDeclaration.Identifier.ValueText.Equals(identifierName.Identifier.ValueText) &&
                             CanReplaceInitialization(lastDeclaration.Initializer.Value, cancellationToken))
                         {
-                            Convert(lastDeclaration.Initializer.Value, variables.Count == 1 ? (SyntaxNode)previous : lastDeclaration);
+                            Convert(lastDeclaration.Initializer.Value, variables.Count == 1 ? previous : lastDeclaration);
                             return;
                         }
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         var localDeclaration = (LocalDeclarationStatementSyntax)node;
                         if (localDeclaration.Declaration.Variables.Count != 1)
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
 
                         return new IEnumerable<SyntaxTrivia>[] {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         break;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             => SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.ParenthesizedExpression(queryOrLinqInvocationExpression),
+                        queryOrLinqInvocationExpression.Parenthesize(),
                         SyntaxFactory.IdentifierName(MethodName))).WithAdditionalAnnotations(Formatter.Annotation);
     }
 }

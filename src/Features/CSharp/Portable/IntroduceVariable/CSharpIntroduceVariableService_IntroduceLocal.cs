@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
-                s is BlockSyntax || s is ArrowExpressionClauseSyntax || s is LambdaExpressionSyntax);
+                s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
             var newLocalNameToken = GenerateUniqueLocalName(
                 document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -68,7 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                     // both of which are a shorthand for the getter and always return a value
                     var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
-                    var createReturnStatement = !method?.ReturnsVoid ?? true;
+                    var createReturnStatement = true;
+
+                    if (method is not null)
+                        createReturnStatement = !method.ReturnsVoid && !method.IsAsyncReturningVoidTask(document.SemanticModel.Compilation);
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
                         document, arrowExpression, expression, newLocalName,
@@ -436,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 });
         }
 
-        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
+        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
 
         private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
             => blockLike switch

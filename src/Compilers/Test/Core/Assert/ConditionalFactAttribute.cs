@@ -142,12 +142,6 @@ namespace Roslyn.Test.Utilities
 
     public static class ExecutionConditionUtil
     {
-        public static ExecutionArchitecture Architecture => (IntPtr.Size) switch
-        {
-            4 => ExecutionArchitecture.x86,
-            8 => ExecutionArchitecture.x64,
-            _ => throw new InvalidOperationException($"Unrecognized pointer size {IntPtr.Size}")
-        };
         public static ExecutionConfiguration Configuration =>
 #if DEBUG
             ExecutionConfiguration.Debug;
@@ -169,12 +163,19 @@ namespace Roslyn.Test.Utilities
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
         public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
         public static bool RuntimeSupportsCovariantReturnsOfClasses => Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") != null;
-    }
 
-    public enum ExecutionArchitecture
-    {
-        x86,
-        x64,
+        private static readonly Lazy<bool> s_operatingSystemRestrictsFileNames = new Lazy<bool>(() =>
+        {
+            var tempDir = Path.GetTempPath();
+            var path = Path.GetFullPath(Path.Combine(tempDir, "aux.txt"));
+            return path.StartsWith(@"\\.\", StringComparison.Ordinal);
+        });
+
+        /// <summary>
+        /// Is this a version of Windows that has ancient restrictions on file names. For example 
+        /// prevents file names that are aux, com1, etc ...
+        /// </summary>
+        public static bool OperatingSystemRestrictsFileNames => s_operatingSystemRestrictsFileNames.Value;
     }
 
     public enum ExecutionConfiguration
@@ -183,11 +184,18 @@ namespace Roslyn.Test.Utilities
         Release,
     }
 
-    public class x86 : ExecutionCondition
+    public class Bitness32 : ExecutionCondition
     {
-        public override bool ShouldSkip => ExecutionConditionUtil.Architecture != ExecutionArchitecture.x86;
+        public override bool ShouldSkip => IntPtr.Size != 4;
 
-        public override string SkipReason => "Target platform is not x86";
+        public override string SkipReason => "Target bitness is not 32-bit";
+    }
+
+    public class Bitness64 : ExecutionCondition
+    {
+        public override bool ShouldSkip => IntPtr.Size != 8;
+
+        public override string SkipReason => "Target bitness is not 64-bit";
     }
 
     public class HasShiftJisDefaultEncoding : ExecutionCondition
@@ -222,6 +230,8 @@ namespace Roslyn.Test.Utilities
 
     public class IsEnglishLocal : ExecutionCondition
     {
+        public static readonly IsEnglishLocal Instance = new IsEnglishLocal();
+
         public override bool ShouldSkip
         {
             get
@@ -250,6 +260,17 @@ namespace Roslyn.Test.Utilities
 #endif
 
         public override string SkipReason => "Test not supported in DEBUG";
+    }
+
+    public class IsNot32BitDebug : ExecutionCondition
+    {
+#if DEBUG
+        public override bool ShouldSkip => !Environment.Is64BitProcess;
+#else
+        public override bool ShouldSkip => false;
+#endif
+
+        public override string SkipReason => "Test not supported in 32bit DEBUG";
     }
 
     public class IsDebug : ExecutionCondition
@@ -287,10 +308,22 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on Windows";
     }
 
+    public class WindowsOrMacOSOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => PathUtilities.IsUnixLikePlatform && !ExecutionConditionUtil.IsMacOS;
+        public override string SkipReason => "Test not supported on Linux";
+    }
+
     public class WindowsOrLinuxOnly : ExecutionCondition
     {
         public override bool ShouldSkip => ExecutionConditionUtil.IsMacOS;
         public override string SkipReason => "Test not supported on macOS";
+    }
+
+    public class LinuxOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsLinux;
+        public override string SkipReason => "Test not supported on Windows or macOS";
     }
 
     public class ClrOnly : ExecutionCondition

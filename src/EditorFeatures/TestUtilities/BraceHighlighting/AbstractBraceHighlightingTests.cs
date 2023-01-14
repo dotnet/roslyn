@@ -6,10 +6,11 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -43,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 var provider = new BraceHighlightingViewTaggerProvider(
                     workspace.GetService<IThreadingContext>(),
                     GetBraceMatchingService(workspace),
+                    workspace.GetService<IGlobalOptionService>(),
+                    visibilityTracker: null,
                     AsynchronousOperationListenerProvider.NullProvider);
 
                 var testDocument = workspace.Documents.First();

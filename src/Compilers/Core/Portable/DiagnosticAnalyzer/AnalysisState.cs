@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -567,32 +568,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Marks the given event as fully analyzed for the given analyzer.
+        /// Tries to mark the given event as fully analyzed for the given analyzer.
         /// </summary>
-        public void MarkEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer)
+        public bool TryMarkEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer)
         {
-            GetAnalyzerState(analyzer).MarkEventComplete(compilationEvent);
+            return GetAnalyzerState(analyzer).TryMarkEventComplete(compilationEvent);
         }
 
         /// <summary>
-        /// Marks the given event as fully analyzed for the given analyzers.
+        /// Tries to mark the given event as fully analyzed for the given analyzers.
         /// </summary>
-        public void MarkEventComplete(CompilationEvent compilationEvent, IEnumerable<DiagnosticAnalyzer> analyzers)
+        public bool TryMarkEventComplete(CompilationEvent compilationEvent, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
+            var success = true;
             foreach (var analyzer in analyzers)
             {
-                GetAnalyzerState(analyzer).MarkEventComplete(compilationEvent);
+                if (!GetAnalyzerState(analyzer).TryMarkEventComplete(compilationEvent))
+                    success = false;
             }
+
+            return success;
         }
 
         /// <summary>
-        /// Marks the given event as fully analyzed for the unprocessed analyzers in the given analysisScope.
+        /// Tries to mark the given event as fully analyzed for the unprocessed analyzers in the given analysisScope.
         /// </summary>
-        public void MarkEventCompleteForUnprocessedAnalyzers(
+        public bool TryMarkEventCompleteForUnprocessedAnalyzers(
             CompilationEvent completedEvent,
             AnalysisScope analysisScope,
             HashSet<DiagnosticAnalyzer> processedAnalyzers)
-            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkEventComplete, completedEvent);
+            => TryMarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, TryMarkEventComplete, completedEvent);
 
         /// <summary>
         /// Checks if the given event has been fully analyzed for the given analyzer.
@@ -627,21 +632,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Marks the given symbol as fully analyzed for the given analyzer.
+        /// Tries to mark the given symbol as fully analyzed for the given analyzer.
         /// </summary>
-        public void MarkSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        public bool TryMarkSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
         {
-            GetAnalyzerState(analyzer).MarkSymbolComplete(symbol);
+            return GetAnalyzerState(analyzer).TryMarkSymbolComplete(symbol);
         }
 
         /// <summary>
-        /// Marks the given symbol as fully analyzed for the unprocessed analyzers in the given analysisScope.
+        /// Tries to mark the given symbol as fully analyzed for the unprocessed analyzers in the given analysisScope.
         /// </summary>
-        public void MarkSymbolCompleteForUnprocessedAnalyzers(
+        public bool TryMarkSymbolCompleteForUnprocessedAnalyzers(
             ISymbol symbol,
             AnalysisScope analysisScope,
             HashSet<DiagnosticAnalyzer> processedAnalyzers)
-            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSymbolComplete, symbol);
+            => TryMarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, TryMarkSymbolComplete, symbol);
 
         /// <summary>
         /// True if the given symbol is fully analyzed for the given analyzer.
@@ -652,22 +657,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Marks the given symbol end actions as fully executed for the given analyzers.
+        /// Tries to mark the given symbol end actions as fully executed for the given analyzers.
         /// </summary>
-        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, IEnumerable<DiagnosticAnalyzer> analyzers)
+        public bool TryMarkSymbolEndAnalysisComplete(ISymbol symbol, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
+            var success = true;
             foreach (var analyzer in analyzers)
             {
-                MarkSymbolEndAnalysisComplete(symbol, analyzer);
+                if (!TryMarkSymbolEndAnalysisComplete(symbol, analyzer))
+                    success = false;
             }
+
+            return success;
         }
 
         /// <summary>
-        /// Marks the given symbol end actions as fully executed for the given analyzer.
+        /// Tries to mark the given symbol end actions as fully executed for the given analyzer.
         /// </summary>
-        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        public bool TryMarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
         {
-            GetAnalyzerState(analyzer).MarkSymbolEndAnalysisComplete(symbol);
+            return GetAnalyzerState(analyzer).TryMarkSymbolEndAnalysisComplete(symbol);
         }
 
         /// <summary>
@@ -725,22 +734,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Marks the given symbol declaration as fully analyzed for the given analyzer.
+        /// Tries to mark the given symbol declaration as fully analyzed for the given analyzer.
         /// </summary>
-        public void MarkDeclarationComplete(ISymbol symbol, int declarationIndex, DiagnosticAnalyzer analyzer)
+        public bool TryMarkDeclarationComplete(ISymbol symbol, int declarationIndex, DiagnosticAnalyzer analyzer)
         {
-            GetAnalyzerState(analyzer).MarkDeclarationComplete(symbol, declarationIndex);
+            return GetAnalyzerState(analyzer).TryMarkDeclarationComplete(symbol, declarationIndex);
         }
 
         /// <summary>
-        /// Marks the given symbol declaration as fully analyzed for the given analyzers.
+        /// Tries to mark the given symbol declaration as fully analyzed for the given analyzers.
         /// </summary>
-        public void MarkDeclarationComplete(ISymbol symbol, int declarationIndex, IEnumerable<DiagnosticAnalyzer> analyzers)
+        public bool TryMarkDeclarationComplete(ISymbol symbol, int declarationIndex, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
+            var success = true;
             foreach (var analyzer in analyzers)
             {
-                GetAnalyzerState(analyzer).MarkDeclarationComplete(symbol, declarationIndex);
+                if (!GetAnalyzerState(analyzer).TryMarkDeclarationComplete(symbol, declarationIndex))
+                    success = false;
             }
+
+            return success;
         }
 
         /// <summary>
@@ -770,52 +783,60 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Marks the given file as fully syntactically analyzed for the given analyzer.
+        /// Tries to mark the given file as fully syntactically analyzed for the given analyzer.
         /// </summary>
-        public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer)
+        public bool TryMarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer)
         {
-            GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(file);
+            return GetAnalyzerState(analyzer).TryMarkSyntaxAnalysisComplete(file);
         }
 
         /// <summary>
-        /// Marks the given file as fully syntactically analyzed for the given analyzers.
+        /// Tries to mark the given file as fully syntactically analyzed for the given analyzers.
         /// </summary>
-        public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, IEnumerable<DiagnosticAnalyzer> analyzers)
+        public bool TryMarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
+            var success = true;
             foreach (var analyzer in analyzers)
             {
-                GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(file);
+                if (!GetAnalyzerState(analyzer).TryMarkSyntaxAnalysisComplete(file))
+                    success = false;
             }
+
+            return success;
         }
 
         /// <summary>
-        /// Marks the given file as fully syntactically analyzed for the unprocessed analyzers in the given analysisScope.
+        /// Tries to mark the given file as fully syntactically analyzed for the unprocessed analyzers in the given analysisScope.
         /// </summary>
-        public void MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(
+        public bool TryMarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(
             SourceOrAdditionalFile file,
             AnalysisScope analysisScope,
             HashSet<DiagnosticAnalyzer> processedAnalyzers)
-            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSyntaxAnalysisComplete, file);
+            => TryMarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, TryMarkSyntaxAnalysisComplete, file);
 
-        private static void MarkAnalysisCompleteForUnprocessedAnalyzers<T>(
+        private static bool TryMarkAnalysisCompleteForUnprocessedAnalyzers<T>(
             AnalysisScope analysisScope,
             HashSet<DiagnosticAnalyzer> processedAnalyzers,
-            Action<T, DiagnosticAnalyzer> markComplete,
+            Func<T, DiagnosticAnalyzer, bool> tryMarkComplete,
             T arg)
         {
             Debug.Assert(processedAnalyzers.All(analysisScope.Contains));
             if (analysisScope.Analyzers.Length == processedAnalyzers.Count)
             {
-                return;
+                return true;
             }
 
+            var success = true;
             foreach (var analyzer in analysisScope.Analyzers)
             {
-                if (!processedAnalyzers.Contains(analyzer))
+                if (!processedAnalyzers.Contains(analyzer) &&
+                    !tryMarkComplete(arg, analyzer))
                 {
-                    markComplete(arg, analyzer);
+                    success = false;
                 }
             }
+
+            return success;
         }
     }
 }

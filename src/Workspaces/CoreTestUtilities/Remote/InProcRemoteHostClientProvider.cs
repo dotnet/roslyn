@@ -5,18 +5,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
@@ -33,58 +30,51 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 => _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new InProcRemoteHostClientProvider(workspaceServices, _callbackDispatchers);
+                => new InProcRemoteHostClientProvider(workspaceServices.SolutionServices, _callbackDispatchers);
         }
 
         private sealed class WorkspaceManager : RemoteWorkspaceManager
         {
-            public WorkspaceManager(SolutionAssetCache assetStorage, ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
-                : base(assetStorage)
+            public WorkspaceManager(Func<RemoteWorkspace, SolutionAssetCache> createAssetStorage, ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
+                : base(createAssetStorage, CreateRemoteWorkspace(sharedTestGeneratorReferences, additionalRemoteParts))
             {
-                LazyWorkspace = new Lazy<RemoteWorkspace>(
-                    () =>
-                    {
-                        var hostServices = FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).GetHostServices();
-
-                        // We want to allow references to source generators to be shared between the "in proc" and "remote" workspaces and
-                        // MEF compositions, so tell the serializer service to use the same map for this "remote" workspace as the in-proc one.
-                        ((IMefHostExportProvider)hostServices).GetExportedValue<TestSerializerService.Factory>().SharedTestGeneratorReferences = sharedTestGeneratorReferences;
-                        return new RemoteWorkspace(hostServices, WorkspaceKind.RemoteWorkspace);
-                    });
             }
-
-            public Lazy<RemoteWorkspace> LazyWorkspace { get; }
-
-            public override RemoteWorkspace GetWorkspace()
-                => LazyWorkspace.Value;
         }
 
-        private readonly HostWorkspaceServices _services;
-        private readonly Lazy<WorkspaceManager> _lazyManager;
-        private readonly AsyncLazy<RemoteHostClient> _lazyClient;
+        private static RemoteWorkspace CreateRemoteWorkspace(ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
+        {
+            var hostServices = FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).GetHostServices();
 
-        public SolutionAssetCache? RemoteAssetStorage { get; set; }
+            // We want to allow references to source generators to be shared between the "in proc" and "remote" workspaces and
+            // MEF compositions, so tell the serializer service to use the same map for this "remote" workspace as the in-proc one.
+            ((IMefHostExportProvider)hostServices).GetExportedValue<TestSerializerService.Factory>().SharedTestGeneratorReferences = sharedTestGeneratorReferences;
+            return new RemoteWorkspace(hostServices);
+        }
+
+        private readonly SolutionServices _services;
+        private readonly Lazy<WorkspaceManager> _lazyManager;
+        private readonly Lazy<RemoteHostClient> _lazyClient;
+
         public Type[]? AdditionalRemoteParts { get; set; }
         public TraceListener? TraceListener { get; set; }
 
-        public InProcRemoteHostClientProvider(HostWorkspaceServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
+        public InProcRemoteHostClientProvider(SolutionServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
 
-            var testSerializerServiceFactory = ((IMefHostExportProvider)services.HostServices).GetExportedValue<TestSerializerService.Factory>();
+            var testSerializerServiceFactory = services.ExportProvider.GetExportedValue<TestSerializerService.Factory>();
 
             _lazyManager = new Lazy<WorkspaceManager>(
                 () => new WorkspaceManager(
-                    RemoteAssetStorage ?? new SolutionAssetCache(),
+                    _ => new SolutionAssetCache(),
                     testSerializerServiceFactory.SharedTestGeneratorReferences,
                     AdditionalRemoteParts));
-            _lazyClient = new AsyncLazy<RemoteHostClient>(
-                cancellationToken => InProcRemoteHostClient.CreateAsync(
+            _lazyClient = new Lazy<RemoteHostClient>(
+                () => InProcRemoteHostClient.Create(
                     _services,
                     callbackDispatchers,
                     TraceListener,
-                    new RemoteHostTestData(_lazyManager.Value, isInProc: true)),
-                cacheResult: true);
+                    new RemoteHostTestData(_lazyManager.Value, isInProc: true)));
         }
 
         public void Dispose()
@@ -93,14 +83,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             if (_lazyManager.IsValueCreated)
             {
                 var manager = _lazyManager.Value;
-                if (manager.LazyWorkspace.IsValueCreated)
-                {
-                    manager.LazyWorkspace.Value.Dispose();
-                }
+                manager.GetWorkspace().Dispose();
             }
         }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-            => _lazyClient.GetValueAsync(cancellationToken).AsNullable();
+            => Task.FromResult<RemoteHostClient?>(_lazyClient.Value);
     }
 }

@@ -5,24 +5,22 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -31,7 +29,7 @@ using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
-    internal sealed partial class SettingsEditorPane : WindowPane, IOleComponent, IVsDeferredDocView, IVsLinkedUndoClient, IVsWindowSearch
+    internal sealed partial class SettingsEditorPane : WindowPane, IOleComponent, IVsDeferredDocView, IVsLinkedUndoClient
     {
         private readonly IVsEditorAdaptersFactoryService _vsEditorAdaptersFactoryService;
         private readonly IThreadingContext _threadingContext;
@@ -70,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             base.Initialize();
 
             // Create and initialize the editor
-            if (_componentId == default && this.TryGetService<SOleComponentManager, IOleComponentManager>(out var componentManager))
+            if (_componentId == default && this.TryGetService<SOleComponentManager, IOleComponentManager>(_threadingContext.JoinableTaskFactory, out var componentManager))
             {
                 var componentRegistrationInfo = new[]
                 {
@@ -87,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 _ = ErrorHandler.Succeeded(hr);
             }
 
-            if (this.TryGetService<SOleUndoManager, IOleUndoManager>(out _undoManager))
+            if (this.TryGetService<SOleUndoManager, IOleUndoManager>(_threadingContext.JoinableTaskFactory, out _undoManager))
             {
                 var linkCapableUndoMgr = (IVsLinkCapableUndoManager)_undoManager;
                 if (linkCapableUndoMgr is not null)
@@ -96,33 +94,28 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 }
             }
 
-            var statusService = _workspace.Services.GetService<IWorkspaceStatusService>();
-            if (statusService is not null)
-            {
-                // This will show the 'Waiting for Intellisense to initalize' message until the workspace is loaded.
-                _threadingContext.JoinableTaskFactory.Run(async () =>
-                {
-                    if (!await statusService.IsFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false))
-                    {
-                        await statusService.WaitUntilFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
-                    }
-                });
-            }
+            var whitespaceView = GetWhitespaceView();
+            var codeStyleView = GetCodeStyleView();
+            var namingStyleView = GetNamingStyleView();
+            var analyzerView = GetAnalyzerView();
 
-            // hook up our panel
             _control = new SettingsEditorControl(
-                GetWhitespaceView(),
-                GetCodeStyleView(),
-                GetAnalyzerView(),
-                _workspace,
-                _fileName,
-                _threadingContext,
-                _vsEditorAdaptersFactoryService,
-                _textBuffer);
+                 whitespaceView,
+                 codeStyleView,
+                 namingStyleView,
+                 analyzerView,
+                 _workspace,
+                 _fileName,
+                 _threadingContext,
+                 _vsEditorAdaptersFactoryService,
+                 _textBuffer);
+
+            RegisterForSearch(_control);
+
             Content = _control;
 
             RegisterIndependentView(true);
-            if (this.TryGetService<IMenuCommandService>(out var menuCommandService))
+            if (this.TryGetService<IMenuCommandService>(_threadingContext.JoinableTaskFactory, out var menuCommandService))
             {
                 AddCommand(menuCommandService, GUID_VSStandardCommandSet97, (int)VSStd97CmdID.NewWindow,
                                 new EventHandler(OnNewWindow), new EventHandler(OnQueryNewWindow));
@@ -130,41 +123,59 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                 new EventHandler(OnViewCode), new EventHandler(OnQueryViewCode));
             }
 
+            return;
+
             ISettingsEditorView GetWhitespaceView()
             {
-                var dataProvider = _settingsDataProviderService.GetSettingsProvider<WhitespaceSetting>(_fileName);
-                if (dataProvider is null)
-                {
-                    throw new InvalidOperationException("Unable to get whitespace settings");
-                }
-
-                var viewModel = new WhitespaceViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new WhitespaceSettingsView(viewModel);
+                return GetView<Setting>(
+                    static (dataProvider, controlProvider, tableMangerProvider) => new WhitespaceViewModel(dataProvider, controlProvider, tableMangerProvider),
+                    static viewModel => new WhitespaceSettingsView(viewModel));
             }
 
             ISettingsEditorView GetCodeStyleView()
             {
-                var dataProvider = _settingsDataProviderService.GetSettingsProvider<CodeStyleSetting>(_fileName);
-                if (dataProvider is null)
-                {
-                    throw new InvalidOperationException("Unable to get code style settings");
-                }
+                return GetView<CodeStyleSetting>(
+                    static (dataProvider, controlProvider, tableMangerProvider) => new CodeStyleSettingsViewModel(dataProvider, controlProvider, tableMangerProvider),
+                    static viewModel => new CodeStyleSettingsView(viewModel));
+            }
 
-                var viewModel = new CodeStyleSettingsViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new CodeStyleSettingsView(viewModel);
+            ISettingsEditorView GetNamingStyleView()
+            {
+                return GetView<NamingStyleSetting>(
+                    static (dataProvider, controlProvider, tableMangerProvider) => new NamingStyleSettingsViewModel(dataProvider, controlProvider, tableMangerProvider),
+                    static viewModel => new NamingStyleSettingsView(viewModel));
             }
 
             ISettingsEditorView GetAnalyzerView()
             {
-                var dataProvider = _settingsDataProviderService.GetSettingsProvider<AnalyzerSetting>(_fileName);
-                if (dataProvider is null)
-                {
-                    throw new InvalidOperationException("Unable to get analyzer settings");
-                }
-
-                var viewModel = new AnalyzerSettingsViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new AnalyzerSettingsView(viewModel);
+                return GetView<AnalyzerSetting>(
+                    static (dataProvider, controlProvider, tableMangerProvider) => new AnalyzerSettingsViewModel(dataProvider, controlProvider, tableMangerProvider),
+                    static viewModel => new AnalyzerSettingsView(viewModel));
             }
+
+            ISettingsEditorView GetView<TData>(
+                Func<ISettingsProvider<TData>, IWpfTableControlProvider, ITableManagerProvider, IWpfSettingsEditorViewModel> createViewModel,
+                Func<IWpfSettingsEditorViewModel, ISettingsEditorView> createView)
+            {
+                var dataProvider = GetDataProvider<TData>();
+                Assumes.NotNull(dataProvider);
+                var viewModel = createViewModel(dataProvider, _controlProvider, _tableMangerProvider);
+                var view = createView(viewModel);
+                return view;
+            }
+
+            void RegisterForSearch(SettingsEditorControl control)
+            {
+                var windowSearchHostFactory = this.GetService<SVsWindowSearchHostFactory, IVsWindowSearchHostFactory>(_threadingContext.JoinableTaskFactory);
+                var minWidth = (int)control.SearchControlParent.MinWidth;
+                var maxWidth = (int)control.SearchControlParent.MaxWidth;
+                var searchHandler = new SearchHandler(_threadingContext, minWidth, maxWidth, control.GetTableControls());
+                var windowSearchHost = windowSearchHostFactory.CreateWindowSearchHost(control.SearchControlParent);
+                windowSearchHost.SetupSearch(searchHandler);
+                windowSearchHost.IsVisible = true;
+            }
+
+            ISettingsProvider<TData>? GetDataProvider<TData>() => _settingsDataProviderService.GetSettingsProvider<TData>(_fileName);
         }
 
         private void OnQueryNewWindow(object sender, EventArgs e)
@@ -191,8 +202,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
         private void NewWindow()
         {
-            if (this.TryGetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(out var uishellOpenDocument) &&
-                this.TryGetService<SVsWindowFrame, IVsWindowFrame>(out var windowFrameOrig))
+            if (this.TryGetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_threadingContext.JoinableTaskFactory, out var uishellOpenDocument) &&
+                this.TryGetService<SVsWindowFrame, IVsWindowFrame>(_threadingContext.JoinableTaskFactory, out var windowFrameOrig))
             {
                 var logicalView = Guid.Empty;
                 var hr = uishellOpenDocument.OpenCopyOfStandardEditor(windowFrameOrig, ref logicalView, out var windowFrameNew);
@@ -239,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 _undoManager = null;
             }
 
-            if (this.TryGetService<SOleComponentManager, IOleComponentManager>(out var componentManager))
+            if (this.TryGetService<SOleComponentManager, IOleComponentManager>(_threadingContext.JoinableTaskFactory, out var componentManager))
             {
                 _ = componentManager.FRevokeComponent(_componentId);
             }
@@ -253,10 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
         public int FDoIdle(uint grfidlef)
         {
-            if (_control is not null)
-            {
-                _control.SynchronizeSettings();
-            }
+            _control?.SynchronizeSettings();
 
             return S_OK;
         }
@@ -270,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         /// <param name="subscribe">True to subscribe, false to unsubscribe</param>
         private void RegisterIndependentView(bool subscribe)
         {
-            if (this.TryGetService<SVsTextManager, IVsTextManager>(out var textManager))
+            if (this.TryGetService<SVsTextManager, IVsTextManager>(_threadingContext.JoinableTaskFactory, out var textManager))
             {
                 _ = subscribe
                     ? textManager.RegisterIndependentView(this, _textBuffer)
@@ -330,70 +338,5 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         public void Terminate() { }
         public IntPtr HwndGetWindow(uint dwWhich, uint dwReserved) => IntPtr.Zero;
         public int OnInterveningUnitBlockingLinkedUndo() => E_FAIL;
-
-        public IVsSearchTask? CreateSearch(uint dwCookie, IVsSearchQuery pSearchQuery, IVsSearchCallback pSearchCallback)
-        {
-            if (_control is not null)
-            {
-                var tables = _control.GetTableControls();
-                return new SearchTask(dwCookie, pSearchQuery, pSearchCallback, tables, _threadingContext);
-            }
-
-            return null;
-        }
-
-        public void ClearSearch()
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            if (_control is not null)
-            {
-                var tables = _control.GetTableControls();
-                // remove filter on tablar data controls
-                foreach (var tableControl in tables)
-                {
-                    _ = tableControl.SetFilter(string.Empty, null);
-                }
-            }
-        }
-
-        public void ProvideSearchSettings(IVsUIDataSource pSearchSettings)
-        {
-            SetIntValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.ControlMaxWidth, 200);
-            SetIntValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchStartType, (int)VSSEARCHSTARTTYPE.SST_DELAYED);
-            SetIntValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchStartDelay, 100);
-            SetBoolValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchUseMRU, true);
-            SetBoolValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.PrefixFilterMRUItems, false);
-            SetIntValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.MaximumMRUItems, 25);
-            SetStringValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchWatermark, ServicesVSResources.Search_Settings);
-            SetBoolValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchPopupAutoDropdown, false);
-            SetStringValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.ControlBorderThickness, "1");
-            SetIntValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.SearchProgressType, (int)VSSEARCHPROGRESSTYPE.SPT_INDETERMINATE);
-
-            void SetBoolValue(IVsUIDataSource source, string property, bool value)
-            {
-                var valueProp = BuiltInPropertyValue.FromBool(value);
-                _ = source.SetValue(property, valueProp);
-            }
-
-            void SetIntValue(IVsUIDataSource source, string property, int value)
-            {
-                var valueProp = BuiltInPropertyValue.Create(value);
-                _ = source.SetValue(property, valueProp);
-            }
-
-            void SetStringValue(IVsUIDataSource source, string property, string value)
-            {
-                var valueProp = BuiltInPropertyValue.Create(value);
-                _ = source.SetValue(property, valueProp);
-            }
-        }
-
-        public bool OnNavigationKeyDown(uint dwNavigationKey, uint dwModifiers) => false;
-
-        public bool SearchEnabled { get; } = true;
-
-        public Guid Category { get; } = new Guid("1BE8950F-AF27-4B71-8D54-1F7FFEFDC237");
-        public IVsEnumWindowSearchFilters? SearchFiltersEnum => null;
-        public IVsEnumWindowSearchOptions? SearchOptionsEnum => null;
     }
 }

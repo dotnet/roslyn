@@ -96,6 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         placeholderInfo = node.UsingInfo.PlaceholderInfo(localVariableDeclaration.LocalSymbol.Type)
                         currentBody = RewriteSingleUsingToTryFinally(node,
                                                                      declarationIndex,
+                                                                     localDeclaration.Syntax,
                                                                      localVariableDeclaration.LocalSymbol,
                                                                      localVariableDeclaration.InitializerOpt,
                                                                      placeholderInfo,
@@ -110,6 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For initializedVariableIndex = localAsNewDeclaration.LocalDeclarations.Length - 1 To 0 Step -1
                             currentBody = RewriteSingleUsingToTryFinally(node,
                                                                          declarationIndex,
+                                                                         localDeclaration.Syntax,
                                                                          localAsNewDeclaration.LocalDeclarations(initializedVariableIndex).LocalSymbol,
                                                                          localAsNewDeclaration.Initializer,
                                                                          placeholderInfo,
@@ -130,7 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                             blockSyntax.UsingStatement)
 
                 currentBody = RewriteSingleUsingToTryFinally(node,
-                                                             0, ' There is only one resource - the expression
+                                                             resourceIndex:=0, ' There is only one resource - the expression
+                                                             resourceSyntax:=blockSyntax,
                                                              tempResourceSymbol,
                                                              initializationExpression,
                                                              placeholderInfo,
@@ -188,14 +191,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteSingleUsingToTryFinally(
             node As BoundUsingStatement,
             resourceIndex As Integer,
+            resourceSyntax As SyntaxNode,
             localSymbol As LocalSymbol,
             initializationExpression As BoundExpression,
             ByRef placeholderInfo As ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression),
             currentBody As BoundBlock
         ) As BoundBlock
-            Dim syntaxNode = DirectCast(node.Syntax, UsingBlockSyntax)
             Dim resourceType = localSymbol.Type
-            Dim boundResourceLocal As BoundLocal = New BoundLocal(syntaxNode, localSymbol, isLValue:=True, type:=resourceType)
+            Dim boundResourceLocal As BoundLocal = New BoundLocal(resourceSyntax, localSymbol, isLValue:=True, type:=resourceType)
 
             Dim resourcePlaceholder As BoundRValuePlaceholder = placeholderInfo.Item1
             Dim disposeConversion As BoundExpression = placeholderInfo.Item2
@@ -210,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim newBody = DirectCast(Concat(currentBody, SyntheticBoundNodeFactory.HiddenSequencePoint()), BoundBlock)
 
             ' assign initialization to variable
-            Dim boundResourceInitializationAssignment As BoundStatement = New BoundAssignmentOperator(syntaxNode,
+            Dim boundResourceInitializationAssignment As BoundStatement = New BoundAssignmentOperator(resourceSyntax,
                                                                                                       boundResourceLocal,
                                                                                                       VisitAndGenerateObjectCloneIfNeeded(initializationExpression, suppressObjectClone:=True),
                                                                                                       suppressObjectClone:=True,
@@ -223,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' create if statement with dispose call
-            Dim disposeCall = GenerateDisposeCallForForeachAndUsing(syntaxNode, boundResourceLocal,
+            Dim disposeCall = GenerateDisposeCallForForeachAndUsing(resourceSyntax, boundResourceLocal,
                                                                     VisitExpressionNode(disposeCondition), True,
                                                                     VisitExpressionNode(disposeConversion))
 
@@ -238,24 +241,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim finallyStatements As ImmutableArray(Of BoundStatement)
             If disposePrologue IsNot Nothing Then
-                finallyStatements = ImmutableArray.Create(Of BoundStatement)(disposePrologue, disposeCall)
+                finallyStatements = ImmutableArray.Create(disposePrologue, disposeCall)
             Else
-                finallyStatements = ImmutableArray.Create(Of BoundStatement)(disposeCall)
+                finallyStatements = ImmutableArray.Create(disposeCall)
             End If
 
             ' create finally block from the dispose call
-            Dim finallyBlock = New BoundBlock(syntaxNode,
-                                              Nothing, ImmutableArray(Of LocalSymbol).Empty,
+            Dim finallyBlock = New BoundBlock(resourceSyntax,
+                                              statementListSyntax:=Nothing,
+                                              locals:=ImmutableArray(Of LocalSymbol).Empty,
                                               finallyStatements)
 
             ' rewrite try/finally block
-            Dim tryFinally = RewriteTryStatement(syntaxNode, newBody, ImmutableArray(Of BoundCatchBlock).Empty, finallyBlock, Nothing)
+            Dim tryFinally = RewriteTryStatement(resourceSyntax, newBody, ImmutableArray(Of BoundCatchBlock).Empty, finallyBlock, exitLabelOpt:=Nothing)
 
-            newBody = New BoundBlock(syntaxNode,
-                                     Nothing,
-                                     ImmutableArray(Of LocalSymbol).Empty,
-                                     ImmutableArray.Create(Of BoundStatement)(boundResourceInitializationAssignment,
-                                                                                 tryFinally))
+            newBody = New BoundBlock(resourceSyntax,
+                                     statementListSyntax:=Nothing,
+                                     locals:=ImmutableArray(Of LocalSymbol).Empty,
+                                     ImmutableArray.Create(boundResourceInitializationAssignment, tryFinally))
 
             RemovePlaceholderReplacement(resourcePlaceholder)
 

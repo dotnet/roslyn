@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Methods
 
-        [WorkItem(740443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740443")]
-        [Fact]
+        [Fact, WorkItem(740443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740443")]
         public void Method_Delete_Leaf1()
         {
             var src1 = @"
@@ -59,6 +58,40 @@ class C
         }
 
         [Fact]
+        public void Method_Rename_Leaf1()
+        {
+            var src1 = @"
+class C
+{
+    static void Goo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Boo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { edits },
+                new[]
+                {
+                    DocumentResults(
+                        active,
+                        diagnostics: new[] {Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "static void Boo(int a)", FeaturesResources.method) })
+                });
+        }
+
+        [Fact]
         public void Method_Body_Delete1()
         {
             var src1 = "class C { int M() { <AS:0>return 1;</AS:0> } }";
@@ -67,7 +100,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ModifiersUpdate, "extern int M()", FeaturesResources.method));
         }
 
@@ -80,7 +113,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ModifiersUpdate, "extern int M()", FeaturesResources.method));
         }
 
@@ -93,7 +126,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -105,7 +138,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         // Generics
@@ -151,7 +184,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c.Swap(ref b, ref a);"));
         }
 
@@ -191,7 +224,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Swap(null, null);"));
         }
 
@@ -231,13 +264,12 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.GenericMethodUpdate, "static void Swap<T>(T lhs, T rhs)"));
         }
 
         // Async
-        [WorkItem(749458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749458")]
-        [Fact]
+        [Fact, WorkItem(749458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749458")]
         public void Update_Leaf_AsyncMethod()
         {
             var src1 = @"
@@ -273,11 +305,10 @@ class Test
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
-        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
-        [Fact]
+        [Fact, WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         public void Update_Inner_AsyncMethod()
         {
             var src1 = @"
@@ -313,12 +344,11 @@ class Test
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "string result = f.WaitAsync(6).Result;"));
         }
 
-        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
-        [Fact]
+        [Fact, WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         public void Update_Initializer_MultipleVariables1()
         {
             var src1 = @"
@@ -360,12 +390,11 @@ class Test
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "int a = G()"));
         }
 
-        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
-        [Fact]
+        [Fact, WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         public void Update_Initializer_MultipleVariables2()
         {
             var src1 = @"
@@ -407,7 +436,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "b = F()"));
         }
 
@@ -457,7 +486,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -469,7 +498,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -481,7 +510,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -493,7 +522,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         #endregion
@@ -509,7 +538,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -521,7 +550,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -533,7 +564,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -556,8 +589,31 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "get", FeaturesResources.code));
+        }
+
+        [Fact]
+        public void Property_ExpressionBody_NonLeaf()
+        {
+            var src1 = @"
+class C 
+{ 
+    int P => <AS:1>M()</AS:1>; 
+    int M() { <AS:0>return 1;</AS:0> } 
+}
+";
+            var src2 = @"
+class C 
+{ 
+    int P => <AS:1>M()</AS:1>; 
+    int M() { <AS:0>return 2;</AS:0> } 
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -569,7 +625,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -581,8 +637,13 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int P", DeletedSymbolDisplay(CSharpFeaturesResources.property_setter, "P.set")));
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -607,7 +668,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             // Can be improved with https://github.com/dotnet/roslyn/issues/22696
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "int P", FeaturesResources.code));
         }
 
@@ -624,7 +685,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -636,7 +697,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -648,7 +711,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -660,8 +723,36 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int this[int a]", DeletedSymbolDisplay(CSharpFeaturesResources.indexer_setter, "this[int a].set")));
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void Indexer_ExpressionBody_NonLeaf()
+        {
+            var src1 = @"
+class C 
+{ 
+    int this[int index] => <AS:1>M()</AS:1>; 
+    int M() { <AS:0>return 1;</AS:0> } 
+}
+";
+            var src2 = @"
+class C 
+{ 
+    int this[int index] => <AS:1>M()</AS:1>; 
+    int M() { <AS:0>return 2;</AS:0> } 
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -710,12 +801,11 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "set"));
         }
 
-        [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
-        [Fact]
+        [Fact, WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
         public void Update_Inner_Indexers1()
         {
             var src1 = @"
@@ -764,7 +854,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             // Rude edits of active statements (AS:1) are not reported if the top-level edits are rude.
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "set"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "stringCollection[1] = \"hello\";"));
         }
@@ -815,12 +905,11 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "get"));
         }
 
-        [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
-        [Fact]
+        [Fact, WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
         public void Update_Inner_Indexers2()
         {
             var src1 = @"
@@ -867,7 +956,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             // Rude edits of active statements (AS:1) are not reported if the top-level edits are rude.
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "get"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(stringCollection[1]);"));
         }
@@ -918,7 +1007,7 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "set"));
         }
 
@@ -967,7 +1056,7 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "{", FeaturesResources.code));
         }
 
@@ -1017,7 +1106,7 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "get"));
         }
 
@@ -1066,7 +1155,7 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "{", FeaturesResources.code));
         }
 
@@ -1083,7 +1172,7 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -1095,7 +1184,7 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -1107,7 +1196,7 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -1119,11 +1208,10 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
-        [WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
-        [Fact]
+        [Fact, WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
         public void Update_Leaf_OverloadedOperator()
         {
             var src1 = @"
@@ -1157,11 +1245,10 @@ class Test
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active);
         }
 
-        [WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
-        [Fact]
+        [Fact, WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
         public void Update_Inner_OverloadedOperator()
         {
             var src1 = @"
@@ -1203,7 +1290,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Test t3 = t1 * t2;"));
         }
 

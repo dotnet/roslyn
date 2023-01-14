@@ -10,7 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal partial interface ISemanticFactsService : ISemanticFacts, ILanguageService
     {
@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
-
-        bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location,

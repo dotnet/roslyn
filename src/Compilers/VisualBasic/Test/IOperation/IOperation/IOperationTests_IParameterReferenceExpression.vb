@@ -716,11 +716,11 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
     IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
       Children(2):
           IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
-          IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
+          IOperation:  (OperationKind.None, Type: System.String, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
             Children(4):
                 IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, start, length)')
                   Operand: 
-                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
+                    IOperation:  (OperationKind.None, Type: System.String, IsImplicit) (Syntax: 'str')
                 IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'start')
                 IParameterReferenceOperation: length (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'length')
                 IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
@@ -871,7 +871,7 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'AddressOf x.Method')
+IOperation:  (OperationKind.None, Type: System.Object) (Syntax: 'AddressOf x.Method')
   Children(1):
       IDynamicMemberReferenceOperation (Member Name: "Method", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'x.Method')
         Type Arguments(0)

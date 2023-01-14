@@ -67,6 +67,21 @@
         <target state="translated">Při čtení obsahu zdrojového souboru {0} došlo k chybě -- {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_resolve_rename_conflicts">
+        <source>Failed to resolve rename conflicts</source>
+        <target state="translated">Nepovedlo se vyřešit konflikty přejmenování.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
+        <source>'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</source>
+        <target state="translated">FixAllScope.ContainingType a FixAllScope.ContainingMember nejsou u tohoto konstruktoru podporované.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
+        <source>'FixAllScope.Custom' is not supported with this API</source>
+        <target state="translated">FixAllScope.Custom se s tímto rozhraním API nepodporuje.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Odsazení a mezery</target>
@@ -222,9 +237,19 @@
         <target state="translated">Řešení už zadaný odkaz obsahuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unexpected_value_0_in_DocumentKinds_array">
+        <source>Unexpected value '{0}' in DocumentKinds array.</source>
+        <target state="translated">Neočekávaná hodnota {0} v poli DocumentKinds.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">Neznámý</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents">
+        <source>Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</source>
+        <target state="translated">Vlastnost TextDocument použijte místo vlastnosti Document, protože zprostředkovatel podporuje nespravované textové dokumenty.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -435,11 +460,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">Zadaná cesta musí být absolutní.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">Název může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

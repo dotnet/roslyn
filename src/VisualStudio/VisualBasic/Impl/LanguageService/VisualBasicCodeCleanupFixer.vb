@@ -7,6 +7,7 @@ Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.Shell
@@ -15,13 +16,13 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
     <Export(GetType(AbstractCodeCleanUpFixer))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
-    Partial Friend Class VisualBasicCodeCleanUpFixer
+    Friend Class VisualBasicCodeCleanUpFixer
         Inherits AbstractCodeCleanUpFixer
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext, workspace As VisualStudioWorkspaceImpl, vsHierarchyItemManager As IVsHierarchyItemManager)
-            MyBase.New(threadingContext, workspace, vsHierarchyItemManager)
+        Public Sub New(threadingContext As IThreadingContext, workspace As VisualStudioWorkspaceImpl, vsHierarchyItemManager As IVsHierarchyItemManager, globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, workspace, vsHierarchyItemManager, globalOptions)
         End Sub
     End Class
 End Namespace

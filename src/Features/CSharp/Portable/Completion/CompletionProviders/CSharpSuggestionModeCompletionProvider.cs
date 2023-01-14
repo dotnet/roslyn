@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public CSharpSuggestionModeCompletionProvider()
         {
         }
+
+        internal override string Language => LanguageNames.CSharp;
 
         protected override async Task<CompletionItem?> GetSuggestionModeItemAsync(
             Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // We'll show the builder after an open brace or comma, because that's where the
                 // user can start declaring new named parts. 
-                return token.Kind() == SyntaxKind.OpenBraceToken || token.Kind() == SyntaxKind.CommaToken;
+                return token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken;
             }
 
             return false;
@@ -125,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // We might be in the arguments to a parenthesized lambda
-            if (token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken)
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
             {
-                if (token.Parent != null && token.Parent is ParameterListSyntax)
+                if (token.Parent is not null and ParameterListSyntax)
                 {
-                    return token.Parent.Parent != null && token.Parent.Parent is ParenthesizedLambdaExpressionSyntax;
+                    return token.Parent.Parent is not null and ParenthesizedLambdaExpressionSyntax;
                 }
             }
 
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // For example, "(a, b" could be the start of either a tuple or lambda
             // But "(a: b, c" cannot be a lambda
             if (tree.IsPossibleTupleContext(token, position) &&
-                token.Parent.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax? tupleExpression) &&
+                token.Parent is TupleExpressionSyntax tupleExpression &&
                 !tupleExpression.HasNames())
             {
                 position = token.Parent.SpanStart;
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // async lambda: 
             //    Goo(async($$
             //    Goo(async(p1, $$
-            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.ArgumentList)
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.ArgumentList)
                 && token.Parent.Parent is InvocationExpressionSyntax invocation
                 && invocation.Expression is IdentifierNameSyntax identifier)
             {
@@ -185,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // If we're an argument to a function with multiple overloads, 
             // open the builder if any overload takes a delegate at our argument position
             var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
-            return inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
+            return inferredTypeInfo.Any(static (type, semanticModel) => GetDelegateType(type, semanticModel.Compilation).IsDelegateType(), semanticModel);
         }
 
         private static ITypeSymbol? GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (lastTokenInPattern.Parent is SingleVariableDesignationSyntax variableDesignationSyntax &&
                 token.Parent == variableDesignationSyntax)
             {
-                return patternSyntax is DeclarationPatternSyntax || patternSyntax is RecursivePatternSyntax;
+                return patternSyntax is DeclarationPatternSyntax or RecursivePatternSyntax;
             }
 
             return false;

@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             => IsTriggerCharacterInternal(ch);
 
         private static bool IsTriggerCharacterInternal(char ch)
-            => ch == '[' || ch == ',';
+            => ch is '[' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == ']';
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                    ConditionalAccessExpression.TryGetSyntax(root, position, syntaxFacts, triggerReason, cancellationToken, out identifier, out openBrace);
         }
 
-        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (!TryGetElementAccessExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var expression, out var openBrace))
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
             }
 
-            if (expressionSymbol != null && expressionSymbol is INamedTypeSymbol)
+            if (expressionSymbol is not null and INamedTypeSymbol)
             {
                 return null;
             }
@@ -98,16 +98,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+            accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
                                                    .Sort(semanticModel, expression.SpanStart);
 
-            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(expression, openBrace);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
-                Convert(p, openBrace, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                Convert(p, openBrace, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
@@ -129,10 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return IncompleteElementAccessExpression.GetTextSpan(expression, openBracket);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        private static SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (!TryGetElementAccessExpression(
                     root,
@@ -225,12 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IPropertySymbol indexer,
             SyntaxToken openToken,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = openToken.SpanStart;
             var item = CreateItem(indexer, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 indexer.IsParams(),
                 indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),

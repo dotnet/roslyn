@@ -24,20 +24,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(IDEDiagnosticIds.SimplifyObjectCreationDiagnosticId)
 
-        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.CodeStyle
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
-                context.RegisterCodeFix(New MyCodeAction(
-                    VisualBasicCodeFixesResources.Simplify_object_creation,
-                    Function(ct) FixAsync(context.Document, diagnostic, ct)),
-                    diagnostic)
+                RegisterCodeFix(context, VisualBasicCodeFixesResources.Simplify_object_creation, NameOf(VisualBasicCodeFixesResources.Simplify_object_creation), diagnostic)
             Next
 
             Return Task.CompletedTask
         End Function
 
-        Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
+        Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, fallbackOptions As CodeActionOptionsProvider, cancellationToken As CancellationToken) As Task
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             For Each diagnostic In diagnostics
                 Dim node = DirectCast(root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie:=True), VariableDeclaratorSyntax)
@@ -49,13 +44,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
                 editor.ReplaceNode(node, newNode)
             Next
         End Function
-
-        Private Class MyCodeAction
-            Inherits CustomCodeActions.DocumentChangeAction
-
-            Friend Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument, NameOf(VisualBasicCodeFixesResources.Simplify_object_creation))
-            End Sub
-        End Class
     End Class
 End Namespace

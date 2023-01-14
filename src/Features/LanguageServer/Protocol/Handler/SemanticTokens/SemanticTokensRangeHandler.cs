@@ -4,59 +4,72 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    /// <summary>
-    /// Computes the semantic tokens for a given range.
-    /// </summary>
-    /// <remarks>
-    /// When a user opens a file, it can be beneficial to only compute the semantic tokens for the visible range
-    /// for faster UI rendering.
-    /// The range handler is only invoked when a file is opened. When the first whole document request completes
-    /// via <see cref="SemanticTokensHandler"/>, the range handler is not invoked again for the rest of the session.
-    /// </remarks>
-    internal class SemanticTokensRangeHandler : IRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
+    [Method(Methods.TextDocumentSemanticTokensRangeName)]
+    internal class SemanticTokensRangeHandler : ILspServiceDocumentRequestHandler<SemanticTokensRangeParams, LSP.SemanticTokens>
     {
-        private readonly SemanticTokensCache _tokensCache;
-
-        public SemanticTokensRangeHandler(SemanticTokensCache tokensCache)
-        {
-            _tokensCache = tokensCache;
-        }
-
-        public string Method => LSP.Methods.TextDocumentSemanticTokensRangeName;
+        private readonly IGlobalOptionService _globalOptions;
+        private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
+        public SemanticTokensRangeHandler(
+            IGlobalOptionService globalOptions,
+            SemanticTokensRefreshQueue semanticTokensRefreshQueue)
+        {
+            _globalOptions = globalOptions;
+            _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
+        }
+
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);
             return request.TextDocument;
         }
 
         public async Task<LSP.SemanticTokens> HandleRequestAsync(
-            LSP.SemanticTokensRangeParams request,
+            SemanticTokensRangeParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
-            Contract.ThrowIfNull(context.Document, "Document is null.");
+            var contextDocument = context.GetRequiredDocument();
 
-            var resultId = _tokensCache.GetNextResultId();
+            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
+            // results but will speed up how quickly we can respond to the client's request.
+            var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
+            var project = document.Project;
+            var options = _globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
 
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole
             // document request, so caching range results is unnecessary since the whole document
             // handler will cache the results anyway.
-            var (tokensData, isFinalized) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                context.Document, SemanticTokensCache.TokenTypeToIndex,
-                request.Range, cancellationToken).ConfigureAwait(false);
+            var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                document,
+                SemanticTokensHelpers.TokenTypeToIndex,
+                request.Range,
+                options,
+                includeSyntacticClassifications: contextDocument.IsRazorDocument(),
+                cancellationToken).ConfigureAwait(false);
 
-            return new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsFinalized = isFinalized };
+            // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick
+            // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
+            // we can optionally choose to notify our caller to do a refresh if we computed a compilation for a new
+            // solution snapshot.
+            await _semanticTokenRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
+
+            return new LSP.SemanticTokens { Data = tokensData };
         }
     }
 }

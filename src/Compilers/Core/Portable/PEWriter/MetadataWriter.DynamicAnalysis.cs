@@ -271,7 +271,7 @@ namespace Microsoft.Cci
 
         #region Table Serialization
 
-        private struct Sizes
+        private readonly struct Sizes
         {
             public readonly int BlobHeapSize;
             public readonly int GuidHeapSize;

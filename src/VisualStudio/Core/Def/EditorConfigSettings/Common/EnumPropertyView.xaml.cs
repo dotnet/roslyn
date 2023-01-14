@@ -14,33 +14,21 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
     internal partial class EnumSettingView : UserControl
     {
         private readonly IEnumSettingViewModel _model;
-        private readonly string[] _descriptions;
-        private readonly ComboBox _comboBox;
 
         public EnumSettingView(IEnumSettingViewModel model)
         {
             InitializeComponent();
+            DataContext = model;
             _model = model;
-
-            _descriptions = _model.GetValueDescriptions();
-            _comboBox = new ComboBox()
-            {
-                ItemsSource = _descriptions
-            };
-
-            _comboBox.SelectedIndex = model.GetValueIndex();
-            _comboBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Value);
-            _comboBox.SelectionChanged += ComboBox_SelectionChanged;
-
-            _ = RootGrid.Children.Add(_comboBox);
         }
 
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void EnumValueComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var index = _comboBox.SelectedIndex;
-            if (index < _descriptions.Length && index >= 0)
+            var index = EnumValueComboBox.SelectedIndex;
+            var descriptions = _model.EnumValues;
+            if (index < descriptions.Length && index >= 0)
             {
-                _model.ChangeProperty(_descriptions[index]);
+                _model.ChangeProperty(descriptions[index]);
             }
         }
     }

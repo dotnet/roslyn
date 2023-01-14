@@ -8,13 +8,13 @@
 *.sln.docstates
 *.svclog
 .vs/
+.vscode/settings.json
 
 # Build results
 [Aa]rtifacts/
 [Dd]ebug/
 [Rr]elease/
 [Bb]inaries/
-x64/
 [Bb]in/
 [Oo]bj/
 .dotnet/

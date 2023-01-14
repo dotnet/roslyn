@@ -5,8 +5,10 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
@@ -19,6 +21,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -76,6 +79,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     <file id=""4"" name=""Baz.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""" + BitConverter.ToString(hash4) + @""" />
   </files>
 </symbols>", options: PdbValidationOptions.ExcludeMethods);
+        }
+
+        [Fact]
+        public void SourceGeneratedFiles()
+        {
+            Compilation compilation = CreateCompilation("class C { }", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var testGenerator = new TestSourceGenerator()
+            {
+                ExecuteImpl = context =>
+                {
+                    context.AddSource("hint1", "class G1 { void F() {} }");
+                    context.AddSource("hint2", SourceText.From("class G2 { void F() {} }", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256));
+
+                    Assert.Throws<ArgumentException>(() => context.AddSource("hint3", SourceText.From("class G3 { void F() {} }", encoding: null, checksumAlgorithm: SourceHashAlgorithm.Sha256)));
+                }
+            };
+
+            var driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: TestOptions.Regular);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+
+            var result = outputCompilation.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            result.Diagnostics.Verify();
+            Assert.True(result.Success);
+
+            var path1 = Path.Combine("Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.cs");
+            var path2 = Path.Combine("Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.cs");
+
+            outputCompilation.VerifyPdb($@"
+<symbols>
+  <files>
+    <file id=""1"" name=""{path1}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD"" />
+    <file id=""2"" name=""{path2}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""64-A9-4B-81-04-84-18-CD-73-F7-F8-3B-06-32-4B-9C-F9-36-D4-7A-7B-D0-2F-34-ED-8C-B7-AA-48-43-55-35"" />
+  </files>
+</symbols>", options: PdbValidationOptions.ExcludeMethods);
+        }
+
+        [Fact]
+        public void EmitDebugInfoForSynthesizedSyntaxTree()
+        {
+            var tree1 = SyntaxFactory.ParseCompilationUnit(@"
+#line 1 ""test.cs""
+class C { void M() {} }
+").SyntaxTree;
+            var tree2 = SyntaxFactory.ParseCompilationUnit(@"
+class D { void M() {} }
+").SyntaxTree;
+
+            var comp = CSharpCompilation.Create("test", new[] { tree1, tree2 }, TargetFrameworkUtil.StandardReferences, TestOptions.DebugDll);
+
+            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            result.Diagnostics.Verify();
+
+            comp.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+    <file id=""2"" name=""test.cs"" language=""C#"" />
+  </files>
+</symbols>
+", format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeMethods);
         }
 
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
@@ -1090,7 +1157,7 @@ class C
 }");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
-<symbols>
+ <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -1115,14 +1182,6 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x16"">
         <namespace name=""System"" />
       </scope>
-    </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.cctor&gt;b__3"" parameterNames=""y"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName="".cctor"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""66"" endLine=""7"" endColumn=""70"" document=""1"" />
-      </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_0"" parameterNames=""x"">
       <customDebugInfo>
@@ -1167,6 +1226,14 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x1a"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
       </scope>
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.cctor&gt;b__3"" parameterNames=""y"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName="".cctor"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""66"" endLine=""7"" endColumn=""70"" document=""1"" />
+      </sequencePoints>
     </method>
   </methods>
 </symbols>");
@@ -7750,6 +7817,9 @@ class C
           <slot kind=""0"" offset=""64"" />
           <slot kind=""0"" offset=""158"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""222"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">
@@ -9847,7 +9917,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object
@@ -10056,7 +10126,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object
@@ -12788,6 +12858,42 @@ class C
   <methods />
 </symbols>
 ");
+        }
+
+        [Fact]
+        public void CompilerInfo_WindowsPdb()
+        {
+            var compilerAssembly = typeof(Compilation).Assembly;
+            var fileVersion = Version.Parse(compilerAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
+            var versionString = compilerAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+
+            var source = "class C { void F() {} }";
+
+            var c = CreateCompilation(
+                new[] { Parse(source, "a.cs") },
+                options: TestOptions.DebugDll);
+
+            c.VerifyPdb($@"
+<symbols>
+  <files>
+    <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""CB-D0-82-32-17-65-3C-22-44-D1-38-EA-BC-88-09-CF-A1-35-1D-09"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""20"" endLine=""1"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""22"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+  <compilerInfo version=""{fileVersion}"" name=""C# - {versionString}"" />
+</symbols>
+", options: PdbValidationOptions.IncludeModuleDebugInfo, format: DebugInformationFormat.Pdb);
         }
     }
 }

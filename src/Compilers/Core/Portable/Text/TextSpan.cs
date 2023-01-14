@@ -225,9 +225,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Determines if current instance of <see cref="TextSpan"/> is equal to another.
         /// </summary>
         public override bool Equals(object? obj)
-        {
-            return obj is TextSpan && Equals((TextSpan)obj);
-        }
+            => obj is TextSpan span && Equals(span);
 
         /// <summary>
         /// Produces a hash code for <see cref="TextSpan"/>.
@@ -239,6 +237,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Provides a string representation for <see cref="TextSpan"/>.
+        /// This representation uses "half-open interval" notation, indicating the endpoint character is not included.
+        /// Example: <c>[10..20)</c>, indicating the text starts at position 10 and ends at position 20 not included.
         /// </summary>
         public override string ToString()
         {

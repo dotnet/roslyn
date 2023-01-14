@@ -6,25 +6,47 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
     internal static class OmniSharpCompletionService
     {
-        public static Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsAsync(
+        public static async ValueTask<bool> ShouldTriggerCompletionAsync(
             this CompletionService completionService,
             Document document,
             int caretPosition,
-            CompletionTrigger trigger = default,
-            ImmutableHashSet<string>? roles = null,
-            OptionSet? options = null,
-            CancellationToken cancellationToken = default)
-            => completionService.GetCompletionsInternalAsync(document, caretPosition, trigger, roles, options, cancellationToken);
+            CompletionTrigger trigger,
+            ImmutableHashSet<string>? roles,
+            OmniSharpCompletionOptions options,
+            CancellationToken cancellationToken)
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
+        }
 
-        public static string GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
+        public static Task<CompletionList> GetCompletionsAsync(
+           this CompletionService completionService,
+           Document document,
+           int caretPosition,
+           CompletionTrigger trigger,
+           ImmutableHashSet<string>? roles,
+           OmniSharpCompletionOptions options,
+           CancellationToken cancellationToken)
+        {
+            return completionService.GetCompletionsAsync(document, caretPosition, options.ToCompletionOptions(), document.Project.Solution.Options, trigger, roles, cancellationToken);
+        }
 
-        public static PerLanguageOption<bool?> ShowItemsFromUnimportedNamespaces = (PerLanguageOption<bool?>)CompletionOptions.ShowItemsFromUnimportedNamespaces;
+        public static Task<CompletionDescription?> GetDescriptionAsync(
+           this CompletionService completionService,
+           Document document,
+           CompletionItem item,
+           OmniSharpCompletionOptions options,
+           CancellationToken cancellationToken)
+        {
+            return completionService.GetDescriptionAsync(document, item, options.ToCompletionOptions(), SymbolDescriptionOptions.Default, cancellationToken);
+        }
+
+        public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
     }
 }

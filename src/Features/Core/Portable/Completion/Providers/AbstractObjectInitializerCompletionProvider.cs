@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractObjectInitializerCompletionProvider : LSPCompletionProvider
     {
-        protected abstract Tuple<ITypeSymbol, Location> GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        protected abstract Tuple<ITypeSymbol, Location>? GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         protected abstract HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string EscapeIdentifier(ISymbol symbol);
 
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            if (!(GetInitializedType(document, semanticModel, position, cancellationToken) is var (type, initializerLocation)))
+            if (GetInitializedType(document, semanticModel, position, cancellationToken) is not var (type, initializerLocation))
             {
                 return;
             }
@@ -50,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
+            Contract.ThrowIfNull(enclosing);
 
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);
@@ -62,22 +62,37 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var alreadyTypedMembers = GetInitializedMembers(semanticModel.SyntaxTree, position, cancellationToken);
             var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
-            uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
+            // Sort the members by name so if we preselect one, it'll be stable
+            uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(context.CompletionOptions.HideAdvancedMembers, semanticModel.Compilation))
+                                                       .OrderBy(m => m.Name);
+
+            var firstUnitializedRequiredMember = true;
 
             foreach (var uninitializedMember in uninitializedMembers)
             {
+                var rules = s_rules;
+
+                // We'll hard select the first required member to make it a bit easier to type out an object initializer
+                // with a bunch of members.
+                if (firstUnitializedRequiredMember && uninitializedMember.IsRequired())
+                {
+                    rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection).WithMatchPriority(MatchPriority.Preselect);
+                    firstUnitializedRequiredMember = false;
+                }
+
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: EscapeIdentifier(uninitializedMember),
                     displayTextSuffix: "",
                     insertionText: null,
                     symbols: ImmutableArray.Create(uninitializedMember),
                     contextPosition: initializerLocation.SourceSpan.Start,
-                    rules: s_rules));
+                    inlineDescription: uninitializedMember.IsRequired() ? FeaturesResources.Required : null,
+                    rules: rules));
             }
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
@@ -111,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return !propertySymbol.Type.IsStructType();
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

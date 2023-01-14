@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
                                                   node As CollectionInitializerSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
 
             ' We don't want to make a span for the "{ ... }" in "From { ... }".  The latter

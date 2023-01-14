@@ -7,14 +7,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -33,15 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             public State(
                 SyntaxNode declaration, SemanticModel semanticModel,
-                OptionSet optionSet, CancellationToken cancellationToken)
+                CSharpSimplifierOptions options, CancellationToken cancellationToken)
             {
                 TypeStylePreference = default;
                 IsInIntrinsicTypeContext = default;
                 IsTypeApparentInContext = default;
 
-                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
-                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
-                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
+                var styleForIntrinsicTypes = options.VarForBuiltInTypes;
+                var styleForApparent = options.VarWhenTypeIsApparent;
+                var styleForElsewhere = options.VarElsewhere;
 
                 _forBuiltInTypes = styleForIntrinsicTypes.Notification.Severity;
                 _whenTypeIsApparent = styleForApparent.Notification.Severity;
@@ -61,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 this.TypeStylePreference = stylePreferences;
 
                 IsTypeApparentInContext =
-                        declaration.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl)
+                        declaration is VariableDeclarationSyntax varDecl
                      && IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
@@ -127,15 +122,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 {
                     type = type.RemoveNullableIfPresent();
 
-                    if (type.IsArrayType())
+                    if (type is IArrayTypeSymbol arrayType)
                     {
-                        type = ((IArrayTypeSymbol)type).ElementType;
+                        type = arrayType.ElementType;
                         continue;
                     }
 
-                    if (type.IsPointerType())
+                    if (type is IPointerTypeSymbol pointerType)
                     {
-                        type = ((IPointerTypeSymbol)type).PointedAtType;
+                        type = pointerType.PointedAtType;
                         continue;
                     }
 

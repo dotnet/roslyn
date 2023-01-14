@@ -3,23 +3,24 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Classification.Classifiers
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     '<Export(GetType(VisualBasicSymbolDisplayService))>
     Friend Class VisualBasicSymbolDisplayService
         Inherits AbstractSymbolDisplayService
 
-        Public Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of IAnonymousTypeDisplayService)())
+        Public Sub New(provider As Host.LanguageServices)
+            MyBase.New(provider)
         End Sub
 
-        Protected Overrides Function CreateDescriptionBuilder(workspace As Workspace,
-                                                              semanticModel As SemanticModel,
+        Protected Overrides Function CreateDescriptionBuilder(semanticModel As SemanticModel,
                                                               position As Integer,
+                                                              options As SymbolDescriptionOptions,
                                                               cancellationToken As CancellationToken) As AbstractSymbolDescriptionBuilder
-            Return New SymbolDescriptionBuilder(semanticModel, position, workspace, Me.AnonymousTypeDisplayService, cancellationToken)
+            Return New SymbolDescriptionBuilder(semanticModel, position, Services.SolutionServices, AnonymousTypeDisplayService, options, cancellationToken)
         End Function
     End Class
 End Namespace

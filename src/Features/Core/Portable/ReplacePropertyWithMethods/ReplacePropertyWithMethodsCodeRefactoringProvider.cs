@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
        Name = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods), Shared]
-    internal class ReplacePropertyWithMethodsCodeRefactoringProvider : CodeRefactoringProvider
+    internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
+        CodeRefactoringProvider,
+        IEqualityComparer<(IPropertySymbol property, ReferenceLocation location)>
     {
         private const string GetPrefix = "Get";
         private const string SetPrefix = "Set";
@@ -63,16 +65,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 : FeaturesResources.Replace_0_with_methods;
 
             context.RegisterRefactoring(
-                new ReplacePropertyWithMethodsCodeAction(
+                CodeAction.Create(
                     string.Format(resourceString, propertyName),
-                    c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
+                    c => ReplacePropertyWithMethodsAsync(document, propertySymbol, context.Options, c),
                     propertyName),
                 propertyDeclaration.Span);
         }
 
-        private static async Task<Solution> ReplacePropertyWithMethodsAsync(
+        private async Task<Solution> ReplacePropertyWithMethodsAsync(
            Document document,
            IPropertySymbol propertySymbol,
+           CodeGenerationOptionsProvider fallbackOptions,
            CancellationToken cancellationToken)
         {
             var desiredMethodSuffix = NameGenerator.GenerateUniqueName(propertySymbol.Name,
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
                 originalSolution, updatedSolution, propertyReferences, definitionToBackingField,
-                desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
+                desiredGetMethodName, desiredSetMethodName, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return updatedSolution;
         }
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return null;
         }
 
-        private static async Task<Solution> UpdateReferencesAsync(
+        private async Task<Solution> UpdateReferencesAsync(
             Solution updatedSolution,
             ILookup<Document, (IPropertySymbol property, ReferenceLocation location)> referencesByDocument,
             ImmutableDictionary<IPropertySymbol, IFieldSymbol?> propertyToBackingField,
@@ -211,7 +214,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             return updatedSolution;
         }
-        private static async Task<Solution> UpdateReferencesInDocumentAsync(
+
+        private async Task<Solution> UpdateReferencesInDocumentAsync(
             Solution updatedSolution,
             Document originalDocument,
             IEnumerable<(IPropertySymbol property, ReferenceLocation location)> references,
@@ -221,7 +225,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         {
             var root = await originalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Services);
             var service = originalDocument.GetRequiredLanguageService<IReplacePropertyWithMethodsService>();
 
             await ReplaceReferencesAsync(
@@ -233,7 +237,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return updatedSolution;
         }
 
-        private static async Task ReplaceReferencesAsync(
+        private async Task ReplaceReferencesAsync(
             Document originalDocument,
             IEnumerable<(IPropertySymbol property, ReferenceLocation location)> references,
             IDictionary<IPropertySymbol, IFieldSymbol?> propertyToBackingField,
@@ -246,7 +250,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             {
                 var syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
-                foreach (var (property, referenceLocation) in references)
+                // We may hit a location multiple times due to how we do FAR for linked symbols, but each linked symbol
+                // is allowed to report the entire set of references it think it is compatible with.  So ensure we're 
+                // hitting each location only once.
+                // 
+                // Note Use DistinctBy (.Net6) once available.
+                foreach (var (property, referenceLocation) in references.Distinct(this))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -279,12 +288,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
             }
         }
+
         private static async Task<Solution> ReplaceDefinitionsWithMethodsAsync(
             Solution originalSolution,
             Solution updatedSolution,
             IEnumerable<ReferencedSymbol> references,
             ImmutableDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var definitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(originalSolution, references, cancellationToken).ConfigureAwait(false);
@@ -295,7 +306,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
                     updatedSolution, documentId, definitions, definitionToBackingField,
-                    desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
+                    desiredGetMethodName, desiredSetMethodName, fallbackOptions, cancellationToken).ConfigureAwait(false);
             }
 
             return updatedSolution;
@@ -335,6 +346,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             MultiDictionary<DocumentId, IPropertySymbol>.ValueSet originalDefinitions,
             IDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var updatedDocument = updatedSolution.GetRequiredDocument(documentId);
@@ -349,7 +361,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             var root = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, updatedSolution.Workspace);
+            var editor = new SyntaxEditor(root, updatedSolution.Services);
 
             // First replace all the properties with the appropriate getters/setters.
             foreach (var (property, declaration) in currentDefinitions)
@@ -361,6 +373,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     property, declaration,
                     definitionToBackingField.GetValueOrDefault(property),
                     desiredGetMethodName, desiredSetMethodName,
+                    fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
 
                 // Properly make the members fit within an interface if that's what
@@ -419,12 +432,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return originalDefinition.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() as TSymbol;
         }
 
-        private class ReplacePropertyWithMethodsCodeAction : CodeAction.SolutionChangeAction
+        public bool Equals((IPropertySymbol property, ReferenceLocation location) x, (IPropertySymbol property, ReferenceLocation location) y)
         {
-            public ReplacePropertyWithMethodsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
-            {
-            }
+            Contract.ThrowIfFalse(x.location.Document == y.location.Document);
+            return x.location.Location.SourceSpan == y.location.Location.SourceSpan;
         }
+
+        public int GetHashCode((IPropertySymbol property, ReferenceLocation location) obj)
+            => obj.location.Location.SourceSpan.GetHashCode();
     }
 }

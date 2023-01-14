@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
     [Export(typeof(SettingsEditorFactory))]
     [Guid(SettingsEditorFactoryGuidString)]
-    internal sealed class SettingsEditorFactory : IVsEditorFactory, IDisposable
+    internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory4, IDisposable
     {
         public static readonly Guid SettingsEditorFactoryGuid = new(SettingsEditorFactoryGuidString);
         public const string SettingsEditorFactoryGuidString = "68b46364-d378-42f2-9e72-37d86c5f4468";
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             pgrfCDW = 0;
             pbstrEditorCaption = null;
 
-            if (!_workspace.CurrentSolution.Projects.Any(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic))
+            if (!_workspace.CurrentSolution.Projects.Any(p => p.Language is LanguageNames.CSharp or LanguageNames.VisualBasic))
             {
                 // If there are no VB or C# projects loaded in the solution (so an editorconfig file in a C++ project) then we want their
                 // editorfactory to present the file instead of use showing ours
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             if (punkDocDataExisting == IntPtr.Zero)
             {
                 Assumes.NotNull(_vsServiceProvider);
-                if (_vsServiceProvider.TryGetService<SLocalRegistry, ILocalRegistry>(out var localRegistry))
+                if (_vsServiceProvider.TryGetService<SLocalRegistry, ILocalRegistry>(_threadingContext.JoinableTaskFactory, out var localRegistry))
                 {
                     var textLinesGuid = typeof(IVsTextLines).GUID;
                     _ = localRegistry.CreateInstance(typeof(VsTextBufferClass).GUID, null, ref textLinesGuid, 1 /*CLSCTX_INPROC_SERVER*/, out var ptr);
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
                     if (textBuffer is IObjectWithSite objectWithSite)
                     {
-                        var oleServiceProvider = _vsServiceProvider.GetService<IOleServiceProvider>();
+                        var oleServiceProvider = _vsServiceProvider.GetService<IOleServiceProvider>(_threadingContext.JoinableTaskFactory);
                         objectWithSite.SetSite(oleServiceProvider);
                     }
                 }
@@ -175,5 +175,17 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 return VSConstants.E_NOTIMPL;   // you must return E_NOTIMPL for any unrecognized rguidLogicalView values
             }
         }
+
+        public object? GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
+            => null;
+
+        public object? GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
+            => null;
+
+        public string? GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
+            => throw new NotImplementedException();
+
+        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
+            => true;
     }
 }

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_exitPoints == null)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<SyntaxNode>)ExitPointsWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)).ToImmutableArray()
+                        ? ImmutableArray<SyntaxNode>.CastUp(ExitPointsWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
                         : ImmutableArray<SyntaxNode>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _exitPoints, result);
                 }

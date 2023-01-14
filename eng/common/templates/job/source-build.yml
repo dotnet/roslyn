@@ -31,11 +31,6 @@ parameters:
   #   container and pool.
   platform: {}
 
-  # The default VM host AzDO pool. This should be capable of running Docker containers: almost all
-  # source-build builds run in Docker, including the default managed platform.
-  defaultContainerHostPool:
-    vmImage: ubuntu-20.04
-
 jobs:
 - job: ${{ parameters.jobNamePrefix }}_${{ parameters.platform.name }}
   displayName: Source-Build (${{ parameters.platform.name }})
@@ -47,7 +42,26 @@ jobs:
     container: ${{ parameters.platform.container }}
 
   ${{ if eq(parameters.platform.pool, '') }}:
-    pool: ${{ parameters.defaultContainerHostPool }}
+    # The default VM host AzDO pool. This should be capable of running Docker containers: almost all
+    # source-build builds run in Docker, including the default managed platform.
+    # /eng/common/templates/variables/pool-providers.yml can't be used here (some customers declare variables already), so duplicate its logic
+    pool:
+      # Main environments
+      ${{ if and(eq(variables['System.TeamProject'], 'public'), ne(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), true)) }}:
+        name: NetCore-Public
+        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+      ${{ if and(eq(variables['System.TeamProject'], 'internal'), ne(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), true)) }}:
+        name: NetCore1ESPool-Internal
+        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+
+      # Servicing build environments
+      ${{ if and(eq(variables['System.TeamProject'], 'public'), contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release')) }}:
+        name: NetCore-Svc-Public
+        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+      ${{ if and(eq(variables['System.TeamProject'], 'internal'), contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release')) }}:
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+
   ${{ if ne(parameters.platform.pool, '') }}:
     pool: ${{ parameters.platform.pool }}
 

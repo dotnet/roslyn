@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class EnumAndCompletionListTagCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(EnumAndCompletionListTagCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NullableEnum()
         {
             var markup = @"class Program
@@ -51,9 +52,7 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberAlways()
         {
             var markup = @"
@@ -81,9 +80,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberNever()
         {
             var markup = @"
@@ -111,9 +108,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberAdvanced()
         {
             var markup = @"
@@ -131,6 +126,8 @@ public enum Goo
 {
     Member
 }";
+            HideAdvancedMembers = true;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -138,8 +135,9 @@ public enum Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -148,12 +146,10 @@ public enum Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
         public async Task NotInComment()
         {
             var markup = @"class Program
@@ -184,8 +180,7 @@ readonly struct Colors
             await VerifyNoItemsExistAsync(markup + colorsLike);
         }
 
-        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InYieldReturnInMethod(string typeName)
@@ -208,8 +203,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InYieldReturnInLocalFunction(string typeName)
@@ -235,8 +229,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InAsyncMethodReturnStatement(string typeName)
@@ -260,7 +253,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InSimpleLambdaAfterArrow(string typeName)
@@ -282,7 +275,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InParenthesizedLambdaAfterArrow(string typeName)
@@ -304,7 +297,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task NotInAnonymousMethodAfterParameterList(string typeName)
@@ -322,7 +315,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task NotInSimpleLambdaAfterAsync(string typeName)
@@ -340,7 +333,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task NotInParenthesizedLambdaAfterAsync(string typeName)
@@ -358,7 +351,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task NotInAnonymousMethodAfterAsync(string typeName)
@@ -376,7 +369,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task NotInSimpleLambdaBlock(string typeName)
@@ -394,7 +387,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task NotInParenthesizedLambdaBlock(string typeName)
@@ -412,7 +405,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task NotInAnonymousMethodBlock(string typeName)
@@ -430,7 +423,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InExpressionTreeSimpleLambdaAfterArrow(string typeName)
@@ -453,7 +446,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InExpressionTreeParenthesizedLambdaAfterArrow(string typeName)
@@ -476,7 +469,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoCompletionListTag()
         {
             var markup =
@@ -498,7 +491,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CompletionList()
         {
             var markup =
@@ -521,7 +514,7 @@ class Program
             await VerifyItemExistsAsync(markup, "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CompletionListCrefToString()
         {
             var markup =
@@ -544,7 +537,7 @@ class Program
             await VerifyItemExistsAsync(markup, "string", glyph: (int)Glyph.ClassPublic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CompletionListEmptyCref()
         {
             var markup =
@@ -567,7 +560,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CompletionListInaccessibleType()
         {
             var markup =
@@ -592,7 +585,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CompletionListNotAType()
         {
             var markup =
@@ -617,8 +610,34 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
+        public async Task CompletionListContainingMembers()
+        {
+            var markup =
+@"
+/// <completionlist cref=""TypeContainer"" />
+ public class SomeType
+ { }
+
+ public static class TypeContainer
+ {
+     public static SomeType Foo1 = new SomeType();
+     public static Program Foo2 = new Program();
+ }
+
+ class Program
+ {
+     void Goo()
+     {
+         SomeType c = $$
+     }
+ }";
+            await VerifyItemExistsAsync(markup, "TypeContainer");
+            await VerifyItemExistsAsync(markup, "TypeContainer.Foo1");
+            await VerifyItemExistsAsync(markup, "TypeContainer.Foo2");
+        }
+
+        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias(string fullTypeName)
@@ -639,8 +658,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias2(string fullTypeName)
@@ -666,8 +684,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias3(string fullTypeName)
@@ -697,8 +714,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         public async Task NotInParameterNameContext()
         {
             var enumE = @"
@@ -728,8 +744,7 @@ class C
             await VerifyItemIsAbsentAsync(enumLikeE + markup, "E");
         }
 
-        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
         public async Task InExpressionBodiedProperty()
         {
             var markup =
@@ -759,8 +774,7 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
-        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
         public async Task InExpressionBodiedMethod()
         {
             var markup =
@@ -790,7 +804,32 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        public async Task NotAfterAsync1()
+        {
+            var markup = @"
+class Test
+{
+    public async $$
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        public async Task NotAfterAsync2()
+        {
+            var markup = @"
+class Test
+{
+    public async $$
+    public void M() {}
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
         public async Task NotAfterDot()
         {
             var markup =
@@ -826,8 +865,7 @@ readonly struct E
             await VerifyNoItemsExistAsync(markup + enumLikeE);
         }
 
-        [WorkItem(18359, "https://github.com/dotnet/roslyn/issues/18359")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(18359, "https://github.com/dotnet/roslyn/issues/18359")]
         public async Task NotAfterDotWithTextTyped()
         {
             var markup =
@@ -863,8 +901,7 @@ readonly struct E
             await VerifyNoItemsExistAsync(markup + enumLikeE);
         }
 
-        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer1()
         {
             var markup =
@@ -883,8 +920,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer2()
         {
             var markup =
@@ -903,8 +939,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer3()
         {
             var markup =
@@ -923,8 +958,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer4()
         {
             var markup =
@@ -943,8 +977,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         public async Task TestInEnumInitializer5()
         {
             var markup =
@@ -963,7 +996,7 @@ internal enum ProjectTreeWriterOptions
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestInEnumHasFlag()
         {
             var markup =
@@ -983,7 +1016,6 @@ class C
         #region enum members
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestEditorBrowsable_EnumTypeDotMemberAlways()
         {
             var markup = @"
@@ -1027,7 +1059,6 @@ public readonly struct MyEnum
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestEditorBrowsable_EnumTypeDotMemberNever()
         {
             var markup = @"
@@ -1071,7 +1102,6 @@ public readonly struct MyEnum
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestEditorBrowsable_EnumTypeDotMemberAdvanced()
         {
             var markup = @"
@@ -1095,6 +1125,8 @@ public readonly struct MyEnum
     public static readonly MyEnum Member;
 }";
 
+            HideAdvancedMembers = true;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -1102,8 +1134,9 @@ public readonly struct MyEnum
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1112,8 +1145,9 @@ public readonly struct MyEnum
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1122,8 +1156,9 @@ public readonly struct MyEnum
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1132,12 +1167,10 @@ public readonly struct MyEnum
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestTriggeredOnOpenParen()
         {
             var markup = @"
@@ -1178,7 +1211,6 @@ readonly struct Goo
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRightSideOfAssignment()
         {
             var markup = @"
@@ -1215,7 +1247,6 @@ readonly struct Goo
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCaseStatement()
         {
             var markup = @"
@@ -1256,7 +1287,6 @@ readonly struct E
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
         public async Task TestInYieldReturn(string typeName, string memberName)
@@ -1278,7 +1308,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
         public async Task TestInAsyncMethodReturnStatement(string typeName, string memberName)
@@ -1301,7 +1330,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
         public async Task TestInIndexedProperty(string typeName, string memberName)
@@ -1332,7 +1360,6 @@ static class Module1
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
         public async Task TestFullyQualified(string typeName, string memberName)
@@ -1363,7 +1390,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task TestTriggeredForNamedArgument(string typeName)
@@ -1399,7 +1425,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task TestNotTriggeredAfterAssignmentEquals(string typeName)
@@ -1430,7 +1455,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCaseStatementWithInt32InferredType()
         {
             var markup = @"
@@ -1460,7 +1484,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestLocalNoAs()
         {
             var markup = @"
@@ -1483,7 +1506,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestIncludeEnumAfterTyping()
         {
             var markup = @"
@@ -1505,7 +1527,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestNotInTrivia()
         {
             var markup = @"
@@ -1533,7 +1554,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCommitOnComma()
         {
             var markup = @"
@@ -1570,7 +1590,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(ConsoleKey))]
         [InlineData(nameof(DateTime))]
         public async Task EnumMember_NotAfterDot(string typeName)
@@ -1591,7 +1610,6 @@ static class Module1
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Monday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
         public async Task TestInCollectionInitializer1(string typeName, string memberName)
@@ -1616,7 +1634,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Monday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
         public async Task TestInCollectionInitializer2(string typeName, string memberName)
@@ -1642,7 +1659,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EnumMember_TestInEnumHasFlag()
         {
             var markup = @"
@@ -1662,7 +1678,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestMultipleEnumsCausedByOverloads()
         {
             var markup = @"
@@ -1712,12 +1727,13 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
+        [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
         public async Task TestNullableEnum(string typeName, string memberName)
         {
             var markup = $@"
+#nullable enable
 using System;
 class C
 {{
@@ -1733,12 +1749,13 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
+        [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
         public async Task TestTypeAlias(string typeName, string memberName)
         {
             var markup = $@"
+#nullable enable
 using AT = System.{typeName};
 
 public class Program
@@ -1754,7 +1771,6 @@ public class Program
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("")]
         [InlineData("Re")]
         [InlineData("Col")]
@@ -1794,7 +1810,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("")]
         [InlineData("Col")]
         [InlineData("Red")]
@@ -1825,7 +1840,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestPatterns_Is_PropertyPattern_NotAfterEnumDot()
         {
             var markup = @$"
@@ -1849,7 +1863,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestPatterns_SwitchStatement_PropertyPattern()
         {
             var markup = @"
@@ -1875,7 +1888,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestPatterns_SwitchExpression_PropertyPattern()
         {
             var markup = @"
@@ -1901,7 +1913,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestStaticAndInstanceMembers()
         {
             var markup = @"
@@ -1925,7 +1936,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestProperties()
         {
             var markup = @"
@@ -1949,7 +1959,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("protected internal")]
@@ -1988,7 +1997,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("protected internal")]
@@ -2013,7 +2021,6 @@ public class Color
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("class")]
         [InlineData("struct")]
         [InlineData("record")]

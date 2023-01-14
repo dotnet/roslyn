@@ -5214,6 +5214,7 @@ class Class
             var iopTree = (IAssignmentOperation)model.GetOperation(assignment);
             Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, iopTree.Value.Type.NullableAnnotation);
         }
+
         #endregion
 
         internal class ExpectedSymbolVerifier

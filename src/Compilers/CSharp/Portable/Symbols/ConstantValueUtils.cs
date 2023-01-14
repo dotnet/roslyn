@@ -73,23 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal static string UnescapeInterpolatedStringLiteral(string s)
-        {
-            var builder = PooledStringBuilder.GetInstance();
-            var stringBuilder = builder.Builder;
-            int formatLength = s.Length;
-            for (int i = 0; i < formatLength; i++)
-            {
-                char c = s[i];
-                stringBuilder.Append(c);
-                if ((c == '{' || c == '}') && (i + 1) < formatLength && s[i + 1] == c)
-                {
-                    i++;
-                }
-            }
-            return builder.ToStringAndFree();
-        }
-
         internal static ConstantValue GetAndValidateConstantValue(
             BoundExpression boundValue,
             Symbol thisSymbol,
@@ -118,9 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // If we have already computed the unconverted constant value, then this call is cheap
                     // because BoundConversions store their constant values (i.e. not recomputing anything).
-                    var constantValue = boundValue.ConstantValue;
+                    var constantValue = boundValue.ConstantValueOpt;
 
-                    var unconvertedConstantValue = unconvertedBoundValue.ConstantValue;
+                    var unconvertedConstantValue = unconvertedBoundValue.ConstantValueOpt;
                     if (unconvertedConstantValue != null &&
                         !unconvertedConstantValue.IsNull &&
                         typeSymbol.IsReferenceType &&

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
             if (token.Span == context.Span &&
                 token.IsKind(SyntaxKind.DefaultKeyword) &&
-                token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression, out LiteralExpressionSyntax defaultLiteral))
+                token.Parent is LiteralExpressionSyntax(SyntaxKind.DefaultLiteralExpression) defaultLiteral)
             {
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -59,9 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 if (newExpression != null)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(
+                        CodeAction.Create(
+                            string.Format(CSharpFeaturesResources.Use_0, displayText),
                             c => ReplaceAsync(context.Document, context.Span, newExpression, c),
-                            displayText),
+                            nameof(CSharpFeaturesResources.Use_0)),
                         context.Diagnostics);
                 }
             }
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess(nameof(CancellationToken.None));
                 }
-                else if (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr)
+                else if (type.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr)
                 {
                     return GenerateMemberAccess(nameof(IntPtr.Zero));
                 }
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         {
             var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName);
             return type.TypeKind == TypeKind.Enum &&
-                   type.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(flagsAttribute));
+                   type.GetAttributes().Any(static (attribute, flagsAttribute) => attribute.AttributeClass.Equals(flagsAttribute), flagsAttribute);
         }
 
         private static bool IsZero(object o)
@@ -146,14 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                     return true;
                 default:
                     return false;
-            }
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string literal)
-                : base(string.Format(CSharpFeaturesResources.Use_0, literal), createChangedDocument, CSharpFeaturesResources.Use_0)
-            {
             }
         }
     }

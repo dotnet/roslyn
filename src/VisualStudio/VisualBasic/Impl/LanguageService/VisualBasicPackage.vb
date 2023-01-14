@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -23,13 +24,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     ' The option page configuration is duplicated in PackageRegistration.pkgdef.
     '
     ' VB option pages tree
-    '   Basic
+    '   Visual Basic
     '     General (from editor)
     '     Scroll Bars (from editor)
     '     Tabs (from editor)
     '     Advanced
     '     Code Style (category)
     '       General
+    '       Naming
+    '     IntelliSense
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
@@ -55,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Sub New()
             MyBase.New()
 
-            _comAggregate = Interop.ComAggregate.CreateAggregatedObject(Me)
+            _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
         Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
@@ -114,8 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides Function GetAutomationObject(name As String) As Object
             If name = "Basic-Specific" Then
-                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                Return New AutomationObject(workspace)
+                Return New AutomationObject(ComponentModel.GetService(Of ILegacyGlobalOptionService))
             End If
 
             Return MyBase.GetAutomationObject(name)

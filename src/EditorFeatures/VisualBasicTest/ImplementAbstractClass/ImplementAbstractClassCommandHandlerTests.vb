@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
@@ -16,10 +17,11 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
     Public Class ImplementAbstractClassCommandHandlerTests
 
         <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact>
         Public Sub TestSimpleCases()
             Dim code = <text>
 Imports System
@@ -48,7 +50,7 @@ End Class</text>
         End Sub
 
         <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact>
         Public Sub TestInvocationAfterWhitespaceTrivia()
             Dim code = <text>
 Imports System
@@ -72,7 +74,7 @@ End Class
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact>
         Public Sub TestInvocationAfterCommentTrivia()
             Dim code = <text>
 Imports System
@@ -96,7 +98,7 @@ End Class
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact>
         Public Sub TestNoMembersToImplement()
             Dim code = <text>
 Imports System
@@ -127,7 +129,7 @@ End Class</text>
         End Sub
 
         <WorkItem(544412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544412")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact>
         Public Sub TestEnterNotOnSameLine()
             Dim code = <text>
 MustInherit Class Base
@@ -160,7 +162,7 @@ End Class</text>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact>
         Public Sub TestWithEndBlockMissing()
             Dim code = <text>
 Imports System
@@ -207,7 +209,7 @@ End Class</text>
             view.Caret.MoveTo(New SnapshotPoint(snapshot, cursorPosition))
 
             Dim commandHandler As ICommandHandler(Of ReturnKeyCommandArgs) =
-                New ImplementAbstractClassCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
+                New ImplementAbstractClassCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService), workspace.GetService(Of IGlobalOptionService))
             commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), nextHandler, TestCommandExecutionContext.Create())
 
             Dim text = view.TextBuffer.CurrentSnapshot.AsText().ToString()

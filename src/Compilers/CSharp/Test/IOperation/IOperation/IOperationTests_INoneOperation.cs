@@ -318,7 +318,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
                   Right: 
-                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1, (a ? b : c)]')
+                    IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'i[1, (a ? b : c)]')
                       Children(2):
                           IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'i')
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1, (a ? b : c)]')
@@ -336,7 +336,6 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
         }
-
 
     }
 }

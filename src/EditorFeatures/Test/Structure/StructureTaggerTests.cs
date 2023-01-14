@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -22,9 +23,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class StructureTaggerTests
     {
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfTheory]
         [CombinatorialData]
         public async Task CSharpOutliningTagger(
             bool collapseRegionsWhenCollapsingToDefinitions,
@@ -52,10 +54,11 @@ namespace MyNamespace
 }";
 
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions)
-                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs)
-                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs)));
+            var globalOptions = workspace.GlobalOptions;
+
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -97,7 +100,146 @@ namespace MyNamespace
                 });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfTheory]
+        [CombinatorialData]
+        public async Task CSharpImportsFileScopedNamespaceTest(
+            bool collapseRegionsWhenCollapsingToDefinitions,
+            bool showBlockStructureGuidesForDeclarationLevelConstructs,
+            bool showBlockStructureGuidesForCodeLevelConstructs)
+        {
+            var code =
+@"
+namespace Foo;
+
+using System;
+using System.Linq;
+public class Bar
+{
+
+}
+";
+
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            var globalOptions = workspace.GlobalOptions;
+
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
+
+            var tags = await GetTagsFromWorkspaceAsync(workspace);
+
+            Assert.Collection(tags,
+                importsTag =>
+                {
+                    Assert.Equal(2, GetCollapsedHintLineCount(importsTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Imports : PredefinedStructureTagTypes.Nonstructural, importsTag.Type);
+                    Assert.Equal("using ", GetHeaderText(importsTag));
+                },
+                classTag =>
+                {
+                    Assert.Equal(4, GetCollapsedHintLineCount(classTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Type : PredefinedStructureTagTypes.Nonstructural, classTag.Type);
+                    Assert.Equal("public class Bar", GetHeaderText(classTag));
+                });
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        public async Task CSharpCommentsFileScopedNamespace(
+            bool collapseRegionsWhenCollapsingToDefinitions,
+            bool showBlockStructureGuidesForDeclarationLevelConstructs,
+            bool showBlockStructureGuidesForCodeLevelConstructs,
+            bool showBlockStructureGuidesForCommentsAndPreprocessorRegions)
+        {
+            var code =
+@"
+namespace Foo;
+/// <summary>
+/// 
+/// </summary>
+
+public class Bar
+{
+
+}
+";
+
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            var globalOptions = workspace.GlobalOptions;
+
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, LanguageNames.CSharp, showBlockStructureGuidesForCommentsAndPreprocessorRegions);
+
+            var tags = await GetTagsFromWorkspaceAsync(workspace);
+
+            Assert.Collection(tags,
+                commentsTag =>
+                {
+                    Assert.Equal(3, GetCollapsedHintLineCount(commentsTag));
+                    Assert.Equal(showBlockStructureGuidesForCommentsAndPreprocessorRegions ? PredefinedStructureTagTypes.Comment : PredefinedStructureTagTypes.Nonstructural, commentsTag.Type);
+                    Assert.Equal("/// <summary>", GetHeaderText(commentsTag));
+                },
+                classTag =>
+                {
+                    Assert.Equal(4, GetCollapsedHintLineCount(classTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Type : PredefinedStructureTagTypes.Nonstructural, classTag.Type);
+                    Assert.Equal("public class Bar", GetHeaderText(classTag));
+                });
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        public async Task CSharpImportsNormalNamespaceTest(
+            bool collapseRegionsWhenCollapsingToDefinitions,
+            bool showBlockStructureGuidesForDeclarationLevelConstructs,
+            bool showBlockStructureGuidesForCodeLevelConstructs)
+        {
+            var code =
+@"
+namespace Foo
+{
+    using System;
+    using System.Linq;
+    public class Bar
+    {
+
+    }
+}
+";
+
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            var globalOptions = workspace.GlobalOptions;
+
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
+
+            var tags = await GetTagsFromWorkspaceAsync(workspace);
+
+            Assert.Collection(tags,
+                namespaceTag =>
+                {
+                    Assert.Equal(9, GetCollapsedHintLineCount(namespaceTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Namespace : PredefinedStructureTagTypes.Nonstructural, namespaceTag.Type);
+                    Assert.Equal("namespace Foo", GetHeaderText(namespaceTag));
+                },
+                importsTag =>
+                {
+                    Assert.Equal(2, GetCollapsedHintLineCount(importsTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Imports : PredefinedStructureTagTypes.Nonstructural, importsTag.Type);
+                    Assert.Equal("using ", GetHeaderText(importsTag));
+                },
+                classTag =>
+                {
+                    Assert.Equal(4, GetCollapsedHintLineCount(classTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Type : PredefinedStructureTagTypes.Nonstructural, classTag.Type);
+                    Assert.Equal("public class Bar", GetHeaderText(classTag));
+                });
+        }
+
+        [WpfTheory]
         [CombinatorialData]
         public async Task VisualBasicOutliningTagger(
             bool collapseRegionsWhenCollapsingToDefinitions,
@@ -120,10 +262,11 @@ Namespace MyNamespace
 End Namespace";
 
             using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic, collapseRegionsWhenCollapsingToDefinitions)
-                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic, showBlockStructureGuidesForDeclarationLevelConstructs)
-                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic, showBlockStructureGuidesForCodeLevelConstructs)));
+            var globalOptions = workspace.GlobalOptions;
+
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic, showBlockStructureGuidesForCodeLevelConstructs);
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -166,7 +309,7 @@ End Namespace";
 
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact]
         public async Task OutliningTaggerTooltipText()
         {
             var code = @"Module Module1

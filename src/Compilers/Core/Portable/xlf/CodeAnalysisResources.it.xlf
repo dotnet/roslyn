@@ -17,6 +17,21 @@
         <target state="translated">L'assembly che contiene il tipo '{0}' fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">Nome dell'operatore predefinito '{0}' non valido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">Operatore predefinito non supportato: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">'{0}' non era un nome di operatore predefinito valido</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">Le modifiche devono rientrare nei limiti di SourceText</target>
@@ -39,14 +54,34 @@
         <target state="translated">Per disabilitare questo analizzatore, eliminare la diagnostica seguente: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
       </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
+        <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
+        <target state="translated">Modifica e Continua non sono in grado di riprendere il metodo asincrono sospeso perché l'espressione await corrispondente è stata eliminata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
+        <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
+        <target state="translated">Modifica e Continua non sono in grado di riprendere l'enumeratore sospeso perché l'istruzione yield return corrispondente è stata eliminata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">Generatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">Tempo totale di esecuzione del generatore: {0} secondi.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
-        <target state="new">The hintName '{0}' contains an invalid character '{1}' at position {2}.</target>
+        <target state="translated">L'elemento hintName '{0}' contiene un carattere non valido '{1}' alla posizione {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName '{0}' of the added source file must be unique within a generator.</target>
+        <target state="translated">L'elemento hintName '{0}' del file di origine aggiunto deve essere univoco all'interno di un generatore.</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -126,7 +161,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
-        <target state="new">The SourceText with hintName '{0}' must have an explicit encoding set.</target>
+        <target state="translated">L'elemento SourceText con hintName '{0}' deve avere una codifica esplicita impostata.</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">

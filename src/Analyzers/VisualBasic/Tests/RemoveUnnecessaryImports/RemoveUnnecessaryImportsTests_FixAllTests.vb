@@ -202,5 +202,83 @@ End Class]]>
 
             Await TestInRegularAndScriptAsync(input, expected)
         End Function
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
+        Public Async Function TestFixAllInContainingMember_NotApplicable() As Task
+            Dim input = <Workspace>
+                            <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document><![CDATA[
+{|FixAllInContainingMember:Imports System
+Imports System.Collections.Generic
+|}
+Class Program
+    Public x As Int32
+End Class]]>
+                                </Document>
+                                <Document><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class Program2
+    Public x As Int32
+End Class]]>
+                                </Document>
+                            </Project>
+                            <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                <ProjectReference>Assembly1</ProjectReference>
+                                <Document><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class Program3
+    Public x As Int32
+End Class]]>
+                                </Document>
+                            </Project>
+                        </Workspace>.ToString()
+
+            Await TestMissingInRegularAndScriptAsync(input)
+        End Function
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
+        Public Async Function TestFixAllInContainingType_NotApplicable() As Task
+            Dim input = <Workspace>
+                            <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document><![CDATA[
+{|FixAllInContainingType:Imports System
+Imports System.Collections.Generic
+|}
+Class Program
+    Public x As Int32
+End Class]]>
+                                </Document>
+                                <Document><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class Program2
+    Public x As Int32
+End Class]]>
+                                </Document>
+                            </Project>
+                            <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                                <ProjectReference>Assembly1</ProjectReference>
+                                <Document><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class Program3
+    Public x As Int32
+End Class]]>
+                                </Document>
+                            </Project>
+                        </Workspace>.ToString()
+
+            Await TestMissingInRegularAndScriptAsync(input)
+        End Function
     End Class
 End Namespace

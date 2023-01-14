@@ -1086,8 +1086,9 @@ public interface Bad { }
         }
 
         // From LegacyTest\CSharp\Source\csharp\Source\ClsCompliance\generics\Rule_E_01.cs
-        [Fact]
-        public void WRN_CLS_BadArgType_ConstructedTypeAccessibility()
+        [Theory]
+        [CombinatorialData]
+        public void WRN_CLS_BadArgType_ConstructedTypeAccessibility(NullableContextOptions nullableContextOptions)
         {
             var source = @"
 [assembly: System.CLSCompliant(true)]
@@ -1114,7 +1115,7 @@ public class D : C<long>
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithNullableContextOptions(nullableContextOptions)).VerifyDiagnostics(
                 // (7,32): warning CS3001: Argument type 'C<int>.N' is not CLS-compliant
                 //     protected void M1(C<int>.N n) { }	// Not CLS-compliant - C<int>.N not 
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<int>.N"),
@@ -1889,13 +1890,13 @@ public class C
 [assembly:System.CLSCompliant(true)]
 
 public class A { }
-public class a { }
+public class @a { }
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3005: Identifier 'a' differing only in case is not CLS-compliant
-                // public class a { }
-                Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "a").WithArguments("a"));
+                // public class @a { }
+                Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "@a").WithArguments("a").WithLocation(5, 14));
         }
 
         [Fact]
@@ -1905,7 +1906,7 @@ public class a { }
 [assembly:System.CLSCompliant(true)]
 
 public class A { }
-public class a<T> { } //CS3005
+public class @a<T> { } //CS3005
 
 public class B { }
 public class B<T> { } //Fine (since identical name)
@@ -1913,8 +1914,8 @@ public class B<T> { } //Fine (since identical name)
 
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3005: Identifier 'a<T>' differing only in case is not CLS-compliant
-                // public class a<T> { } //CS3005
-                Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "a").WithArguments("a<T>"));
+                // public class @a<T> { } //CS3005
+                Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "@a").WithArguments("a<T>").WithLocation(5, 14));
         }
 
         [Fact]
@@ -3649,6 +3650,25 @@ namespace N1
     // warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
     Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)
                 );
+        }
+
+        [Fact]
+        public void ObjectAndDynamicDifference()
+        {
+            var source = @"
+[assembly: System.CLSCompliant(true)]
+
+public class C<T>
+{
+    protected class N { }
+}
+
+public class D : C<object>
+{
+    protected void M4(C<dynamic>.N n) { }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }

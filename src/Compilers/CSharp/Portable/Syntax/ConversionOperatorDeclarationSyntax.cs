@@ -29,5 +29,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 expressionBody: expressionBody,
                 semicolonToken: semicolonToken);
         }
+
+        public ConversionOperatorDeclarationSyntax Update(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
+            SyntaxToken operatorKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return Update(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
+                operatorKeyword: operatorKeyword,
+                checkedKeyword: this.CheckedKeyword,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
     }
 }

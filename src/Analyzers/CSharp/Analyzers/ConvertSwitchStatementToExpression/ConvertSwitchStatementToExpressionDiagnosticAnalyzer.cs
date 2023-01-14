@@ -7,6 +7,8 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
                 EnforceOnBuildValues.ConvertSwitchStatementToExpression,
                 CSharpCodeStyleOptions.PreferSwitchExpression,
-                LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -31,39 +32,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp8)
-                {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp8)
                     return;
-                }
 
                 context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
             });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var switchStatement = context.Node;
-            var syntaxTree = switchStatement.SyntaxTree;
-
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, syntaxTree, cancellationToken);
+            var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
             if (!styleOption.Value)
             {
                 // User has disabled this feature.
                 return;
             }
 
+            var switchStatement = context.Node;
             if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
                 return;
             }
 
-            var (nodeToGenerate, declaratorToRemoveOpt) =
-                Analyzer.Analyze(
-                    (SwitchStatementSyntax)switchStatement,
-                    context.SemanticModel,
-                    out var shouldRemoveNextStatement);
+            var (nodeToGenerate, declaratorToRemoveOpt) = Analyzer.Analyze(
+                (SwitchStatementSyntax)switchStatement,
+                context.SemanticModel,
+                out var shouldRemoveNextStatement);
             if (nodeToGenerate == default)
             {
                 return;

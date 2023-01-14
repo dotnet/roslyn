@@ -1348,5 +1348,77 @@ public interface I7
             GC.KeepAlive(tc6);
             GC.KeepAlive(tc7);
         }
+
+        [Fact]
+        [WorkItem(62863, "https://github.com/dotnet/roslyn/issues/62863")]
+        public void ExplicitInterfaceImplementations()
+        {
+            var sourcePIA =
+@"using System.Runtime.InteropServices;
+[assembly: PrimaryInteropAssembly(0, 0)]
+[assembly: Guid(""863D5BC0-46A1-49AC-97AA-A5F0D441A9DA"")]
+[ComImport]
+[Guid(""863D5BC0-46A1-49AD-97AA-A5F0D441A9DA"")]
+public interface I1
+{
+    int F1();
+}
+";
+            var sourceBase =
+@"
+public class C
+{
+    public long F1() => 0;
+}
+
+public class Base : C, I1
+{
+    int I1.F1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+";
+            var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
+            compilationPIA.VerifyDiagnostics();
+
+            var referencePIAImage = compilationPIA.EmitToImageReference(embedInteropTypes: true);
+            var referencePIASource = compilationPIA.ToMetadataReference(embedInteropTypes: true);
+
+            var compilationBase = CreateCompilation(sourceBase, new[] { referencePIASource }, TestOptions.DebugDll);
+            compilationBase.VerifyDiagnostics();
+
+            var referenceBaseImage = compilationBase.EmitToImageReference();
+            var referenceBaseSource = compilationBase.ToMetadataReference();
+
+            var sourceDerived =
+@"
+public interface I2 : I1
+{ }
+
+public class Derived : Base, I2
+{
+}
+";
+            var compilationDerived1 = CreateCompilation(sourceDerived, new[] { referencePIASource, referenceBaseSource }, TestOptions.DebugDll);
+            verify(compilationDerived1);
+
+            var compilationDerived2 = CreateCompilation(sourceDerived, new[] { referencePIAImage, referenceBaseSource }, TestOptions.DebugDll);
+            verify(compilationDerived2);
+
+            var compilationDerived3 = CreateCompilation(sourceDerived, new[] { referencePIASource, referenceBaseImage }, TestOptions.DebugDll);
+            verify(compilationDerived3);
+
+            var compilationDerived4 = CreateCompilation(sourceDerived, new[] { referencePIAImage, referenceBaseImage }, TestOptions.DebugDll);
+            verify(compilationDerived4);
+
+            static void verify(CSharpCompilation compilationDerived)
+            {
+                var i1F1 = compilationDerived.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("F1");
+                var baseI1F1 = compilationDerived.GetTypeByMetadataName("Base").GetMember<MethodSymbol>("I1.F1");
+                Assert.Same(i1F1, baseI1F1.ExplicitInterfaceImplementations.Single());
+                compilationDerived.VerifyDiagnostics();
+            }
+        }
     }
 }

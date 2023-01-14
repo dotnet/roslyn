@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitMethod(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitMethod(this, argument);
+
         public virtual MethodKind MethodKind => MethodKind.Ordinary;
 
         public override SymbolKind Kind => SymbolKind.Method;

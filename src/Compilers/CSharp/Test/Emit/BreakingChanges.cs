@@ -66,10 +66,10 @@ class B : IFace<B.C.D>
             // In Dev10, there was an error - ErrorCode.ERR_CircularBase at (4,7)
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
+
         [WorkItem(540371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540371"), WorkItem(530792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530792")]
         [Fact]
-
-        private void CS0507ERR_CantChangeAccessOnOverride_TestSynthesizedSealedAccessorsInDifferentAssembly()
+        public void CS0507ERR_CantChangeAccessOnOverride_TestSynthesizedSealedAccessorsInDifferentAssembly()
         {
             var source1 = @"
 using System.Collections.Generic;
@@ -139,7 +139,7 @@ public class Derived : Base<int>
             var text = @"
 using System.Runtime.CompilerServices;
 
-public class idx
+public class @idx
 {
    public virtual int this[int iPropIndex]
    {
@@ -254,9 +254,9 @@ class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""DEF"" ?? null").WithArguments("c"),
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null ?? 123").WithArguments("d"));
         }
-        [Fact, WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676"), WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676")]
 
-        private         // CS0657WRN_AttributeLocationOnBadDeclaration_AfterAttrDeclOrDelegate
+        [Fact, WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676"), WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676")]
+        public         // CS0657WRN_AttributeLocationOnBadDeclaration_AfterAttrDeclOrDelegate
                 void CS1730ERR_CantUseAttributeOnInvaildLocation()
         {
             var test = @"using System;
@@ -960,7 +960,7 @@ public class Test
             // by then referring to the field without the this keyword, it should be flagged as declaring a competing variable (as it is confusing).
             var text = @"
 using System;
-public class c
+public class @c
 {
     int a = 0;
 
@@ -1016,7 +1016,7 @@ x => Convert(Convert(Convert(x)))
 
         [WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
-        private void ExpressionTreeNoCovertForIdentityConversion()
+        public void ExpressionTreeNoCovertForIdentityConversion()
         {
             var source = @"
 using System;
@@ -1255,7 +1255,7 @@ return x;
         public void CS1718WRN_ComparisonToSelf_Roslyn()
         {
             string source = @"
-enum esbyte : sbyte { e0, e1 };
+enum @esbyte : sbyte { e0, e1 };
 public class z_1495j12
 {
 public static void Main()

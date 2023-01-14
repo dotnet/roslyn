@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
@@ -89,6 +90,7 @@ namespace Microsoft.Cci
             bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata && !suppressNewCustomDebugInfo;
 
             byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitStateMachineInfo: emitAllDebugInfo, emitEncInfo, emitDynamicAndTupleInfo, out bool emitExternNamespaces);
+            Debug.Assert(emitAllDebugInfo || !emitExternNamespaces);
 
             if (!emitAllDebugInfo && blob.Length == 0)
             {
@@ -96,7 +98,7 @@ namespace Microsoft.Cci
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);
-            OpenMethod(methodToken, methodBody.MethodDefinition);
+            OpenMethod(methodToken);
 
             if (emitAllDebugInfo)
             {
@@ -165,7 +167,7 @@ namespace Microsoft.Cci
             {
                 for (var scope = namespaceScopes; scope != null; scope = scope.Parent)
                 {
-                    foreach (var import in scope.GetUsedNamespaces())
+                    foreach (var import in scope.GetUsedNamespaces(Context))
                     {
                         if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
                         {
@@ -186,7 +188,7 @@ namespace Microsoft.Cci
             // file and namespace level
             for (IImportScope scope = namespaceScopes; scope != null; scope = scope.Parent)
             {
-                foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
+                foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces(Context))
                 {
                     var importString = TryEncodeImport(import, lazyDeclaredExternAliases, isProjectLevel: false);
                     if (importString != null)
@@ -438,7 +440,7 @@ namespace Microsoft.Cci
             }
 
             // no alias defined in scope for given assembly -> error in compiler
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private void DefineLocalScopes(ImmutableArray<LocalScope> scopes, StandaloneSignatureHandle localSignatureHandleOpt)
@@ -621,7 +623,7 @@ namespace Microsoft.Cci
             return documentIndex;
         }
 
-        private void OpenMethod(int methodToken, IMethodDefinition method)
+        private void OpenMethod(int methodToken)
         {
             _symWriter.OpenMethod(methodToken);
 
@@ -767,6 +769,14 @@ namespace Microsoft.Cci
             {
                 AddDocumentIndex(kvp.Value);
             }
+        }
+
+        public void WriteCompilerVersion(string language)
+        {
+            var compilerAssembly = typeof(Compilation).Assembly;
+            var fileVersion = Version.Parse(compilerAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
+            var versionString = compilerAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            _symWriter.AddCompilerInfo((ushort)fileVersion.Major, (ushort)fileVersion.Minor, (ushort)fileVersion.Build, (ushort)fileVersion.Revision, $"{language} - {versionString}");
         }
     }
 }

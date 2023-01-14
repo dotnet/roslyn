@@ -15,11 +15,32 @@ namespace Microsoft.CodeAnalysis.InlineHints
     {
         public readonly TextSpan Span;
         public readonly ImmutableArray<TaggedText> DisplayParts;
+        public readonly TextChange? ReplacementTextChange;
+        public readonly double Ranking;
         private readonly Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? _getDescriptionAsync;
 
         public InlineHint(
             TextSpan span,
             ImmutableArray<TaggedText> displayParts,
+            Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
+            : this(span, displayParts, replacementTextChange: null, ranking: 0.0, getDescriptionAsync)
+        {
+        }
+
+        public InlineHint(
+            TextSpan span,
+            ImmutableArray<TaggedText> displayParts,
+            TextChange? replacementTextChange,
+            Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
+            : this(span, displayParts, replacementTextChange, ranking: 0.0, getDescriptionAsync)
+        {
+        }
+
+        public InlineHint(
+            TextSpan span,
+            ImmutableArray<TaggedText> displayParts,
+            TextChange? replacementTextChange,
+            double ranking,
             Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
         {
             if (displayParts.Length == 0)
@@ -28,6 +49,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             Span = span;
             DisplayParts = displayParts;
             _getDescriptionAsync = getDescriptionAsync;
+            ReplacementTextChange = replacementTextChange;
+            Ranking = ranking;
         }
 
         /// <summary>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -12,23 +10,26 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
-    internal sealed partial class ForceLowMemoryMode
+    internal sealed class ForceLowMemoryMode
     {
-        private readonly IOptionService _optionService;
-        private MemoryHogger _hogger;
+        public static readonly Option2<bool> Enabled = new("ForceLowMemoryMode_Enabled", defaultValue: false);
+        public static readonly Option2<int> SizeInMegabytes = new("ForceLowMemoryMode_Enabled", defaultValue: 500);
 
-        public ForceLowMemoryMode(IOptionService optionService)
+        private readonly IGlobalOptionService _globalOptions;
+        private MemoryHogger? _hogger;
+
+        public ForceLowMemoryMode(IGlobalOptionService globalOptions)
         {
-            _optionService = optionService;
+            _globalOptions = globalOptions;
 
-            optionService.OptionChanged += Options_OptionChanged;
+            globalOptions.OptionChanged += Options_OptionChanged;
 
             RefreshFromSettings();
         }
 
         private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Feature == nameof(ForceLowMemoryMode))
+            if (e.Option == Enabled || e.Option == SizeInMegabytes)
             {
                 RefreshFromSettings();
             }
@@ -36,7 +37,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
         private void RefreshFromSettings()
         {
-            var enabled = _optionService.GetOption(Enabled);
+            var enabled = _globalOptions.GetOption(Enabled);
 
             if (_hogger != null)
             {
@@ -47,7 +48,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             if (enabled)
             {
                 _hogger = new MemoryHogger();
-                _ = _hogger.PopulateAndMonitorAsync(_optionService.GetOption(SizeInMegabytes));
+                _ = _hogger.PopulateAndMonitorAsync(_globalOptions.GetOption(SizeInMegabytes));
             }
         }
 

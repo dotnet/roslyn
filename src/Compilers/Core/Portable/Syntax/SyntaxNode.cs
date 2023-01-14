@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis
         internal int EndPosition => Position + Green.FullWidth;
 
         /// <summary>
-        /// Returns SyntaxTree that owns the node or null if node does not belong to a
-        /// SyntaxTree
+        /// Returns <see cref="SyntaxTree"/> that owns the node.
         /// </summary>
         public SyntaxTree SyntaxTree => this.SyntaxTreeCore;
 
@@ -427,17 +426,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether this node has any descendant preprocessor directives.
-        /// </summary>
-        public bool ContainsDirectives
-        {
-            get
-            {
-                return this.Green.ContainsDirectives;
-            }
-        }
-
-        /// <summary>
         /// Determines whether this node or any of its descendant nodes, tokens or trivia have any diagnostics on them. 
         /// </summary>
         public bool ContainsDiagnostics
@@ -445,6 +433,87 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return this.Green.ContainsDiagnostics;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether this node has any descendant preprocessor directives.
+        /// </summary>
+        public bool ContainsDirectives => this.Green.ContainsDirectives;
+
+        /// <summary>
+        /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with a matching kind.
+        /// </summary>
+        public bool ContainsDirective(int rawKind)
+        {
+            // Easy bail out without doing any work.
+            if (!this.ContainsDirectives)
+                return false;
+
+            var stack = PooledObjects.ArrayBuilder<GreenNode?>.GetInstance();
+            stack.Push(this.Green);
+
+            try
+            {
+                while (stack.Count > 0)
+                {
+                    var current = stack.Pop();
+
+                    // Don't bother looking further down this portion of the tree if it clearly doesn't contain directives.
+                    if (current is not { ContainsDirectives: true })
+                        continue;
+
+                    if (current.IsToken)
+                    {
+                        // no need to look within if this token doesn't even have leading trivia.
+                        if (current.HasLeadingTrivia)
+                        {
+                            if (triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind))
+                                return true;
+                        }
+                        else
+                        {
+                            Debug.Assert(!triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind), "Should not have a match if the token doesn't even have leading trivia");
+                        }
+
+                        Debug.Assert(!triviaContainsMatch(current.GetTrailingTriviaCore(), rawKind), "Should never have a match in trailing trivia");
+                    }
+                    else
+                    {
+                        // nodes and lists.  Push children backwards so we walk the tree in lexical order.
+                        for (int i = current.SlotCount - 1; i >= 0; i--)
+                            stack.Push(current.GetSlot(i));
+                    }
+                }
+
+                return false;
+            }
+            finally
+            {
+                stack.Free();
+            }
+
+            static bool triviaContainsMatch(GreenNode? triviaNode, int rawKind)
+            {
+                if (triviaNode is not null)
+                {
+                    // Will either have one or many trivia nodes.
+                    if (triviaNode.IsList)
+                    {
+                        for (int i = 0, n = triviaNode.SlotCount; i < n; i++)
+                        {
+                            var child = triviaNode.GetSlot(i);
+                            if (child is { IsDirective: true, RawKind: var childKind } && childKind == rawKind)
+                                return true;
+                        }
+                    }
+                    else if (triviaNode.IsDirective && triviaNode.RawKind == rawKind)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -1251,6 +1320,7 @@ recurse:
         /// modification, even if the type of a node changes.
         /// </para>
         /// </remarks>
+        [return: NotNullIfNotNull(nameof(node))]
         public T? CopyAnnotationsTo<T>(T? node) where T : SyntaxNode
         {
             if (node == null)

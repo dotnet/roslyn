@@ -48,7 +48,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteTypes()
         {
-            var nodes = _tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+            var nodes = _tree.Types.Where(n => n is not PredefinedNode).ToList();
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
                 var node = nodes[i];

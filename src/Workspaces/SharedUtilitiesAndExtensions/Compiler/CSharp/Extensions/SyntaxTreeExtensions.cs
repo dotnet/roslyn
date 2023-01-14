@@ -14,22 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTreeExtensions
     {
-        public static ISet<SyntaxKind> GetPrecedingModifiers(
-            this SyntaxTree syntaxTree,
-            int position,
-            SyntaxToken tokenOnLeftOfPosition)
-            => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
+        public static ISet<SyntaxKind> GetPrecedingModifiers(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => syntaxTree.GetPrecedingModifiers(position, cancellationToken, out _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-#pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
-#pragma warning restore IDE0060 // Remove unused parameter
             int position,
-            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken,
             out int positionBeforeModifiers)
         {
-            var token = tokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            positionBeforeModifiers = position;
+            var tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
             while (true)
@@ -54,13 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RefKeyword:
                     case SyntaxKind.OutKeyword:
                     case SyntaxKind.InKeyword:
+                    case SyntaxKind.RequiredKeyword:
                         result.Add(token.Kind());
+                        positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
                     case SyntaxKind.IdentifierToken:
                         if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                         {
                             result.Add(SyntaxKind.AsyncKeyword);
+                            positionBeforeModifiers = token.FullSpan.Start;
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }
@@ -71,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 break;
             }
 
-            positionBeforeModifiers = token.FullSpan.End;
             return result;
         }
 
@@ -121,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.GetAncestors<BaseTypeDeclarationSyntax>().Where(t => BaseTypeDeclarationContainsPosition(t, position));
         }
 
-        private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken;
+        private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken;
         private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
-            k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
+            k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken or SyntaxKind.ColonColonToken;
 
         public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, SyntaxToken targetToken, CancellationToken cancellationToken)
         {
@@ -352,21 +350,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar)
+        private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
-            if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
+            if (token.Kind() is not (
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.CharacterLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
 
-            var startLength = 1;
-            if (token.IsVerbatimStringLiteral())
-            {
-                startLength = 2;
-            }
+            if (position != token.Span.End)
+                return false;
 
-            return position == token.Span.End &&
-                (token.Span.Length == startLength || (token.Span.Length > startLength && token.ToString().Cast<char>().LastOrDefault() != lastChar));
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            {
+                var sourceText = token.SyntaxTree!.GetText(cancellationToken);
+                var startDelimeterLength = 0;
+                var endDelimeterLength = 0;
+                for (int i = token.SpanStart, n = token.Span.End; i < n; i++)
+                {
+                    if (sourceText[i] != '"')
+                        break;
+
+                    startDelimeterLength++;
+                }
+
+                for (int i = token.Span.End - 1, n = token.Span.Start; i >= n; i--)
+                {
+                    if (sourceText[i] != '"')
+                        break;
+
+                    endDelimeterLength++;
+                }
+
+                return token.Span.Length == startDelimeterLength ||
+                    (token.Span.Length > startDelimeterLength && endDelimeterLength < startDelimeterLength);
+            }
+            else
+            {
+                var startDelimeterLength = token.IsVerbatimStringLiteral() ? 2 : 1;
+                return token.Span.Length == startDelimeterLength ||
+                    (token.Span.Length > startDelimeterLength && token.Text[^1] != lastChar);
+            }
         }
 
         public static bool IsEntirelyWithinStringOrCharLiteral(
@@ -384,12 +411,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // If we ask right at the end of the file, we'll get back nothing. We handle that case
             // specially for now, though SyntaxTree.FindToken should work at the end of a file.
-            if (token.IsKind(SyntaxKind.EndOfDirectiveToken, SyntaxKind.EndOfFileToken))
+            if (token.Kind() is SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken)
             {
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken))
+            if (token.Kind() is
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 var span = token.Span;
 
@@ -397,10 +430,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // "|"
                 // "|  (e.g. incomplete string literal)
                 return (position > span.Start && position < span.End)
-                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '"');
+                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '"', cancellationToken);
             }
 
-            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedStringTextToken, SyntaxKind.InterpolatedStringEndToken))
+            if (token.Kind() is
+                    SyntaxKind.InterpolatedStringStartToken or
+                    SyntaxKind.InterpolatedStringTextToken or
+                    SyntaxKind.InterpolatedStringEndToken or
+                    SyntaxKind.InterpolatedRawStringEndToken or
+                    SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                    SyntaxKind.InterpolatedMultiLineRawStringStartToken)
             {
                 return token.SpanStart < position && token.Span.End > position;
             }
@@ -430,7 +469,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // '|'
                 // '|  (e.g. incomplete char literal)
                 return (position > span.Start && position < span.End)
-                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'');
+                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'', cancellationToken);
+            }
+
+            return false;
+        }
+
+        public static bool IsInInactiveRegion(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(syntaxTree);
+
+            // cases:
+            // $ is EOF
+
+            // #if false
+            //    |
+
+            // #if false
+            //    |$
+
+            // #if false
+            // |
+
+            // #if false
+            // |$
+
+            if (syntaxTree.IsPreProcessorKeywordContext(position, cancellationToken))
+            {
+                return false;
+            }
+
+            // The latter two are the hard cases we don't actually have an 
+            // DisabledTextTrivia yet. 
+            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
+            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            {
+                return true;
+            }
+
+            var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                var triviaList = token.LeadingTrivia;
+                foreach (var triviaTok in triviaList.Reverse())
+                {
+                    if (triviaTok.Span.Contains(position))
+                    {
+                        return false;
+                    }
+
+                    if (triviaTok.Span.End < position)
+                    {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return false;
+                        }
+
+                        var structure = triviaTok.GetStructure();
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
+                        {
+                            return !branch.IsActive || !branch.BranchTaken;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            return IsPreProcessorKeywordContext(
+                syntaxTree, position,
+                syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true));
+        }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, SyntaxToken preProcessorTokenOnLeftOfPosition)
+#pragma warning restore IDE0060 // Remove unused parameter
+        {
+            // cases:
+            //  #|
+            //  #d|
+            //  # |
+            //  # d|
+
+            // note: comments are not allowed between the # and item.
+            var token = preProcessorTokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.HashToken))
+            {
+                return true;
             }
 
             return false;

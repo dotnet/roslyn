@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,26 +14,33 @@ namespace Microsoft.CodeAnalysis
     public enum SymbolDisplayParameterOptions
     {
         /// <summary>
-        /// Omits parameters from symbol descriptions.
-        /// </summary>
-        /// <remarks>
+        /// Omits parameters from symbol descriptions.    
+        /// <para>
         /// If this option is combined with <see cref="SymbolDisplayMemberOptions.IncludeParameters"/>, then only
         /// the parentheses will be shown (e.g. M()).
-        /// </remarks>
+        /// </para>
+        /// </summary>
         None = 0,
 
         /// <summary>
         /// Includes the <c>this</c> keyword before the first parameter of an extension method in C#. 
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// This option has no effect in Visual Basic.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         IncludeExtensionThis = 1 << 0,
 
         /// <summary>
-        /// Includes the <c>params</c>, <c>ref</c>, <c>in</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
+        /// Includes the <c>params</c>, <c>scoped</c>, <c>ref</c>, <c>in</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
+        /// Replaced by <see cref="IncludeModifiers"/>.
         /// </summary>
-        IncludeParamsRefOut = 1 << 1,
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IncludeParamsRefOut = IncludeModifiers,
+
+        /// <summary>
+        /// Includes the <c>params</c>, <c>scoped</c>, <c>ref</c>, <c>in</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
+        /// </summary>
+        IncludeModifiers = 1 << 1,
 
         /// <summary>
         /// Includes parameter types in symbol descriptions.
@@ -46,8 +54,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Includes parameter default values in symbol descriptions.
+        /// <para>Ignored if <see cref="IncludeName"/> is not set.
+        /// </para>
         /// </summary>
-        /// <remarks>Ignored if <see cref="IncludeName"/> is not set.</remarks>
         IncludeDefaultValue = 1 << 4,
 
         /// <summary>

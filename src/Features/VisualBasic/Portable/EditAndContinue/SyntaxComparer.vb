@@ -107,7 +107,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ForStepClause                   ' tied to parent
             NextStatement                   ' tied to parent
 
-            UsingBlock
+            UsingBlockWithDeclarations
+            UsingBlockWithExpression
             UsingStatement                  ' tied to parent
             EndUsingStatement               ' tied to parent
 
@@ -172,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             LocalDeclarationStatement           ' tied to parent 
             LocalVariableDeclarator             ' tied to parent 
 
-            ' TODO: AwaitExpression
+            AwaitExpression
 
             Lambda
             LambdaBodyBegin                     ' tied to parent
@@ -400,7 +401,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return Label.NextStatement
 
                 Case SyntaxKind.UsingBlock
-                    Return Label.UsingBlock
+                    ' We need to distinguish using statements with expression or single variable declaration from ones with multiple variable declarations. 
+                    ' The former generate a single try-finally block, the latter one for each variable. The finally blocks need to match since they
+                    ' affect state machine state matching. For simplicity we do not match single-declaration to expression, we just treat usings
+                    ' with declarations entirely separately from usings with expressions.
+                    '
+                    ' The parent is not available only when comparing nodes for value equality.
+                    ' In that case it doesn't matter what label the node has as long as it has some.
+
+                    Return If(TryCast(nodeOpt, UsingBlockSyntax)?.UsingStatement.Variables IsNot Nothing, Label.UsingBlockWithDeclarations, Label.UsingBlockWithExpression)
 
                 Case SyntaxKind.UsingStatement
                     Return Label.UsingStatement
@@ -699,9 +708,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' TODO:
                     Return Label.JoinConditionLambda
 
-                ' TODO:
-                'Case SyntaxKind.AwaitExpression
-                '    Return Label.AwaitExpression
+                Case SyntaxKind.AwaitExpression
+                    Return Label.AwaitExpression
 
                 Case SyntaxKind.GenericName
                     ' optimization - no need to dig into type instantiations

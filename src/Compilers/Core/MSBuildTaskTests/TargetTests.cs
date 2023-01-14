@@ -400,7 +400,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [InlineData(".NETCoreApp", "3.1", "8.0")]
         [InlineData(".NETCoreApp", "5.0", "9.0")]
         [InlineData(".NETCoreApp", "6.0", "10.0")]
-        [InlineData(".NETCoreApp", "7.0", "")]
+        [InlineData(".NETCoreApp", "7.0", "11.0")]
+        [InlineData(".NETCoreApp", "8.0", "")]
 
         [InlineData(".NETStandard", "1.0", "7.3")]
         [InlineData(".NETStandard", "1.5", "7.3")]
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             // This will fail whenever the current language version is updated.
             // Ensure you update the target files to select the correct CSharp version for the newest target framework
             // and add to the theory data above to cover it, before changing this version to make the test pass again.
-            Assert.Equal(CSharp.LanguageVersion.CSharp10, CSharp.LanguageVersionFacts.CurrentVersion);
+            Assert.Equal(CSharp.LanguageVersion.CSharp11, CSharp.LanguageVersionFacts.CurrentVersion);
         }
 
         [Fact]
@@ -754,6 +755,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var expectedImplicitlySkippedAnalyzers = analyzersEnabled &&
                 implicitBuild == true &&
                 sdkStyleProject == true &&
+                optimizeImplicitBuild != false &&
                 (treatWarningsAsErrors != true || optimizeImplicitBuild == true);
             var expectedImplicitlySkippedAnalyzersValue = expectedImplicitlySkippedAnalyzers ? "true" : "";
             var actualImplicitlySkippedAnalyzersValue = instance.GetPropertyValue("_ImplicitlySkipAnalyzers");
@@ -831,7 +833,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 Assert.Equal(expectedLastBuildWithSkipAnalyzers, items.Single().EvaluatedInclude);
             }
 
-            var expectedUpToDateCheckInput = lastBuildWithSkipAnalyzersFileExists;
+            var expectedUpToDateCheckInput = lastBuildWithSkipAnalyzersFileExists && !skipAnalyzers;
             items = instance.GetItems("UpToDateCheckInput");
             expectedItemCount = expectedUpToDateCheckInput ? 1 : 0;
             Assert.Equal(expectedItemCount, items.Count);
@@ -889,6 +891,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var caps = instance.GetItems("ProjectCapability").Select(c => c.EvaluatedInclude);
             Assert.Contains("RoslynComponent", caps);
+        }
+
+        [Fact]
+        public void CompilerApiVersionIsSet()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            var compilerApiVersionString = instance.GetPropertyValue("CompilerApiVersion");
+            Assert.StartsWith("roslyn", compilerApiVersionString);
+
+            var compilerApiVersion = Version.Parse(compilerApiVersionString.Substring("roslyn".Length));
+
+            var expectedVersionString = GetType().Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+                .Single(a => a.Key == "CurrentCompilerApiVersion")
+                .Value ?? string.Empty;
+            var expectedVersion = Version.Parse(expectedVersionString);
+
+            Assert.Equal(expectedVersion, compilerApiVersion);
         }
 
         private static ProjectInstance CreateProjectInstance(XmlReader reader)

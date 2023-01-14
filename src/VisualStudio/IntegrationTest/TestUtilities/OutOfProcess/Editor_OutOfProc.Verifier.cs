@@ -23,16 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
             }
 
-            public void IsNotSaved()
-            {
-                _textViewWindow._editorInProc.VerifyNotSaved();
-            }
-
-            public string IsSaved()
-            {
-                return _textViewWindow._editorInProc.VerifySaved();
-            }
-
             public void CurrentLineText(
                 string expectedText,
                 bool assertCaretPosition = false,
@@ -67,8 +57,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
                 var expectedCaretMarkupEndIndex = expectedCaretIndex + "$$".Length;
 
-                var expectedTextBeforeCaret = expectedText.Substring(0, expectedCaretIndex);
-                var expectedTextAfterCaret = expectedText.Substring(expectedCaretMarkupEndIndex);
+                var expectedTextBeforeCaret = expectedText[..expectedCaretIndex];
+                var expectedTextAfterCaret = expectedText[expectedCaretMarkupEndIndex..];
 
                 var lineText = _textViewWindow.GetCurrentLineText();
                 var lineTextBeforeCaret = _textViewWindow.GetLineTextBeforeCaret();
@@ -127,8 +117,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
                 var caretEndIndex = caretStartIndex + "$$".Length;
 
-                var expectedTextBeforeCaret = expectedText.Substring(0, caretStartIndex);
-                var expectedTextAfterCaret = expectedText.Substring(caretEndIndex);
+                var expectedTextBeforeCaret = expectedText[..caretStartIndex];
+                var expectedTextAfterCaret = expectedText[caretEndIndex..];
 
                 var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
 
@@ -156,13 +146,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
                 var currentItem = _textViewWindow.GetCurrentCompletionItem();
                 Assert.Equal(expectedItem, currentItem);
-            }
-
-            public void VerifyCurrentSignature(
-                Signature expectedSignature)
-            {
-                var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(expectedSignature, currentSignature);
             }
 
             public void CurrentSignature(string content)
@@ -208,18 +191,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 _instance.Workspace.WaitForAllAsyncOperations(
                     Helper.HangMitigatingTimeout,
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles);
                 var actualTags = _textViewWindow.GetErrorTags();
                 AssertEx.EqualOrDiff(
                     string.Join(Environment.NewLine, expectedTags),
                     string.Join(Environment.NewLine, actualTags));
-            }
-
-            public void IsProjectItemDirty(bool expectedValue)
-            {
-                Assert.Equal(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
             }
         }
     }

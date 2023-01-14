@@ -30,6 +30,7 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - group: DotNet-Roslyn-Insertion-Variables
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
@@ -49,7 +50,7 @@ stages:
     timeoutInMinutes: 360
     # Conditionally set build pool so we can share this YAML when building with different pipeline
     pool:
-      name: VSEngSS-MicroBuild2017
+      name: VSEngSS-MicroBuild2022-1ES
       demands:
       - msbuild
       - visualstudio
@@ -88,6 +89,14 @@ stages:
     - task: NuGetAuthenticate@0
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+
+    # Needed because the build fails the NuGet Tools restore without it
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
 
     # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
     - task: NuGetCommand@2
@@ -135,6 +144,15 @@ stages:
                    /p:IgnoreIbcMergeErrors=true
                    /p:PreReleaseVersionLabel=pr-validation
                    /p:IgnoreIbcMergeErrors=true
+      condition: succeeded()
+
+    - template: eng\common\templates\steps\generate-sbom.yml
+
+    - task: PowerShell@2
+      displayName: Publish Assets
+      inputs:
+        filePath: 'eng\publish-assets.ps1'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
       condition: succeeded()
 
     # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
@@ -210,7 +228,7 @@ stages:
   displayName: Create Insertion
   dependsOn:
     - build
-  
+
   jobs:
   - job: insert
     displayName: Insert to VS
@@ -220,16 +238,19 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
       condition: succeeded()
-      
+
     - template: eng/pipelines/insert.yml
       parameters:
         createDraftPR: true
         autoComplete: false
         insertToolset: ${{ parameters.InsertToolset }}
-        clientId: $(ClientId)
-        clientSecret: $(ClientSecret)
+        buildUserName: "dn-bot@microsoft.com"
+        buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+        componentUserName: "dn-bot@microsoft.com"
+        componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
         vsBranchName: ${{ parameters.VisualStudioBranchName }}
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
         publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
-  
+        queueSpeedometerValidation: true
+

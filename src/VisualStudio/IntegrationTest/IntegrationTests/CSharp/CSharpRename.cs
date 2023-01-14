@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -21,6 +22,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Rename)]
     public class CSharpRename : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -32,7 +34,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
+            // reset relevant global options to default values:
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInComments, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInStrings, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameOverloads, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile, language: null, value: true);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges, language: null, value: false);
+        }
+
+        [WpfFact]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -87,8 +101,7 @@ class Program
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
             var markup = @"
@@ -114,8 +127,7 @@ class CustomAttribute : Attribute
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameClasss()
         {
             var markup = @"
@@ -142,8 +154,7 @@ class Custom$$Attribute : Attribute
 ", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttribute()
         {
             var markup = @"
@@ -179,8 +190,7 @@ class CustomAttribute : Attribute
 ", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttributeClass()
         {
             var markup = @"
@@ -216,7 +226,7 @@ class Custom$$Attribute : Attribute
 ", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -287,7 +297,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -338,7 +348,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"
@@ -383,7 +393,7 @@ class B : I
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyMultiFileRename()
         {
             SetUpEditor(@"
@@ -429,7 +439,7 @@ class y
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyRenameCancellation()
         {
             SetUpEditor(@"
@@ -486,7 +496,7 @@ class SomeOtherClass
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyCrossProjectRename()
         {
             SetUpEditor(@"
@@ -531,7 +541,7 @@ class RenameRocks
 public class y { static void Main(string [] args) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyRenameUndo()
         {
             VerifyCrossProjectRename();
@@ -553,7 +563,7 @@ class RenameRocks
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyRenameInStandaloneFiles()
         {
             VisualStudio.SolutionExplorer.CloseSolution();
@@ -584,8 +594,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
-        [WorkItem(39617, "https://github.com/dotnet/roslyn/issues/39617")]
+        [WpfFact, WorkItem(39617, "https://github.com/dotnet/roslyn/issues/39617")]
         public void VerifyRenameCaseChange()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -605,14 +614,15 @@ class Program
 
             VisualStudio.Editor.SendKeys(VirtualKey.Home, VirtualKey.Delete, VirtualKey.P, VirtualKey.Enter);
 
-            VisualStudio.SolutionExplorer.Verify.FileContents(project, "program.cs",
-@"
+            AssertEx.EqualOrDiff(
+                @"
 class program
 {
     static void Main(string[] args)
     {
     }
-}");
+}",
+                VisualStudio.SolutionExplorer.GetFileContents(project, "program.cs"));
         }
     }
 }

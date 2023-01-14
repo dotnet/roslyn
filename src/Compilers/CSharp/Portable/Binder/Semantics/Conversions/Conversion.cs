@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Summarizes whether a conversion is allowed, and if so, which kind of conversion (and in some cases, the
     /// associated symbol).
     /// </summary>
-    public struct Conversion : IEquatable<Conversion>, IConvertibleConversion
+    public readonly struct Conversion : IEquatable<Conversion>, IConvertibleConversion
     {
         private readonly ConversionKind _kind;
         private readonly UncommonData? _uncommonData;
@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal readonly MethodSymbol? _conversionMethod;
             internal readonly ImmutableArray<Conversion> _nestedConversionsOpt;
+#if DEBUG
+            internal bool _nestedConversionsChecked;
+#endif
 
             //no effect on Equals/GetHashCode
             internal readonly UserDefinedConversionResult _conversionResult;
@@ -73,14 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class DeconstructionUncommonData : UncommonData
         {
-            internal DeconstructionUncommonData(DeconstructMethodInfo deconstructMethodInfoOpt, ImmutableArray<Conversion> nestedConversions)
-                : base(isExtensionMethod: false, isArrayIndex: false, conversionResult: default, conversionMethod: null, nestedConversions)
+            internal DeconstructionUncommonData(DeconstructMethodInfo deconstructMethodInfoOpt, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo)
+                : base(isExtensionMethod: false, isArrayIndex: false, conversionResult: default, conversionMethod: null, nestedConversions: default)
             {
-                Debug.Assert(!nestedConversions.IsDefaultOrEmpty);
+                Debug.Assert(!deconstructConversionInfo.IsDefaultOrEmpty);
                 DeconstructMethodInfo = deconstructMethodInfoOpt;
+                DeconstructConversionInfo = deconstructConversionInfo;
             }
 
             internal readonly DeconstructMethodInfo DeconstructMethodInfo;
+            internal readonly ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> DeconstructConversionInfo;
         }
 
         private Conversion(
@@ -133,12 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions: nestedConversions);
         }
 
-        internal Conversion(ConversionKind kind, DeconstructMethodInfo deconstructMethodInfo, ImmutableArray<Conversion> nestedConversions)
+        internal Conversion(ConversionKind kind, DeconstructMethodInfo deconstructMethodInfo, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo)
         {
             Debug.Assert(kind == ConversionKind.Deconstruction);
 
             this._kind = kind;
-            _uncommonData = new DeconstructionUncommonData(deconstructMethodInfo, nestedConversions);
+            _uncommonData = new DeconstructionUncommonData(deconstructMethodInfo, deconstructConversionInfo);
         }
 
         internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
@@ -146,8 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we use this method to patch up the conversion method only in two cases - 
             // 1) when rewriting MethodGroup conversions and the method gets substituted.
             // 2) when lowering IntPtr conversion (a compat-related conversion which becomes a kind of a user-defined conversion)
+            // 3) when rewriting user-defined conversions and the method gets substituted
             // in those cases it is ok to ignore existing _uncommonData.
-            Debug.Assert(_kind == ConversionKind.MethodGroup || _kind == ConversionKind.IntPtr);
+            Debug.Assert(_kind is ConversionKind.MethodGroup or ConversionKind.IntPtr or ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined);
 
             return new Conversion(this.Kind, conversionMethod, isExtensionMethod: IsExtensionMethod);
         }
@@ -354,6 +360,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        [Conditional("DEBUG")]
+        internal void AssertUnderlyingConversionsChecked()
+        {
+#if DEBUG
+            Debug.Assert(_uncommonData?._nestedConversionsChecked ?? true);
+#endif
+        }
+
+        [Conditional("DEBUG")]
+        internal void AssertUnderlyingConversionsCheckedRecursive()
+        {
+            AssertUnderlyingConversionsChecked();
+
+            var underlyingConversions = UnderlyingConversions;
+
+            if (!underlyingConversions.IsDefaultOrEmpty)
+            {
+                foreach (var underlying in underlyingConversions)
+                {
+                    underlying.AssertUnderlyingConversionsCheckedRecursive();
+                }
+            }
+        }
+
+        [Conditional("DEBUG")]
+        internal void MarkUnderlyingConversionsChecked()
+        {
+#if DEBUG
+            Debug.Assert(_uncommonData is not null);
+            _uncommonData._nestedConversionsChecked = true;
+#endif
+        }
+
+        [Conditional("DEBUG")]
+        internal void MarkUnderlyingConversionsCheckedRecursive()
+        {
+#if DEBUG
+            if (_uncommonData is not null)
+            {
+                _uncommonData._nestedConversionsChecked = true;
+
+                var underlyingConversions = UnderlyingConversions;
+
+                if (!underlyingConversions.IsDefaultOrEmpty)
+                {
+                    foreach (var underlying in underlyingConversions)
+                    {
+                        underlying.MarkUnderlyingConversionsCheckedRecursive();
+                    }
+                }
+            }
+#endif
+        }
+
         internal MethodSymbol? Method
         {
             get
@@ -412,6 +472,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> DeconstructConversionInfo
+        {
+            get
+            {
+                var uncommonData = (DeconstructionUncommonData?)_uncommonData;
+                return uncommonData == null ? default : uncommonData.DeconstructConversionInfo;
+            }
+        }
+
         // CONSIDER: public?
         internal bool IsValid
         {
@@ -421,7 +490,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
-
 
                 var nestedConversionsOpt = _uncommonData?._nestedConversionsOpt;
                 if (nestedConversionsOpt != null)
@@ -555,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if the conversion is an implicit object creation expression conversion.
         /// </summary>
-        internal bool IsObjectCreation
+        public bool IsObjectCreation
         {
             get
             {
@@ -848,6 +916,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="MethodSymbol" />, if any.
+        /// Null if <see cref="MethodSymbol" /> is resolved statically, or is null.
+        /// </summary>
+        public ITypeSymbol? ConstrainedToType
+        {
+            get
+            {
+                return this.ConstrainedToTypeOpt.GetPublicSymbol();
+            }
+        }
+
+        /// <summary>
         /// Gives an indication of how successful the conversion was.
         /// Viable - found a best built-in or user-defined conversion.
         /// Empty - found no applicable built-in or user-defined conversions.
@@ -965,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a <seealso cref="CommonConversion"/> from this C# conversion.
+        /// Creates a <see cref="CommonConversion"/> from this C# conversion.
         /// </summary>
         /// <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
         /// <remarks>
@@ -975,8 +1055,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public CommonConversion ToCommonConversion()
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
-            var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol);
+            var (methodSymbol, constrainedToType) = IsUserDefined ? (MethodSymbol, ConstrainedToType) : (null, null);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol, constrainedToType);
         }
 
         /// <summary>
@@ -1073,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Stores all the information from binding for calling a Deconstruct method.</summary>
-    internal struct DeconstructMethodInfo
+    internal readonly struct DeconstructMethodInfo
     {
         internal DeconstructMethodInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
             ImmutableArray<BoundDeconstructValuePlaceholder> outputPlaceholders)

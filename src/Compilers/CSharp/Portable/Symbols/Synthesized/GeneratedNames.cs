@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,16 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
-        internal static string MakeIteratorFinallyMethodName(int iteratorState)
+        internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
         {
-            // we can pick any name, but we will try to do
-            // <>m__Finally1
-            // <>m__Finally2
-            // <>m__Finally3
-            // . . . 
-            // that will roughly match native naming scheme and may also be easier when need to debug.
+            Debug.Assert((int)finalizeState < -2);
+
+            // It is important that the name is only derived from the finalizeState, so that when 
+            // editing method during EnC the Finally methods corresponding to matching states have matching names.
             Debug.Assert((char)GeneratedNameKind.IteratorFinallyMethod == 'm');
-            return "<>m__Finally" + StringExtensions.GetNumeral(Math.Abs(iteratorState + 2));
+            return "<>m__Finally" + StringExtensions.GetNumeral(-((int)finalizeState + 2));
         }
 
         internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal, int generation)
@@ -52,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation, suffix: "DisplayClass", entityOrdinal: closureOrdinal, entityGeneration: closureGeneration);
         }
 
-        internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
+        internal static string MakeAnonymousTypeOrDelegateTemplateName(int index, int submissionSlotIndex, string moduleId, bool isDelegate)
         {
-            var name = "<" + moduleId + ">f__AnonymousType" + StringExtensions.GetNumeral(index);
+            var name = "<" + moduleId + (isDelegate ? ">f__AnonymousDelegate" : ">f__AnonymousType") + StringExtensions.GetNumeral(index);
             if (submissionSlotIndex >= 0)
             {
                 name += "#" + StringExtensions.GetNumeral(submissionSlotIndex);
@@ -359,6 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
         /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
         /// </summary>
+        /// <remarks>
+        /// Logic here should match <see cref="TryParseSynthesizedDelegateName" />.
+        /// </remarks>
         internal static string MakeSynthesizedDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
@@ -375,6 +377,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return pooledBuilder.ToStringAndFree();
         }
 
+        /// <summary>
+        /// Parses the name of a synthesized delegate out into the things it represents.
+        /// </summary>
+        /// <remarks>
+        /// Logic here should match <see cref="MakeSynthesizedDelegateName" />.
+        /// </remarks>
         internal static bool TryParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
         {
             byRefs = default;
@@ -390,39 +398,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            // The character after the prefix should be an open brace
-            if (name[DelegateNamePrefixLength] != '{')
-            {
-                return false;
-            }
-
             parameterCount = arity - (returnsVoid ? 0 : 1);
 
-            var lastBraceIndex = name.LastIndexOf('}');
-            if (lastBraceIndex < 0)
+            // If there are no ref kinds encoded
+            // (and therefore no braces), use the end of the prefix instead.
+            var nameEndIndex = name.LastIndexOf('}');
+            if (nameEndIndex < 0)
             {
-                return false;
+                nameEndIndex = DelegateNamePrefixLength - 1;
             }
-
-            // The ref kind string is between the two braces
-            var refKindString = name[DelegateNamePrefixLengthWithOpenBrace..lastBraceIndex];
-
-            if (!RefKindVector.TryParse(refKindString, arity, out byRefs))
+            else
             {
-                return false;
-            }
-
-            // If there is a generation index it will be directly after the brace, otherwise the brace
-            // is the last character
-            if (lastBraceIndex < name.Length - 1)
-            {
-                // Format is a '#' followed by the generation number
-                if (name[lastBraceIndex + 1] != '#')
+                // There should be a character after the prefix, and it should be an open brace
+                if (name.Length <= DelegateNamePrefixLength || name[DelegateNamePrefixLength] != '{')
                 {
                     return false;
                 }
 
-                if (!int.TryParse(name[(lastBraceIndex + 2)..], out generation))
+                // If there are braces, then the ref kind string is encoded between them
+                var refKindString = name[DelegateNamePrefixLengthWithOpenBrace..nameEndIndex];
+
+                if (!RefKindVector.TryParse(refKindString, arity, out byRefs))
+                {
+                    return false;
+                }
+            }
+
+            // If there is a generation index it will be directly after the brace, otherwise the brace
+            // is the last character
+            if (nameEndIndex < name.Length - 1)
+            {
+                // Format is a '#' followed by the generation number
+                if (name[nameEndIndex + 1] != '#')
+                {
+                    return false;
+                }
+
+                if (!int.TryParse(name[(nameEndIndex + 2)..], out generation))
                 {
                     return false;
                 }
@@ -439,6 +451,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>t__builder";
         }
 
+        internal static string DelegateCacheContainerType(int generation, string? methodName = null, int methodOrdinal = -1, int ownerUniqueId = -1)
+        {
+            const char NameKind = (char)GeneratedNameKind.DelegateCacheContainerType;
+
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+
+            builder.Append('<').Append(methodName).Append('>').Append(NameKind);
+
+            if (methodOrdinal > -1)
+            {
+                builder.Append(GeneratedNameConstants.SuffixSeparator).Append(methodOrdinal);
+            }
+
+            if (ownerUniqueId > -1)
+            {
+                builder.Append(IdSeparator).Append(ownerUniqueId);
+            }
+
+            AppendOptionalGeneration(builder, generation);
+
+            return result.ToStringAndFree();
+        }
+
+        internal static string DelegateCacheContainerFieldName(int id, string targetMethod)
+        {
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+
+            builder.Append('<').Append(id).Append(">__").Append(targetMethod);
+
+            return result.ToStringAndFree();
+        }
+
         internal static string ReusableHoistedLocalFieldName(int number)
         {
             Debug.Assert((char)GeneratedNameKind.ReusableHoistedLocalField == '7');
@@ -448,6 +494,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string LambdaCopyParameterName(int ordinal)
         {
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
+        }
+
+        internal static string AnonymousDelegateParameterName(int index, int parameterCount)
+        {
+            // SPEC: parameter names arg1, ..., argn or arg if a single parameter
+            if (parameterCount == 1)
+            {
+                return "arg";
+            }
+            return "arg" + StringExtensions.GetNumeral(index + 1);
+        }
+
+        internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksumOpt)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+            sb.Append('<');
+            AppendFileName(filePath, sb);
+            sb.Append('>');
+            sb.Append((char)GeneratedNameKind.FileType);
+            if (checksumOpt.IsDefault)
+            {
+                // Note: this is an error condition.
+                // This is only included for clarity for users inspecting the value of 'MetadataName'.
+                sb.Append("<no checksum>");
+            }
+            else
+            {
+                foreach (var b in checksumOpt)
+                {
+                    sb.AppendFormat("{0:X2}", b);
+                }
+            }
+            sb.Append("__");
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static string GetDisplayFilePath(string filePath)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            AppendFileName(filePath, pooledBuilder.Builder);
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static void AppendFileName(string filePath, StringBuilder sb)
+        {
+            var fileName = FileNameUtilities.GetFileName(filePath, includeExtension: false);
+            if (fileName is null)
+            {
+                return;
+            }
+
+            foreach (var ch in fileName)
+            {
+                sb.Append(ch switch
+                {
+                    >= 'a' and <= 'z' => ch,
+                    >= 'A' and <= 'Z' => ch,
+                    >= '0' and <= '9' => ch,
+                    _ => '_'
+                });
+            }
         }
     }
 }

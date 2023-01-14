@@ -13,8 +13,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
@@ -32,16 +35,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly IServiceProvider _serviceProvider;
-
         private readonly IThreadingContext _threadingContext;
 
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
+        public readonly IGlobalOptionService GlobalOptions;
+
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCodeModelFactory(
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, assertIsForeground: false)
@@ -49,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
+            GlobalOptions = globalOptions;
 
             Listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
@@ -56,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // for the same documents.  Once enough time has passed, take the documents that were changed and run
             // through them, firing their latest events.
             _documentsToFireEventsFor = new AsyncBatchingWorkQueue<DocumentId>(
-                InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpan,
+                SolutionCrawlerTimeSpan.AllFilesWorkerBackOff,
                 ProcessNextDocumentBatchAsync,
                 // We only care about unique doc-ids, so pass in this comparer to collapse streams of changes for a
                 // single document down to one notification.
@@ -70,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         internal IAsynchronousOperationListener Listener { get; }
 
         private async ValueTask ProcessNextDocumentBatchAsync(
-            ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+            ImmutableSegmentedList<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             // This logic preserves the previous behavior we had with IForegroundNotificationService.
             // Specifically, we don't run on the UI thread for more than 15ms at a time.  And once we 
@@ -216,6 +222,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath)
             => GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
+
+        public EnvDTE.FileCodeModel CreateFileCodeModel(SourceGeneratedDocument sourceGeneratedDocument)
+            => GetProjectCodeModel(sourceGeneratedDocument.Project.Id).CreateFileCodeModel(sourceGeneratedDocument);
 
         public void ScheduleDeferredCleanupTask(Action<CancellationToken> a)
         {

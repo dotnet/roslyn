@@ -17,9 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(Methods.TextDocumentLinkedEditingRangeName)]
-    internal class OnTypeRenameHandler : AbstractStatelessRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>
+    [ExportStatelessXamlLspService(typeof(OnTypeRenameHandler)), Shared]
+    [Method(Methods.TextDocumentLinkedEditingRangeName)]
+    internal class OnTypeRenameHandler : ILspServiceRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>
     {
         // From https://www.w3.org/TR/xml/#NT-NameStartChar
         // Notes:
@@ -58,14 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override string Method => Methods.TextDocumentLinkedEditingRangeName;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LinkedEditingRangeParams request) => request.TextDocument;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(LinkedEditingRangeParams request) => request.TextDocument;
-
-        public override async Task<LinkedEditingRanges?> HandleRequestAsync(LinkedEditingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LinkedEditingRanges?> HandleRequestAsync(LinkedEditingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
@@ -73,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            var renameService = document.Project.LanguageServices.GetService<IXamlTypeRenameService>();
+            var renameService = document.Project.Services.GetService<IXamlTypeRenameService>();
             if (renameService == null)
             {
                 return null;
@@ -88,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            Contract.ThrowIfNull(result.Ranges);
+            Contract.ThrowIfTrue(result.Ranges.IsDefault);
 
             return new LinkedEditingRanges
             {

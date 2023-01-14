@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static readonly ImmutableArray<DiagnosticDescriptor> s_descriptors;
 
         // descriptors for diagnostics reported by the debugger:
-        private static Dictionary<ManagedEditAndContinueAvailabilityStatus, DiagnosticDescriptor> s_lazyModuleDiagnosticDescriptors;
+        private static Dictionary<ManagedHotReloadAvailabilityStatus, DiagnosticDescriptor> s_lazyModuleDiagnosticDescriptors;
         private static readonly object s_moduleDiagnosticDescriptorsGuard;
 
         static EditAndContinueDiagnosticDescriptors()
@@ -141,9 +141,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.ImplementRecordParameterAsReadOnly, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ImplementRecordParameterWithSet, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, nameof(FeaturesResources.Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0));
-            AddRudeEdit(RudeEditKind.NotSupportedByRuntime, nameof(FeaturesResources.Edit_and_continue_is_not_supported_by_the_runtime));
-            AddRudeEdit(RudeEditKind.MakeMethodAsync, nameof(FeaturesResources.Making_a_method_asynchronous_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.MakeMethodIterator, nameof(FeaturesResources.Making_a_method_an_iterator_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.NotSupportedByRuntime, nameof(FeaturesResources.Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, nameof(FeaturesResources.Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.MakeMethodIteratorNotSupportedByRuntime, nameof(FeaturesResources.Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.InsertNotSupportedByRuntime, nameof(FeaturesResources.Adding_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ChangingAttributesNotSupportedByRuntime, nameof(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, nameof(FeaturesResources.Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
@@ -153,6 +153,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.ChangeImplicitMainReturnType, nameof(FeaturesResources.An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.RenamingNotSupportedByRuntime, nameof(FeaturesResources.Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.ChangingNonCustomAttribute, nameof(FeaturesResources.Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application));
+            AddRudeEdit(RudeEditKind.ChangingNamespace, nameof(FeaturesResources.Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application));
+            AddRudeEdit(RudeEditKind.ChangingTypeNotSupportedByRuntime, nameof(FeaturesResources.Changing_the_type_of_0_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.DeleteNotSupportedByRuntime, nameof(FeaturesResources.Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_requires_restarting_the_application));
@@ -185,11 +188,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static DiagnosticDescriptor GetDescriptor(EditAndContinueErrorCode errorCode)
             => s_descriptors[GetDescriptorIndex(errorCode)];
 
-        internal static DiagnosticDescriptor GetModuleDiagnosticDescriptor(ManagedEditAndContinueAvailabilityStatus status)
+        internal static DiagnosticDescriptor GetModuleDiagnosticDescriptor(ManagedHotReloadAvailabilityStatus status)
         {
             lock (s_moduleDiagnosticDescriptorsGuard)
             {
-                s_lazyModuleDiagnosticDescriptors ??= new Dictionary<ManagedEditAndContinueAvailabilityStatus, DiagnosticDescriptor>();
+                s_lazyModuleDiagnosticDescriptors ??= new Dictionary<ManagedHotReloadAvailabilityStatus, DiagnosticDescriptor>();
 
                 if (!s_lazyModuleDiagnosticDescriptors.TryGetValue(status, out var descriptor))
                 {

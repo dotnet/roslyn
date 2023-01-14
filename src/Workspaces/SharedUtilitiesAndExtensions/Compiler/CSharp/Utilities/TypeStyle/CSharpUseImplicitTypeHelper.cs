@@ -14,12 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Operations;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -33,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public override TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             if (typeName.StripRefIfNeeded().IsVar)
             {
@@ -46,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             return base.AnalyzeTypeName(
-                typeName, semanticModel, optionSet, cancellationToken);
+                typeName, semanticModel, options, cancellationToken);
         }
 
         public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
@@ -95,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         internal override bool TryAnalyzeVariableDeclaration(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             Debug.Assert(!typeName.StripRefIfNeeded().IsVar, "'var' special case should have prevented analysis of this variable.");
 
@@ -108,8 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
-                typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
+            if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
+                typeName.Parent.Parent is (kind:
+                    SyntaxKind.LocalDeclarationStatement or
+                    SyntaxKind.ForStatement or
+                    SyntaxKind.UsingStatement))
             {
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 if (AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, initializer,
-                        semanticModel, optionSet, cancellationToken))
+                        semanticModel, options, cancellationToken))
                 {
                     return true;
                 }
@@ -222,9 +220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // If there was only one member in the group, and it was non-generic itself, then this
             // change is commonly safe to make without having to actually change to `var` and
             // speculatively determine if the change is ok or not.
-            if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
-                !(argument.Parent is ArgumentListSyntax argumentList) ||
-                !(argumentList.Parent is InvocationExpressionSyntax invocationExpression))
+            if (declarationExpression.Parent is not ArgumentSyntax argument ||
+                argument.Parent is not ArgumentListSyntax argumentList ||
+                argumentList.Parent is not InvocationExpressionSyntax invocationExpression)
             {
                 return false;
             }
@@ -274,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName,
             ExpressionSyntax initializer,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             var expression = GetInitializerExpression(initializer);

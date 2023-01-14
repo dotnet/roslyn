@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -21,23 +21,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
-    internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<TInvocationExpressionSyntax, TExpressionSyntax, TArgumentSyntax, TLiteralExpressionSyntax, TArgumentListExpressionSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
+        TInvocationExpressionSyntax,
+        TExpressionSyntax,
+        TArgumentSyntax,
+        TLiteralExpressionSyntax,
+        TArgumentListExpressionSyntax,
+        TInterpolationSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TArgumentSyntax : SyntaxNode
         where TLiteralExpressionSyntax : SyntaxNode
         where TArgumentListExpressionSyntax : SyntaxNode
+        where TInterpolationSyntax : SyntaxNode
     {
 
         // Methods that are not string.Format but still should qualify to be replaced.
         // Ex: Console.WriteLine("{0}", a) => Console.WriteLine($"{a}");
-        private static readonly (string typeName, string[] methods)[] CompositeFormattedMethods = new (string, string[])[]
-            {
-                (typeof(Console).FullName!, new[] { nameof(Console.Write), nameof(Console.WriteLine) }),
-                (typeof(Debug).FullName!, new[] { nameof(Debug.WriteLine), nameof(Debug.Print)}),
-                (typeof(Trace).FullName!, new[] { nameof(Trace.TraceError), nameof(Trace.TraceWarning), nameof(Trace.TraceInformation)}),
-                (typeof(TraceSource).FullName!, new[] { nameof(TraceSource.TraceInformation)})
-            };
+        private static readonly ImmutableArray<(string typeName, ImmutableArray<string> methods)> s_compositeFormattedMethods = ImmutableArray.Create(
+            (typeof(Console).FullName!, ImmutableArray.Create(nameof(Console.Write), nameof(Console.WriteLine))),
+            (typeof(Debug).FullName!, ImmutableArray.Create(nameof(Debug.WriteLine), nameof(Debug.Print))),
+            (typeof(Trace).FullName!, ImmutableArray.Create(nameof(Trace.TraceError), nameof(Trace.TraceWarning), nameof(Trace.TraceInformation))),
+            (typeof(TraceSource).FullName!, ImmutableArray.Create(nameof(TraceSource.TraceInformation))));
 
         protected abstract SyntaxNode GetInterpolatedString(string text);
 
@@ -52,8 +57,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            var stringInvocationMethods = CollectMethods(stringType, nameof(string.Format));
-            var compositeFormattedInvocationMethods = CompositeFormattedMethods
+            var stringInvocationMethods = CollectMethods(stringType, ImmutableArray.Create(nameof(string.Format)));
+            var compositeFormattedInvocationMethods = s_compositeFormattedMethods
                 .SelectMany(pair => CollectMethods(semanticModel.Compilation.GetTypeByMetadataName(pair.typeName), pair.methods))
                 .ToImmutableArray();
 
@@ -84,13 +89,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var shouldReplaceInvocation = stringInvocationMethods.Contains(invocationSymbol);
 
             context.RegisterRefactoring(
-                    new ConvertToInterpolatedStringCodeAction(
-                        c => CreateInterpolatedStringAsync(invocationSyntax, document, syntaxFactsService, shouldReplaceInvocation, c)),
+                    CodeAction.Create(
+                        FeaturesResources.Convert_to_interpolated_string,
+                        c => CreateInterpolatedStringAsync(invocationSyntax, document, syntaxFactsService, shouldReplaceInvocation, c),
+                        nameof(FeaturesResources.Convert_to_interpolated_string)),
                     invocationSyntax.Span);
 
             // Local Functions
 
-            static ImmutableArray<IMethodSymbol> CollectMethods(INamedTypeSymbol? typeSymbol, params string[] methodNames)
+            static ImmutableArray<IMethodSymbol> CollectMethods(INamedTypeSymbol? typeSymbol, ImmutableArray<string> methodNames)
             {
                 if (typeSymbol is null)
                 {
@@ -142,15 +149,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             return (null, null);
 
-            static bool IsValidPlaceholderToInterpolatedString(TInvocationExpressionSyntax invocation,
-                                                               ISyntaxFactsService syntaxFactsService,
-                                                               SemanticModel semanticModel,
-                                                               ImmutableArray<IMethodSymbol> applicableMethods,
-                                                               AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
-                                                                   TInvocationExpressionSyntax, TExpressionSyntax,
-                                                                   TArgumentSyntax, TLiteralExpressionSyntax,
-                                                                   TArgumentListExpressionSyntax> thisInstance,
-                                                               CancellationToken cancellationToken)
+            static bool IsValidPlaceholderToInterpolatedString(
+                TInvocationExpressionSyntax invocation,
+                ISyntaxFactsService syntaxFactsService,
+                SemanticModel semanticModel,
+                ImmutableArray<IMethodSymbol> applicableMethods,
+                AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
+                    TInvocationExpressionSyntax, TExpressionSyntax, TArgumentSyntax,
+                    TLiteralExpressionSyntax, TArgumentListExpressionSyntax, TInterpolationSyntax> thisInstance,
+                CancellationToken cancellationToken)
             {
                 var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
@@ -262,8 +269,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             for (var i = 1; i < arguments.Count; i++)
             {
                 var argumentExpression = syntaxFacts.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFacts));
-                var convertedType = argumentExpression == null ? null : semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
-                if (convertedType == null)
+                var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
+                if (convertedType is null)
                 {
                     builder.Add((TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpression));
                 }
@@ -284,16 +291,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             return interpolatedString.ReplaceNodes(syntaxFactsService.GetContentsOfInterpolatedString(interpolatedString), (oldNode, newNode) =>
             {
-                var interpolationSyntaxNode = newNode;
-                if (interpolationSyntaxNode != null)
+                if (newNode is TInterpolationSyntax interpolation)
                 {
-                    if (syntaxFactsService.GetExpressionOfInterpolation(interpolationSyntaxNode) is TLiteralExpressionSyntax literalExpression && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
+                    if (syntaxFactsService.GetExpressionOfInterpolation(interpolation) is TLiteralExpressionSyntax literalExpression && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
                     {
                         if (int.TryParse(literalExpression.GetFirstToken().ValueText, out var index))
                         {
                             if (index >= 0 && index < expandedArguments.Length)
                             {
-                                return interpolationSyntaxNode.ReplaceNode(
+                                return interpolation.ReplaceNode(
                                     literalExpression,
                                     syntaxFactsService.ConvertToSingleLine(expandedArguments[index], useElasticTrivia: true).WithAdditionalAnnotations(Formatter.Annotation));
                             }
@@ -344,14 +350,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             return true;
-        }
-
-        private class ConvertToInterpolatedStringCodeAction : CodeAction.DocumentChangeAction
-        {
-            public ConvertToInterpolatedStringCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
-            {
-            }
         }
 
         private static class StringFormatArguments

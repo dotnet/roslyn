@@ -3,6 +3,7 @@ abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetFileCo
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetHierarchy(Microsoft.CodeAnalysis.ProjectId projectId) -> Microsoft.VisualStudio.Shell.Interop.IVsHierarchy
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryFindAllReferences(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> bool
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryGoToDefinition(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> bool
+abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryGoToDefinitionAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>
 Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation
 Microsoft.VisualStudio.LanguageServices.RQName
 Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace

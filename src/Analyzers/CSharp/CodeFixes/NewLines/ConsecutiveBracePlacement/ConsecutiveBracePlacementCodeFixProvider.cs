@@ -37,7 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
             var document = context.Document;
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
-                new MyCodeAction(c => UpdateDocumentAsync(document, diagnostic, c)),
+                CodeAction.Create(
+                    CSharpCodeFixesResources.Remove_blank_lines_between_braces,
+                    c => UpdateDocumentAsync(document, diagnostic, c),
+                    nameof(CSharpCodeFixesResources.Remove_blank_lines_between_braces)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -94,13 +97,5 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 
         public override FixAllProvider GetFixAllProvider()
             => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Remove_blank_lines_between_braces, createChangedDocument, CSharpCodeFixesResources.Remove_blank_lines_between_braces)
-            {
-            }
-        }
     }
 }

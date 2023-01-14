@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundPointerIndirectionOperator(
                     node.Syntax,
                     rewrittenExpression,
+                    node.RefersToLocation,
                     node.Type);
             }
 
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method: null,
                     constrainedToTypeOpt: null,
                     isPointerElementAccess: true), //see RewriterPointerNumericOperator
+                node.RefersToLocation,
                 node.Type);
         }
     }

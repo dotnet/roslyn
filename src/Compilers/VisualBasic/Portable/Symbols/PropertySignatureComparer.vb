@@ -199,6 +199,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
+            If (comparisons And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
+                If prop1.IsShared <> prop2.IsShared Then
+                    results = results Or SymbolComparisonResults.CallingConventionMismatch
+                    If (stopIfAny And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
+                        GoTo Done
+                    End If
+                End If
+            End If
+
             ' It turns out name comparison is rather expensive relative to the other checks.
             If (comparisons And SymbolComparisonResults.NameMismatch) <> 0 Then
                 If Not IdentifierComparison.Equals(prop1.Name, prop2.Name) Then

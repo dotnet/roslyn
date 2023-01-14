@@ -8,8 +8,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -35,14 +37,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SnippetCommandHandler(IThreadingContext threadingContext, IExpansionServiceProvider expansionServiceProvider, IExpansionManager expansionManager)
-            : base(threadingContext, expansionServiceProvider, expansionManager)
+        public SnippetCommandHandler(
+            IThreadingContext threadingContext,
+            IExpansionServiceProvider expansionServiceProvider,
+            IExpansionManager expansionManager,
+            EditorOptionsService editorOptionsService)
+            : base(threadingContext, expansionServiceProvider, expansionManager, editorOptionsService)
         {
         }
 
         public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -54,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         public CommandState GetCommandState(SurroundWithCommandArgs args)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -78,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
             {
-                expansionClient = new SnippetExpansionClient(ThreadingContext, subjectBuffer.ContentType, textView, subjectBuffer, ExpansionServiceProvider);
+                expansionClient = new SnippetExpansionClient(subjectBuffer.ContentType, textView, subjectBuffer, ExpansionServiceProvider, EditorOptionsService);
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }
 

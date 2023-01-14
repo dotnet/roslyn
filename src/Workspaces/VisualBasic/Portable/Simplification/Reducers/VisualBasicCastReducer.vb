@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -14,16 +15,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Shared ReadOnly s_pool As ObjectPool(Of IReductionRewriter) =
             New ObjectPool(Of IReductionRewriter)(Function() New Rewriter(s_pool))
 
+        Private Shared ReadOnly s_simplifyCast As Func(Of CastExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyCast
+
         Public Sub New()
             MyBase.New(s_pool)
         End Sub
 
-        Private Shared ReadOnly s_simplifyCast As Func(Of CastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyCast
+        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+            Return True
+        End Function
 
         Private Overloads Shared Function SimplifyCast(
             node As CastExpressionSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
+            options As SimplifierOptions,
             cancellationToken As CancellationToken
         ) As ExpressionSyntax
 
@@ -34,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return node.Uncast()
         End Function
 
-        Private Shared ReadOnly s_simplifyPredefinedCast As Func(Of PredefinedCastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyPredefinedCast
+        Private Shared ReadOnly s_simplifyPredefinedCast As Func(Of PredefinedCastExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyPredefinedCast
 
         Private Overloads Shared Function SimplifyPredefinedCast(
             node As PredefinedCastExpressionSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
+            options As SimplifierOptions,
             cancellationToken As CancellationToken
         ) As ExpressionSyntax
 

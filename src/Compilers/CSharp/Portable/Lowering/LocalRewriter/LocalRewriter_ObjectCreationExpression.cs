@@ -39,13 +39,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiverDiscard = null;
 
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? tempsBuilder = null;
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref receiverDiscard,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 node.Arguments,
                 node.Constructor,
                 node.ArgsToParamsOpt,
                 argumentRefKindsOpt,
-                ref receiverDiscard,
-                out ArrayBuilder<LocalSymbol>? tempsBuilder);
+                storesOpt: null,
+                ref tempsBuilder);
+
+            Debug.Assert(receiverDiscard is null);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, argumentRefKindsOpt, newInitializerExpression: null, changeTypeOpt: node.Constructor.ContainingType);
 
             // replace "new S()" with a default struct ctor with "default(S)"
-            if (node.Constructor.IsDefaultValueTypeConstructor(requireZeroInit: true))
+            if (node.Constructor.IsDefaultValueTypeConstructor())
             {
                 rewrittenObjectCreation = new BoundDefaultExpression(rewrittenObjectCreation.Syntax, rewrittenObjectCreation.Type!);
             }
@@ -221,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [return: NotNullIfNotNull("initializerExpressionOpt")]
+        [return: NotNullIfNotNull(nameof(initializerExpressionOpt))]
         private BoundObjectInitializerExpressionBase? MakeObjectCreationInitializerForExpressionTree(BoundObjectInitializerExpressionBase? initializerExpressionOpt)
         {
             if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)
@@ -246,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create a temp and assign it with the object creation expression.
             BoundAssignmentOperator boundAssignmentToTemp;
-            BoundLocal value = _factory.StoreToTemp(rewrittenExpression, out boundAssignmentToTemp);
+            BoundLocal value = _factory.StoreToTemp(rewrittenExpression, out boundAssignmentToTemp, isKnownToReferToTempIfReferenceType: true);
 
             // Rewrite object/collection initializer expressions
             ArrayBuilder<BoundExpression>? dynamicSiteInitializers = null;
@@ -291,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda)
             {
-                return node.Update(MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), node.Type);
+                return node.Update(MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), node.WasTargetTyped, node.Type);
             }
 
             var rewrittenNewT = MakeNewT(node.Syntax, (TypeParameterSymbol)node.Type);

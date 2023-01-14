@@ -17,6 +17,21 @@
         <target state="translated">包含类型“{0}”的程序集引用了 .NET Framework，而此操作不受支持。</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">内置运算符名称“{0}”非法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">不支持的内置运算符: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">“{0}”不是有效的内置运算符名称</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">必须在 SourceText 的边界内进行更改</target>
@@ -39,14 +54,34 @@
         <target state="translated">取消以下诊断以禁用此分析器: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
       </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
+        <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
+        <target state="translated">编辑并继续无法恢复挂起的异步方法，因为相应的 await 表达式已被删除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
+        <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
+        <target state="translated">编辑并继续无法恢复挂起的迭代器，因为相应的 yield return 语句已被删除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">生成器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">生成器执行总时间: {0} 秒。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
-        <target state="new">The hintName '{0}' contains an invalid character '{1}' at position {2}.</target>
+        <target state="translated">hintName“{0}”在位置 {2} 处包含无效字符“{1}”。</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName '{0}' of the added source file must be unique within a generator.</target>
+        <target state="translated">添加的源文件的 hintName“{0}”在生成器中必须唯一。</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -126,7 +161,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
-        <target state="new">The SourceText with hintName '{0}' must have an explicit encoding set.</target>
+        <target state="translated">具有 hintName“{0}”的 SourceText 必须具有显式编码集。</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">

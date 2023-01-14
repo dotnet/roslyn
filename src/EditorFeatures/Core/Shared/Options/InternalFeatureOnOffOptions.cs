@@ -2,108 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
-    internal static class InternalFeatureOnOffOptions
+    internal sealed class InternalFeatureOnOffOptions
     {
-        internal const string LocalRegistryPath = StorageOptions.LocalRegistryPath;
-
-        public static readonly Option2<bool> BraceMatching = new(nameof(InternalFeatureOnOffOptions), nameof(BraceMatching), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Brace Matching"));
-
-        public static readonly Option2<bool> Classification = new(nameof(InternalFeatureOnOffOptions), nameof(Classification), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Classification"));
-
-        public static readonly Option2<bool> SemanticColorizer = new(nameof(InternalFeatureOnOffOptions), nameof(SemanticColorizer), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Semantic Colorizer"));
-
-        public static readonly Option2<bool> SyntacticColorizer = new(nameof(InternalFeatureOnOffOptions), nameof(SyntacticColorizer), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Syntactic Colorizer"));
-
-        public static readonly Option2<bool> AutomaticPairCompletion = new(nameof(InternalFeatureOnOffOptions), nameof(AutomaticPairCompletion), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Automatic Pair Completion"));
-
-        public static readonly Option2<bool> AutomaticLineEnder = new(nameof(InternalFeatureOnOffOptions), nameof(AutomaticLineEnder), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Automatic Line Ender"));
-
-        public static readonly Option2<bool> SmartIndenter = new(nameof(InternalFeatureOnOffOptions), nameof(SmartIndenter), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Smart Indenter"));
-
-        public static readonly Option2<bool> CompletionSet = new(nameof(InternalFeatureOnOffOptions), nameof(CompletionSet), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Completion Set"));
-
-        public static readonly Option2<bool> KeywordHighlight = new(nameof(InternalFeatureOnOffOptions), nameof(KeywordHighlight), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Keyword Highlight"));
-
-        public static readonly Option2<bool> QuickInfo = new(nameof(InternalFeatureOnOffOptions), nameof(QuickInfo), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Quick Info"));
-
-        public static readonly Option2<bool> Squiggles = new(nameof(InternalFeatureOnOffOptions), nameof(Squiggles), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Squiggles"));
-
-        public static readonly Option2<bool> FormatOnSave = new(nameof(InternalFeatureOnOffOptions), nameof(FormatOnSave), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "FormatOnSave"));
-
-        public static readonly Option2<bool> RenameTracking = new(nameof(InternalFeatureOnOffOptions), nameof(RenameTracking), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Rename Tracking"));
-
-        public static readonly Option2<bool> EventHookup = new(nameof(InternalFeatureOnOffOptions), nameof(EventHookup), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Event Hookup"));
-
-        /// Due to https://github.com/dotnet/roslyn/issues/5393, the name "Snippets" is unusable for serialization.
-        /// (Summary: Some builds incorrectly set it without providing a way to clear it so it exists in many registries.)
-        public static readonly Option2<bool> Snippets = new(nameof(InternalFeatureOnOffOptions), nameof(Snippets), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Snippets2"));
-
-        public static readonly Option2<bool> TodoComments = new(nameof(InternalFeatureOnOffOptions), nameof(TodoComments), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Todo Comments"));
-
-        public static readonly Option2<bool> DesignerAttributes = new(nameof(InternalFeatureOnOffOptions), nameof(DesignerAttributes), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Designer Attribute"));
-
-        public static readonly Option2<bool> BackgroundAnalysisMemoryMonitor = new(nameof(InternalFeatureOnOffOptions), "FullSolutionAnalysisMemoryMonitor", defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Full Solution Analysis Memory Monitor"));
-
-        public static readonly Option2<bool> ProjectReferenceConversion = new(nameof(InternalFeatureOnOffOptions), nameof(ProjectReferenceConversion), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Project Reference Conversion"));
-    }
-
-    [ExportOptionProvider, Shared]
-    internal class InternalFeatureOnOffOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InternalFeatureOnOffOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InternalFeatureOnOffOptions.BraceMatching,
-            InternalFeatureOnOffOptions.Classification,
-            InternalFeatureOnOffOptions.SemanticColorizer,
-            InternalFeatureOnOffOptions.SyntacticColorizer,
-            InternalFeatureOnOffOptions.AutomaticPairCompletion,
-            InternalFeatureOnOffOptions.AutomaticLineEnder,
-            InternalFeatureOnOffOptions.SmartIndenter,
-            InternalFeatureOnOffOptions.CompletionSet,
-            InternalFeatureOnOffOptions.KeywordHighlight,
-            InternalFeatureOnOffOptions.QuickInfo,
-            InternalFeatureOnOffOptions.Squiggles,
-            InternalFeatureOnOffOptions.FormatOnSave,
-            InternalFeatureOnOffOptions.RenameTracking,
-            InternalFeatureOnOffOptions.EventHookup,
-            InternalFeatureOnOffOptions.Snippets,
-            InternalFeatureOnOffOptions.TodoComments,
-            InternalFeatureOnOffOptions.DesignerAttributes,
-            InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor,
-            InternalFeatureOnOffOptions.ProjectReferenceConversion);
+        public static readonly Option2<bool> BraceMatching = new("InternalFeatureOnOffOptions_BraceMatching", defaultValue: true);
+        public static readonly Option2<bool> Classification = new("InternalFeatureOnOffOptions_Classification", defaultValue: true);
+        public static readonly Option2<bool> SemanticColorizer = new("InternalFeatureOnOffOptions_SemanticColorizer", defaultValue: true);
+        public static readonly Option2<bool> SyntacticColorizer = new("InternalFeatureOnOffOptions_SyntacticColorizer", defaultValue: true);
+        public static readonly Option2<bool> AutomaticLineEnder = new("InternalFeatureOnOffOptions_AutomaticLineEnder", defaultValue: true);
+        public static readonly Option2<bool> SmartIndenter = new("InternalFeatureOnOffOptions_SmartIndenter", defaultValue: true);
+        public static readonly Option2<bool> Squiggles = new("InternalFeatureOnOffOptions_Squiggles", defaultValue: true);
+        public static readonly Option2<bool> FormatOnSave = new("InternalFeatureOnOffOptions_FormatOnSave", defaultValue: true);
+        public static readonly Option2<bool> RenameTracking = new("InternalFeatureOnOffOptions_RenameTracking", defaultValue: true);
+        public static readonly Option2<bool> EventHookup = new("InternalFeatureOnOffOptions_EventHookup", defaultValue: true);
+        public static readonly Option2<bool> Snippets = new("InternalFeatureOnOffOptions_Snippets", defaultValue: true);
+        public static readonly Option2<bool> BackgroundAnalysisMemoryMonitor = new("InternalFeatureOnOffOptions_FullSolutionAnalysisMemoryMonitor", defaultValue: true);
     }
 }

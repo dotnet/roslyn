@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
                    EnforceOnBuildValues.UseLocalFunction,
                    CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_local_function), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -56,30 +55,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
-                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
 
-                context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionTypeOpt),
+                // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
+                // in projects targeting a lesser version.
+                if (compilation.LanguageVersion() < LanguageVersion.CSharp7)
+                    return;
+
+                var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
+                context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionType),
                     SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
             });
         }
 
-        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionTypeOpt)
+        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionType)
         {
-            var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            var cancellationToken = syntaxContext.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
-                return;
-            }
-
-            // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targeting a lesser version.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
-            {
                 return;
             }
 
@@ -97,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!(localDeclaration.Parent is BlockSyntax block))
+            if (localDeclaration.Parent is not BlockSyntax block)
             {
                 return;
             }
@@ -110,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
+            var cancellationToken = syntaxContext.CancellationToken;
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
             {
@@ -124,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
+            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionType, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
                 return;
 
             // Looks good!
@@ -223,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     continue;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     if (identifierName.Identifier.ValueText == local.Name &&
                         local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
@@ -321,9 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             // Type t = null;
             // t = <anonymous function>
-            if (anonymousFunction.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment) &&
-                assignment.IsParentKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? expressionStatement) &&
-                expressionStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax? block))
+            if (anonymousFunction?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment &&
+                assignment.Parent is ExpressionStatementSyntax expressionStatement &&
+                expressionStatement.Parent is BlockSyntax block)
             {
                 if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
                 {
@@ -336,10 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         {
                             var variableDeclarator = localDeclaration.Declaration.Variables[0];
                             if (variableDeclarator.Initializer == null ||
-                                variableDeclarator.Initializer.Value.IsKind(
-                                    SyntaxKind.NullLiteralExpression,
-                                    SyntaxKind.DefaultLiteralExpression,
-                                    SyntaxKind.DefaultExpression))
+                                variableDeclarator.Initializer.Value.Kind() is
+                                    SyntaxKind.NullLiteralExpression or
+                                    SyntaxKind.DefaultLiteralExpression or
+                                    SyntaxKind.DefaultExpression)
                             {
                                 var identifierName = (IdentifierNameSyntax)assignment.Left;
                                 if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
@@ -380,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var typeParams = localEnclosingSymbol.GetTypeParameters();
                 if (typeParams.Any())
                 {
-                    if (typeParams.Any(p => delegateTypeParamNames.Contains(p.Name)))
+                    if (typeParams.Any(static (p, delegateTypeParamNames) => delegateTypeParamNames.Contains(p.Name), delegateTypeParamNames))
                     {
                         return false;
                     }

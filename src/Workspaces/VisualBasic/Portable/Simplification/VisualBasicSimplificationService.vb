@@ -6,8 +6,10 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -35,6 +37,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Public Sub New()
             MyBase.New(s_reducers)
         End Sub
+
+        Public Overrides ReadOnly Property DefaultOptions As SimplifierOptions
+            Get
+                Return VisualBasicSimplifierOptions.Default
+            End Get
+        End Property
+
+        Public Overrides Function GetSimplifierOptions(options As IOptionsReader, fallbackOptions As SimplifierOptions) As SimplifierOptions
+            Return options.GetVisualBasicSimplifierOptions(DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
+        End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken)
@@ -140,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans)
         End Function
 
-        Protected Overrides Function CanNodeBeSimplifiedWithoutSpeculation(node As SyntaxNode) As Boolean
+        Protected Overrides Function NodeRequiresNonSpeculativeSemanticModel(node As SyntaxNode) As Boolean
             Return node IsNot Nothing AndAlso node.Parent IsNot Nothing AndAlso
                 TypeOf node Is VariableDeclaratorSyntax AndAlso
                 TypeOf node.Parent Is FieldDeclarationSyntax

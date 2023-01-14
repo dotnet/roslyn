@@ -94,12 +94,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var sourceMethodTypeParameters = sourceMethod.TypeParameters;
             var allSourceTypeParameters = container.SourceTypeParameters.Concat(sourceMethodTypeParameters);
 
+            sourceMethod = new EECompilationContextMethod(DeclaringCompilation, sourceMethod);
+
+            sourceMethodTypeParameters = sourceMethod.TypeParameters;
+            allSourceTypeParameters = allSourceTypeParameters.Concat(sourceMethodTypeParameters);
+
             var getTypeMap = new Func<TypeMap>(() => this.TypeMap);
             _typeParameters = sourceMethodTypeParameters.SelectAsArray(
                 (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
                 (object)null);
-            _allTypeParameters = container.TypeParameters.Concat(_typeParameters);
-            this.TypeMap = new TypeMap(allSourceTypeParameters, _allTypeParameters);
+            _allTypeParameters = container.TypeParameters.Concat(_typeParameters).Concat(_typeParameters);
+            this.TypeMap = new TypeMap(allSourceTypeParameters, _allTypeParameters, allowAlpha: true);
 
             EENamedTypeSymbol.VerifyTypeParameters(this, _typeParameters);
 
@@ -166,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Note: we don't call ToOtherMethod in the local case because doing so would produce
                 // a new LocalSymbol that would not be ReferenceEquals to the one in this.LocalsForBinding.
                 var oldDisplayClassInstanceFromLocal = oldDisplayClassInstance as DisplayClassInstanceFromLocal;
-                var newDisplayClassInstance = (oldDisplayClassInstanceFromLocal == null) ?
-                    oldDisplayClassInstance.ToOtherMethod(this, this.TypeMap) :
-                    new DisplayClassInstanceFromLocal((EELocalSymbol)localsMap[oldDisplayClassInstanceFromLocal.Local]);
+                var newDisplayClassInstance = (oldDisplayClassInstanceFromLocal == null)
+                    ? oldDisplayClassInstance.ToOtherMethod(this, this.TypeMap)
+                    : new DisplayClassInstanceFromLocal((EELocalSymbol)localsMap[oldDisplayClassInstanceFromLocal.Local]);
 
                 variable = variable.SubstituteFields(newDisplayClassInstance, this.TypeMap);
                 displayClassVariables.Add(pair.Key, variable);
@@ -183,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, sourceParameter.RefCustomModifiers);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, ScopedKind.None, refCustomModifiers: sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -248,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
@@ -342,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override Cci.CallingConvention CallingConvention
@@ -380,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations); }
         }
 
         public override Accessibility DeclaredAccessibility
@@ -424,10 +429,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
-        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable;
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable();
+
+        internal override bool HasUnscopedRefAttribute => false;
+
+        internal override bool UseUpdatedEscapeRules => false;
 
         internal ResultProperties ResultProperties
         {
@@ -473,7 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // Rewrite local declaration statement.
                     body = (BoundStatement)LocalDeclarationRewriter.Rewrite(
                         compilation,
-                        _container,
                         declaredLocals,
                         body,
                         declaredLocalsArray,
@@ -492,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     // Rewrite references to placeholder "locals".
-                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, _container, declaredLocals, body, diagnostics.DiagnosticBag);
+                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, declaredLocals, body, diagnostics.DiagnosticBag);
 
                     if (diagnostics.HasAnyErrors())
                     {
@@ -510,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Insert an implicit return statement if necessary.
                 if (body.Kind != BoundKind.ReturnStatement)
                 {
-                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null));
+                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null, @checked: false));
                 }
 
                 var localsSet = PooledHashSet<LocalSymbol>.GetInstance();
@@ -658,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     localBuilder.Add(local);
                 }
 
-                body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.Statements);
+                body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.HasUnsafeModifier, block.Statements);
                 TypeParameterChecker.Check(body, _allTypeParameters);
                 compilationState.AddSynthesizedMethod(this, body);
             }
@@ -717,5 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IsNullableAnalysisEnabled() => false;
+
+        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
     }
 }

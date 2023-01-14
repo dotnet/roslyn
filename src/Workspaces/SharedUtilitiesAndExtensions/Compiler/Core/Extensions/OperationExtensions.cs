@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation is IDeclarationPatternOperation)
             {
-                while (operation.Parent is IBinaryPatternOperation ||
-                       operation.Parent is INegatedPatternOperation ||
-                       operation.Parent is IRelationalPatternOperation)
+                while (operation.Parent is IBinaryPatternOperation or
+                       INegatedPatternOperation or
+                       IRelationalPatternOperation)
                 {
                     operation = operation.Parent;
                 }
@@ -126,7 +126,13 @@ namespace Microsoft.CodeAnalysis
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
-            else if (operation.Parent is IIncrementOrDecrementOperation)
+            else if (operation.Parent is ISimpleAssignmentOperation simpleAssignmentOperation &&
+                simpleAssignmentOperation.Value == operation &&
+                simpleAssignmentOperation.IsRef)
+            {
+                return ValueUsageInfo.ReadableWritableReference;
+            }
+            else if (operation.Parent is IIncrementOrDecrementOperation || (operation.Parent is IForToLoopOperation forToLoopOperation && forToLoopOperation.LoopControlVariable.Equals(operation)))
             {
                 return ValueUsageInfo.ReadWrite;
             }
@@ -138,9 +144,9 @@ namespace Microsoft.CodeAnalysis
                 return parenthesizedOperation.GetValueUsageInfo(containingSymbol) &
                     ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
             }
-            else if (operation.Parent is INameOfOperation ||
-                     operation.Parent is ITypeOfOperation ||
-                     operation.Parent is ISizeOfOperation)
+            else if (operation.Parent is INameOfOperation or
+                     ITypeOfOperation or
+                     ISizeOfOperation)
             {
                 return ValueUsageInfo.Name;
             }
@@ -364,5 +370,88 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsNullLiteral(this IOperation operand)
             => operand is ILiteralOperation { ConstantValue: { HasValue: true, Value: null } };
+
+        /// <summary>
+        /// Walks down consecutive conversion operations until an operand is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        [return: NotNullIfNotNull(nameof(operation))]
+        public static IOperation? WalkDownConversion(this IOperation? operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        public static bool IsSingleThrowNotImplementedOperation([NotNullWhen(true)] this IOperation? firstBlock)
+        {
+            if (firstBlock is null)
+                return false;
+
+            var compilation = firstBlock.SemanticModel!.Compilation;
+            var notImplementedExceptionType = compilation.NotImplementedExceptionType();
+            if (notImplementedExceptionType == null)
+                return false;
+
+            if (firstBlock is not IBlockOperation block)
+                return false;
+
+            if (block.Operations.Length == 0)
+                return false;
+
+            var firstOp = block.Operations.Length == 1
+                ? block.Operations[0]
+                : TryGetSingleExplicitStatement(block.Operations);
+            if (firstOp == null)
+                return false;
+
+            if (firstOp is IExpressionStatementOperation expressionStatement)
+            {
+                // unwrap: { throw new NYI(); }
+                firstOp = expressionStatement.Operation;
+            }
+            else if (firstOp is IReturnOperation returnOperation)
+            {
+                // unwrap: 'int M(int p) => throw new NYI();'
+                // For this case, the throw operation is wrapped within a conversion operation to 'int',
+                // which in turn is wrapped within a return operation.
+                firstOp = returnOperation.ReturnedValue.WalkDownConversion();
+            }
+
+            // => throw new NotImplementedOperation(...)
+            return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
+
+            static IOperation? TryGetSingleExplicitStatement(ImmutableArray<IOperation> operations)
+            {
+                IOperation? firstOp = null;
+                foreach (var operation in operations)
+                {
+                    if (operation.IsImplicit)
+                        continue;
+
+                    if (firstOp != null)
+                        return null;
+
+                    firstOp = operation;
+                }
+
+                return firstOp;
+            }
+
+            static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation? operation)
+                => operation is IThrowOperation throwOperation &&
+                   throwOperation.Exception.UnwrapImplicitConversion() is IObjectCreationOperation objectCreation &&
+                   notImplementedExceptionType.Equals(objectCreation.Type);
+        }
+
+        [return: NotNullIfNotNull(nameof(value))]
+        public static IOperation? UnwrapImplicitConversion(this IOperation? value)
+            => value is IConversionOperation conversion && conversion.IsImplicit
+                ? conversion.Operand
+                : value;
     }
 }

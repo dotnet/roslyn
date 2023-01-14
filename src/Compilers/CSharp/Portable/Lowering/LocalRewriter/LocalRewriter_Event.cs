@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Event.IsWindowsRuntimeEvent)
             {
                 EventAssignmentKind kind = node.IsAddition ? EventAssignmentKind.Addition : EventAssignmentKind.Subtraction;
-                return RewriteWindowsRuntimeEventAssignmentOperator(node.Syntax, node.Event, kind, node.IsDynamic, rewrittenReceiverOpt, rewrittenArgument);
+                return RewriteWindowsRuntimeEventAssignmentOperator(node.Syntax, node.Event, kind, rewrittenReceiverOpt, rewrittenArgument);
             }
 
             var rewrittenArguments = ImmutableArray.Create<BoundExpression>(rewrittenArgument);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// TODO: use or delete isDynamic.
         /// </remarks>
-        private BoundExpression RewriteWindowsRuntimeEventAssignmentOperator(SyntaxNode syntax, EventSymbol eventSymbol, EventAssignmentKind kind, bool isDynamic, BoundExpression? rewrittenReceiverOpt, BoundExpression rewrittenArgument)
+        private BoundExpression RewriteWindowsRuntimeEventAssignmentOperator(SyntaxNode syntax, EventSymbol eventSymbol, EventAssignmentKind kind, BoundExpression? rewrittenReceiverOpt, BoundExpression rewrittenArgument)
         {
             BoundAssignmentOperator? tempAssignment = null;
             BoundLocal? boundTemp = null;
@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument: delegateCreationArgument,
                 methodOpt: eventSymbol.RemoveMethod,
                 isExtensionMethod: false,
+                wasTargetTyped: false,
                 type: actionType);
 
             BoundExpression? clearCall = null;
@@ -134,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argument: delegateCreationArgument,
                     methodOpt: eventSymbol.AddMethod,
                     isExtensionMethod: false,
+                    wasTargetTyped: false,
                     type: func2Type);
 
                 helper = WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal__AddEventHandler_T;
@@ -187,12 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? rewrittenReceiverOpt = VisitExpression(left.ReceiverOpt);
 
-            const bool isDynamic = false;
             return RewriteWindowsRuntimeEventAssignmentOperator(
                 syntax,
                 eventSymbol,
                 EventAssignmentKind.Assignment,
-                isDynamic,
                 rewrittenReceiverOpt,
                 rewrittenRight);
         }
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.IsUsableAsField);
 
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            return MakeEventAccess(node.Syntax, rewrittenReceiver, node.EventSymbol, node.ConstantValue, node.ResultKind, node.Type);
+            return MakeEventAccess(node.Syntax, rewrittenReceiver, node.EventSymbol, node.ConstantValueOpt, node.ResultKind, node.Type);
         }
 
         private BoundExpression MakeEventAccess(
@@ -287,7 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode oldSyntax = _factory.Syntax;
             _factory.Syntax = node.Syntax;
-
 
             var ctor = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor);
 

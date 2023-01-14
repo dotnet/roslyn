@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace BuildBoss
 {
-    internal struct PackageReference
+    internal readonly struct PackageReference
     {
         internal string Name { get; }
         internal string Version { get; }

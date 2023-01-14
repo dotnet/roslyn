@@ -10,38 +10,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
-    internal class CompilerInvocation
+    internal static class CompilerInvocation
     {
-        public Compilation Compilation { get; }
-        public HostLanguageServices LanguageServices { get; }
-        public string ProjectFilePath { get; }
-        public OptionSet Options { get; }
-
-        public CompilerInvocation(Compilation compilation, HostLanguageServices languageServices, string projectFilePath, OptionSet options)
-        {
-            Compilation = compilation;
-            LanguageServices = languageServices;
-            ProjectFilePath = projectFilePath;
-            Options = options;
-        }
-
-        public static async Task<CompilerInvocation> CreateFromJsonAsync(string jsonContents)
+        public static async Task<Project> CreateFromJsonAsync(string jsonContents)
         {
             var invocationInfo = JsonConvert.DeserializeObject<CompilerInvocationInfo>(jsonContents);
+            Assumes.Present(invocationInfo);
+            return await CreateFromInvocationInfoAsync(invocationInfo);
+        }
 
+        public static async Task<Project> CreateFromInvocationInfoAsync(CompilerInvocationInfo invocationInfo)
+        {
             // We will use a Workspace to simplify the creation of the compilation, but will be careful not to return the Workspace instance from this class.
             // We will still provide the language services which are used by the generator itself, but we don't tie it to a Workspace object so we can
             // run this as an in-proc source generator if one day desired.
-            var workspace = new AdhocWorkspace();
+            var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
 
             var languageName = GetLanguageName(invocationInfo);
-            var languageServices = workspace.Services.GetLanguageServices(languageName);
+            var languageServices = workspace.Services.GetLanguageServices(languageName).LanguageServices;
 
             var mapPath = GetPathMapper(invocationInfo);
 
@@ -55,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 if (splitCommandLine[i].StartsWith(RuleSetSwitch, StringComparison.Ordinal))
                 {
-                    var rulesetPath = splitCommandLine[i].Substring(RuleSetSwitch.Length);
+                    var rulesetPath = splitCommandLine[i][RuleSetSwitch.Length..];
 
                     var quoted = rulesetPath.Length > 2 &&
                         rulesetPath.StartsWith("\"", StringComparison.Ordinal) &&
@@ -63,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                     if (quoted)
                     {
-                        rulesetPath = rulesetPath.Substring(1, rulesetPath.Length - 2);
+                        rulesetPath = rulesetPath[1..^1];
                     }
 
                     rulesetPath = mapPath(rulesetPath);
@@ -85,26 +79,28 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var projectId = ProjectId.CreateNewId(invocationInfo.ProjectFilePath);
 
             var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Default,
-                name: Path.GetFileNameWithoutExtension(invocationInfo.ProjectFilePath),
-                assemblyName: parsedCommandLine.CompilationName!,
-                language: languageName,
-                filePath: invocationInfo.ProjectFilePath,
-                outputFilePath: parsedCommandLine.OutputFileName,
+                new ProjectInfo.ProjectAttributes(
+                    id: projectId,
+                    version: VersionStamp.Default,
+                    name: Path.GetFileNameWithoutExtension(invocationInfo.ProjectFilePath),
+                    assemblyName: parsedCommandLine.CompilationName!,
+                    language: languageName,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm: parsedCommandLine.ChecksumAlgorithm,
+                    filePath: invocationInfo.ProjectFilePath,
+                    outputFilePath: parsedCommandLine.OutputFileName),
                 parsedCommandLine.CompilationOptions,
                 parsedCommandLine.ParseOptions,
                 parsedCommandLine.SourceFiles.Select(s => CreateDocumentInfo(unmappedPath: s.Path)),
+                projectReferences: null,
                 metadataReferences: parsedCommandLine.MetadataReferences.Select(r => MetadataReference.CreateFromFile(mapPath(r.Reference), r.Properties)),
                 additionalDocuments: parsedCommandLine.AdditionalFiles.Select(f => CreateDocumentInfo(unmappedPath: f.Path)),
-                analyzerReferences: parsedCommandLine.AnalyzerReferences.Select(r => new AnalyzerFileReference(r.FilePath, analyzerLoader)))
-                .WithAnalyzerConfigDocuments(parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo));
+                analyzerReferences: parsedCommandLine.AnalyzerReferences.Select(r => new AnalyzerFileReference(r.FilePath, analyzerLoader)),
+                analyzerConfigDocuments: parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo),
+                hostObjectType: null);
 
-            workspace.AddProject(projectInfo);
-
-            var compilation = await workspace.CurrentSolution.GetProject(projectId)!.GetRequiredCompilationAsync(CancellationToken.None);
-
-            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, workspace.CurrentSolution.Options);
+            var solution = workspace.CurrentSolution.AddProject(projectInfo);
+            return solution.GetRequiredProject(projectId);
 
             // Local methods:
             DocumentInfo CreateDocumentInfo(string unmappedPath)
@@ -114,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     DocumentId.CreateNewId(projectId, mappedPath),
                     name: mappedPath,
                     filePath: mappedPath,
-                    loader: new FileTextLoader(mappedPath, parsedCommandLine.Encoding));
+                    loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, mappedPath, parsedCommandLine.Encoding));
             }
         }
 
@@ -161,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     {
                         // Trim off any leading \, which would happen if you have a path like C:\Directory\\File.cs with a double slash, and happen to be
                         // mapping C:\Directory somewhere.
-                        var relativePath = unmappedPath.Substring(fromWithDirectorySuffix.Length).TrimStart('\\');
+                        var relativePath = unmappedPath[fromWithDirectorySuffix.Length..].TrimStart('\\');
 
                         return Path.Combine(AddDirectorySuffixIfMissing(potentialPathMapping.To), relativePath);
                     }
@@ -179,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// <summary>
         /// A simple data class that represents the schema for JSON serialization.
         /// </summary>
-        private sealed class CompilerInvocationInfo
+        public sealed class CompilerInvocationInfo
         {
 #nullable disable // this class is used for deserialization by Newtonsoft.Json, so we don't really need warnings about this class itself
 

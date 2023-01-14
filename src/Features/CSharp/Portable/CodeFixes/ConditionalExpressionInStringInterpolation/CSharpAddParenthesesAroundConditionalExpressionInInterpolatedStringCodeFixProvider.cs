@@ -43,8 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             var conditionalExpression = token.GetAncestor<ConditionalExpressionSyntax>();
             if (conditionalExpression != null)
             {
-                var documentChangeAction = new MyCodeAction(
-                    c => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, c));
+                var documentChangeAction = CodeAction.Create(
+                    CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string,
+                    c => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, c),
+                    nameof(CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string));
                 context.RegisterCodeFix(documentChangeAction, diagnostic);
             }
         }
@@ -121,16 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             var parenthesizedExpressionWithClosingParen = parenthesizedExpression.WithCloseParenToken(newCloseParen);
             var newRoot = root.ReplaceNode(parenthesizedExpression, parenthesizedExpressionWithClosingParen);
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string,
-                       createChangedDocument,
-                       CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string)
-            {
-            }
         }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (numElements <= 1)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             NamedTypeSymbol underlyingType = getTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, diagnostics);
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (arity > ValueTupleRestPosition)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             return tupleTypes[arity - 1];
         }
@@ -343,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (arity > 8)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             return tupleCtors[arity - 1];
         }
@@ -446,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return 0;
             }
 
-            return matchesCanonicalElementName(name);
+            return MatchesCanonicalTupleElementName(name);
 
             static bool isElementNameForbidden(string name)
             {
@@ -464,25 +465,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                 }
             }
+        }
 
-            // Returns 3 for "Item3".
-            // Returns -1 otherwise.
-            static int matchesCanonicalElementName(string name)
+        // Returns 3 for "Item3".
+        // Returns -1 otherwise.
+        internal static int MatchesCanonicalTupleElementName(string name)
+        {
+            if (name.StartsWith("Item", StringComparison.Ordinal))
             {
-                if (name.StartsWith("Item", StringComparison.Ordinal))
+                string tail = name.Substring("Item".Length);
+                if (int.TryParse(tail, out int number))
                 {
-                    string tail = name.Substring(4);
-                    if (int.TryParse(tail, out int number))
+                    if (number > 0 && string.Equals(name, TupleMemberName(number), StringComparison.Ordinal))
                     {
-                        if (number > 0 && string.Equals(name, TupleMemberName(number), StringComparison.Ordinal))
-                        {
-                            return number;
-                        }
+                        return number;
                     }
                 }
-
-                return -1;
             }
+
+            return -1;
         }
 
         /// <summary>
@@ -566,42 +567,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<FieldSymbol> TupleElements
             => IsTupleType ? TupleData!.TupleElements(this) : default;
 
-        /// <summary>
-        /// For tuple fields that aren't TupleElementFieldSymbol or TupleErrorFieldSymbol, we cache their tuple element index.
-        /// This supports <see cref="FieldSymbol.TupleElementIndex"/>.
-        /// For those fields, we map from their definition to an index.
-        /// </summary>
-        public SmallDictionary<FieldSymbol, int>? TupleFieldDefinitionsToIndexMap
-        {
-            get
-            {
-                if (!IsTupleType)
-                {
-                    return null;
-                }
-
-                if (!IsDefinition)
-                {
-                    return this.OriginalDefinition.TupleFieldDefinitionsToIndexMap;
-                }
-
-                return TupleData!.GetFieldDefinitionsToIndexMap(this);
-            }
-        }
-
-        public virtual void InitializeTupleFieldDefinitionsToIndexMap()
-        {
-            Debug.Assert(this.IsTupleType);
-            Debug.Assert(this.IsDefinition); // we only store a map for definitions
-            _ = this.GetMembers();
-        }
-
         public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember? underlyingMemberOpt) where TMember : Symbol
         {
             return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : null;
         }
 
-        protected ArrayBuilder<Symbol> AddOrWrapTupleMembers(ImmutableArray<Symbol> currentMembers)
+        protected ArrayBuilder<Symbol> MakeSynthesizedTupleMembers(ImmutableArray<Symbol> currentMembers, HashSet<Symbol>? replacedFields = null)
         {
             Debug.Assert(IsTupleType);
             Debug.Assert(currentMembers.All(m => !(m is TupleVirtualElementFieldSymbol)));
@@ -609,11 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var elementTypes = TupleElementTypesWithAnnotations;
             var elementsMatchedByFields = ArrayBuilder<bool>.GetInstance(elementTypes.Length, fillWithValue: false);
             var members = ArrayBuilder<Symbol>.GetInstance(currentMembers.Length);
-            var nonFieldMembers = ArrayBuilder<Symbol>.GetInstance();
-
-            // For tuple fields that aren't TupleElementFieldSymbol or TupleErrorFieldSymbol, we cache/map their tuple element index
-            // corresponding to their definition. We only need to do that for the definition of ValueTuple types.
-            var fieldDefinitionsToIndexMap = IsDefinition ? new SmallDictionary<FieldSymbol, int>(ReferenceEqualityComparer.Instance) : null;
 
             NamedTypeSymbol currentValueTuple = this;
             int currentNestingLevel = 0;
@@ -637,6 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 // In a long tuple situation where the nested tuple has names, we don't care about those names.
                                 // We will re-add all necessary virtual element field symbols below.
+                                replacedFields?.Add(field);
                                 continue;
                             }
 
@@ -645,6 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (underlyingField is TupleErrorFieldSymbol)
                             {
                                 // We will re-add all necessary error field symbols below.
+                                replacedFields?.Add(field);
                                 continue;
                             }
                             else if (tupleFieldIndex >= 0)
@@ -653,6 +621,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if (currentNestingLevel != 0)
                                 {
                                     tupleFieldIndex += (ValueTupleRestPosition - 1) * currentNestingLevel;
+                                }
+                                else
+                                {
+                                    replacedFields?.Add(field);
                                 }
 
                                 var providedName = elementNames.IsDefault ? null : elementNames[tupleFieldIndex];
@@ -678,6 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                             cannotUse: false,
                                                                                             isImplicitlyDeclared: defaultImplicitlyDeclared,
                                                                                             correspondingDefaultFieldOpt: null);
+                                    members.Add(defaultTupleField);
                                 }
                                 else
                                 {
@@ -685,7 +658,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     if (IsDefinition)
                                     {
                                         defaultTupleField = field;
-                                        fieldDefinitionsToIndexMap!.Add(field, tupleFieldIndex);
                                     }
                                     else
                                     {
@@ -695,10 +667,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         tupleFieldIndex,
                                                                                         locations,
                                                                                         isImplicitlyDeclared: defaultImplicitlyDeclared);
+                                        members.Add(defaultTupleField);
                                     }
                                 }
-
-                                members.Add(defaultTupleField);
 
                                 if (defaultImplicitlyDeclared && !string.IsNullOrEmpty(providedName))
                                 {
@@ -719,24 +690,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 elementsMatchedByFields[tupleFieldIndex] = true; // mark as handled
                             }
-                            else if (currentNestingLevel == 0)
-                            {
-                                // No need to wrap other real fields
-                                members.Add(field);
-                            }
+                            // No need to wrap other real fields
                             break;
 
                         case SymbolKind.NamedType:
-                            // We are dropping nested types, if any. Pending real need.
-                            break;
-
                         case SymbolKind.Method:
                         case SymbolKind.Property:
                         case SymbolKind.Event:
-                            if (currentNestingLevel == 0)
-                            {
-                                nonFieldMembers.Add(member);
-                            }
                             break;
 
                         default:
@@ -824,12 +784,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             elementsMatchedByFields.Free();
-            members.AddRange(nonFieldMembers);
-            nonFieldMembers.Free();
-            if (fieldDefinitionsToIndexMap is object)
-            {
-                this.TupleData!.SetFieldDefinitionsToIndexMap(fieldDefinitionsToIndexMap);
-            }
             return members;
 
             // Returns the nested type at a certain depth.
@@ -854,11 +808,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = 0; i < fieldsPerType; i++)
                 {
                     WellKnownMember wellKnownTupleField = GetTupleTypeMember(arity, i + 1);
-                    fieldsForElements.Add((FieldSymbol?)GetWellKnownMemberInType(members, wellKnownTupleField));
+                    fieldsForElements.Add((FieldSymbol?)getWellKnownMemberInType(members, wellKnownTupleField));
                 }
             }
 
-            static Symbol? GetWellKnownMemberInType(ImmutableArray<Symbol> members, WellKnownMember relativeMember)
+            static Symbol? getWellKnownMemberInType(ImmutableArray<Symbol> members, WellKnownMember relativeMember)
             {
                 Debug.Assert(relativeMember >= WellKnownMember.System_ValueTuple_T1__Item1 && relativeMember <= WellKnownMember.System_ValueTuple_TRest__ctor);
 
@@ -960,13 +914,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private ImmutableArray<TypeWithAnnotations> _lazyElementTypes;
 
             private ImmutableArray<FieldSymbol> _lazyDefaultElementFields;
-
-            /// <summary>
-            /// For tuple fields that aren't TupleElementFieldSymbol or TupleErrorFieldSymbol, we cache their tuple element index.
-            /// This supports <see cref="FieldSymbol.TupleElementIndex"/>.
-            /// For those fields, we map from their definition to an index.
-            /// </summary>
-            private SmallDictionary<FieldSymbol, int>? _lazyFieldDefinitionsToIndexMap;
 
             private SmallDictionary<Symbol, Symbol>? _lazyUnderlyingDefinitionToMemberMap;
 
@@ -1098,26 +1045,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return builder.ToImmutableAndFree();
                 }
-            }
-
-            internal SmallDictionary<FieldSymbol, int> GetFieldDefinitionsToIndexMap(NamedTypeSymbol tuple)
-            {
-                Debug.Assert(tuple.IsTupleType);
-                Debug.Assert(tuple.IsDefinition); // we only store a map for definitions
-                if (_lazyFieldDefinitionsToIndexMap is null)
-                {
-                    tuple.InitializeTupleFieldDefinitionsToIndexMap();
-                }
-
-                Debug.Assert(_lazyFieldDefinitionsToIndexMap is object);
-                return _lazyFieldDefinitionsToIndexMap;
-            }
-
-            internal void SetFieldDefinitionsToIndexMap(SmallDictionary<FieldSymbol, int> map)
-            {
-                Debug.Assert(map.Keys.All(k => k.IsDefinition));
-                Debug.Assert(map.Values.All(v => v >= 0));
-                Interlocked.CompareExchange(ref _lazyFieldDefinitionsToIndexMap, map, null);
             }
 
             internal SmallDictionary<Symbol, Symbol> UnderlyingDefinitionToMemberMap

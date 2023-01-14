@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -45,6 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
                     SyntaxFactory.IdentifierName(name)));
 
         protected override IEnumerable<string> GetAnonymousObjectMemberNames(AnonymousObjectCreationExpressionSyntax initializer)
-            => initializer.Initializers.Where(i => i.NameEquals != null).Select(i => i.NameEquals.Name.Identifier.ValueText);
+            => initializer.Initializers.Where(i => i.NameEquals != null).Select(i => i.NameEquals!.Name.Identifier.ValueText);
     }
 }

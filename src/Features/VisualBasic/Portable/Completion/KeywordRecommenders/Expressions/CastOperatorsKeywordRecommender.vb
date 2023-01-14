@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             SyntaxKind.CUShortKeyword}
 
         Protected Overloads Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext Then
+            If context.IsAnyExpressionContext OrElse context.IsStatementContext Then
                 Dim recommendedKeywords As New List(Of RecommendedKeyword)
 
                 For Each keyword In PredefinedKeywordList

@@ -9,16 +9,18 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
     public class ParameterWrappingTests : AbstractWrappingTests
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithSyntaxError()
         {
             await TestMissingAsync(
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithSelection()
         {
             await TestMissingAsync(
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingInBody()
         {
             await TestMissingAsync(
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingInAttributes()
         {
             await TestMissingAsync(
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithOpenTokenTrailingComment()
         {
             await TestMissingAsync(
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithItemLeadingComment()
         {
             await TestMissingAsync(
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithItemTrailingComment()
         {
             await TestMissingAsync(
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithCommaTrailingComment()
         {
             await TestMissingAsync(
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithLastItemTrailingComment()
         {
             await TestMissingAsync(
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithCloseTokenLeadingComment()
         {
             await TestMissingAsync(
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWithOpenTokenLeadingComment()
         {
             await TestInRegularAndScript1Async(
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWithCloseTokenTrailingComment()
         {
             await TestInRegularAndScript1Async(
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithSingleParameter()
         {
             await TestMissingAsync(
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithMultiLineParameter()
         {
             await TestMissingAsync(
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInHeader1()
         {
             await TestInRegularAndScript1Async(
@@ -194,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInHeader2()
         {
             await TestInRegularAndScript1Async(
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInHeader3()
         {
             await TestInRegularAndScript1Async(
@@ -224,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInHeader4()
         {
             await TestInRegularAndScript1Async(
@@ -239,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestTwoParamWrappingCases()
         {
             await TestAllWrappingCasesAsync(
@@ -270,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestThreeParamWrappingCases()
         {
             await TestAllWrappingCasesAsync(
@@ -304,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task Test_AllOptions_NoInitialMatches()
         {
             await TestAllWrappingCasesAsync(
@@ -345,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task Test_LongWrapping_ShortIds()
         {
             await TestAllWrappingCasesAsync(
@@ -413,7 +415,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task Test_LongWrapping_VariadicLengthIds()
         {
             await TestAllWrappingCasesAsync(
@@ -486,7 +488,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task Test_DoNotOfferLongWrappingOptionThatAlreadyAppeared()
         {
             await TestAllWrappingCasesAsync(
@@ -550,7 +552,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task Test_DoNotOfferAllLongWrappingOptionThatAlreadyAppeared()
         {
             await TestAllWrappingCasesAsync(
@@ -600,7 +602,7 @@ GetIndentionColumn(20),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task Test_LongWrapping_VariadicLengthIds2()
         {
             await TestAllWrappingCasesAsync(
@@ -669,7 +671,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task Test_DoNotOfferExistingOption1()
         {
             await TestAllWrappingCasesAsync(
@@ -732,7 +734,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task Test_DoNotOfferExistingOption2()
         {
             await TestAllWrappingCasesAsync(
@@ -795,7 +797,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -810,7 +812,22 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact, WorkItem(38986, "https://github.com/dotnet/roslyn/issues/38986")]
+        public async Task TestInConstructorWithSyntaxErrorAfter()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    public [||]C(int i, int j) : base(,) {
+    }
+}",
+@"class C {
+    public C(int i,
+             int j) : base(,) {
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestInIndexer()
         {
             await TestInRegularAndScript1Async(
@@ -823,7 +840,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInOperator()
         {
             await TestInRegularAndScript1Async(
@@ -836,7 +853,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInDelegate()
         {
             await TestInRegularAndScript1Async(
@@ -849,7 +866,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInParenthesizedLambda()
         {
             await TestInRegularAndScript1Async(
@@ -870,7 +887,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInParenthesizedLambda2()
         {
             await TestInRegularAndScript1Async(
@@ -891,7 +908,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestNotOnSimpleLambda()
         {
             await TestMissingAsync(
@@ -904,7 +921,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestLocalFunction()
         {
             await TestInRegularAndScript1Async(
@@ -925,7 +942,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestRecord_Semicolon()
         {
             await TestInRegularAndScript1Async(
@@ -934,7 +951,7 @@ GetIndentionColumn(30),
          string S);");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestRecord_Braces()
         {
             await TestInRegularAndScript1Async(
@@ -943,7 +960,7 @@ GetIndentionColumn(30),
          string S) { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestRecordStruct_Semicolon()
         {
             await TestInRegularAndScript1Async(
@@ -952,13 +969,58 @@ GetIndentionColumn(30),
                 string S);", new TestParameters(TestOptions.RegularPreview));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestRecordStruct_Braces()
         {
             await TestInRegularAndScript1Async(
 "record struct R([||]int I, string S) { }",
 @"record struct R(int I,
                 string S) { }", new TestParameters(TestOptions.RegularPreview));
+        }
+
+        [Fact, WorkItem(61362, "https://github.com/dotnet/roslyn/issues/61362")]
+        public async Task TestWithMissingParameterList()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>[||]
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestWithMissingStartToken1()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>[||])
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestWithMissingStartToken2()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>[||] int i, int j)
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestWithMissingEndToken1()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>([||]
+}");
+        }
+
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
+        public async Task TestWithMissingEndToken2()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>([||]int i, int j
+}");
         }
     }
 }

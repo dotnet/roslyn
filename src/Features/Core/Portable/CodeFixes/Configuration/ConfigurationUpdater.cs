@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             // Add the newly added analyzer config document as a solution item.
             // The analyzer config document is not yet created, so we just mark the file
             // path for tracking and add it as a solution item whenever the file gets created by the code fix application.
-            var service = _project.Solution.Workspace.Services.GetService<IAddSolutionItemService>();
+            var service = _project.Solution.Services.GetService<IAddSolutionItemService>();
             service?.TrackFilePathAndAddSolutionItemWhenFileCreated(editorConfigDocument.FilePath);
 
             return solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, newText);
@@ -305,19 +305,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             {
                 // Project has no solution or solution without a file path.
                 // Add analyzer config to just the current project.
-                return _project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
+                return GetOrCreateAnalyzerConfigDocument(_project, analyzerConfigPath);
             }
 
             // Otherwise, add analyzer config document to all applicable projects for the current project's solution.
             AnalyzerConfigDocument? analyzerConfigDocument = null;
-            var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigPath) ?? throw ExceptionUtilities.Unreachable;
+            var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigPath) ?? throw ExceptionUtilities.Unreachable();
             var currentSolution = _project.Solution;
             foreach (var projectId in _project.Solution.ProjectIds)
             {
                 var project = currentSolution.GetProject(projectId);
                 if (project?.FilePath?.StartsWith(analyzerConfigDirectory) == true)
                 {
-                    var addedAnalyzerConfigDocument = project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
+                    var addedAnalyzerConfigDocument = GetOrCreateAnalyzerConfigDocument(project, analyzerConfigPath);
                     if (addedAnalyzerConfigDocument != null)
                     {
                         analyzerConfigDocument ??= addedAnalyzerConfigDocument;
@@ -327,6 +327,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             }
 
             return analyzerConfigDocument;
+        }
+
+        private static AnalyzerConfigDocument? GetOrCreateAnalyzerConfigDocument(Project project, string analyzerConfigPath)
+        {
+            var existingAnalyzerConfigDocument = project.TryGetExistingAnalyzerConfigDocumentAtPath(analyzerConfigPath);
+            if (existingAnalyzerConfigDocument != null)
+            {
+                return existingAnalyzerConfigDocument;
+            }
+
+            var id = DocumentId.CreateNewId(project.Id);
+            var documentInfo = DocumentInfo.Create(
+                id,
+                name: ".editorconfig",
+                filePath: analyzerConfigPath);
+
+            var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+            return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);
         }
 
         private static ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)> GetCodeStyleOptionValuesForDiagnostic(
@@ -341,20 +359,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             var codeStyleOptions = GetCodeStyleOptionsForDiagnostic(diagnostic, project);
             if (!codeStyleOptions.IsEmpty)
             {
-                var optionSet = project.Solution.Workspace.Options;
                 var builder = ArrayBuilder<(string optionName, string currentOptionValue, bool isPerLanguage)>.GetInstance();
 
                 try
                 {
-                    foreach (var (_, codeStyleOption, editorConfigLocation, isPerLanguage) in codeStyleOptions)
+                    foreach (var option in codeStyleOptions)
                     {
-                        if (!TryGetEditorConfigStringParts(codeStyleOption, editorConfigLocation, optionSet, out var parts))
-                        {
-                            // Did not find a match, bail out.
-                            return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
-                        }
-
-                        builder.Add((parts.optionName, parts.optionValue, isPerLanguage));
+                        var optionValue = option.Definition.Serializer.Serialize(option.DefaultValue);
+                        builder.Add((option.Definition.ConfigName, optionValue, option.IsPerLanguage));
                     }
 
                     return builder.ToImmutable();
@@ -368,13 +380,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
         }
 
-        internal static bool TryGetEditorConfigStringParts(
-            ICodeStyleOption codeStyleOption,
-            IEditorConfigStorageLocation2 editorConfigLocation,
-            OptionSet optionSet,
-            out (string optionName, string optionValue) parts)
+        internal static bool TryGetEditorConfigStringParts(string editorConfigString, out (string optionName, string optionValue) parts)
         {
-            var editorConfigString = editorConfigLocation.GetEditorConfigString(codeStyleOption, optionSet);
             if (!string.IsNullOrEmpty(editorConfigString))
             {
                 var match = s_optionEntryPattern.Match(editorConfigString);
@@ -390,36 +397,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return false;
         }
 
-        internal static ImmutableArray<(OptionKey optionKey, ICodeStyleOption codeStyleOptionValue, IEditorConfigStorageLocation2 location, bool isPerLanguage)> GetCodeStyleOptionsForDiagnostic(
-            Diagnostic diagnostic,
-            Project project)
+        internal static ImmutableArray<IOption2> GetCodeStyleOptionsForDiagnostic(Diagnostic diagnostic, Project project)
         {
             if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
             {
-                var optionSet = project.Solution.Workspace.Options;
-                using var _ = ArrayBuilder<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.GetInstance(out var builder);
-
-                foreach (var option in options.OrderBy(option => option.Name))
-                {
-                    var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
-                    if (editorConfigLocation != null)
-                    {
-                        var optionKey = new OptionKey(option, option.IsPerLanguage ? project.Language : null);
-                        if (optionSet.GetOption(optionKey) is ICodeStyleOption codeStyleOption)
-                        {
-                            builder.Add((optionKey, codeStyleOption, editorConfigLocation, option.IsPerLanguage));
-                            continue;
-                        }
-                    }
-
-                    // Did not find a match.
-                    return ImmutableArray<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.Empty;
-                }
-
-                return builder.ToImmutable();
+                return (from option in options
+                        where option.DefaultValue is ICodeStyleOption
+                        orderby option.Definition.ConfigName
+                        select option).ToImmutableArray();
             }
 
-            return ImmutableArray<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.Empty;
+            return ImmutableArray<IOption2>.Empty;
         }
 
         private SourceText? GetNewAnalyzerConfigDocumentText(SourceText originalText, AnalyzerConfigDocument editorConfigDocument)
@@ -474,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             TextLine? lastValidSpecificHeaderSpanEnd = null;
 
             var textChange = new TextChange();
+            var isGlobalConfig = false;
 
             foreach (var curLine in result.Lines)
             {
@@ -493,6 +482,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     var value = groups[2].Value.ToString();
                     var severitySuffixInValue = groups[3].Value.ToString();
                     var commentValue = groups[4].Value.ToString();
+
+                    // Check for global config header: "is_global = true"
+                    if (mostRecentHeader == null &&
+                        lastValidHeader == null &&
+                        key.Equals("is_global", StringComparison.OrdinalIgnoreCase) &&
+                        value.Trim().Equals("true", StringComparison.OrdinalIgnoreCase) &&
+                        severitySuffixInValue.Length == 0)
+                    {
+                        isGlobalConfig = true;
+                        mostRecentHeader = curLine;
+                        lastValidHeader = curLine;
+                        lastValidHeaderSpanEnd = curLine;
+                        continue;
+                    }
 
                     // Verify the most recent header is a valid header
                     if (mostRecentHeader != null &&
@@ -573,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         }
                     }
                 }
-                else if (s_headerPattern.IsMatch(curLineText.Trim()))
+                else if (!isGlobalConfig && s_headerPattern.IsMatch(curLineText.Trim()))
                 {
                     // We found a header entry such as '[*.cs]', '[*.vb]', etc.
                     // Verify that header is valid.
@@ -589,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     {
                         // We splice on the last occurrence of '.' to account for filenames containing periods.
                         var nameExtensionSplitIndex = mostRecentHeaderText.LastIndexOf('.');
-                        var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
+                        var fileName = mostRecentHeaderText[..nameExtensionSplitIndex];
                         var splicedFileExtensions = mostRecentHeaderText[(nameExtensionSplitIndex + 1)..].Split(',', ' ', '{', '}');
 
                         // Replacing characters in the header with the regex equivalent.
@@ -613,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         if (headerRegex.IsMatch(relativePath))
                         {
                             var match = headerRegex.Match(relativePath).Value;
-                            var matchWithoutExtension = match.Substring(0, match.LastIndexOf('.'));
+                            var matchWithoutExtension = match[..match.LastIndexOf('.')];
 
                             // Edge case: The below statement checks that we correctly handle cases such as a header of [m.cs] and
                             // a file name of Program.cs.

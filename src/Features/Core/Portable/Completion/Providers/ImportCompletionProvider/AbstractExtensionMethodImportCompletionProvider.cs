@@ -10,8 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -19,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractExtensionMethodImportCompletionProvider : AbstractImportCompletionProvider
     {
-        private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
-
         protected abstract string GenericSuffix { get; }
 
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
@@ -29,11 +26,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
+        protected override void WarmUpCacheInBackground(Document document)
+        {
+            _ = ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None);
+        }
+
         protected override async Task AddCompletionItemsAsync(
             CompletionContext completionContext,
             SyntaxContext syntaxContext,
             HashSet<string> namespaceInScope,
-            bool isExpandedCompletion,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
@@ -41,56 +42,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    using var nestedTokenSource = new CancellationTokenSource();
-                    using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
-                    var inferredTypes = IsTargetTypeCompletionFilterExperimentEnabled(completionContext.Document.Project.Solution.Options)
+
+                    var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                         ? syntaxContext.InferredTypes
                         : ImmutableArray<ITypeSymbol>.Empty;
 
-                    var getItemsTask = Task.Run(() => ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                    var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
                         namespaceInScope,
                         inferredTypes,
-                        forceIndexCreation: isExpandedCompletion,
-                        linkedTokenSource.Token));
+                        forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                        hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
+                        cancellationToken).ConfigureAwait(false);
 
-                    var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion);
-
-                    // Timebox is enabled if timeout value is >= 0 and we are not triggered via expander
-                    if (timeoutInMilliseconds >= 0 && !isExpandedCompletion)
+                    if (result is not null)
                     {
-                        // timeout == 0 means immediate timeout (for testing purpose)
-                        if (timeoutInMilliseconds == 0 || await Task.WhenAny(getItemsTask, Task.Delay(timeoutInMilliseconds, linkedTokenSource.Token)).ConfigureAwait(false) != getItemsTask)
-                        {
-                            nestedTokenSource.Cancel();
-                            CompletionProvidersLogger.LogExtensionMethodCompletionTimeoutCount();
-                            return;
-                        }
+                        var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
+                        completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
                     }
-
-                    // Either the timebox is not enabled, so we need to wait until the operation for complete,
-                    // or there's no timeout, and we now have all completion items ready.
-                    var items = await getItemsTask.ConfigureAwait(false);
-
-                    var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
-                }
-                else
-                {
-                    // If we can't get a valid receiver type, then we don't show expander as available.
-                    // We need to set this explicitly here because we didn't do the (more expensive) symbol check inside 
-                    // `ShouldProvideCompletion` method above, which is intended for quick syntax based check.
-                    completionContext.ExpandItemsAvailable = false;
                 }
             }
-        }
-
-        private bool IsTargetTypeCompletionFilterExperimentEnabled(OptionSet options)
-        {
-            _isTargetTypeCompletionFilterExperimentEnabled ??= options.GetOption(CompletionOptions.TargetTypedCompletionFilterFeatureFlag);
-            return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
         private static bool TryGetReceiverTypeSymbol(
@@ -116,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     receiverTypeSymbol = syntaxContext.SemanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
                     if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
                     {
-                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(s => GetSymbolType(s)).FirstOrDefault(s => s != null);
+                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(GetSymbolType).FirstOrDefault(s => s != null);
                     }
 
                     return receiverTypeSymbol != null;

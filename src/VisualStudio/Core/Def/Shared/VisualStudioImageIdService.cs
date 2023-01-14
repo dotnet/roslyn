@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Shared
 {
-    internal struct CompositeImage
+    internal readonly struct CompositeImage
     {
         public readonly ImmutableArray<ImageCompositionLayer> Layers;
         public readonly IImageHandle ImageHandle;
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
             return glyph.GetImageId();
         }
 
-        private ImageCompositionLayer CreateLayer(
+        private static ImageCompositionLayer CreateLayer(
             ImageMoniker imageMoniker,
             int virtualWidth = 16,
             int virtualYOffset = 0,

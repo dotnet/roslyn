@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
                         using var tag = CommentTag();
 
                         // Skip initial slashes
-                        var trimmedComment = trivia.ToString().Substring(2);
+                        var trimmedComment = trivia.ToString()[2..];
                         EncodedText(trimmedComment);
                     }
                 }
@@ -388,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
 
         private bool TryGenerateNewClass(ObjectCreationExpressionSyntax objectCreationExpression)
         {
-            if (!(SemanticModel.GetSymbolInfo(objectCreationExpression.Type).Symbol is ITypeSymbol type))
+            if (SemanticModel.GetSymbolInfo(objectCreationExpression.Type).Symbol is not ITypeSymbol type)
             {
                 return false;
             }

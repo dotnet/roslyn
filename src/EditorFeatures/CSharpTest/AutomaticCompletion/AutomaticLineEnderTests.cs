@@ -202,6 +202,39 @@ $$", "class {$$}");
 }");
         }
 
+        [WpfFact, WorkItem(57323, "https://github.com/dotnet/roslyn/issues/57323")]
+        public void EmbededStatementFollowedByStatement()
+        {
+            Test(@"class C
+{
+    void Method()
+    {
+        if (true)
+        {
+        }
+        if (true)
+        {
+            $$
+        }
+        if (true)
+        {
+        }
+    }
+}", @"class C
+{
+    void Method()
+    {
+        if (true)
+        {
+        }
+        if (true$$)
+        if (true)
+        {
+        }
+    }
+}");
+        }
+
         [WpfFact]
         public void Statement()
         {
@@ -1145,7 +1178,7 @@ public class Bar
 {
     public int P
     {
-        ge$$t
+        ge$$t$$
     }
 }";
 
@@ -1226,7 +1259,7 @@ public class Bar
 {
     public int this[int i]
     {
-        ge$$t
+        ge$$t$$
     }
 }");
         }
@@ -1346,7 +1379,7 @@ public class Bar
     public int this[int i]
     {
         get;
-        se$$t
+        se$$t$$
     }
 }");
         }
@@ -1401,7 +1434,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        ad$$d
+        ad$$d$$
         remove
     }
 }");
@@ -1460,7 +1493,7 @@ public class Bar
     public event EventHandler e
     {
         add
-        remo$$ve
+        remo$$ve$$
     }
 }");
         }
@@ -2684,6 +2717,82 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestSwitchExpression1()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = c switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = c swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchExpression2()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchStatementWithOnlyOpenParenthesis()
+        {
+            // This test is to make sure {} will be added to the switch statement,
+            // but our formatter now can't format the case when the CloseParenthesis token is missing.
+            // If any future formatter improvement can handle this case, this test can be modified safely
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        switch (
+{
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        swi$$tch ($$
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestSwitchStatement()
         {
             Test(@"
@@ -2966,10 +3075,165 @@ public class Bar
         catch (System.Exception)
         {
         }
-        fin$$ally
+        fin$$ally$$
         {
         }
     }
+}");
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionWithMissingType()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new()
+        {
+            $$
+        };
+    }
+}",
+@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestRemoveInitializerForImplicitObjectCreationExpression()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new();
+        $$
+    }
+}",
+@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new()
+        {
+            $$
+        };
+    }
+}");
+        }
+
+        [WpfTheory]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        public void TestCheckedStatement(string keywordToken)
+        {
+            Test($@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        {keywordToken}
+        {{
+            $$
+        }}
+    }}
+}}",
+$@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        {keywordToken}$$
+    }}
+}}");
+        }
+
+        [WpfTheory]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        public void TextCheckedExpression(string keywordToken)
+        {
+            Test($@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        var i = {keywordToken}(1 + 1);
+        $$
+    }}
+}}",
+$@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        var i = {keywordToken}$$(1 +$$ 1)$$
+    }}
+}}");
+        }
+
+        [WpfFact]
+        public void TestConvertFieldToPropertyWithAttributeAndComment()
+        {
+            Test(@"
+public class Bar
+{
+    public int Property
+    {
+        $$
+    }
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}",
+@"
+public class Bar
+{
+    public int Property$$
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}");
+        }
+
+        [WpfFact]
+        public void TestConvertEventFieldToPropertyWithAttributeAndComment()
+        {
+            Test(@"
+public class Bar
+{
+    public event EventHandler MyEvent
+    {
+        $$
+    }
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}",
+@"
+public class Bar
+{
+    public event EventHandler MyEvent$$
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
 }");
         }
 

@@ -10,7 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -48,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (typeSymbol == null || interfaceMember == null)
                 return ImmutableArray<ISymbol>.Empty;
 
-            if (interfaceMember.Kind != SymbolKind.Event &&
-                interfaceMember.Kind != SymbolKind.Method &&
-                interfaceMember.Kind != SymbolKind.Property)
+            if (interfaceMember.Kind is not SymbolKind.Event and
+                not SymbolKind.Method and
+                not SymbolKind.Property)
             {
                 return ImmutableArray<ISymbol>.Empty;
             }
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (seenTypeDeclaringInterface)
                     {
-                        var result = currentType.FindImplementations(constructedInterfaceMember, solution.Workspace);
+                        var result = currentType.FindImplementations(constructedInterfaceMember, solution.Services);
 
                         if (result != null)
                         {
@@ -128,19 +129,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return builder.ToImmutable();
         }
 
-        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, Workspace workspace)
+        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, SolutionServices services)
             => constructedInterfaceMember switch
             {
-                IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, workspace),
-                IMethodSymbol methodSymbol => typeSymbol.FindImplementations(methodSymbol, workspace),
-                IPropertySymbol propertySymbol => typeSymbol.FindImplementations(propertySymbol, workspace),
+                IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, services),
+                IMethodSymbol methodSymbol => typeSymbol.FindImplementations(methodSymbol, services),
+                IPropertySymbol propertySymbol => typeSymbol.FindImplementations(propertySymbol, services),
                 _ => null,
             };
 
         private static ISymbol? FindImplementations<TSymbol>(
             this ITypeSymbol typeSymbol,
             TSymbol constructedInterfaceMember,
-            Workspace workspace) where TSymbol : class, ISymbol
+            SolutionServices services) where TSymbol : class, ISymbol
         {
             // Check the current type for explicit interface matches.  Otherwise, check
             // the current type and base types for implicit matches.
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, constructedInterfaceMember)
                 select member;
 
-            var provider = workspace.Services.GetLanguageServices(typeSymbol.Language);
+            var provider = services.GetLanguageServices(typeSymbol.Language);
             var semanticFacts = provider.GetRequiredService<ISemanticFactsService>();
 
             // Even if a language only supports explicit interface implementation, we
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // the XmlReader.Dispose() method will not be an explicit implementation of
             // IDisposable.Dispose()
             if ((!semanticFacts.SupportsImplicitInterfaceImplementation &&
-                typeSymbol.Locations.Any(location => location.IsInSource)) ||
+                typeSymbol.Locations.Any(static location => location.IsInSource)) ||
                 typeSymbol.TypeKind == TypeKind.Interface)
             {
                 return explicitMatches.FirstOrDefault();
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return explicitMatches.FirstOrDefault() ?? implicitMatches.FirstOrDefault();
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? RemoveUnavailableTypeParameters(
             this ITypeSymbol? type,
             Compilation compilation,
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         private static ITypeSymbol? RemoveUnavailableTypeParameters(
             this ITypeSymbol? type,
             Compilation compilation,
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? RemoveAnonymousTypes(
             this ITypeSymbol? type,
             Compilation compilation)
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new AnonymousTypeRemover(compilation));
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? RemoveUnnamedErrorTypes(
             this ITypeSymbol? type,
             Compilation compilation)
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result;
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,
             IDictionary<TType1, TType2> mapping,
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.SubstituteTypes(mapping, new CompilationTypeGenerator(compilation));
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,
             IDictionary<TType1, TType2> mapping,

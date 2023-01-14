@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
@@ -29,8 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         //  "CS8421: A static local function can't contain a reference to <variable>."
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8421");
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
@@ -41,11 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 (document, localFunction, captures) =>
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
-                            document,
-                            localFunction,
-                            captures,
-                            c)),
+                        CodeAction.Create(
+                            CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments,
+                            c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, context.Options, c),
+                            nameof(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)),
                         diagnostic);
 
                     return Task.CompletedTask;
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 context.CancellationToken);
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => WrapFixAsync(
                 document,
                 diagnostics,
@@ -62,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         localFunction,
                         captures,
                         editor,
+                        fallbackOptions,
                         cancellationToken),
                 cancellationToken);
 
@@ -78,10 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             // Even when the language version doesn't support staic local function, the compiler will still
             // generate this error. So we need to check to make sure we don't provide incorrect fix.
-            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion))
-            {
+            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(root.SyntaxTree.Options.LanguageVersion()))
                 return;
-            }
 
             // Find all unique local functions that contain the error.
             var localFunctions = diagnostics
@@ -103,14 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 {
                     await fixer(document, localFunction, captures).ConfigureAwait(false);
                 }
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments, createChangedDocument, CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)
-            {
             }
         }
     }

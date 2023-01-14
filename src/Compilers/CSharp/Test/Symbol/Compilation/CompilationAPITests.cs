@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,11 +26,10 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using VB = Microsoft.CodeAnalysis.VisualBasic;
-using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
-using System.Security.Cryptography;
 using static Roslyn.Test.Utilities.TestHelpers;
 using static Roslyn.Test.Utilities.TestMetadata;
+using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -45,17 +45,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
 #pragma warning disable CS0618 // This test is intentionally calling the obsolete method to assert the diagnosticOptions input is now ignored
 
-            var tree = SyntaxFactory.ParseSyntaxTree("class C { long _f = 0l;}",
-                options: null,
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+/// <see cref=""x...y""/>
+class C { }",
+                options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
                 path: "",
                 encoding: null,
-                diagnosticOptions: CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)),
+                diagnosticOptions: CreateImmutableDictionary(("CS1584", ReportDiagnostic.Suppress)),
                 cancellationToken: default);
 
             tree.GetDiagnostics().Verify(
-                // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                // class C { long _f = 0l;}
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22));
+                // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'x...y'
+                // /// <see cref="x...y"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "x").WithArguments("x...y").WithLocation(2, 16),
+                // (2,17): warning CS1658: Unexpected character '.'. See also error CS1056.
+                // /// <see cref="x...y"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '.'", "1056").WithLocation(2, 17));
 
 #pragma warning restore CS0618
         }
@@ -111,10 +116,7 @@ class C {
 long _f = 0l;
 #pragma warning restore CS0078
 }");
-            tree.GetDiagnostics().Verify(
-                // (4,12): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                // long _f = 0l;
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 12));
+            tree.GetDiagnostics().Verify();
 
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
@@ -1024,7 +1026,8 @@ var a = new C2();
 }"
             });
             assembly.VerifyEmitDiagnostics();
-            CompileAndVerify(assembly);
+            // ILVerify: Assembly or module not found: a2
+            CompileAndVerify(assembly, verify: Verification.FailsILVerify);
         }
 
         [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
@@ -1476,7 +1479,6 @@ var a = new C2();
                 comp = comp.ReplaceReference(ref1, ref2);
             });
 
-
             SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree("Using System;");
             // Replace a non-existing item with another valid item and disorder the args
             Assert.Throws<ArgumentException>(
@@ -1902,12 +1904,15 @@ class myClass : alias::Uri
             Assert.Equal(2, comp.References.Count());
             Assert.Equal("alias", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'alias' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using alias=alias;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "alias").WithArguments("alias").WithLocation(2, 7),
                 // (2,1): error CS1537: The using alias 'alias' appeared previously in this namespace
                 // using alias=alias;
-                Diagnostic(ErrorCode.ERR_DuplicateAlias, "using alias=alias;").WithArguments("alias"),
+                Diagnostic(ErrorCode.ERR_DuplicateAlias, "using alias=alias;").WithArguments("alias").WithLocation(2, 1),
                 // (3,17): error CS0104: 'alias' is an ambiguous reference between '<global namespace>' and '<global namespace>'
                 // class myClass : alias::Uri
-                Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>"));
+                Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>").WithLocation(3, 17));
         }
 
         [WorkItem(546088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546088")]
@@ -1973,7 +1978,6 @@ public class TestClass
 
             c2 = c1.WithOptions(TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
             Assert.False(c1.ReferenceManagerEquals(c2));
-
 
             c1 = CSharpCompilation.Create("c", options: TestOptions.ReleaseModule);
 
@@ -2063,7 +2067,7 @@ public class TestClass
             var ta = Parse("class C { }", options: TestOptions.Regular10);
 
             var tb = Parse(@"
-class C { }", options: TestOptions.Script);
+class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10));
 
             var tc = Parse(@"
 #r ""bar""  // error: #r in regular code
@@ -2071,11 +2075,11 @@ class D { }", options: TestOptions.Regular10);
 
             var tr = Parse(@"
 #r ""goo""
-class C { }", options: TestOptions.Script);
+class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10));
 
             var ts = Parse(@"
 #r ""bar""
-class C { }", options: TestOptions.Script);
+class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10));
 
             var a = CSharpCompilation.Create("c", syntaxTrees: new[] { ta });
 
@@ -2716,6 +2720,306 @@ public class C { public static FrameworkName Goo() { return null; }}";
             });
         }
 
+        [Theory]
+        [InlineData(WellKnownMemberNames.CheckedAdditionOperatorName, "int.operator checked +(int, int)")]
+        [InlineData(WellKnownMemberNames.AdditionOperatorName, "int.operator +(int, int)")]
+        [InlineData(WellKnownMemberNames.BitwiseAndOperatorName, "int.operator &(int, int)")]
+        [InlineData(WellKnownMemberNames.CheckedDivisionOperatorName, "int.operator checked /(int, int)")]
+        [InlineData(WellKnownMemberNames.DivisionOperatorName, "int.operator /(int, int)")]
+        [InlineData(WellKnownMemberNames.LeftShiftOperatorName, "int.operator <<(int, int)")]
+        [InlineData(WellKnownMemberNames.CheckedMultiplyOperatorName, "int.operator checked *(int, int)")]
+        [InlineData(WellKnownMemberNames.MultiplyOperatorName, "int.operator *(int, int)")]
+        [InlineData(WellKnownMemberNames.BitwiseOrOperatorName, "int.operator |(int, int)")]
+        [InlineData(WellKnownMemberNames.ModulusOperatorName, "int.operator %(int, int)")]
+        [InlineData(WellKnownMemberNames.RightShiftOperatorName, "int.operator >>(int, int)")]
+        [InlineData(WellKnownMemberNames.UnsignedRightShiftOperatorName, "int.operator >>>(int, int)")]
+        [InlineData(WellKnownMemberNames.CheckedSubtractionOperatorName, "int.operator checked -(int, int)")]
+        [InlineData(WellKnownMemberNames.SubtractionOperatorName, "int.operator -(int, int)")]
+        [InlineData(WellKnownMemberNames.ExclusiveOrOperatorName, "int.operator ^(int, int)")]
+        public void CreateBuiltinBinaryOperator_Supported(
+            string name, string display)
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(name, intType, intType, intType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal(display, result);
+        }
+
+        [Theory]
+        [InlineData(WellKnownMemberNames.EqualityOperatorName, "int.operator ==(int, int)")]
+        [InlineData(WellKnownMemberNames.GreaterThanOperatorName, "int.operator >(int, int)")]
+        [InlineData(WellKnownMemberNames.GreaterThanOrEqualOperatorName, "int.operator >=(int, int)")]
+        [InlineData(WellKnownMemberNames.LessThanOperatorName, "int.operator <(int, int)")]
+        [InlineData(WellKnownMemberNames.LessThanOrEqualOperatorName, "int.operator <=(int, int)")]
+        [InlineData(WellKnownMemberNames.InequalityOperatorName, "int.operator !=(int, int)")]
+        public void CreateBuiltinBinaryOperator_Supported_BoolReturnType(
+            string name, string display)
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var boolType = compilation.GetSpecialType(SpecialType.System_Boolean).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(name, boolType, intType, intType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal(display, result);
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_BogusErrorType()
+        {
+            var compilation = CreateCompilation("");
+            var fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity: 0);
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, fakeIntType, fakeIntType, fakeIntType));
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_RealErrorType()
+        {
+            var compilation = CreateCompilation("", references: Array.Empty<MetadataReference>(), targetFramework: TargetFramework.Empty);
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal("int.operator +(int, int)", result);
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_NotSupported()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).GetPublicSymbol().Construct(intType);
+
+            // vb binary operator name
+            Assert.Throws<ArgumentException>("name", () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.LikeOperatorName, intType, intType, intType));
+
+            // unary operator name
+            Assert.Throws<ArgumentException>("name", () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType));
+
+            // nullable type 1
+            Assert.Throws<ArgumentException>(null, () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, nullableIntType, intType, intType));
+
+            // nullable type 2
+            Assert.Throws<ArgumentException>(null, () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, nullableIntType, intType));
+
+            // nullable type 3
+            Assert.Throws<ArgumentException>(null, () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, nullableIntType));
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_NullChecks()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            Assert.Throws<ArgumentNullException>("returnType", () => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.AdditionOperatorName, null, intType, intType));
+            Assert.Throws<ArgumentNullException>("leftType", () => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.AdditionOperatorName, intType, null, intType));
+            Assert.Throws<ArgumentNullException>("rightType", () => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.AdditionOperatorName, intType, intType, null));
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_CompareToActualSymbols1()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var m = /*<bind>*/1 + 1/*</bind>*/;
+    }
+}");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            var expr = GetSyntaxNodeOfTypeForBinding<BinaryExpressionSyntax>(GetSyntaxNodeList(syntaxTree));
+            var symbol = semanticModel.GetSymbolInfo(expr).Symbol;
+
+            Assert.NotNull(symbol);
+
+            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
+            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType);
+            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType);
+            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType);
+
+            Assert.Equal(addBuiltIn, symbol);
+            Assert.NotEqual(addBuiltInChecked, symbol);
+            Assert.NotEqual(subtractBuiltIn, symbol);
+            Assert.NotEqual(subtractBuiltInChecked, symbol);
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_CompareToActualSymbols2()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        checked
+        {
+            var m = /*<bind>*/1 + 1/*</bind>*/;
+        }
+    }
+}");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            var expr = GetSyntaxNodeOfTypeForBinding<BinaryExpressionSyntax>(GetSyntaxNodeList(syntaxTree));
+            var symbol = semanticModel.GetSymbolInfo(expr).Symbol;
+
+            Assert.NotNull(symbol);
+
+            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
+            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType);
+            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType);
+            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType);
+
+            Assert.NotEqual(addBuiltIn, symbol);
+            Assert.Equal(addBuiltInChecked, symbol);
+            Assert.NotEqual(subtractBuiltIn, symbol);
+            Assert.NotEqual(subtractBuiltInChecked, symbol);
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_CompareToActualSymbols3()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var m = /*<bind>*/1 + 1/*</bind>*/;
+    }
+}", options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            var expr = GetSyntaxNodeOfTypeForBinding<BinaryExpressionSyntax>(GetSyntaxNodeList(syntaxTree));
+            var symbol = semanticModel.GetSymbolInfo(expr).Symbol;
+
+            Assert.NotNull(symbol);
+
+            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
+            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType);
+            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType);
+            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType);
+
+            Assert.NotEqual(addBuiltIn, symbol);
+            Assert.Equal(addBuiltInChecked, symbol);
+            Assert.NotEqual(subtractBuiltIn, symbol);
+            Assert.NotEqual(subtractBuiltInChecked, symbol);
+        }
+
+        [Theory]
+        [InlineData(WellKnownMemberNames.UnaryPlusOperatorName, "int.operator +(int)")]
+        [InlineData(WellKnownMemberNames.CheckedUnaryNegationOperatorName, "int.operator checked -(int)")]
+        [InlineData(WellKnownMemberNames.UnaryNegationOperatorName, "int.operator -(int)")]
+        [InlineData(WellKnownMemberNames.OnesComplementOperatorName, "int.operator ~(int)")]
+        [InlineData(WellKnownMemberNames.CheckedIncrementOperatorName, "int.operator checked ++(int)")]
+        [InlineData(WellKnownMemberNames.IncrementOperatorName, "int.operator ++(int)")]
+        [InlineData(WellKnownMemberNames.CheckedDecrementOperatorName, "int.operator checked --(int)")]
+        [InlineData(WellKnownMemberNames.DecrementOperatorName, "int.operator --(int)")]
+        public void CreateBuiltinUnaryOperator_Supported(
+            string name, string display)
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(name, intType, intType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal(display, result);
+        }
+
+        [Theory]
+        [InlineData(WellKnownMemberNames.LogicalNotOperatorName, "bool.operator !(bool)")]
+        public void CreateBuiltinUnaryOperator_Supported_Bool(
+            string name, string display)
+        {
+            var compilation = CreateCompilation("");
+            var boolType = compilation.GetSpecialType(SpecialType.System_Boolean).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(name, boolType, boolType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal(display, result);
+        }
+
+        [Fact]
+        public void CreateBuiltinUnaryOperator_BogusErrorType()
+        {
+            var compilation = CreateCompilation("");
+            var fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity: 0);
+            Assert.Throws<ArgumentException>(null, () => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.UnaryPlusOperatorName, fakeIntType, fakeIntType));
+        }
+
+        [Fact]
+        public void CreateBuiltinUnaryOperator_RealErrorType()
+        {
+            var compilation = CreateCompilation("", references: Array.Empty<MetadataReference>(), targetFramework: TargetFramework.Empty);
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal("int.operator +(int)", result);
+        }
+
+        [Fact]
+        public void CreateBuiltinUnaryOperator_NotSupported()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).GetPublicSymbol().Construct(intType);
+
+            // Binary operator name
+            Assert.Throws<ArgumentException>("name", () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType));
+
+            // Nullable type 1
+            Assert.Throws<ArgumentException>(null, () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, nullableIntType, intType));
+
+            // Nullable type 2
+            Assert.Throws<ArgumentException>(null, () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, intType, nullableIntType));
+
+            // op_Implicit
+            Assert.Throws<ArgumentException>("name", () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.ImplicitConversionName, intType, intType));
+
+            // op_Explicit
+            Assert.Throws<ArgumentException>("name", () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.ExplicitConversionName, intType, intType));
+
+            // op_True
+            Assert.Throws<ArgumentException>("name", () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.TrueOperatorName, intType, intType));
+
+            // op_False
+            Assert.Throws<ArgumentException>("name", () =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.FalseOperatorName, intType, intType));
+        }
+
+        [Fact]
+        public void CreateBuiltinUnaryOperator_NullChecks()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            Assert.Throws<ArgumentNullException>("returnType", () => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.UnaryPlusOperatorName, null, intType));
+            Assert.Throws<ArgumentNullException>("operandType", () => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.UnaryPlusOperatorName, intType, null));
+        }
+
         [Fact]
         [WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")]
         public void ConstructTypeWithNullability()
@@ -2783,6 +3087,61 @@ public class C { public static FrameworkName Goo() { return null; }}";
             comp = CreateVisualBasicCompilation("");
             typeArguments = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, default));
+        }
+
+        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        public void NetModuleReference()
+        {
+            var module = CreateCompilation(string.Empty, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
+            module.VerifyDiagnostics();
+
+            var moduleStream = new MemoryStream();
+            var result = module.Emit(moduleStream);
+            Assert.True(result.Success);
+            moduleStream.Position = 0;
+            var moduleReference = MetadataReference.CreateFromStream(moduleStream, MetadataReferenceProperties.Module);
+
+            var comp = CreateCompilation(string.Empty, references: new[] { moduleReference });
+            comp.VerifyEmitDiagnostics();
+            Assert.Equal(2, comp.Assembly.Modules.Length);
+        }
+
+        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        public void NetModuleReference_AssemblySpecifiedAsModule()
+        {
+            var module = CreateCompilation(string.Empty);
+            module.VerifyDiagnostics();
+
+            var moduleStream = new MemoryStream();
+            var result = module.Emit(moduleStream);
+            Assert.True(result.Success);
+            moduleStream.Position = 0;
+            var moduleReference = MetadataReference.CreateFromStream(moduleStream, MetadataReferenceProperties.Module);
+
+            var comp = CreateCompilation(string.Empty, references: new[] { moduleReference });
+            comp.VerifyEmitDiagnostics(
+                // error CS1542: '<in-memory module>' cannot be added to this assembly because it already is an assembly
+                Diagnostic(ErrorCode.ERR_AddModuleAssembly).WithArguments("<in-memory module>").WithLocation(1, 1));
+            Assert.Equal(1, comp.Assembly.Modules.Length);
+        }
+
+        [Fact, WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
+        public void NetModuleReference_ModuleSpecifiedAsAssembly()
+        {
+            var module = CreateCompilation(string.Empty, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
+            module.VerifyDiagnostics();
+
+            var moduleStream = new MemoryStream();
+            var result = module.Emit(moduleStream);
+            Assert.True(result.Success);
+            moduleStream.Position = 0;
+            var moduleReference = MetadataReference.CreateFromStream(moduleStream, MetadataReferenceProperties.Assembly);
+
+            var comp = CreateCompilation(string.Empty, references: new[] { moduleReference });
+            comp.VerifyEmitDiagnostics(
+                // error CS1509: The referenced file '<in-memory assembly>' is not an assembly
+                Diagnostic(ErrorCode.ERR_ImportNonAssembly).WithArguments("<in-memory assembly>").WithLocation(1, 1));
+            Assert.Equal(1, comp.Assembly.Modules.Length);
         }
 
         #region Script return values
@@ -2875,7 +3234,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             script.VerifyDiagnostics(
                 // (1,8): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 // return System.Threading.Tasks.Task.FromResult(42);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "System.Threading.Tasks.Task.FromResult(42)").WithArguments("int").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "System.Threading.Tasks.Task.FromResult(42)").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(1, 8));
             Assert.True(script.HasSubmissionResult());
         }
 
@@ -3030,6 +3389,285 @@ void M1()
 System.Action a = () => { return; };
 42", parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
+        }
+
+        #endregion
+
+        #region GetTypesByMetadataName Tests
+
+        [Fact]
+        public void GetTypesByMetadataName_NotInSourceNotInReferences()
+        {
+            var comp = CreateCompilation("");
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+            Assert.Empty(types);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceNotInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            var referenceComp = CreateCompilation("");
+
+            var comp = CreateCompilation(
+$@"namespace N;
+{accessibility} class C<T> {{}}", new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_MultipleInSourceNotInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            var referenceComp = CreateCompilation("");
+
+            var comp = CreateCompilation(
+$@"namespace N;
+{accessibility} class C<T> {{}}
+{accessibility} class C<T> {{}}", new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+
+            comp.VerifyDiagnostics(
+                // (3,16): error CS0101: The namespace 'N' already contains a definition for 'C'
+                // internal class C<T> {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "N").WithLocation(3, 8 + accessibility.Length)
+            );
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Equal(2, types[0].Locations.Length);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceSingleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = $@"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp = CreateCompilation(source);
+
+            referenceComp.VerifyDiagnostics();
+
+            MetadataReference reference = useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference();
+            var comp = CreateCompilation(source, new[] { reference });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(2, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Same(comp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly1);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_NotInSourceSingleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp = CreateCompilation(source);
+
+            referenceComp.VerifyDiagnostics();
+
+            MetadataReference reference = useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference();
+            var comp = CreateCompilation("", new[] { reference });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference).GetPublicSymbol();
+            Assert.Same(types[0].ContainingAssembly, assembly1);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_NotInSourceMultipleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp1 = CreateCompilation(source);
+            referenceComp1.VerifyDiagnostics();
+
+            var referenceComp2 = CreateCompilation(source);
+            referenceComp2.VerifyDiagnostics();
+
+            MetadataReference reference1 = getReference(referenceComp1);
+            MetadataReference reference2 = getReference(referenceComp2);
+            var comp = CreateCompilation("", new[] { reference1, reference2 });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(2, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference1).GetPublicSymbol();
+            Assert.Same(types[0].ContainingAssembly, assembly1);
+
+            var assembly2 = comp.GetAssemblyOrModuleSymbol(reference2).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly2);
+
+            MetadataReference getReference(CSharpCompilation referenceComp1)
+            {
+                return useMetadataReference ? referenceComp1.ToMetadataReference() : referenceComp1.EmitToImageReference();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceMultipleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp1 = CreateCompilation(source);
+            referenceComp1.VerifyDiagnostics();
+
+            var referenceComp2 = CreateCompilation(source);
+            referenceComp2.VerifyDiagnostics();
+
+            MetadataReference reference1 = getReference(referenceComp1);
+            MetadataReference reference2 = getReference(referenceComp2);
+            var comp = CreateCompilation(source, new[] { reference1, reference2 });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(3, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Same(comp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+            AssertEx.Equal("N.C<T>", types[2].ToTestDisplayString());
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference1).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly1);
+
+            var assembly2 = comp.GetAssemblyOrModuleSymbol(reference2).GetPublicSymbol();
+            Assert.Same(types[2].ContainingAssembly, assembly2);
+
+            MetadataReference getReference(CSharpCompilation referenceComp1)
+            {
+                return useMetadataReference ? referenceComp1.ToMetadataReference() : referenceComp1.EmitToImageReference();
+            }
+        }
+
+        [Fact]
+        public void GetTypesByMetadataName_Ordering()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+
+public class C {}
+";
+
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
+            var corlibReference = corlib.EmitToImageReference();
+
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference }, parseOptions: parseOptions);
+            var otherReference = other.EmitToImageReference();
+
+            var current = CreateEmptyCompilation(@"public class C {}", new[] { otherReference, corlibReference });
+            current.VerifyDiagnostics();
+
+            var types = current.GetTypesByMetadataName("C");
+
+            AssertEx.Equal(types.Select(t => t.ToTestDisplayString()), new[] { "C", "C", "C" });
+            Assert.Same(types[0].ContainingAssembly, current.Assembly.GetPublicSymbol());
+
+            var corlibAssembly = current.GetAssemblyOrModuleSymbol(corlibReference).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, corlibAssembly);
+
+            var otherAssembly = current.GetAssemblyOrModuleSymbol(otherReference).GetPublicSymbol();
+            Assert.Same(types[2].ContainingAssembly, otherAssembly);
+        }
+
+        [Fact]
+        public void GetTypeByMetadataName_CorLibViaExtern()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+
+public class C {}
+";
+
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
+            var corlibReference = corlib.EmitToImageReference(aliases: ImmutableArray.Create("corlib"));
+
+            var current = CreateEmptyCompilation(@"", new[] { corlibReference }, parseOptions: parseOptions);
+            current.VerifyDiagnostics();
+
+            var type = ((Compilation)current).GetTypeByMetadataName("C");
+            Assert.NotNull(type);
+
+            var corlibAssembly = current.GetAssemblyOrModuleSymbol(corlibReference).GetPublicSymbol();
+            Assert.Same(type.ContainingAssembly, corlibAssembly);
+        }
+
+        [Fact]
+        public void GetTypeByMetadataName_OtherViaExtern()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+";
+
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
+            var corlibReference = corlib.EmitToImageReference();
+
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference }, parseOptions: parseOptions);
+            var otherReference = other.EmitToImageReference(aliases: ImmutableArray.Create("other"));
+
+            var current = CreateEmptyCompilation(@"", new[] { otherReference, corlibReference });
+            current.VerifyDiagnostics();
+
+            var type = ((Compilation)current).GetTypeByMetadataName("C");
+            Assert.Null(type);
         }
 
         #endregion

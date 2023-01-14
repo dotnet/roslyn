@@ -111,19 +111,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26717")]
+        [Fact]
         public void TestSupportedDiagnosticsMessageHelpLinkUri()
         {
             using (var workspace = new AdhocWorkspace())
             {
                 var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
                 if (diagnosticAnalyzer == null)
-                {
                     return;
-                }
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
+                    // These don't come up in UI.
+                    if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                        continue;
+
+                    if (descriptor.Id is "RE0001" or "JSON001" or "JSON002") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
+                        continue;
+
+                    if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
+                        continue;
+
+                    if (descriptor.Id == "IDE1007")
+                        continue;
+
                     Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
                 }
             }
@@ -147,13 +158,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            string annotation = null;
-            if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
-            {
-                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
-            }
+            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace);
             var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
@@ -181,13 +188,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private protected async Task TestDiagnosticInfoAsync(
             string initialMarkup,
-            OptionsCollection options,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
+            OptionsCollection options = null,
+            OptionsCollection globalOptions = null,
             LocalizableString diagnosticMessage = null)
         {
-            await TestDiagnosticInfoAsync(initialMarkup, null, null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
-            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, parseOptions: null, compilationOptions: null, options, globalOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), compilationOptions: null, options, globalOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
         }
 
         private protected async Task TestDiagnosticInfoAsync(
@@ -195,16 +203,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
             OptionsCollection options,
+            OptionsCollection globalOptions,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)
         {
-            var testOptions = new TestParameters(parseOptions, compilationOptions, options);
+            var testOptions = new TestParameters(parseOptions, compilationOptions, options: options, globalOptions: globalOptions);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
                 diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
-                Assert.Equal(1, diagnostics.Count());
+                Assert.Equal(1, diagnostics.Length);
 
                 var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
                 var expected = hostDocument.SelectedSpans.Single();

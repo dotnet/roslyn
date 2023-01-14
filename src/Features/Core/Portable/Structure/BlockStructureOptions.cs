@@ -2,44 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Options;
+using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+[DataContract]
+internal sealed record class BlockStructureOptions
 {
-    internal static class BlockStructureOptions
-    {
-        public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = new(
-            nameof(BlockStructureOptions), nameof(ShowBlockStructureGuidesForCommentsAndPreprocessorRegions), defaultValue: false,
-             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ShowBlockStructureGuidesForCommentsAndPreprocessorRegions)}"));
+    [DataMember] public bool ShowBlockStructureGuidesForCommentsAndPreprocessorRegions { get; init; } = false;
+    [DataMember] public bool ShowBlockStructureGuidesForDeclarationLevelConstructs { get; init; } = true;
+    [DataMember] public bool ShowBlockStructureGuidesForCodeLevelConstructs { get; init; } = true;
+    [DataMember] public bool ShowOutliningForCommentsAndPreprocessorRegions { get; init; } = true;
+    [DataMember] public bool ShowOutliningForDeclarationLevelConstructs { get; init; } = true;
+    [DataMember] public bool ShowOutliningForCodeLevelConstructs { get; init; } = true;
+    [DataMember] public bool CollapseRegionsWhenFirstOpened { get; init; } = true;
+    [DataMember] public bool CollapseImportsWhenFirstOpened { get; init; } = false;
+    [DataMember] public bool CollapseMetadataImplementationsWhenFirstOpened { get; init; } = false;
+    [DataMember] public bool CollapseEmptyMetadataImplementationsWhenFirstOpened { get; init; } = true;
+    [DataMember] public bool CollapseRegionsWhenCollapsingToDefinitions { get; init; } = false;
+    [DataMember] public int MaximumBannerLength { get; init; } = 80;
+    [DataMember] public bool IsMetadataAsSource { get; init; } = false;
 
-        public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForDeclarationLevelConstructs = new(
-            nameof(BlockStructureOptions), nameof(ShowBlockStructureGuidesForDeclarationLevelConstructs), defaultValue: true,
-             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ShowBlockStructureGuidesForDeclarationLevelConstructs)}"));
-
-        public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForCodeLevelConstructs = new(
-            nameof(BlockStructureOptions), nameof(ShowBlockStructureGuidesForCodeLevelConstructs), defaultValue: true,
-             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ShowBlockStructureGuidesForCodeLevelConstructs)}"));
-
-        public static readonly PerLanguageOption2<bool> ShowOutliningForCommentsAndPreprocessorRegions = new(
-            nameof(BlockStructureOptions), nameof(ShowOutliningForCommentsAndPreprocessorRegions), defaultValue: true,
-             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ShowOutliningForCommentsAndPreprocessorRegions)}"));
-
-        public static readonly PerLanguageOption2<bool> ShowOutliningForDeclarationLevelConstructs = new(
-            nameof(BlockStructureOptions), nameof(ShowOutliningForDeclarationLevelConstructs), defaultValue: true,
-             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ShowOutliningForDeclarationLevelConstructs)}"));
-
-        public static readonly PerLanguageOption2<bool> ShowOutliningForCodeLevelConstructs = new(
-            nameof(BlockStructureOptions), nameof(ShowOutliningForCodeLevelConstructs), defaultValue: true,
-             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ShowOutliningForCodeLevelConstructs)}"));
-
-        public static readonly PerLanguageOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
-            nameof(BlockStructureOptions), nameof(CollapseRegionsWhenCollapsingToDefinitions), defaultValue: false,
-             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(CollapseRegionsWhenCollapsingToDefinitions)}"));
-
-        public static readonly PerLanguageOption2<int> MaximumBannerLength = new(
-            nameof(BlockStructureOptions),
-            nameof(MaximumBannerLength), defaultValue: 80,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(MaximumBannerLength)}"));
-
-    }
+    public static readonly BlockStructureOptions Default = new();
 }

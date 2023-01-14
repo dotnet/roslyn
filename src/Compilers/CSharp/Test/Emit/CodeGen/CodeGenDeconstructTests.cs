@@ -3001,7 +3001,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12400")]
+        [Fact]
         [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
         public void AssignWithPostfixOperator()
         {
@@ -3031,9 +3031,41 @@ class C
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/12400
-            // we expect "2 hello" instead, which means the evaluation order is wrong
             var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
+        public void AssignWithPrefixOperator()
+        {
+            string source = @"
+class C
+{
+    int state = 1;
+
+    static void Main()
+    {
+        long x;
+        string y;
+        C c = new C();
+        (x, y) = ++c;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = state;
+        b = ""hello"";
+    }
+
+    public static C operator ++(C c1)
+    {
+        return new C() { state = 2 };
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -3642,7 +3674,7 @@ class C
         System.Console.WriteLine(x1 + "" "" + x2);
     }
 }
-class var
+class @var
 {
     public override string ToString() { return ""var""; }
 }
@@ -3724,7 +3756,7 @@ class C
 
                 var x34Var = (DeclarationExpressionSyntax)x3.Parent.Parent;
                 Assert.Equal("var", x34Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
+                Assert.Equal("(System.Int32 x3, System.Int32 x4)", model.GetSymbolInfo(x34Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", sourceSymbolValidator: validator);
@@ -3735,7 +3767,7 @@ class C
         public void DeclarationWithAliasedVarType()
         {
             string source = @"
-using var = D;
+using @var = D;
 class C
 {
     static void Main()
@@ -3818,7 +3850,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
@@ -3884,7 +3916,7 @@ class C
         }
     }
 }
-class var
+class @var
 {
     public override string ToString() { return ""var""; }
 }
@@ -4004,7 +4036,7 @@ class C
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetTypeInfo(x12Var).Type.ToTestDisplayString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
 
                 // verify deconstruction info
                 var deconstructionForeach = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single();
@@ -4111,7 +4143,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", sourceSymbolValidator: validator);
@@ -4194,7 +4226,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", sourceSymbolValidator: validator);
@@ -4305,7 +4337,7 @@ static class Extension
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 1 - 2 2 - 3 3 - ", sourceSymbolValidator: validator);
@@ -4426,7 +4458,7 @@ class C
                 // extra check on var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", sourceSymbolValidator: validator);
@@ -4572,7 +4604,7 @@ class C
                 // extra check on var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.ToTestDisplayString());
             };
 
             string expected =
@@ -4974,7 +5006,7 @@ class C
         {
             var source =
 @"
-using alias = System.Int32;
+using @alias = System.Int32;
 (string x, alias y) = (""hello"", 42);
 System.Console.Write($""{x} {y}"");
 ";
@@ -5159,7 +5191,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
                 // extra check on x2 and x3's var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
@@ -5363,7 +5395,6 @@ int (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 5)
                 );
 
-
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
@@ -5396,7 +5427,6 @@ int (x, y) = (1, 2);
                 // (int (x, y), int z) = ((1, 2), 3);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 6)
                 );
-
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -5678,7 +5708,7 @@ var (y1, y2) = (x1, x2);
         {
             var source =
 @"
-using var = System.Byte;
+using @var = System.Byte;
 var (x1, (x2, x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
@@ -5708,8 +5738,8 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
-            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            Assert.Equal("System.Byte", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
+            Assert.Equal("System.Byte", model.GetSymbolInfo(x123Var.Type).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -5717,7 +5747,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-class var
+class @var
 {
     public static implicit operator var(int i) { return null; }
 }
@@ -5750,8 +5780,8 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
-            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            Assert.Equal("Script.var", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
+            Assert.Equal("Script.var", model.GetSymbolInfo(x123Var.Type).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -5759,7 +5789,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-using var = System.Byte;
+using @var = System.Byte;
 (var x1, (var x2, var x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
@@ -5805,7 +5835,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-class var
+class @var
 {
     public static implicit operator var(int i) { return new var(); }
     public override string ToString() { return ""var""; }
@@ -6596,40 +6626,39 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7.0").WithLocation(6, 9),
-                // (6,10): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(6, 10),
-                // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7.0").WithLocation(6, 29),
-                // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7.0").WithLocation(7, 13),
-                // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(7, 22),
-                // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //         bool b = 3 is int _;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is int _").WithArguments("pattern matching", "7.0").WithLocation(8, 18),
-                // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //             case int _:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
-                // (14,20): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out var _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(14, 20),
-                // (15,20): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out int _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(15, 20),
-                // (16,16): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(16, 16),
-                // (24,18): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
-                //             case _: // not a discard
-                Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(24, 18)
-                );
+                    // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7.0").WithLocation(6, 9),
+                    // (6,10): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(6, 10),
+                    // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7.0").WithLocation(6, 29),
+                    // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         var (_, _) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7.0").WithLocation(7, 13),
+                    // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         var (_, _) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(7, 22),
+                    // (8,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         bool b = 3 is int _;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "is").WithArguments("pattern matching", "7.0").WithLocation(8, 20),
+                    // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                    //             case int _:
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
+                    // (14,12): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out var _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(14, 12),
+                    // (15,12): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out int _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(15, 12),
+                    // (16,16): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(16, 16),
+                    // (24,18): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
+                    //             case _: // not a discard
+                    Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(24, 18));
         }
 
         [Fact]
@@ -6817,7 +6846,7 @@ class C
         {
             var source =
 @"
-using alias = System.Int32;
+using @alias = System.Int32;
 (string _, alias _) = (""hello"", 42);
 ";
 
@@ -6863,7 +6892,6 @@ public class C
 }
 (string _, string _) = new C();
 ";
-
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
 
@@ -7561,7 +7589,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (6,16): error CS1003: Syntax error, ',' expected
                 //         var (p2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 16),
                 // (6,16): error CS1001: Identifier expected
                 //         var (p2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 16)
@@ -7614,7 +7642,7 @@ class C
         }
 
         [Fact]
-        void InvokeVarForLvalueInParens()
+        public void InvokeVarForLvalueInParens()
         {
             var source = @"
 class Program
@@ -8082,12 +8110,11 @@ public class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C..ctor(int, string, ref int)", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  4
+  // Code size       37 (0x25)
+  .maxstack  3
   .locals init (long V_0,
                 string V_1,
-                int V_2,
-                long V_3)
+                int V_2)
   IL_0000:  ldarg.0
   IL_0001:  call       ""object..ctor()""
   IL_0006:  ldarg.0
@@ -8102,15 +8129,57 @@ public class C
   IL_0013:  stloc.2
   IL_0014:  ldarg.0
   IL_0015:  ldloc.0
-  IL_0016:  dup
-  IL_0017:  stloc.3
-  IL_0018:  call       ""void C.X.set""
-  IL_001d:  ldarg.0
-  IL_001e:  ldloc.1
-  IL_001f:  stfld      ""string C.<Y>k__BackingField""
-  IL_0024:  ldloc.2
-  IL_0025:  stind.i4
-  IL_0026:  ret
+  IL_0016:  call       ""void C.X.set""
+  IL_001b:  ldarg.0
+  IL_001c:  ldloc.1
+  IL_001d:  stfld      ""string C.<Y>k__BackingField""
+  IL_0022:  ldloc.2
+  IL_0023:  stind.i4
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(38702, "https://github.com/dotnet/roslyn/issues/38702")]
+        public void AssignInConstructorWithProperties2()
+        {
+            string source = @"
+public class Point
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    public Point(int x, int y) => (X, Y) = (x, y);
+
+    public static void Main()
+    {
+        var p = new Point(1, 2);
+        System.Console.WriteLine(p.X + "" "" + p.Y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Point..ctor(int, int)", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (int V_0,
+              int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.2
+  IL_0009:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""void Point.X.set""
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""void Point.Y.set""
+  IL_0018:  ret
 }");
         }
 
@@ -8900,12 +8969,12 @@ namespace System
                     // (13,20): warning CS0169: The field '(T1, T2).Item2' is never used
                     //         private T2 Item2;
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(13, 20),
-                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                     //         public ValueTuple(T1 item1, T2 item2)
-                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
-                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(14, 16),
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                     //         public ValueTuple(T1 item1, T2 item2)
-                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(14, 16),
                     // (17,13): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                     //             Item2 = item2;
                     Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(17, 13)

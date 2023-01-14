@@ -371,7 +371,7 @@ namespace Microsoft.DiaSymReader
             int encodedLength;
 
             // ISymUnmanagedWriter2 doesn't handle unicode strings with unmatched unicode surrogates.
-            // We use the .NET UTF8 encoder to replace unmatched unicode surrogates with unicode replacement character.
+            // We use the .NET UTF-8 encoder to replace unmatched unicode surrogates with unicode replacement character.
 
             if (!IsValidUnicodeString(value))
             {
@@ -737,7 +737,7 @@ namespace Microsoft.DiaSymReader
             //     DWORD dwSig;                 // "RSDS"
             //     GUID guidSig;                // GUID
             //     DWORD age;                   // age
-            //     char szPDB[0];               // zero-terminated UTF8 file name passed to the writer
+            //     char szPDB[0];               // zero-terminated UTF-8 file name passed to the writer
             // };
             const int GuidSize = 16;
             var guidBytes = new byte[GuidSize];
@@ -748,6 +748,29 @@ namespace Microsoft.DiaSymReader
             // Note that ImageDebugDirectory.TimeDateStamp is not set by GetDebugInfo, 
             // we need to go through IPdbWriter interface to get it.
             ((IPdbWriter)symWriter).GetSignatureAge(out stamp, out age);
+        }
+
+        public override void AddCompilerInfo(ushort major, ushort minor, ushort build, ushort revision, string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            var symWriter = GetSymWriter();
+            if (symWriter is not ISymUnmanagedCompilerInfoWriter infoWriter)
+            {
+                return;
+            }
+
+            try
+            {
+                infoWriter.AddCompilerInfo(major, minor, build, revision, name);
+            }
+            catch (Exception ex)
+            {
+                throw PdbWritingException(ex);
+            }
         }
     }
 }

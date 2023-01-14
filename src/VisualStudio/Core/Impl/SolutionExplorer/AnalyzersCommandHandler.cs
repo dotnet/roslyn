@@ -13,14 +13,17 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -28,9 +31,9 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSLangProj140;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -40,8 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private readonly AnalyzerItemsTracker _tracker;
         private readonly AnalyzerReferenceManager _analyzerReferenceManager;
+        private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
-
+        private readonly IAsynchronousOperationListener _listener;
         private ContextMenuController _analyzerFolderContextMenuController;
         private ContextMenuController _analyzerContextMenuController;
         private ContextMenuController _diagnosticContextMenuController;
@@ -77,20 +81,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public AnalyzersCommandHandler(
             AnalyzerItemsTracker tracker,
             AnalyzerReferenceManager analyzerReferenceManager,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _tracker = tracker;
             _analyzerReferenceManager = analyzerReferenceManager;
+            _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
+            _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
         }
 
         /// <summary>
         /// Hook up the context menu handlers.
         /// </summary>
-        public void Initialize(IMenuCommandService menuCommandService)
+        public async Task InitializeAsync(IMenuCommandService menuCommandService, CancellationToken cancellationToken)
         {
             if (menuCommandService != null)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 // Analyzers folder context menu items
                 _addMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.AddAnalyzer, AddAnalyzerHandler);
                 _ = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);
@@ -131,13 +141,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_analyzerFolderContextMenuController == null)
-                {
-                    _analyzerFolderContextMenuController = new ContextMenuController(
+                _analyzerFolderContextMenuController ??= new ContextMenuController(
                         ID.RoslynCommands.AnalyzerFolderContextMenu,
                         ShouldShowAnalyzerFolderContextMenu,
                         UpdateAnalyzerFolderContextMenu);
-                }
 
                 return _analyzerFolderContextMenuController;
             }
@@ -161,13 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_analyzerContextMenuController == null)
-                {
-                    _analyzerContextMenuController = new ContextMenuController(
+                _analyzerContextMenuController ??= new ContextMenuController(
                         ID.RoslynCommands.AnalyzerContextMenu,
                         ShouldShowAnalyzerContextMenu,
                         UpdateAnalyzerContextMenu);
-                }
 
                 return _analyzerContextMenuController;
             }
@@ -190,13 +194,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_diagnosticContextMenuController == null)
-                {
-                    _diagnosticContextMenuController = new ContextMenuController(
+                _diagnosticContextMenuController ??= new ContextMenuController(
                         ID.RoslynCommands.DiagnosticContextMenu,
                         ShouldShowDiagnosticContextMenu,
                         UpdateDiagnosticContextMenu);
-                }
 
                 return _diagnosticContextMenuController;
             }
@@ -216,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             UpdateOpenHelpLinkMenuItemVisibility();
         }
 
-        private MenuCommand AddCommandHandler(IMenuCommandService menuCommandService, int roslynCommand, EventHandler handler)
+        private static MenuCommand AddCommandHandler(IMenuCommandService menuCommandService, int roslynCommand, EventHandler handler)
         {
             var commandID = new CommandID(Guids.RoslynGroupId, roslynCommand);
             var menuCommand = new MenuCommand(handler, commandID);
@@ -252,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private void UpdateOpenHelpLinkMenuItemVisibility()
         {
             _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
-                                            _tracker.SelectedDiagnosticItems[0].GetHelpLink() != null;
+                                            _tracker.SelectedDiagnosticItems[0].Descriptor.GetValidHelpLinkUri() != null;
         }
 
         private void UpdateSeverityMenuItemsChecked()
@@ -286,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 foreach (var diagnosticItem in group)
                 {
-                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions);
+                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions?.AnalyzerOptions, analyzerConfigOptions?.TreeOptions);
                     selectedItemSeverities.Add(severity);
                 }
             }
@@ -323,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateSeverityMenuItemsEnabled()
         {
-            var configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable));
+            var configurable = !_tracker.SelectedDiagnosticItems.Any(static item => item.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable));
 
             _setSeverityDefaultMenuItem.Enabled = configurable;
             _setSeverityErrorMenuItem.Enabled = configurable;
@@ -346,10 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         internal void AddAnalyzerHandler(object sender, EventArgs args)
         {
-            if (_analyzerReferenceManager != null)
-            {
-                _analyzerReferenceManager.ShowDialog();
-            }
+            _analyzerReferenceManager?.ShowDialog();
         }
 
         /// <summary>
@@ -397,20 +395,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void SetSeverityHandler(object sender, EventArgs args)
         {
-            var selectedItem = (MenuCommand)sender;
+            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            {
+                using var asyncToken = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
+                if (TryGetWorkspace() is not VisualStudioWorkspaceImpl workspace)
+                    return;
+
+                // Actually try to set the severity for this command.  This will pop up a threaded-wait-dialog
+                // while we do the work.  If we receive any failure notifications, we'll return them here so we
+                // can report them once the dialog has been dismissed.
+                using var _ = ArrayBuilder<string>.GetInstance(out var notificationMessages);
+                await SetSeverityHandlerAsync(workspace, (MenuCommand)sender, notificationMessages).ConfigureAwait(false);
+
+                if (notificationMessages.Count > 0)
+                {
+                    var totalMessage = string.Join(Environment.NewLine, notificationMessages);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
+                    SendErrorNotification(
+                        workspace,
+                        SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
+                        totalMessage);
+                }
+            }).Task.ReportNonFatalErrorUnlessCancelledAsync(_threadingContext.DisposalToken);
+        }
+
+        private async Task SetSeverityHandlerAsync(VisualStudioWorkspaceImpl workspace, MenuCommand selectedItem, ArrayBuilder<string> notificationMessages)
+        {
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+            var uiThreadOperationExecutor = componentModel.GetService<VSUtilities.IUIThreadOperationExecutor>();
+
+            using var context = uiThreadOperationExecutor.BeginExecute(
+                title: ServicesVSResources.Updating_severity,
+                defaultDescription: "",
+                allowCancellation: true,
+                showProgress: true);
+
+            var originalSolution = workspace.CurrentSolution;
             var selectedAction = MapSelectedItemToReportDiagnostic(selectedItem);
-
             if (!selectedAction.HasValue)
-            {
                 return;
-            }
-
-            var workspace = TryGetWorkspace() as VisualStudioWorkspaceImpl;
-
-            if (workspace == null)
-            {
-                return;
-            }
 
             foreach (var selectedDiagnostic in _tracker.SelectedDiagnosticItems)
             {
@@ -422,12 +446,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 if (pathToRuleSet == null && pathToAnalyzerConfigDoc == null)
                 {
-                    SendUnableToUpdateRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
+                    notificationMessages.Add(SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                     continue;
                 }
 
-                var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-                var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
                 var editHandlerService = componentModel.GetService<ICodeActionEditHandlerService>();
 
                 try
@@ -439,38 +461,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         // If project is using the default built-in ruleset or no ruleset, then prefer .editorconfig for severity configuration.
                         if (pathToAnalyzerConfigDoc != null)
                         {
-                            uiThreadOperationExecutor.Execute(
+                            using var scope1 = context.AddScope(allowCancellation: true, description: "");
+                            var newSolution = await selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, context.UserCancellationToken).ConfigureAwait(false);
+                            var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
+                            await editHandlerService.ApplyAsync(
+                                _workspace,
+                                originalSolution,
+                                fromDocument: null,
+                                operations: operations,
                                 title: ServicesVSResources.Updating_severity,
-                                defaultDescription: "",
-                                allowCancellation: true,
-                                showProgress: true,
-                                action: context =>
-                                {
-                                    var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
-                                    var newSolution = selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
-                                    var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                                    editHandlerService.Apply(
-                                        _workspace,
-                                        fromDocument: null,
-                                        operations: operations,
-                                        title: ServicesVSResources.Updating_severity,
-                                        progressTracker: new UIThreadOperationContextProgressTracker(scope),
-                                        cancellationToken: context.UserCancellationToken);
-                                });
+                                progressTracker: new UIThreadOperationContextProgressTracker(scope1),
+                                cancellationToken: context.UserCancellationToken).ConfigureAwait(true);
                             continue;
                         }
 
                         // Otherwise, fall back to using ruleset.
                         if (pathToRuleSet == null)
                         {
-                            SendUnableToUpdateRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
+                            notificationMessages.Add(SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                             continue;
                         }
 
                         pathToRuleSet = CreateCopyOfRuleSetForProject(pathToRuleSet, envDteProject);
                         if (pathToRuleSet == null)
                         {
-                            SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_create_a_rule_set_for_project_0, envDteProject.Name));
+                            notificationMessages.Add(string.Format(SolutionExplorerShim.Could_not_create_a_rule_set_for_project_0, envDteProject.Name));
                             continue;
                         }
 
@@ -478,24 +493,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         fileInfo.IsReadOnly = false;
                     }
 
-                    uiThreadOperationExecutor.Execute(
-                        title: SolutionExplorerShim.Rule_Set,
-                        defaultDescription: string.Format(SolutionExplorerShim.Checking_out_0_for_editing, Path.GetFileName(pathToRuleSet)),
+                    using var scope2 = context.AddScope(
                         allowCancellation: false,
-                        showProgress: false,
-                        action: c =>
-                        {
-                            if (envDteProject.DTE.SourceControl.IsItemUnderSCC(pathToRuleSet))
-                            {
-                                envDteProject.DTE.SourceControl.CheckOutItem(pathToRuleSet);
-                            }
-                        });
+                        string.Format(SolutionExplorerShim.Checking_out_0_for_editing, Path.GetFileName(pathToRuleSet)));
+
+                    if (envDteProject.DTE.SourceControl.IsItemUnderSCC(pathToRuleSet))
+                        envDteProject.DTE.SourceControl.CheckOutItem(pathToRuleSet);
 
                     selectedDiagnostic.SetRuleSetSeverity(selectedAction.Value, pathToRuleSet);
                 }
                 catch (Exception e)
                 {
-                    SendUnableToUpdateRuleSetNotification(workspace, e.Message);
+                    notificationMessages.Add(e.Message);
                 }
             }
         }
@@ -507,7 +516,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return;
             }
 
-            var uri = _tracker.SelectedDiagnosticItems[0].GetHelpLink();
+            var uri = _tracker.SelectedDiagnosticItems[0].Descriptor.GetValidHelpLinkUri();
             if (uri != null)
             {
                 VisualStudioNavigateToLinkService.StartBrowser(uri);
@@ -526,7 +535,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private string CreateCopyOfRuleSetForProject(string pathToRuleSet, EnvDTE.Project envDteProject)
+        private static string CreateCopyOfRuleSetForProject(string pathToRuleSet, EnvDTE.Project envDteProject)
         {
             var fileName = GetNewRuleSetFileNameForProject(envDteProject);
             var projectDirectory = Path.GetDirectoryName(envDteProject.FullName);
@@ -538,7 +547,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return fullFilePath;
         }
 
-        private void UpdateProjectConfigurationsToUseRuleSetFile(EnvDTE.Project envDteProject, string fileName)
+        private static void UpdateProjectConfigurationsToUseRuleSetFile(EnvDTE.Project envDteProject, string fileName)
         {
             foreach (EnvDTE.Configuration config in envDteProject.ConfigurationManager)
             {
@@ -562,7 +571,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private string GetNewRuleSetFileNameForProject(EnvDTE.Project envDteProject)
+        private static string GetNewRuleSetFileNameForProject(EnvDTE.Project envDteProject)
         {
             var projectName = envDteProject.Name;
 
@@ -631,7 +640,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return selectedAction;
         }
 
-        private void SendUnableToOpenRuleSetNotification(Workspace workspace, string message)
+        private static void SendUnableToOpenRuleSetNotification(Workspace workspace, string message)
         {
             SendErrorNotification(
                 workspace,
@@ -639,15 +648,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 message);
         }
 
-        private void SendUnableToUpdateRuleSetNotification(Workspace workspace, string message)
-        {
-            SendErrorNotification(
-                workspace,
-                SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
-                message);
-        }
-
-        private void SendErrorNotification(Workspace workspace, string message1, string message2)
+        private static void SendErrorNotification(Workspace workspace, string message1, string message2)
         {
             var notificationService = workspace.Services.GetService<INotificationService>();
 

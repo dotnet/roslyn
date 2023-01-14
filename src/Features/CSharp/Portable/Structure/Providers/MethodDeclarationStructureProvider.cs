@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             MethodDeclarationSyntax methodDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, ref spans, options);
 
             // fault tolerance
             if (methodDeclaration.Body == null ||
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
             // Whitespace between methods is collapsed in Metadata as Source.
-            var compressEmptyLines = optionProvider.IsMetadataAsSource
+            var compressEmptyLines = options.IsMetadataAsSource
                 && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.MethodDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(

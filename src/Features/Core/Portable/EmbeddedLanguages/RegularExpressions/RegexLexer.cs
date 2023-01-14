@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             var start = Position;
-            while (Position < Text.Length && RegexCharClass.IsWordChar(this.CurrentChar))
+            while (Position < Text.Length && RegexCharClass.IsBoundaryWordChar(this.CurrentChar))
             {
                 Position++;
             }
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             return start == Position
-                ? (RegexToken?)null
+                ? null
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 

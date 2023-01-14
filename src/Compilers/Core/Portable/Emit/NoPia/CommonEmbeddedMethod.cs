@@ -161,6 +161,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo =>
                     default(ImmutableArray<LambdaDebugInfo>);
 
+                public StateMachineStatesDebugInfo StateMachineStatesDebugInfo
+                    => default;
+
                 public DebugId MethodId => default(DebugId);
             }
 

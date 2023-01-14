@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InvertLogical
@@ -71,10 +71,12 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 }
             }
 
+            var title = GetTitle(syntaxKinds, expression.RawKind);
             context.RegisterRefactoring(
-                new MyCodeAction(
-                    GetTitle(syntaxKinds, expression.RawKind),
-                    c => InvertLogicalAsync(document, expression, c)),
+                CodeAction.Create(
+                    title,
+                    c => InvertLogicalAsync(document, expression, c),
+                    title),
                 expression.Span);
         }
 
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         private static async Task<Document> InvertInnerExpressionAsync(
             Document document, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var expression = root.GetAnnotatedNodes(s_annotation).Single()!;
@@ -144,13 +146,5 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             => binaryExprKind == syntaxKinds.LogicalAndExpression
                 ? syntaxKinds.LogicalOrExpression
                 : syntaxKinds.LogicalAndExpression;
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
     }
 }

@@ -203,10 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (type != null)
             {
                 if (type.Parent is BaseTypeSyntax baseType &&
-                    baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                    baseType.Parent is BaseListSyntax baseList &&
                     baseType.Type == type)
                 {
-                    var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken) as INamedTypeSymbol;
+                    var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken);
                     if (containingType != null && containingType.TypeKind == TypeKind.Interface)
                     {
                         return containingType.DeclaredAccessibility;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // 4) The type of a constant must be at least as accessible as the constant itself.
             // 5) The type of a field must be at least as accessible as the field itself.
-            if (type.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+            if (type?.Parent is VariableDeclarationSyntax variableDeclaration &&
                 variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
             {
                 return semanticModel.GetDeclaredSymbol(
@@ -327,9 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var symbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
 
-                if (symbol.DeclaredAccessibility == Accessibility.Private ||
-                    symbol.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
-                    symbol.DeclaredAccessibility == Accessibility.Internal)
+                if (symbol.DeclaredAccessibility is Accessibility.Private or
+                    Accessibility.ProtectedAndInternal or
+                    Accessibility.Internal)
                 {
                     return false;
                 }

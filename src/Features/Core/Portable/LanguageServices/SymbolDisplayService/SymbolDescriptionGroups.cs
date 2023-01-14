@@ -6,7 +6,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     [Flags]
     internal enum SymbolDescriptionGroups
@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         AwaitableUsageText = 1 << 1,
         Documentation = 1 << 2,
         TypeParameterMap = 1 << 3,
-        AnonymousTypes = 1 << 4,
+        StructuralTypes = 1 << 4,
         Exceptions = 1 << 5,
         Captures = 1 << 6,
         ReturnsDocumentation = 1 << 7,
         ValueDocumentation = 1 << 8,
         RemarksDocumentation = 1 << 9,
-        All = MainDescription | AwaitableUsageText | Documentation | TypeParameterMap | AnonymousTypes | Exceptions | Captures | ReturnsDocumentation | ValueDocumentation | RemarksDocumentation,
+        All = MainDescription | AwaitableUsageText | Documentation | TypeParameterMap | StructuralTypes | Exceptions | Captures | ReturnsDocumentation | ValueDocumentation | RemarksDocumentation,
     }
 }

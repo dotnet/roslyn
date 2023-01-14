@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => !parameters.Last().IsParams || parameters.Length >= argumentCount;
 
             protected override bool SupportsNonTrailingNamedArguments(ParseOptions options)
-                => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
+                => options.LanguageVersion() >= LanguageVersion.CSharp7_2;
 
             protected override bool IsImplicitIndexOrRangeIndexer(ImmutableArray<IParameterSymbol> parameters, TSyntax argument, SemanticModel semanticModel)
             {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 // to the indexers parameter types.
 
                 var argType = semanticModel.GetTypeInfo(GetArgumentExpression(argument)).Type;
-                if (argType?.ContainingNamespace is { Name: nameof(System), ContainingNamespace: { IsGlobalNamespace: true } } &&
+                if (argType?.ContainingNamespace is { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true } &&
                     (argType.Name == "Range" || argType.Name == "Index"))
                 {
                     var conversion = semanticModel.Compilation.ClassifyConversion(argType, parameters[0].Type);

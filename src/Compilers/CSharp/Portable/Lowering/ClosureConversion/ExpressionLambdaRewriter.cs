@@ -369,7 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Operand.IsLiteralNull() && (object)node.Operand.Type == null)
             {
                 var operand = _bound.Null(_bound.SpecialType(SpecialType.System_Object));
-                node = node.Update(operand, node.TargetType, node.Conversion, node.Type);
+                Debug.Assert(node.OperandPlaceholder is null);
+                Debug.Assert(node.OperandConversion is null);
+                node = node.Update(operand, node.TargetType, node.OperandPlaceholder, node.OperandConversion, node.Type);
             }
 
             return ExprFactory("TypeAs", Visit(node.Operand), _bound.Typeof(node.Type));
@@ -382,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(node.Syntax, 0, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), ExpressionType);
         }
 
-        private static string GetBinaryOperatorName(BinaryOperatorKind opKind, out bool isChecked, out bool isLifted, out bool requiresLifted)
+        private static string GetBinaryOperatorName(BinaryOperatorKind opKind, MethodSymbol methodOpt, out bool isChecked, out bool isLifted, out bool requiresLifted)
         {
             isChecked = opKind.IsChecked();
             isLifted = opKind.IsLifted();
@@ -390,9 +392,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (opKind.Operator())
             {
-                case BinaryOperatorKind.Addition: return isChecked ? "AddChecked" : "Add";
-                case BinaryOperatorKind.Multiplication: return isChecked ? "MultiplyChecked" : "Multiply";
-                case BinaryOperatorKind.Subtraction: return isChecked ? "SubtractChecked" : "Subtract";
+                case BinaryOperatorKind.Addition: return useCheckedFactory(isChecked, methodOpt) ? "AddChecked" : "Add";
+                case BinaryOperatorKind.Multiplication: return useCheckedFactory(isChecked, methodOpt) ? "MultiplyChecked" : "Multiply";
+                case BinaryOperatorKind.Subtraction: return useCheckedFactory(isChecked, methodOpt) ? "SubtractChecked" : "Subtract";
                 case BinaryOperatorKind.Division: return "Divide";
                 case BinaryOperatorKind.Remainder: return "Modulo";
                 case BinaryOperatorKind.And: return opKind.IsLogical() ? "AndAlso" : "And";
@@ -409,12 +411,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(opKind.Operator());
             }
+
+            static bool useCheckedFactory(bool isChecked, MethodSymbol methodOpt)
+            {
+                return isChecked || (methodOpt is { Name: string name } && SyntaxFacts.IsCheckedOperator(name));
+            }
         }
 
         private BoundExpression VisitBinaryOperator(BinaryOperatorKind opKind, MethodSymbol methodOpt, TypeSymbol type, BoundExpression left, BoundExpression right)
         {
             bool isChecked, isLifted, requiresLifted;
-            string opName = GetBinaryOperatorName(opKind, out isChecked, out isLifted, out requiresLifted);
+            string opName = GetBinaryOperatorName(opKind, methodOpt, out isChecked, out isLifted, out requiresLifted);
 
             // Fix up the null value for a nullable comparison vs null
             if ((object)left.Type == null && left.IsLiteralNull())
@@ -425,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 right = _bound.Default(left.Type);
             }
-
 
             // Enums are handled as per their promoted underlying type
             switch (opKind.OperandTypes())
@@ -479,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (literal != null)
             {
                 // for compat reasons enum literals are directly promoted into underlying values
-                return Constant(literal.Update(literal.ConstantValue, promotedType));
+                return Constant(literal.Update(literal.ConstantValueOpt, promotedType));
             }
             else
             {
@@ -542,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ConvertIndex(BoundExpression expr, TypeSymbol oldType, TypeSymbol newType)
         {
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(Diagnostics, _bound.Compilation.Assembly);
-            var kind = _bound.Compilation.Conversions.ClassifyConversionFromType(oldType, newType, ref useSiteInfo).Kind;
+            var kind = _bound.Compilation.Conversions.ClassifyConversionFromType(oldType, newType, isChecked: false, ref useSiteInfo).Kind;
             Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
             Diagnostics.AddDependencies(useSiteInfo);
 
@@ -632,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var e1 = requireAdditionalCast
                             ? Convert(Visit(node.Operand), node.Operand.Type, method.Parameters[0].Type, node.Checked, false)
                             : Visit(node.Operand);
-                        var e2 = ExprFactory("Convert", e1, _bound.Typeof(resultType), _bound.MethodInfo(method));
+                        var e2 = ExprFactory(node.Checked && SyntaxFacts.IsCheckedOperator(method.Name) ? "ConvertChecked" : "Convert", e1, _bound.Typeof(resultType), _bound.MethodInfo(method));
                         return Convert(e2, resultType, node.Type, node.Checked, false);
                     }
                 case ConversionKind.ImplicitReference:
@@ -731,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitIsOperator(BoundIsOperator node)
         {
             var operand = node.Operand;
-            if ((object)operand.Type == null && operand.ConstantValue != null && operand.ConstantValue.IsNull)
+            if ((object)operand.Type == null && operand.ConstantValueOpt != null && operand.ConstantValueOpt.IsNull)
             {
                 operand = _bound.Null(_objectType);
             }
@@ -789,10 +795,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = Visit(node.LeftOperand);
             var right = Visit(node.RightOperand);
-            if (node.LeftConversion.IsUserDefined)
+            if (BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder) is { IsUserDefined: true } leftConversion)
             {
-                TypeSymbol lambdaParamType = node.LeftOperand.Type.StrippedType();
-                return ExprFactory("Coalesce", left, right, MakeConversionLambda(node.LeftConversion, lambdaParamType, node.Type));
+                Debug.Assert(node.LeftPlaceholder is not null);
+                TypeSymbol lambdaParamType = node.LeftPlaceholder.Type;
+                return ExprFactory("Coalesce", left, right, MakeConversionLambda(leftConversion, lambdaParamType, node.LeftConversion.Type));
             }
             else
             {
@@ -949,7 +956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitObjectCreationExpressionInternal(BoundObjectCreationExpression node)
         {
-            if (node.ConstantValue != null)
+            if (node.ConstantValueOpt != null)
             {
                 // typically a decimal constant.
                 return Constant(node);
@@ -957,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)node.Constructor == null ||
                 (node.Arguments.Length == 0 && !node.Type.IsStructType()) ||
-                node.Constructor.IsDefaultValueTypeConstructor(requireZeroInit: true))
+                node.Constructor.IsDefaultValueTypeConstructor())
             {
                 return ExprFactory("New", _bound.Typeof(node.Type));
             }
@@ -1051,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     opname = "UnaryPlus";
                     break;
                 case UnaryOperatorKind.UnaryMinus:
-                    opname = isChecked ? "NegateChecked" : "Negate";
+                    opname = isChecked || (node.MethodOpt is { Name: string name } && SyntaxFacts.IsCheckedOperator(name)) ? "NegateChecked" : "Negate";
                     break;
                 case UnaryOperatorKind.BitwiseComplement:
                 case UnaryOperatorKind.LogicalNegation:

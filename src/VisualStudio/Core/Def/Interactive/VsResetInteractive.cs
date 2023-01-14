@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             IVsSolutionBuildManager buildManager,
             Func<string, string> createReference,
             Func<string, string> createImport)
-            : base(componentModel.GetService<IEditorOptionsFactoryService>(), createReference, createImport)
+            : base(componentModel.GetService<EditorOptionsService>(), createReference, createImport)
         {
             _workspace = workspace;
             _dte = dte;
@@ -161,36 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         internal Project GetProjectFromHierarchy(IVsHierarchy hierarchy)
-            => _workspace.CurrentSolution.Projects.FirstOrDefault(proj => ProjectIdMatchesHierarchy(_workspace, proj.Id, hierarchy));
-
-        private static bool ProjectIdMatchesHierarchy(VisualStudioWorkspace workspace, ProjectId projectId, IVsHierarchy hierarchy)
-        {
-            var hierarchyForProject = workspace.GetHierarchy(projectId);
-
-            if (hierarchyForProject == null)
-            {
-                return false;
-            }
-
-            if (hierarchyForProject == hierarchy)
-            {
-                return true;
-            }
-
-            // For CPS, the hierarchy for the Roslyn project isn't the same as the one
-            // we get from Solution Explorer (it's a wrapper implementation), so we'll
-            // have to compare properties.
-
-            hierarchyForProject.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var rawValue);
-
-            if (rawValue is string projectName)
-            {
-                hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out rawValue);
-                return projectName == (rawValue as string);
-            }
-
-            return false;
-        }
+            => _workspace.CurrentSolution.Projects.FirstOrDefault(proj => _workspace.GetHierarchy(proj.Id) == hierarchy);
 
         private static InteractiveHostPlatform? GetInteractiveHostPlatform(string targetFrameworkMoniker, Platform platform)
         {

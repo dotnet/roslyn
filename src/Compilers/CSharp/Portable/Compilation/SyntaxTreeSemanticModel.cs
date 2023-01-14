@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Allows asking semantic questions about any node in a SyntaxTree within a Compilation.
     /// </summary>
-    internal partial class SyntaxTreeSemanticModel : CSharpSemanticModel
+    internal partial class SyntaxTreeSemanticModel : PublicSemanticModel
     {
         private readonly CSharpCompilation _compilation;
         private readonly SyntaxTree _syntaxTree;
@@ -47,19 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxTree = syntaxTree;
             _ignoresAccessibility = ignoreAccessibility;
 
-            if (!this.Compilation.SyntaxTrees.Contains(syntaxTree))
-            {
-                throw new ArgumentOutOfRangeException(nameof(syntaxTree), CSharpResources.TreeNotPartOfCompilation);
-            }
-
             _binderFactory = compilation.GetBinderFactory(SyntaxTree, ignoreAccessibility);
         }
 
-        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree)
+        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, bool ignoreAccessibility)
         {
             _compilation = parentCompilation;
             _syntaxTree = speculatedSyntaxTree;
-            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree);
+            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility);
+            _ignoresAccessibility = ignoreAccessibility;
         }
 
         /// <summary>
@@ -235,11 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SymbolInfo info = GetSymbolInfoForNode(options, bound, bound, boundNodeForSyntacticParent: null, binderOpt: null);
                         if ((object)info.Symbol != null)
                         {
-                            result = new SymbolInfo(null, ImmutableArray.Create<ISymbol>(info.Symbol), CandidateReason.NotATypeOrNamespace);
+                            result = new SymbolInfo(ImmutableArray.Create<ISymbol>(info.Symbol), CandidateReason.NotATypeOrNamespace);
                         }
                         else if (!info.CandidateSymbols.IsEmpty)
                         {
-                            result = new SymbolInfo(null, info.CandidateSymbols, CandidateReason.NotATypeOrNamespace);
+                            result = new SymbolInfo(info.CandidateSymbols, CandidateReason.NotATypeOrNamespace);
                         }
                     }
                 }
@@ -371,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // However, we can return fieldSymbol.Type for implicitly typed field symbols in both cases.
                             // Note that for regular C#, fieldSymbol.Type would be an error type.
 
-                            var variableDecl = type.Parent as VariableDeclarationSyntax;
+                            var variableDecl = type.ModifyingScopedOrRefTypeOrSelf().Parent as VariableDeclarationSyntax;
                             if (variableDecl != null && variableDecl.Variables.Any())
                             {
                                 var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
@@ -591,12 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return null; }
         }
 
-        internal override SemanticModel ContainingModelOrSelf
-        {
-            get { return this; }
-        }
-
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -617,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -632,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -646,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -660,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -674,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -688,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -702,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -721,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -762,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
         }
 
-        internal AttributeSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
+        internal PublicSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
         {
             var memberModel = IsNullableAnalysisEnabledAtSpeculativePosition(position, attribute) ? GetMemberModel(position) : null;
             return AttributeSemanticModel.CreateSpeculative(this, attribute, attributeType, aliasOpt, binder, memberModel?.GetRemappedSymbols(), position);
@@ -1037,7 +1028,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-
             return containing;
         }
 
@@ -1149,8 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.Parameter:
                             {
                                 // NOTE: we don't need to create a member model for lambda parameter default value
-                                // (which is bad code anyway) because lambdas only appear in code with associated
-                                // member models.
+                                // because lambdas only appear in code with associated member models.
                                 ParameterSyntax parameterDecl = (ParameterSyntax)node.Parent;
                                 ParameterSymbol parameterSymbol = GetDeclaredNonLambdaParameterSymbol(parameterDecl);
                                 if ((object)parameterSymbol == null)
@@ -1266,20 +1255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return symbol;
-        }
-
-        private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute, MemberSemanticModel containingModel)
-        {
-            AliasSymbol aliasOpt;
-            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
-
-            return AttributeSemanticModel.Create(
-                this,
-                attribute,
-                attributeType,
-                aliasOpt,
-                enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument),
-                containingModel?.GetRemappedSymbols());
         }
 
         private FieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
@@ -1683,6 +1658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((BaseTypeDeclarationSyntax)declaration).Identifier.ValueText;
 
                 case SyntaxKind.VariableDeclarator:
@@ -2264,6 +2240,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax constructorInitializer)
+        {
+            if (constructorInitializer == null)
+            {
+                throw new ArgumentNullException(nameof(constructorInitializer));
+            }
+
+            if (!IsInTree(constructorInitializer))
+            {
+                throw new ArgumentException("node not within tree");
+            }
+
+            var context = RegionAnalysisContext(constructorInitializer);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
+        public override DataFlowAnalysis AnalyzeDataFlow(PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            if (primaryConstructorBaseType == null)
+            {
+                throw new ArgumentNullException(nameof(primaryConstructorBaseType));
+            }
+
+            if (!IsInTree(primaryConstructorBaseType))
+            {
+                throw new ArgumentException("node not within tree");
+            }
+
+            var context = RegionAnalysisContext(primaryConstructorBaseType);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
         public override DataFlowAnalysis AnalyzeDataFlow(StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
             ValidateStatementRange(firstStatement, lastStatement);
@@ -2493,6 +2503,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
+        {
+            if (containingSymbol.Kind is SymbolKind.Method)
+            {
+                switch (node)
+                {
+                    case RecordDeclarationSyntax:
+                        // Skip the topmost record declaration syntax node when analyzing synthesized record declaration constructor
+                        // to avoid duplicate syntax node callbacks.
+                        // We will analyze this node when analyzing the record declaration type symbol.
+                        return true;
+
+                    case CompilationUnitSyntax:
+                        // Skip compilation unit syntax node when analyzing synthesized top level entry point method
+                        // to avoid duplicate syntax node callbacks.
+                        // We will analyze this node when analyzing the global namespace symbol.
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

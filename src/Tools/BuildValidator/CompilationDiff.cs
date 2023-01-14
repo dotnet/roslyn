@@ -7,19 +7,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Rebuild;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Metadata.Tools;
@@ -115,8 +107,8 @@ namespace BuildValidator
 
         public static CompilationDiff CreateMiscError(
             AssemblyInfo assemblyInfo,
-            string message) =>
-            new CompilationDiff(
+            string message)
+            => new CompilationDiff(
                 assemblyInfo,
                 RebuildResult.MiscError,
                 message: message);
@@ -124,8 +116,8 @@ namespace BuildValidator
         public static unsafe CompilationDiff CreateMissingReferences(
             AssemblyInfo assemblyInfo,
             LocalReferenceResolver resolver,
-            ImmutableArray<MetadataReferenceInfo> references) =>
-            new CompilationDiff(
+            ImmutableArray<MetadataReferenceInfo> references)
+            => new CompilationDiff(
                 assemblyInfo,
                 RebuildResult.MissingReferences,
                 localReferenceResolver: resolver,
@@ -185,7 +177,7 @@ namespace BuildValidator
                     if (hasEmbeddedPdb)
                     {
                         var peReader = new PEReader(rebuildBytes.ToImmutableArray());
-                        return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable;
+                        return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable();
                     }
                     else
                     {
@@ -287,7 +279,6 @@ namespace BuildValidator
 
             static void createDiffArtifacts(string debugPath, string assemblyFileName, BuildInfo originalInfo, BuildInfo rebuildInfo, Compilation compilation)
             {
-                var assemblyName = Path.GetFileNameWithoutExtension(assemblyFileName);
                 var originalDataFiles = createBuildArtifacts(Path.Combine(debugPath, "original"), assemblyFileName, originalInfo);
                 var rebuildDataFiles = createBuildArtifacts(Path.Combine(debugPath, "rebuild"), assemblyFileName, rebuildInfo);
 
@@ -365,7 +356,7 @@ namespace BuildValidator
                     Arguments = $@"{assemblyFilePath} /all /out={buildDataFiles.ILFilePath}",
                     UseShellExecute = false,
                     CreateNoWindow = true
-                }).WaitForExit();
+                })!.WaitForExit();
 
                 return buildDataFiles;
             }

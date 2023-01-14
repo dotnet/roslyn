@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -108,7 +110,7 @@ namespace Roslyn.Utilities
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         public static string? GetFileName(string? path, bool includeExtension = true)
         {
             return FileNameUtilities.GetFileName(path, includeExtension);
@@ -121,11 +123,13 @@ namespace Roslyn.Utilities
         /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
+        [return: NotNullIfNotNull(nameof(path))]
         public static string? GetDirectoryName(string? path)
         {
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
+        [return: NotNullIfNotNull(nameof(path))]
         internal static string? GetDirectoryName(string? path, bool isUnixLike)
         {
             if (path != null)
@@ -177,13 +181,13 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Gets the root part of the path.
         /// </summary>
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         public static string? GetPathRoot(string? path)
         {
             return GetPathRoot(path, IsUnixLikePlatform);
         }
 
-        [return: NotNullIfNotNull(parameterName: "path")]
+        [return: NotNullIfNotNull(parameterName: nameof(path))]
         private static string? GetPathRoot(string? path, bool isUnixLike)
         {
             if (path == null)
@@ -453,7 +457,7 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// Relative and absolute paths treated the same as <see cref="Path.Combine(string, string)"/>.
         /// </remarks>
-        [return: NotNullIfNotNull("path")]
+        [return: NotNullIfNotNull(nameof(path))]
         public static string? CombinePaths(string? root, string? path)
         {
             if (RoslynString.IsNullOrEmpty(root))
@@ -683,7 +687,7 @@ namespace Roslyn.Utilities
                 {
                     if (!IsDirectorySeparator(ch))
                     {
-                        hc = Hash.Combine((int)char.ToUpperInvariant(ch), hc);
+                        hc = Hash.Combine(char.ToUpperInvariant(ch), hc);
                     }
                 }
             }
@@ -772,6 +776,52 @@ namespace Roslyn.Utilities
         /// </remarks>
         public static string NormalizeWithForwardSlash(string p)
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
+
+        /// <summary>
+        /// Takes an absolute path and attempts to expand any '..' or '.' into their equivalent representation.
+        /// </summary>
+        /// <returns>An equivalent path that does not contain any '..' or '.' path parts, or the original path.</returns>
+        /// <remarks>
+        /// This method handles unix and windows drive rooted absolute paths only (i.e /a/b or x:\a\b). Passing any other kind of path
+        /// including relative, drive relative, unc, or windows device paths will simply return the original input. 
+        /// </remarks>
+        public static string ExpandAbsolutePathWithRelativeParts(string p)
+        {
+            bool isDriveRooted = !IsUnixLikePlatform && IsDriveRootedAbsolutePath(p);
+            if (!isDriveRooted && !(p.Length > 1 && p[0] == AltDirectorySeparatorChar))
+            {
+                // if this isn't a regular absolute path we can't expand it correctly
+                return p;
+            }
+
+            // GetPathParts also removes any instances of '.'
+            var parts = GetPathParts(p);
+
+            // For drive rooted paths we need to skip the volume specifier, but remember it for re-joining later
+            var volumeSpecifier = isDriveRooted ? p.Substring(0, 2) : string.Empty;
+
+            // Skip the root directory
+            var toSkip = isDriveRooted ? 2 : 1;
+            Debug.Assert(parts[toSkip - 1] == string.Empty);
+
+            var resolvedParts = ArrayBuilder<string>.GetInstance();
+            foreach (var part in parts.Skip(toSkip))
+            {
+                if (!part.Equals(ParentRelativeDirectory))
+                {
+                    resolvedParts.Push(part);
+                }
+                // /../../file is considered equal to /file, so we only process the parent relative directory info if there is actually a parent
+                else if (resolvedParts.Count > 0)
+                {
+                    resolvedParts.Pop();
+                }
+            }
+
+            var expandedPath = volumeSpecifier + '/' + string.Join("/", resolvedParts);
+            resolvedParts.Free();
+            return expandedPath;
+        }
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 

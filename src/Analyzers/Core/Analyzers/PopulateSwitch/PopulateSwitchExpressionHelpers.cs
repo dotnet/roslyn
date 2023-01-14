@@ -38,6 +38,17 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return SpecializedCollections.EmptyCollection<ISymbol>();
         }
 
+        public static bool HasNullSwitchArm(ISwitchExpressionOperation operation)
+        {
+            foreach (var arm in operation.Arms)
+            {
+                if (arm.Pattern is IConstantPatternOperation { Value.ConstantValue: { HasValue: true, Value: null } })
+                    return true;
+            }
+
+            return false;
+        }
+
         private static void RemoveExistingEnumMembers(
             ISwitchExpressionOperation operation, Dictionary<long, ISymbol> enumMembers)
         {
@@ -65,22 +76,32 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         private static void RemoveIfConstantPatternHasValue(IOperation operation, Dictionary<long, ISymbol> enumMembers)
         {
-            if (operation is IConstantPatternOperation { Value: { ConstantValue: { HasValue: true, Value: var value } } })
+            if (operation is IConstantPatternOperation { Value.ConstantValue: { HasValue: true, Value: not null and var value } })
                 enumMembers.Remove(IntegerUtilities.ToInt64(value));
         }
 
         public static bool HasDefaultCase(ISwitchExpressionOperation operation)
-            => operation.Arms.Any(a => IsDefault(a));
+            => operation.Arms.Any(IsDefault);
 
         public static bool IsDefault(ISwitchExpressionArmOperation arm)
-        {
-            if (arm.Pattern.Kind == OperationKind.DiscardPattern)
-                return true;
+            => IsDefault(arm.Pattern);
 
-            if (arm.Pattern is IDeclarationPatternOperation declarationPattern)
-                return declarationPattern.MatchesNull;
-
-            return false;
-        }
+        private static bool IsDefault(IPatternOperation pattern)
+            => pattern switch
+            {
+                // _ => ...
+                IDiscardPatternOperation => true,
+                // var v => ...
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchesNull,
+                IBinaryPatternOperation binaryPattern => binaryPattern.OperatorKind switch
+                {
+                    // x or _ => ...
+                    BinaryOperatorKind.Or => IsDefault(binaryPattern.LeftPattern) || IsDefault(binaryPattern.RightPattern),
+                    // _ and var x => ...
+                    BinaryOperatorKind.And => IsDefault(binaryPattern.LeftPattern) && IsDefault(binaryPattern.RightPattern),
+                    _ => false,
+                },
+                _ => false
+            };
     }
 }

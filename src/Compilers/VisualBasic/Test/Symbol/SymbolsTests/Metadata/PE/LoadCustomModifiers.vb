@@ -28,7 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Dim modifiersModule = assemblies(0).Modules(0)
 
-
             Dim modifiers = modifiersModule.GlobalNamespace.GetTypeMembers("Modifiers").Single()
 
             Dim f0 = modifiers.GetMembers("F0").OfType(Of FieldSymbol)().Single()

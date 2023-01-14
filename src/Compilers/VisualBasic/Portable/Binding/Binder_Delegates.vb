@@ -130,7 +130,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          boundFirstArgument,
                                                                          diagnostics:=diagnostics)
 
-
                             If boundFirstArgument.Syntax IsNot node Then
                                 ' We must have a bound node that corresponds to that syntax node for GetSemanticInfo.
                                 ' Insert an identity conversion if necessary.
@@ -319,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                 End If
 
-                addressOfExpression.Binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, fromMethod, addressOfExpression.MethodGroup.Syntax)
+                addressOfExpression.Binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, fromMethod, addressOfExpression.MethodGroup.Syntax)
             End If
 
             Dim delegateConversions As ConversionKind = Conversions.DetermineDelegateRelaxationLevel(methodConversions)
@@ -595,7 +594,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    bestCandidatesState = OverloadResolution.CandidateAnalysisResultState.Ambiguous Then
                     couldTryZeroArgumentRelaxation = False
                 End If
-
 
                 Dim unused = resolutionBinder.ReportOverloadResolutionFailureAndProduceBoundNode(
                     addressOfExpression.MethodGroup.Syntax,
@@ -1055,7 +1053,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          newReceiver,
                                                          sourceMethodGroup.QualificationKind)
 
-
             ' the delegate creation has the lambda stored internally to not clutter the bound tree with synthesized nodes 
             ' in the first pass. Later on in the DelegateRewriter the node get's rewritten with the lambda if needed.
             Return New BoundDelegateCreationExpression(syntaxNode,
@@ -1124,7 +1121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  warnIfResultOfAsyncMethodIsDroppedDueToRelaxation,
                                                  diagnostics)
         End Function
-
 
         ''' <summary>
         ''' Build a lambda that has a shape of the [delegateInvoke] and calls 

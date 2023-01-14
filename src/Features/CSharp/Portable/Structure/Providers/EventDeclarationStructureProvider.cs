@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             EventDeclarationSyntax eventDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(eventDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(eventDeclaration, ref spans, options);
 
             // fault tolerance
             if (eventDeclaration.AccessorList == null ||
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
             // Full events are grouped together with event field definitions in Metadata as Source.
-            var compressEmptyLines = optionProvider.IsMetadataAsSource
+            var compressEmptyLines = options.IsMetadataAsSource
                 && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.EventDeclaration) || nextSibling.IsKind(SyntaxKind.EventFieldDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(

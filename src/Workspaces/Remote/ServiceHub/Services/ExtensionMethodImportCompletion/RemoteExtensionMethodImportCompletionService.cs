@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -29,20 +27,24 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsAsync(
-            PinnedSolutionInfo solutionInfo,
+        public ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
+            Checksum solutionChecksum,
             DocumentId documentId,
             int position,
             string receiverTypeSymbolKeyData,
             ImmutableArray<string> namespaceInScope,
             ImmutableArray<string> targetTypesSymbolKeyData,
-            bool forceIndexCreation,
+            bool forceCacheCreation,
+            bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            var stopwatch = SharedStopwatch.StartNew();
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetDocument(documentId)!;
+                var assetSyncTime = stopwatch.Elapsed;
+
+                // Completion always uses frozen-partial semantic in-proc, which is not automatically passed to OOP, so enable it explicitly
+                var document = solution.GetRequiredDocument(documentId).WithFrozenPartialSemantics(cancellationToken);
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = SymbolKey.ResolveString(receiverTypeSymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
 
@@ -54,21 +56,26 @@ namespace Microsoft.CodeAnalysis.Remote
                             .Select(symbolKey => SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).GetAnySymbol() as ITypeSymbol)
                             .WhereNotNull().ToImmutableArray();
 
-                    return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceIndexCreation, cancellationToken).ConfigureAwait(false);
+                    var intialGetSymbolsTime = stopwatch.Elapsed - assetSyncTime;
+
+                    var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
+                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, assetSyncTime, cancellationToken).ConfigureAwait(false);
+
+                    result.GetSymbolsTime += intialGetSymbolsTime;
+                    return result;
                 }
 
-                return new SerializableUnimportedExtensionMethods(ImmutableArray<SerializableImportCompletionItem>.Empty, isPartialResult: false, getSymbolsTicks: 0, createItemsTicks: 0);
+                return null;
             }, cancellationToken);
         }
 
-        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask WarmUpCacheAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetRequiredDocument(documentId);
-                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+                var project = solution.GetRequiredProject(projectId);
+                ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
     }

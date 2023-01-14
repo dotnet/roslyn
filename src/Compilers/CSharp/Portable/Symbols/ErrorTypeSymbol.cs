@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool HasDeclaredRequiredMembers => false;
+
         /// <summary>
         /// Get all the members of this symbol.
         /// </summary>
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                var result = AddOrWrapTupleMembers(ImmutableArray<Symbol>.Empty);
+                var result = MakeSynthesizedTupleMembers(ImmutableArray<Symbol>.Empty);
                 RoslynDebug.Assert(result is object);
                 return result.ToImmutableAndFree();
             }
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
@@ -507,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -527,10 +529,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
-        internal override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal override NamedTypeSymbol? NativeIntegerUnderlyingType => null;
 
@@ -575,6 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _originalDefinition.MangleName; }
         }
+
+        internal override FileIdentifier? AssociatedFileIdentifier => _originalDefinition.AssociatedFileIdentifier;
 
         internal override DiagnosticInfo? ErrorInfo
         {
@@ -705,6 +709,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
     }
 }

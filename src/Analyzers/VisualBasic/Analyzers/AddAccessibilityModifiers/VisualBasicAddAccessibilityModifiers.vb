@@ -16,10 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
         End Sub
 
         Public Overrides Function ShouldUpdateAccessibilityModifier(
-                syntaxFacts As CodeAnalysis.LanguageServices.ISyntaxFacts,
+                accessibilityFacts As CodeAnalysis.LanguageService.IAccessibilityFacts,
                 member As StatementSyntax,
                 [option] As AccessibilityModifiersRequired,
-                ByRef name As SyntaxToken) As Boolean
+                ByRef name As SyntaxToken,
+                ByRef modifiedAdded As Boolean) As Boolean
 
             ' Have to have a name to report the issue on.
             name = member.GetNameToken()
@@ -28,16 +29,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             End If
 
             ' Certain members never have accessibility. Don't bother reporting on them.
-            If Not syntaxFacts.CanHaveAccessibility(member) Then
+            If Not accessibilityFacts.CanHaveAccessibility(member) Then
                 Return False
             End If
 
             ' This analyzer bases all of its decisions on the accessibility
-            Dim Accessibility = syntaxFacts.GetAccessibility(member)
+            Dim Accessibility = accessibilityFacts.GetAccessibility(member)
 
             ' Omit will flag any accesibility values that exist and are default
             ' The other options will remove or ignore accessibility
             Dim isOmit = [option] = AccessibilityModifiersRequired.OmitIfDefault
+            modifiedAdded = Not isOmit
 
             If isOmit Then
                 If Accessibility = Accessibility.NotApplicable Then

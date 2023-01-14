@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken tildeToken,
             SyntaxToken identifier,
             ParameterListSyntax parameterList,
-            BlockSyntax body,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
             => DestructorDeclaration(
                 attributeLists,

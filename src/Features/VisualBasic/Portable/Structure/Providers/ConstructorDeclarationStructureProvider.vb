@@ -14,10 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
                                                   constructorDeclaration As SubNewStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
 
-            CollectCommentsRegions(constructorDeclaration, spans, optionProvider)
+            CollectCommentsRegions(constructorDeclaration, spans, options)
 
             Dim block = TryCast(constructorDeclaration.Parent, ConstructorBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then

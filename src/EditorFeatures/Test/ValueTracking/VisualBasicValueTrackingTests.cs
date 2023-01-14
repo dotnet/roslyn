@@ -60,6 +60,58 @@ End Class
 
         [Theory]
         [CombinatorialData]
+        public async Task TestPropertyValue(TestHost testHost)
+        {
+            var code =
+@"
+Class C
+    Private _s As String
+    Public Property S() As String
+        Get
+            Return _s
+        End Get
+        Set(ByVal value As String)
+            _s = $$value
+        End Set
+    End Property
+
+    
+    Public Sub SetS(s As String)
+        Me.S = s
+    End Sub
+
+    Public Function GetS() As String
+        Return Me.S
+    End Function
+End Class
+";
+
+            //
+            // _s = value [Code.vb:8]
+            //  |> Me.S = s [Code.vb:14]
+            //
+            using var workspace = CreateWorkspace(code, testHost);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (8, "value") // _s = [|value|] [Code.vb:8]
+                });
+
+            var childItems = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (14, "s") // Me.S = [|s|] [Code.vb:14]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, childItems.Single());
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestField(TestHost testHost)
         {
             var code =

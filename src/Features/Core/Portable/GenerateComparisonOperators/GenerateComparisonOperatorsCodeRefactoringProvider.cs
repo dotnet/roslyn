@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
         private const string LeftName = "left";
         private const string RightName = "right";
 
-        private static ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
+        private static readonly ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
             ImmutableArray.Create(
                 CodeGenerationOperatorKind.LessThan,
                 CodeGenerationOperatorKind.LessThanOrEqual,
@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
         {
             var (document, textSpan, cancellationToken) = context;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, fullHeader: true, out var typeDeclaration) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
+            if (!helpers.IsOnTypeHeader(root, textSpan.Start, fullHeader: true, out var typeDeclaration) &&
+                !helpers.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             if (missingComparableTypes.Count == 1)
             {
                 var missingType = missingComparableTypes[0];
-                context.RegisterRefactoring(new MyCodeAction(
+                context.RegisterRefactoring(CodeAction.Create(
                     FeaturesResources.Generate_comparison_operators,
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
                     nameof(FeaturesResources.Generate_comparison_operators)));
                 return;
             }
@@ -107,13 +107,13 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             {
                 var typeArg = missingType.TypeArguments[0];
                 var displayString = typeArg.ToMinimalDisplayString(semanticModel, textSpan.Start);
-                nestedActions.Add(new MyCodeAction(
+                nestedActions.Add(CodeAction.Create(
                     string.Format(FeaturesResources.Generate_for_0, displayString),
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
                     nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
             }
 
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
+            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
                 FeaturesResources.Generate_comparison_operators,
                 nestedActions.ToImmutable(),
                 isInlinable: false));
@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             Document document,
             SyntaxNode typeDeclaration,
             INamedTypeSymbol comparableType,
+            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var containingType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
@@ -149,14 +149,12 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 generator, semanticModel.Compilation, containingType, comparableType,
                 GenerateLeftExpression(generator, comparableType, compareMethod));
 
-            return await codeGenService.AddMembersAsync(
+            var solutionContext = new CodeGenerationSolutionContext(
                 document.Project.Solution,
-                containingType,
-                operators,
-                new CodeGenerationOptions(
-                    contextLocation: typeDeclaration.GetLocation(),
-                    options: options,
-                    parseOptions: typeDeclaration.SyntaxTree.Options), cancellationToken).ConfigureAwait(false);
+                new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation()),
+                fallbackOptions);
+
+            return await codeGenService.AddMembersAsync(solutionContext, containingType, operators, cancellationToken).ConfigureAwait(false);
         }
 
         private static SyntaxNode GenerateLeftExpression(
@@ -224,7 +222,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationOperatorKind.LessThanOrEqual => generator.LessThanOrEqualExpression(compareToCall, zero),
                 CodeGenerationOperatorKind.GreaterThan => generator.GreaterThanExpression(compareToCall, zero),
                 CodeGenerationOperatorKind.GreaterThanOrEqual => generator.GreaterThanOrEqualExpression(compareToCall, zero),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             return generator.ReturnStatement(comparison);
@@ -264,15 +262,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationOperatorKind.LessThanOrEqual => WellKnownMemberNames.LessThanOrEqualOperatorName,
                 CodeGenerationOperatorKind.GreaterThan => WellKnownMemberNames.GreaterThanOperatorName,
                 CodeGenerationOperatorKind.GreaterThanOrEqual => WellKnownMemberNames.GreaterThanOrEqualOperatorName,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
     }
 }

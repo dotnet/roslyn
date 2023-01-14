@@ -46,7 +46,7 @@ class C
         [InlineData("((1, 2L), (3, 4))", "((1L, 0), (3L, 4))", false)]
         [InlineData("((1, 2L), (3, 4))", "((1L, 0), (0L, 4))", false)]
         [InlineData("((1, 2L), (3, 4))", "((1L, 0), (3L, 0))", false)]
-        void TestSimple(string change1, string change2, bool expectedMatch)
+        public void TestSimple(string change1, string change2, bool expectedMatch)
         {
             var sourceTemplate = @"
 class C
@@ -2122,7 +2122,7 @@ public class C
         }
 
         [Fact]
-        void TestTupleEqualityPreferredOverCustomOperator_Nested()
+        public void TestTupleEqualityPreferredOverCustomOperator_Nested()
         {
             string source = @"
 public class C
@@ -3133,12 +3133,24 @@ class C
                 // (5,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 == nt2; // warn 1 and 2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 12),
+                // (5,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 12),
+                // (5,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 19),
                 // (5,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 == nt2; // warn 1 and 2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 19),
                 // (8,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 != nt2; // warn 3 and 4
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 12),
+                // (8,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 12),
+                // (8,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 19),
                 // (8,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 != nt2; // warn 3 and 4
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 19)
@@ -4945,7 +4957,7 @@ public class C
         }
 
         [Fact]
-        void TestValueTupleWithObsoleteEqualityOperator()
+        public void TestValueTupleWithObsoleteEqualityOperator()
         {
             string source = @"
 public class C

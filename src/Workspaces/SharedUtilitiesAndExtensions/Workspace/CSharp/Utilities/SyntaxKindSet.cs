@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         public static readonly ISet<SyntaxKind> AllTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.AbstractKeyword,
+                SyntaxKind.FileKeyword,
                 SyntaxKind.InternalKeyword,
                 SyntaxKind.NewKeyword,
                 SyntaxKind.PublicKeyword,
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.PrivateKeyword,
                 SyntaxKind.ProtectedKeyword,
                 SyntaxKind.ReadOnlyKeyword,
+                SyntaxKind.RequiredKeyword,
                 SyntaxKind.SealedKeyword,
                 SyntaxKind.StaticKeyword,
                 SyntaxKind.UnsafeKeyword,
@@ -58,14 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.UnsafeKeyword,
                 SyntaxKind.VolatileKeyword,
             };
-
-        public static readonly ISet<SyntaxKind> AllLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.AsyncKeyword,
-            SyntaxKind.UnsafeKeyword,
-            SyntaxKind.ExternKeyword,
-            SyntaxKind.StaticKeyword
-        };
 
         public static readonly ISet<SyntaxKind> AllTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {

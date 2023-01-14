@@ -1,3 +1,14 @@
+trigger:
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/dev16.*-vs-deps
+    - release/dev17.*
+    exclude:
+    - release/dev17.0
+pr: none
+
 resources:
 - repo: self
   clean: true
@@ -29,6 +40,8 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - name: Codeql.Enabled
+    value: true​
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
@@ -42,7 +55,7 @@ variables:
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: ManagedLanguageSecrets
+  - group: DotNet-Roslyn-Insertion-Variables
 
   - name: BuildConfiguration
     value: release
@@ -60,19 +73,22 @@ variables:
   - name: Insertion.TitlePrefix
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
-    value: '[Skip-SymbolCheck]'
+    value: ''
 
 stages:
 
 - stage: build
   displayName: Build and Test
+  pool:
+    name: NetCore1ESPool-Svc-Internal
+    demands: ImageOverride -equals windows.vs2022.amd64
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.0-vs-deps') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.5-vs-deps') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.0-vs-deps
+        MirrorBranch: release/dev17.5-vs-deps
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -81,9 +97,6 @@ stages:
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
-    pool:
-      name: NetCoreInternal-Pool
-      queue: BuildPool.Server.Amd64.VS2019
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
@@ -122,7 +135,15 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+
+    # Needed for SBOM tool
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 3.1 runtime'
+      inputs:
+        packageType: runtime
+        version: 3.1.28
+        installationPath: '$(Build.SourcesDirectory)\.dotnet'
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
@@ -179,7 +200,10 @@ stages:
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
+      
+    - template: eng\common\templates\steps\generate-sbom.yml
 
     - task: PowerShell@2
       displayName: Publish Assets
@@ -296,32 +320,38 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        vmImage: vs2017-win2016
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals windows.vs2022.amd64
 
 - stage: insert
   dependsOn:
-  - build
+  - publish_using_darc
   displayName: Insert to VS
 
   jobs:
   - job: insert
     displayName: Insert to VS
     pool:
-      vmImage: windows-2019
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals windows.vs2022.amd64
     steps:
+    - download: current
+      artifact: VSSetup
     - powershell: |
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
         Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
       displayName: Get Branch Name
-
     - template: eng/pipelines/insert.yml
       parameters:
-        clientId: $(ClientId)
-        clientSecret: $(ClientSecret)
+        buildUserName: "dn-bot@microsoft.com"
+        buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+        componentUserName: "dn-bot@microsoft.com"
+        componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
         componentBuildProjectName: internal
         sourceBranch: "$(ComponentBranchName)"
         publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
         publishDataAccessToken: "$(System.AccessToken)"
+        dropPath: '$(Pipeline.Workspace)\VSSetup'
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml

@@ -7,9 +7,19 @@
         <target state="translated">붙여넣을 때 누락된 using 지시문 추가</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">생성자 이니셜라이저의 콜론 뒤에 빈 줄 허용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">화살표 식 절에서 토큰 뒤에 빈 줄 허용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">조건식에서 토큰 뒤에 빈 줄 허용</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -39,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Block_scoped">
         <source>Block scoped</source>
-        <target state="new">Block scoped</target>
+        <target state="translated">블록 범위 지정됨</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -55,6 +65,11 @@
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
         <target state="translated">C# 서식 설정 규칙</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="translated">파일을 열 때 사용 축소</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion">
@@ -74,7 +89,7 @@
       </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
-        <target state="new">File scoped</target>
+        <target state="translated">파일 범위 지정됨</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -95,6 +110,16 @@
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
         <target state="translated">// 주석을 작성할 때 새 줄의 시작 부분에 // 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">호출한 메서드 이름과 여는 괄호 사이에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">메서드 이름과 여는 괄호 사이에 공백 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -122,6 +147,11 @@
         <target state="translated">개체, 컬렉션, 배열 및 with 이니셜라이저의 여는 중괄호를 새 줄에 배치</target>
         <note>{Locked="with"}</note>
       </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">확장 속성 패턴 선호</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">형식이 명백한 경우 암시적 개체 만들기 선호</target>
@@ -134,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">형식 검사보다 'null' 검사 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -170,6 +200,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
         <target state="translated">가져오지 않은 네임스페이스의 항목 표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">새 코드 조각 환경 표시(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -387,19 +422,9 @@
         <target state="translated">빈 인수 목록 괄호 내부에 공백 삽입</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">메서드 이름과 여는 괄호 사이에 공백 삽입</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">빈 매개 변수 목록 괄호 내에 공백 삽입</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">메서드 이름과 여는 괄호 사이에 공백 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

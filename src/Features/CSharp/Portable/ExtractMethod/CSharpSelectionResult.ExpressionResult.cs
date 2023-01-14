@@ -4,11 +4,11 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 OperationStatus status,
                 TextSpan originalSpan,
                 TextSpan finalSpan,
-                OptionSet options,
+                ExtractMethodOptions options,
                 bool selectionInExpression,
                 SemanticDocument document,
                 SyntaxAnnotation firstTokenAnnotation,
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override ITypeSymbol? GetContainingScopeType()
             {
-                if (!(GetContainingScope() is ExpressionSyntax node))
+                if (GetContainingScope() is not ExpressionSyntax node)
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 var model = SemanticDocument.SemanticModel;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // let's see whether this interface has coclass attribute
-            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass?.Equals(coclassSymbol) == true);
+            return info.ConvertedType.GetAttributes().Any(static (c, coclassSymbol) => c.AttributeClass?.Equals(coclassSymbol) == true, coclassSymbol);
         }
     }
 }

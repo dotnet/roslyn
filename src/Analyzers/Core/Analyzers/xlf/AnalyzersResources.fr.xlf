@@ -22,6 +22,11 @@
         <target state="translated">Ajouter des modificateurs d'accessibilité</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">Ajouter un cast explicite</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
         <target state="translated">Ajouter des parenthèses pour plus de clarté</target>
@@ -33,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Ajoutez la qualification 'this' ou 'Me'.</target>
+        <source>Add 'this' or 'Me' qualification</source>
+        <target state="translated">Ajoutez la qualification « this » ou « Me ».</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
@@ -97,6 +102,11 @@
         <target state="translated">L'initialisation des collections peut être simplifiée</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">Corriger la mise en forme</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">La chaîne de format contient un espace réservé non valide</target>
@@ -155,6 +165,11 @@
       <trans-unit id="Modifiers_are_not_ordered">
         <source>Modifiers are not ordered</source>
         <target state="translated">Les modificateurs ne sont pas ordonnés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Le nom peut être simplifié</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
@@ -247,6 +262,11 @@
         <target state="translated">Supprimer le cast inutile</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">Supprimer des modificateurs d'accessibilité</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Supprimer l'égalité redondante</target>
@@ -295,6 +315,21 @@
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">Simplifier l'expression LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Simplifier l'accès au membre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Simplifier les noms</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">Simplifier la vérification</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -385,6 +420,11 @@
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
         <target state="translated">Utiliser l'expression 'throw'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="translated">'{0}' instruction convertit implicitement '{1}' en '{2}'. Ajouter un cast explicite pour rendre l’intention plus claire, car elle peut échouer au moment de l’exécution</target>
         <note />
       </trans-unit>
     </body>

@@ -1318,7 +1318,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1.M2')
                     Children(1):
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1')
+                        IOperation:  (OperationKind.None, Type: Program.C1, IsInvalid) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1392,7 +1392,6 @@ IMethodReferenceOperation: Function Program.M2() As System.Int32 (Static) (Opera
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
@@ -2599,7 +2598,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
                                                         Function(operation As IOperation) As IConversionOperation
                                                             Dim initializer As IVariableInitializerOperation = DirectCast(operation, IVariableDeclarationGroupOperation).Declarations.Single().Initializer
                                                             Dim initializerValue As IOperation = initializer.Value
-                                                            Return DirectCast(initializerValue, IInvalidOperation).Children.Cast(Of IConversionOperation).Single()
+                                                            Return DirectCast(initializerValue, IInvalidOperation).ChildOperations.Cast(Of IConversionOperation).Single()
                                                         End Function)
 
             ' TODO: We're not comparing types because the semantic model doesn't return the correct ConvertedType for this expression. See
@@ -3206,7 +3205,6 @@ Module Module1
     End Sub
 End Module
 ]]>.Value
-
 
             Dim expectedOperationTree = <![CDATA[
 IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= &H7FFFFFFFL')

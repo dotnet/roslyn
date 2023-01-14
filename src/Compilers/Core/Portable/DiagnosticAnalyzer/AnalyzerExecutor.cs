@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -311,15 +312,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Executes the symbol start actions.
         /// </summary>
+        /// <param name="symbol">Symbol whose symbol start actions are to be executed.</param>
+        /// <param name="analyzer">Analyzer whose symbol start actions are to be executed.</param>
         /// <param name="actions"><see cref="AnalyzerActions"/> whose symbol start actions are to be executed.</param>
         /// <param name="symbolScope">Symbol scope to store the analyzer actions.</param>
+        /// <param name="isGeneratedCodeSymbol">Flag indicating if the symbol being analyzed is generated code.</param>
         public void ExecuteSymbolStartActions(
             ISymbol symbol,
             DiagnosticAnalyzer analyzer,
             ImmutableArray<SymbolStartAnalyzerAction> actions,
-            HostSymbolStartAnalysisScope symbolScope)
+            HostSymbolStartAnalysisScope symbolScope,
+            bool isGeneratedCodeSymbol)
         {
-            if (IsAnalyzerSuppressedForSymbol(analyzer, symbol))
+            if (isGeneratedCodeSymbol && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
+                IsAnalyzerSuppressedForSymbol(analyzer, symbol))
             {
                 return;
             }
@@ -330,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 var context = new AnalyzerSymbolStartAnalysisContext(startAction.Analyzer, symbolScope,
-                    symbol, Compilation, AnalyzerOptions, _cancellationToken);
+                    symbol, Compilation, AnalyzerOptions, isGeneratedCodeSymbol, _cancellationToken);
 
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
@@ -391,23 +397,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(compilationEvent is CompilationStartedEvent || compilationEvent is CompilationCompletedEvent);
 
-            AnalyzerStateData? analyzerState = null;
-
-            try
+            if (TryStartProcessingEvent(compilationEvent, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                if (TryStartProcessingEvent(compilationEvent, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
                     ExecuteCompilationActionsCore(compilationActions, analyzer, analyzerState);
-                    analysisState?.MarkEventComplete(compilationEvent, analyzer);
-                    return true;
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return IsEventComplete(compilationEvent, analyzer, analysisState);
+                return TryMarkEventComplete(compilationEvent, analyzer, analysisState);
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsEventComplete(compilationEvent, analyzer, analysisState);
         }
 
         private void ExecuteCompilationActionsCore(ImmutableArray<CompilationAnalyzerAction> compilationActions, DiagnosticAnalyzer analyzer, AnalyzerStateData? analyzerState)
@@ -460,24 +464,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisState? analysisState,
             bool isGeneratedCodeSymbol)
         {
-            AnalyzerStateData? analyzerState = null;
-
-            try
+            var symbol = symbolDeclaredEvent.Symbol;
+            if (TryStartAnalyzingSymbol(symbol, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                var symbol = symbolDeclaredEvent.Symbol;
-                if (TryStartAnalyzingSymbol(symbol, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
                     ExecuteSymbolActionsCore(symbolActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, analyzerState, isGeneratedCodeSymbol);
-                    analysisState?.MarkSymbolComplete(symbol, analyzer);
-                    return true;
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return IsSymbolComplete(symbol, analyzer, analysisState);
+                return TryMarkSymbolComplete(symbol, analyzer, analysisState);
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsSymbolComplete(symbol, analyzer, analysisState);
         }
 
         private void ExecuteSymbolActionsCore(
@@ -513,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         _cancellationToken.ThrowIfCancellationRequested();
 
                         var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
-                            isSupportedDiagnostic, _cancellationToken);
+                            isSupportedDiagnostic, isGeneratedCodeSymbol, _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
                             symbolAction.Analyzer,
@@ -534,6 +536,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="processedMemberSymbol">Completed member symbol.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
+        /// <param name="isGeneratedCode">Flag indicating if the containing symbol being analyzed is generated code.</param>
         /// <param name="analysisState">An optional object to track analysis state.</param>
         /// <returns>
         /// True, if successfully executed the actions for the given analysis scope OR all the actions have already been executed for the given analysis scope.
@@ -545,6 +548,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             AnalysisState? analysisState,
+            bool isGeneratedCode,
             [NotNullWhen(returnValue: true)] out SymbolDeclaredCompilationEvent? containingSymbolDeclaredEvent)
         {
             containingSymbolDeclaredEvent = null;
@@ -555,7 +559,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ImmutableArray<SymbolEndAnalyzerAction> endActions = containerEndActionsAndEvent.symbolEndActions;
             containingSymbolDeclaredEvent = containerEndActionsAndEvent.symbolDeclaredEvent;
-            return TryExecuteSymbolEndActionsCore(endActions, analyzer, containingSymbolDeclaredEvent, getTopMostNodeForAnalysis, analysisState);
+            return TryExecuteSymbolEndActionsCore(endActions, analyzer, containingSymbolDeclaredEvent, getTopMostNodeForAnalysis, isGeneratedCode, analysisState);
         }
 
         /// <summary>
@@ -565,6 +569,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="symbolDeclaredEvent">Symbol event to be analyzed.</param>
         /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
+        /// <param name="isGeneratedCode">Flag indicating if the symbol being analyzed is generated code.</param>
         /// <param name="analysisState">An optional object to track analysis state.</param>
         /// <returns>
         /// True, if successfully executed the actions for the given analysis scope OR all the actions have already been executed for the given analysis scope.
@@ -575,10 +580,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             SymbolDeclaredCompilationEvent symbolDeclaredEvent,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
+            bool isGeneratedCode,
             AnalysisState? analysisState)
         {
             return _analyzerManager.TryStartExecuteSymbolEndActions(symbolEndActions, analyzer, symbolDeclaredEvent) &&
-                TryExecuteSymbolEndActionsCore(symbolEndActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, analysisState);
+                TryExecuteSymbolEndActionsCore(symbolEndActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, isGeneratedCode, analysisState);
         }
 
         private bool TryExecuteSymbolEndActionsCore(
@@ -586,39 +592,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             SymbolDeclaredCompilationEvent symbolDeclaredEvent,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
+            bool isGeneratedCode,
             AnalysisState? analysisState)
         {
             var symbol = symbolDeclaredEvent.Symbol;
-
-            AnalyzerStateData? analyzerState = null;
-
-            try
+            if (TryStartSymbolEndAnalysis(symbol, analyzer, analysisState, out var analyzerState))
             {
-                if (TryStartSymbolEndAnalysis(symbol, analyzer, analysisState, out analyzerState))
+                try
                 {
-                    ExecuteSymbolEndActionsCore(symbolEndActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, analyzerState);
-                    MarkSymbolEndAnalysisComplete(symbol, analyzer, analysisState);
-                    return true;
+                    ExecuteSymbolEndActionsCore(symbolEndActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, isGeneratedCode, analyzerState);
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                if (!IsSymbolEndAnalysisComplete(symbol, analyzer, analysisState))
-                {
-                    _analyzerManager.MarkSymbolEndAnalysisPending(symbol, analyzer, symbolEndActions, symbolDeclaredEvent);
-                    return false;
-                }
+                return TryMarkSymbolEndAnalysisComplete(symbol, analyzer, analysisState);
+            }
 
-                return true;
-            }
-            finally
+            if (!IsSymbolEndAnalysisComplete(symbol, analyzer, analysisState))
             {
-                analyzerState?.ResetToReadyState();
+                _analyzerManager.MarkSymbolEndAnalysisPending(symbol, analyzer, symbolEndActions, symbolDeclaredEvent);
+                return false;
             }
+
+            return true;
         }
 
-        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
+        public bool TryMarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
         {
-            analysisState?.MarkSymbolEndAnalysisComplete(symbol, analyzer);
+            if (analysisState != null &&
+                !analysisState.TryMarkSymbolEndAnalysisComplete(symbol, analyzer))
+            {
+                return false;
+            }
+
             _analyzerManager.MarkSymbolEndAnalysisComplete(symbol, analyzer);
+            return true;
         }
 
         private void ExecuteSymbolEndActionsCore(
@@ -626,9 +636,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             SymbolDeclaredCompilationEvent symbolDeclaredEvent,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
+            bool isGeneratedCode,
             AnalyzerStateData? analyzerState)
         {
             Debug.Assert(getTopMostNodeForAnalysis != null);
+            Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForSymbol(analyzer, symbolDeclaredEvent.Symbol));
 
             var symbol = symbolDeclaredEvent.Symbol;
@@ -645,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
-                        isSupportedDiagnostic, _cancellationToken);
+                        isSupportedDiagnostic, isGeneratedCode, _cancellationToken);
 
                     ExecuteAndCatchIfThrows(
                         symbolAction.Analyzer,
@@ -676,28 +688,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
-            CompilationEvent compilationUnitCompletedEvent,
+            CompilationUnitCompletedEvent compilationUnitCompletedEvent,
             AnalysisScope analysisScope,
             AnalysisState? analysisState,
             bool isGeneratedCode)
         {
-            AnalyzerStateData? analyzerState = null;
+            Debug.Assert(!compilationUnitCompletedEvent.FilterSpan.HasValue || _isCompilerAnalyzer!(analyzer), "Only compiler analyzer supports span-based semantic model action callbacks");
 
-            try
+            if (TryStartProcessingEvent(compilationUnitCompletedEvent, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                if (TryStartProcessingEvent(compilationUnitCompletedEvent, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
-                    ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerState, isGeneratedCode);
-                    analysisState?.MarkEventComplete(compilationUnitCompletedEvent, analyzer);
-                    return true;
+                    ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerState, analysisScope, isGeneratedCode);
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return IsEventComplete(compilationUnitCompletedEvent, analyzer, analysisState);
+                return TryMarkEventComplete(compilationUnitCompletedEvent, analyzer, analysisState);
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsEventComplete(compilationUnitCompletedEvent, analyzer, analysisState);
         }
 
         private void ExecuteSemanticModelActionsCore(
@@ -705,6 +717,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
             AnalyzerStateData? analyzerState,
+            AnalysisScope analysisScope,
             bool isGeneratedCode)
         {
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
@@ -724,7 +737,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     var context = new SemanticModelAnalysisContext(semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
-                        isSupportedDiagnostic, _cancellationToken);
+                        isSupportedDiagnostic, analysisScope.FilterSpanOpt, isGeneratedCode, _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
@@ -762,23 +775,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode)
         {
             Debug.Assert(file.SourceTree != null);
-            AnalyzerStateData? analyzerState = null;
 
-            try
+            if (TryStartSyntaxAnalysis(file, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                if (TryStartSyntaxAnalysis(file, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
                     ExecuteSyntaxTreeActionsCore(syntaxTreeActions, analyzer, file, analyzerState, isGeneratedCode);
-                    analysisState?.MarkSyntaxAnalysisComplete(file, analyzer);
-                    return true;
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return analysisState == null || !analysisState.HasPendingSyntaxAnalysis(analysisScope);
+                return TryMarkSyntaxAnalysisComplete(file, analyzer, analysisState);
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsSyntaxAnalysisComplete(analysisScope, analysisState);
         }
 
         private void ExecuteSyntaxTreeActionsCore(
@@ -807,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SyntaxTreeAnalysisContext(tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, _cancellationToken);
+                    var context = new SyntaxTreeAnalysisContext(tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, isGeneratedCode, _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
@@ -843,23 +855,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisState? analysisState)
         {
             Debug.Assert(file.AdditionalFile != null);
-            AnalyzerStateData? analyzerState = null;
 
-            try
+            if (TryStartSyntaxAnalysis(file, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                if (TryStartSyntaxAnalysis(file, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
                     ExecuteAdditionalFileActionsCore(additionalFileActions, analyzer, file, analyzerState);
-                    analysisState?.MarkSyntaxAnalysisComplete(file, analyzer);
-                    return true;
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return analysisState == null || !analysisState.HasPendingSyntaxAnalysis(analysisScope);
+                return TryMarkSyntaxAnalysisComplete(file, analyzer, analysisState);
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsSyntaxAnalysisComplete(analysisScope, analysisState);
         }
 
         private void ExecuteAdditionalFileActionsCore(
@@ -903,16 +914,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
             SyntaxNodeAnalyzerStateData? analyzerState)
             where TLanguageKindEnum : struct
         {
             Debug.Assert(analyzerState == null || analyzerState.CurrentNode == node);
+            Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(syntaxNodeAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(syntaxNodeAction.Analyzer, node.SyntaxTree));
 
             if (ShouldExecuteAction(analyzerState, syntaxNodeAction))
             {
                 var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, containingSymbol, semanticModel, AnalyzerOptions, addDiagnostic,
-                    isSupportedDiagnostic, _cancellationToken);
+                    isSupportedDiagnostic, isGeneratedCode, _cancellationToken);
 
                 ExecuteAndCatchIfThrows(
                     syntaxNodeAction.Analyzer,
@@ -931,15 +944,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
             OperationAnalyzerStateData? analyzerState)
         {
             Debug.Assert(analyzerState == null || analyzerState.CurrentOperation == operation);
+            Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(operationAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(operationAction.Analyzer, semanticModel.SyntaxTree));
 
             if (ShouldExecuteAction(analyzerState, operationAction))
             {
                 var operationContext = new OperationAnalysisContext(operation, containingSymbol, semanticModel.Compilation,
-                    AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
+                    AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, isGeneratedCode, _cancellationToken);
                 ExecuteAndCatchIfThrows(
                     operationAction.Analyzer,
                     data => data.action(data.context),
@@ -973,11 +988,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode)
             where TLanguageKindEnum : struct
         {
-            DeclarationAnalyzerStateData? analyzerState = null;
-
-            try
+            if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
                     ExecuteBlockActionsCore<CodeBlockStartAnalyzerAction<TLanguageKindEnum>, CodeBlockAnalyzerAction, SyntaxNodeAnalyzerAction<TLanguageKindEnum>, SyntaxNodeAnalyzerStateData, SyntaxNode, TLanguageKindEnum>(
                         codeBlockStartActions, codeBlockActions, codeBlockEndActions, analyzer,
@@ -996,15 +1009,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 }
                             }),
                         semanticModel, getKind, analyzerState?.CodeBlockAnalysisState, isGeneratedCode);
-                    return true;
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return IsDeclarationComplete(declaredSymbol, declarationIndex, analyzer, analysisState);
+                return true;
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsDeclarationComplete(declaredSymbol, declarationIndex, analyzer, analysisState);
         }
 
         /// <summary>
@@ -1029,25 +1043,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisState? analysisState,
             bool isGeneratedCode)
         {
-            DeclarationAnalyzerStateData? analyzerState = null;
-
-            try
+            if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
                     ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, OperationAnalyzerStateData, IOperation, int>(
                         operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
                         declaredNode, declaredSymbol, operationBlocks, (blocks) => operations, semanticModel,
                         getKind: null, analyzerState?.OperationBlockAnalysisState, isGeneratedCode);
-                    return true;
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return IsDeclarationComplete(declaredSymbol, declarationIndex, analyzer, analysisState);
+                return true;
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsDeclarationComplete(declaredSymbol, declarationIndex, analyzer, analysisState);
         }
 
         private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TNodeStateData, TNode, TLanguageKindEnum>(
@@ -1120,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             var codeBlockEndActions = blockEndActions as PooledHashSet<CodeBlockAnalyzerAction>;
                             var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>();
                             var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(startAction.Analyzer,
-                                codeBlockScope, declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, _cancellationToken);
+                                codeBlockScope, declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, isGeneratedCode, _cancellationToken);
 
                             // Catch Exception from the start action.
                             ExecuteAndCatchIfThrows(
@@ -1141,7 +1154,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 var operationBlockEndActions = blockEndActions as PooledHashSet<OperationBlockAnalyzerAction>;
                                 var operationBlockScope = new HostOperationBlockStartAnalysisScope();
                                 var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(startAction.Analyzer,
-                                    operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, AnalyzerOptions, GetControlFlowGraph, _cancellationToken);
+                                    operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, AnalyzerOptions,
+                                    GetControlFlowGraph, isGeneratedCode, _cancellationToken);
 
                                 // Catch Exception from the start action.
                                 ExecuteAndCatchIfThrows(
@@ -1181,20 +1195,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
                     var syntaxNodesToAnalyze = (IEnumerable<SyntaxNode>)getNodesToAnalyze(executableBlocks);
-                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerState?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode, analyzerState?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData);
                 }
                 else if (operationActions != null)
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerState?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
+                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode, analyzerState?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
                 }
             }
 
             executableNodeActions.Free();
 
-            ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerState);
-            ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerState);
+            ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode, analyzerState);
+            ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode, analyzerState);
 
             diagReporter.Free();
         }
@@ -1208,10 +1222,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<IOperation> operationBlocks,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
             AnalysisState.BlockAnalyzerStateData<TBlockAction, TNodeStateData>? analyzerState)
             where TBlockAction : AnalyzerAction
             where TNodeStateData : AnalyzerStateData, new()
         {
+            Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree));
 
             foreach (var blockAction in blockActions)
@@ -1221,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
                     if (codeBlockAction != null)
                     {
-                        var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken);
+                        var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
                             codeBlockAction.Analyzer,
@@ -1235,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (operationBlockAction != null)
                         {
                             var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
-                                AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
+                                AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, isGeneratedCode, _cancellationToken);
 
                             ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,
@@ -1299,22 +1315,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            bool isGeneratedCode)
            where TLanguageKindEnum : struct
         {
-            DeclarationAnalyzerStateData? analyzerState = null;
-
-            try
+            if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
                     ExecuteSyntaxNodeActionsCore(nodesToAnalyze, nodeActionsByKind, analyzer, declaredSymbol, model, getKind, filterSpan, analyzerState, isGeneratedCode);
-                    return true;
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return IsDeclarationComplete(declaredSymbol, declarationIndex, analyzer, analysisState);
+                return true;
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsDeclarationComplete(declaredSymbol, declarationIndex, analyzer, analysisState);
         }
 
         private void ExecuteSyntaxNodeActionsCore<TLanguageKindEnum>(
@@ -1338,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpan, analyzer);
 
             using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
-            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, containingSymbol, model, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerState);
+            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, containingSymbol, model, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode, analyzerState);
             diagReporter.Free();
         }
 
@@ -1351,16 +1366,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<SyntaxNode, TLanguageKindEnum> getKind,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
             SyntaxNodeAnalyzerStateData? analyzerState)
             where TLanguageKindEnum : struct
         {
             Debug.Assert(nodeActionsByKind.Any());
+            Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree));
 
             var partiallyProcessedNode = analyzerState?.CurrentNode;
             if (partiallyProcessedNode != null)
             {
-                ExecuteSyntaxNodeActions(partiallyProcessedNode, nodeActionsByKind, containingSymbol, model, getKind, addDiagnostic, isSupportedDiagnostic, analyzerState);
+                ExecuteSyntaxNodeActions(partiallyProcessedNode, nodeActionsByKind, containingSymbol, model, getKind, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, analyzerState);
             }
 
             foreach (var child in nodesToAnalyze)
@@ -1369,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     SetCurrentNode(analyzerState, child);
 
-                    ExecuteSyntaxNodeActions(child, nodeActionsByKind, containingSymbol, model, getKind, addDiagnostic, isSupportedDiagnostic, analyzerState);
+                    ExecuteSyntaxNodeActions(child, nodeActionsByKind, containingSymbol, model, getKind, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, analyzerState);
                 }
             }
         }
@@ -1382,6 +1399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<SyntaxNode, TLanguageKindEnum> getKind,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
             SyntaxNodeAnalyzerStateData? analyzerState)
             where TLanguageKindEnum : struct
         {
@@ -1389,11 +1407,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var action in actionsForKind)
                 {
-                    ExecuteSyntaxNodeAction(action, node, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, analyzerState);
+                    ExecuteSyntaxNodeAction(action, node, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, analyzerState);
                 }
             }
 
-            analyzerState?.ClearNodeAnalysisState();
+            analyzerState?.OnAllActionsExecutedForNode(node);
         }
 
         internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
@@ -1439,22 +1457,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisState? analysisState,
             bool isGeneratedCode)
         {
-            DeclarationAnalyzerStateData? analyzerState = null;
-
-            try
+            if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out var analyzerState))
             {
-                if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out analyzerState))
+                try
                 {
-                    ExecuteOperationActionsCore(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, filterSpan, analyzerState?.OperationBlockAnalysisState.ExecutableNodesAnalysisState, isGeneratedCode);
-                    return true;
+                    ExecuteOperationActionsCore(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, filterSpan, analyzerState?.OperationAnalysisState, isGeneratedCode);
+                }
+                finally
+                {
+                    analyzerState?.ResetToReadyState();
                 }
 
-                return IsDeclarationComplete(declaredSymbol, declarationIndex, analyzer, analysisState);
+                return true;
             }
-            finally
-            {
-                analyzerState?.ResetToReadyState();
-            }
+
+            return IsDeclarationComplete(declaredSymbol, declarationIndex, analyzer, analysisState);
         }
 
         private void ExecuteOperationActionsCore(
@@ -1476,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, filterSpan, analyzer);
 
             using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
-            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, containingSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerState);
+            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, containingSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, isGeneratedCode, analyzerState);
             diagReporter.Free();
         }
 
@@ -1488,16 +1505,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
             OperationAnalyzerStateData? analyzerState)
         {
             Debug.Assert(operationActionsByKind != null);
             Debug.Assert(operationActionsByKind.Any());
+            Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree));
 
             var partiallyProcessedOperation = analyzerState?.CurrentOperation;
             if (partiallyProcessedOperation != null)
             {
-                ExecuteOperationActions(partiallyProcessedOperation, operationActionsByKind, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, analyzerState);
+                ExecuteOperationActions(partiallyProcessedOperation, operationActionsByKind, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, analyzerState);
             }
 
             foreach (var child in operationsToAnalyze)
@@ -1506,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     SetCurrentOperation(analyzerState, child);
 
-                    ExecuteOperationActions(child, operationActionsByKind, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, analyzerState);
+                    ExecuteOperationActions(child, operationActionsByKind, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, analyzerState);
                 }
             }
         }
@@ -1518,17 +1537,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
             OperationAnalyzerStateData? analyzerState)
         {
             if (operationActionsByKind.TryGetValue(operation.Kind, out var actionsForKind))
             {
                 foreach (var action in actionsForKind)
                 {
-                    ExecuteOperationAction(action, operation, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, analyzerState);
+                    ExecuteOperationAction(action, operation, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, isGeneratedCode, analyzerState);
                 }
             }
 
-            analyzerState?.ClearNodeAnalysisState();
+            analyzerState?.OnAllActionsExecutedForOperation(operation);
         }
 
         internal static bool CanHaveExecutableCodeBlock(ISymbol symbol)
@@ -1556,18 +1576,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SharedStopwatch timer = default;
             if (_analyzerExecutionTimeMap != null)
             {
-                _ = SharedStopwatch.StartNew();
-
-                // This call to StartNew isn't required by the API, but is included to avoid measurement errors
-                // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
-                // operations can block at their return point on the completion of a background GC operation. When
-                // this occurs, the GC wait time ends up included in the measured time span. In the event the first
-                // call to StartNew blocked on a GC operation, this call to StartNew will most likely occur when the
-                // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
-                // timing data was observed.
-                //
-                // Note that the call to SharedStopwatch.Elapsed is not affected, because the GC wait will occur
-                // after the timer has already recorded its stop time.
                 timer = SharedStopwatch.StartNew();
             }
 
@@ -1637,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerName = analyzer.ToString();
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
-            var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer)).Trim();
+            var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer, analyzerName)).Trim();
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message, contextInformation };
             var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, CreateDiagnosticDescription(info, e));
             var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
@@ -1655,19 +1663,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 string.Format(CodeAnalysisResources.ExceptionContext, info?.GetContext()), e.CreateDiagnosticDescription());
         }
 
-        private static string CreateDisablingMessage(DiagnosticAnalyzer analyzer)
+        private static string CreateDisablingMessage(DiagnosticAnalyzer analyzer, string analyzerName)
         {
             var diagnosticIds = ImmutableSortedSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
             try
             {
                 foreach (var diagnostic in analyzer.SupportedDiagnostics)
                 {
-                    diagnosticIds = diagnosticIds.Add(diagnostic.Id);
+                    // If a null diagnostic is returned, we would have already reported that to the user earlier; we can just skip this.
+                    if (diagnostic != null)
+                    {
+                        diagnosticIds = diagnosticIds.Add(diagnostic.Id);
+                    }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception ex)
             {
-                // Intentionally empty
+                return string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, ex.CreateDiagnosticDescription());
             }
 
             if (diagnosticIds.IsEmpty)
@@ -1977,14 +1989,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analysisState == null || analysisState.TryStartAnalyzingDeclaration(symbol, declarationIndex, analyzer, out analyzerState);
         }
 
+        private static bool TryMarkEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
+        {
+            return analysisState == null || analysisState.TryMarkEventComplete(compilationEvent, analyzer);
+        }
+
         private static bool IsEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
         {
             return analysisState == null || analysisState.IsEventComplete(compilationEvent, analyzer);
         }
 
+        private static bool TryMarkSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
+        {
+            return analysisState == null || analysisState.TryMarkSymbolComplete(symbol, analyzer);
+        }
+
         private static bool IsSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
         {
             return analysisState == null || analysisState.IsSymbolComplete(symbol, analyzer);
+        }
+
+        private static bool TryMarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
+        {
+            return analysisState == null || analysisState.TryMarkSyntaxAnalysisComplete(file, analyzer);
+        }
+
+        private static bool IsSyntaxAnalysisComplete(AnalysisScope analysisScope, AnalysisState? analysisState)
+        {
+            return analysisState == null || !analysisState.HasPendingSyntaxAnalysis(analysisScope);
         }
 
         private static bool IsSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)

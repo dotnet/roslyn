@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 // that statement must be a block
-                if (!(statements.Single() is BlockSyntax block))
+                if (statements.Single() is not BlockSyntax block)
                 {
                     return statements;
                 }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // 3. no trivia except whitespace
                 // 4. type must be known
 
-                if (!(statement is LocalDeclarationStatementSyntax declarationStatement))
+                if (statement is not LocalDeclarationStatementSyntax declarationStatement)
                 {
                     return false;
                 }
@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     foreach (var trivia in token.LeadingTrivia.Concat(token.TrailingTrivia))
                     {
-                        if (trivia.Kind() != SyntaxKind.WhitespaceTrivia &&
-                            trivia.Kind() != SyntaxKind.EndOfLineTrivia)
+                        if (trivia.Kind() is not SyntaxKind.WhitespaceTrivia and
+                            not SyntaxKind.EndOfLineTrivia)
                         {
                             return false;
                         }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return statements;
                 }
 
-                if (!(statements.ElementAtOrDefault(0) is LocalDeclarationStatementSyntax declaration) || !(statements.ElementAtOrDefault(1) is ReturnStatementSyntax returnStatement))
+                if (statements.ElementAtOrDefault(0) is not LocalDeclarationStatementSyntax declaration || statements.ElementAtOrDefault(1) is not ReturnStatementSyntax returnStatement)
                 {
                     return statements;
                 }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public static ImmutableArray<StatementSyntax> RemoveDeclarationAssignmentPattern(ImmutableArray<StatementSyntax> statements)
             {
-                if (!(statements.ElementAtOrDefault(0) is LocalDeclarationStatementSyntax declaration) || !(statements.ElementAtOrDefault(1) is ExpressionStatementSyntax assignment))
+                if (statements.ElementAtOrDefault(0) is not LocalDeclarationStatementSyntax declaration || statements.ElementAtOrDefault(1) is not ExpressionStatementSyntax assignment)
                 {
                     return statements;
                 }

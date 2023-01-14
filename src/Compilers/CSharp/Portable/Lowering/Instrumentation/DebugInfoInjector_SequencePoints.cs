@@ -125,19 +125,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.EventFieldDeclaration:
                     case SyntaxKind.FieldDeclaration:
-                        var modifiers = ((BaseFieldDeclarationSyntax)declarationSyntax.Parent).Modifiers;
-                        GetFirstLocalOrFieldBreakpointSpan(modifiers.Any() ? modifiers[0] : (SyntaxToken?)null, declaratorSyntax, out node, out part);
+                        {
+                            var modifiers = ((BaseFieldDeclarationSyntax)declarationSyntax.Parent).Modifiers;
+                            GetFirstLocalOrFieldBreakpointSpan(modifiers.Any() ? modifiers[0] : (SyntaxToken?)null, declaratorSyntax, out node, out part);
+                        }
                         break;
 
                     case SyntaxKind.LocalDeclarationStatement:
-                        // only const locals have modifiers and those don't have a sequence point:
-                        var parent = (LocalDeclarationStatementSyntax)declarationSyntax.Parent;
-                        Debug.Assert(!parent.Modifiers.Any());
-                        var firstToken =
-                            parent.UsingKeyword == default ? (SyntaxToken?)null :
-                            parent.AwaitKeyword == default ? parent.UsingKeyword :
-                            parent.AwaitKeyword;
-                        GetFirstLocalOrFieldBreakpointSpan(firstToken, declaratorSyntax, out node, out part);
+                        {
+                            var parent = (LocalDeclarationStatementSyntax)declarationSyntax.Parent;
+                            var modifiers = parent.Modifiers;
+                            Debug.Assert(!modifiers.Any(SyntaxKind.ConstKeyword)); // const locals don't have a sequence point
+                            var firstToken =
+                                modifiers.Any() ? modifiers[0] :
+                                parent.UsingKeyword == default ? (SyntaxToken?)null :
+                                parent.AwaitKeyword == default ? parent.UsingKeyword :
+                                parent.AwaitKeyword;
+                            GetFirstLocalOrFieldBreakpointSpan(firstToken, declaratorSyntax, out node, out part);
+                        }
                         break;
 
                     case SyntaxKind.UsingStatement:
@@ -201,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add hidden sequence point unless the condition is a constant expression.
             // Constant expression must stay a const to not invalidate results of control flow analysis.
-            var valueExpression = (condition.ConstantValue == null) ?
+            var valueExpression = (condition.ConstantValueOpt == null) ?
                 new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type) :
                 condition;
 

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CaseCorrection
@@ -20,6 +21,6 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// Case corrects only things that don't require semantic information
         /// </summary>
-        SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken);
+        SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
     }
 }

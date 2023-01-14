@@ -389,8 +389,8 @@ End Class
                 End Sub
 
             CompileAndVerify(verifiable, validator:=validator)
-            CompileAndVerify(unverifiable, validator:=validator, verify:=Verification.Fails)
-            CompileAndVerify(unloadable, validator:=validator, verify:=Verification.Fails)
+            CompileAndVerify(unverifiable, validator:=validator, verify:=Verification.FailsPEVerify)
+            CompileAndVerify(unloadable, validator:=validator, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact>
@@ -566,7 +566,7 @@ End Class
     </file>
 </compilation>
             ' type C can't be loaded
-            CompileAndVerify(source, verify:=Verification.Fails)
+            CompileAndVerify(source, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact>
@@ -688,6 +688,37 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
 BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
     <FieldOffset(-1)>
                  ~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ExplicitFieldLayout_Errors2()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class FieldOffsetAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional offset As Integer = -1)
+        End Sub
+    End Class
+End Namespace
+
+Public Class S
+    <FieldOffset>
+    Dim b As Integer
+End Class
+]]>
+    </file>
+</compilation>
+
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
+BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
+    <FieldOffset>
+     ~~~~~~~~~~~
 ]]>)
         End Sub
 

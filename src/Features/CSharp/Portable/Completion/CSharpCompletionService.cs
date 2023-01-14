@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -11,33 +9,35 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion
 {
-    [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
-    internal class CSharpCompletionServiceFactory : ILanguageServiceFactory
+    internal sealed class CSharpCompletionService : CommonCompletionService
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCompletionServiceFactory()
+        [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
+        internal sealed class Factory : ILanguageServiceFactory
         {
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
+            {
+                _listenerProvider = listenerProvider;
+            }
+
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+            public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+                => new CSharpCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);
         }
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
-    }
+        private CompletionRules _latestRules = CompletionRules.Default;
 
-    internal class CSharpCompletionService : CommonCompletionService
-    {
-        private readonly Workspace _workspace;
-
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public CSharpCompletionService(Workspace workspace)
-            : base(workspace)
+        private CSharpCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
+            : base(services, listenerProvider)
         {
-            _workspace = workspace;
         }
 
         public override string Language => LanguageNames.CSharp;
@@ -45,14 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         public override TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
             => CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
 
-        private CompletionRules _latestRules = CompletionRules.Default;
-
-        public override CompletionRules GetRules()
+        internal override CompletionRules GetRules(CompletionOptions options)
         {
-            var options = _workspace.Options;
-
-            var enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp);
-            var snippetRule = options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.CSharp);
+            var enterRule = options.EnterKeyBehavior;
+            var snippetRule = options.SnippetsBehavior;
 
             // Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# and VB
             // In C# the default means Never to maintain previous behavior

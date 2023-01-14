@@ -77,13 +77,24 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorRunResult
     {
-        internal GeneratorRunResult(ISourceGenerator generator, ImmutableArray<GeneratedSourceResult> generatedSources, ImmutableArray<Diagnostic> diagnostics, Exception? exception, TimeSpan elapsedTime)
+        internal GeneratorRunResult(
+            ISourceGenerator generator,
+            ImmutableArray<GeneratedSourceResult> generatedSources,
+            ImmutableArray<Diagnostic> diagnostics,
+            ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> namedSteps,
+            ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
+            ImmutableArray<(string Key, string Value)> hostOutputs,
+            Exception? exception,
+            TimeSpan elapsedTime)
         {
             Debug.Assert(exception is null || (generatedSources.IsEmpty && diagnostics.Length == 1));
 
             this.Generator = generator;
             this.GeneratedSources = generatedSources;
             this.Diagnostics = diagnostics;
+            this.TrackedSteps = namedSteps;
+            this.TrackedOutputSteps = outputSteps;
+            this.HostOutputs = hostOutputs;
             this.Exception = exception;
             this.ElapsedTime = elapsedTime;
         }
@@ -107,6 +118,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
+        internal ImmutableArray<(string Key, string Value)> HostOutputs { get; }
+
         /// <summary>
         /// An <see cref="System.Exception"/> instance that was thrown by the generator, or <c>null</c> if the generator completed without error.
         /// </summary>
@@ -120,6 +133,16 @@ namespace Microsoft.CodeAnalysis
         /// The wall clock time that elapsed while this generator was running.
         /// </summary>
         internal TimeSpan ElapsedTime { get; }
+
+        /// <summary>
+        /// A collection of the named incremental steps executed during the generator pass this result represents.
+        /// </summary>
+        public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedSteps { get; }
+
+        /// <summary>
+        /// A collection of the named incremental steps executed during the generator pass this result represents.
+        /// </summary>
+        public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedOutputSteps { get; }
     }
 
     /// <summary>
@@ -151,5 +174,52 @@ namespace Microsoft.CodeAnalysis
         /// An identifier provided by the generator that identifies the added <see cref="SourceText"/>.
         /// </summary>
         public string HintName { get; }
+    }
+
+    /// <summary>
+    /// Contains timing information for a full generation pass.
+    /// </summary>
+    public readonly struct GeneratorDriverTimingInfo
+    {
+        internal GeneratorDriverTimingInfo(TimeSpan elapsedTime, ImmutableArray<GeneratorTimingInfo> generatorTimes)
+        {
+            ElapsedTime = elapsedTime;
+            GeneratorTimes = generatorTimes;
+        }
+
+        /// <summary>
+        /// The wall clock time that the entire generation pass took.
+        /// </summary>
+        /// <remarks>
+        /// This can be more than the sum of times in <see cref="GeneratorTimes"/> as it includes other costs such as setup.
+        /// </remarks>
+        public TimeSpan ElapsedTime { get; }
+
+        /// <summary>
+        /// Individual timings per generator.
+        /// </summary>
+        public ImmutableArray<GeneratorTimingInfo> GeneratorTimes { get; }
+    }
+
+    /// <summary>
+    /// Contains timing information for a single generator.
+    /// </summary>
+    public readonly struct GeneratorTimingInfo
+    {
+        internal GeneratorTimingInfo(ISourceGenerator generator, TimeSpan elapsedTime)
+        {
+            Generator = generator;
+            ElapsedTime = elapsedTime;
+        }
+
+        /// <summary>
+        /// The <see cref="ISourceGenerator"/> that was running during the recorded time.
+        /// </summary>
+        public ISourceGenerator Generator { get; }
+
+        /// <summary>
+        /// The wall clock time the generator spent running.
+        /// </summary>
+        public TimeSpan ElapsedTime { get; }
     }
 }

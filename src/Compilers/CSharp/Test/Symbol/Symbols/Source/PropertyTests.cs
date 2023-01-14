@@ -47,7 +47,6 @@ class C
 }").VerifyDiagnostics();
         }
 
-
         [Fact]
         public void GetOnlyAutoPropBadOverride()
         {
@@ -72,12 +71,12 @@ class C : Base
     }
 
 }").VerifyDiagnostics(
-    // (12,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
-    //     public override int P { get; }
-    Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P").WithArguments("C.P").WithLocation(12, 25),
-    // (13,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
-    //     public override int P1 { get; }
-    Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithArguments("C.P1").WithLocation(13, 25)
+                    // (12,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
+                    //     public override int P { get; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P").WithLocation(12, 25),
+                    // (13,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
+                    //     public override int P1 { get; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(13, 25)
                 );
         }
 
@@ -157,12 +156,15 @@ struct S
                 // (4,9): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     int a = 2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(4, 9),
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 8),
                 // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
                 //     int a { get { return 1; } set {} }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
-                // (4,9): warning CS0414: The field 'S.a' is assigned but its value is never used
+                // (4,9): warning CS0169: The field 'S.a' is never used
                 //     int a = 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a").WithLocation(4, 9));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("S.a").WithLocation(4, 9));
         }
 
         [Fact]
@@ -205,6 +207,9 @@ struct S
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 8),
                 // (4,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int P { get; set; } = 1;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "P").WithArguments("struct field initializers", "10.0").WithLocation(4, 16),
@@ -262,7 +267,7 @@ struct S
             comp.VerifyDiagnostics(
                 // (3,9): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int P { get; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P").WithArguments("I.P").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P").WithLocation(3, 9));
         }
 
         [Fact]
@@ -291,10 +296,10 @@ struct S
             comp.VerifyDiagnostics(
 // (4,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int Q { set; } = 0;
-Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.Q.set").WithLocation(4, 20),
+Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(4, 20),
 // (5,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int R { set; }
-Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.R.set").WithLocation(5, 20));
+Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(5, 20));
         }
 
         [Fact]
@@ -309,7 +314,7 @@ Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("
             comp.VerifyDiagnostics(
 // (3,20): error CS8080: Auto-implemented properties cannot return by reference
 //     public ref int P { get; }
-Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P").WithArguments("C.P").WithLocation(3, 20));
+Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P").WithLocation(3, 20));
         }
 
         [Fact]
@@ -323,10 +328,10 @@ class C
             var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (4,29): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref readonly int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithArguments("C.P1").WithLocation(4, 29),
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithLocation(4, 29),
                 // (4,39): error CS8147: Properties which return by reference cannot have set accessors
                 //     public ref readonly int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.P1.set").WithLocation(4, 39));
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(4, 39));
         }
 
         [WorkItem(542745, "DevDiv")]
@@ -1159,12 +1164,12 @@ class B {
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
-    //     B y = A.Goo; 
-    Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E", "E"),
-    // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
-    //     B y = A.Goo; 
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B")
+                // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
+                //     B y = A.Goo; 
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E").WithLocation(5, 11),
+                // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
+                //     B y = A.Goo; 
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B").WithLocation(5, 11)
                 );
             // Dev10 errors:
             // error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
@@ -2041,7 +2046,13 @@ End Class";
     }
 }";
             var compilation3 = CreateCompilation(source3, new[] { reference1 });
-            compilation3.VerifyDiagnostics();
+            compilation3.VerifyDiagnostics(
+                // (6,13): warning CS8974: Converting method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = B2.P;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "B2.P").WithArguments("P", "object").WithLocation(6, 13),
+                // (8,13): warning CS8974: Converting method group 'Q' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = b.Q;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "b.Q").WithArguments("Q", "object").WithLocation(8, 13));
         }
 
         [ClrOnlyFact]
@@ -2093,7 +2104,10 @@ static class E
     internal static object P(this object o) { return null; }
 }";
             var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source3, new[] { reference1 });
-            compilation3.VerifyDiagnostics();
+            compilation3.VerifyDiagnostics(
+                // (6,13): warning CS8974: Converting method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = a.P;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "a.P").WithArguments("P", "object").WithLocation(6, 13));
         }
 
         [ClrOnlyFact]
@@ -2898,7 +2912,7 @@ unsafe class Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,17): error CS8080: Properties with by-reference returns must have a get accessor.
                 //         ref int P { set { } }
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "P").WithArguments("C.P").WithLocation(4, 17));
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "P").WithLocation(4, 17));
         }
 
         [Fact]
@@ -2915,7 +2929,7 @@ unsafe class Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (5,47): error CS8081: Properties with by-reference returns cannot have set accessors.
                 //         ref int P { get { return ref field; } set { } } 
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.P.set").WithLocation(5, 47));
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 47));
         }
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]

@@ -12,12 +12,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     {
+        public CodeActionResolveTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [WpfFact]
         public async Task TestCodeActionResolveHandlerAsync()
         {
@@ -29,13 +34,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(initialMarkup, out var locations);
+            await using var testLspServer = await CreateTestLspServerAsync(initialMarkup);
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSInternalCodeAction>(),
-                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
+                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, testLspServer.GetLocations("caret").Single()),
                 priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
@@ -58,12 +63,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSInternalCodeAction>(),
-                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
+                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, testLspServer.GetLocations("caret").Single()),
                 priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
                 diagnostics: null,
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
-                edit: GenerateWorkspaceEdit(locations, expectedTextEdits));
+                edit: GenerateWorkspaceEdit(testLspServer.GetLocations("caret"), expectedTextEdits));
 
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(initialMarkup, out var locations);
+            await using var testLspServer = await CreateTestLspServerAsync(initialMarkup);
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
@@ -88,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                    locations["caret"].Single()),
+                    testLspServer.GetLocations("caret").Single()),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
@@ -118,13 +123,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                    locations["caret"].Single()),
+                    testLspServer.GetLocations("caret").Single()),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null,
                 edit: GenerateWorkspaceEdit(
-                    locations, expectedTextEdits));
+                    testLspServer.GetLocations("caret"), expectedTextEdits));
 
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
@@ -132,11 +137,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static async Task<LSP.VSInternalCodeAction> RunGetCodeActionResolveAsync(
             TestLspServer testLspServer,
-            VSInternalCodeAction unresolvedCodeAction,
-            LSP.ClientCapabilities clientCapabilities = null)
+            VSInternalCodeAction unresolvedCodeAction)
         {
             var result = (VSInternalCodeAction)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
-                LSP.Methods.CodeActionResolveName, unresolvedCodeAction, clientCapabilities, null, CancellationToken.None);
+                LSP.Methods.CodeActionResolveName, unresolvedCodeAction, CancellationToken.None);
             return result;
         }
 
@@ -148,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             };
 
         private static WorkspaceEdit GenerateWorkspaceEdit(
-            Dictionary<string, IList<LSP.Location>> locations,
+            IList<LSP.Location> locations,
             TextEdit[] edits)
             => new LSP.WorkspaceEdit
             {
@@ -158,7 +162,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier
                         {
-                            Uri = locations["caret"].Single().Uri
+                            Uri = locations.Single().Uri
                         },
                         Edits = edits,
                     }

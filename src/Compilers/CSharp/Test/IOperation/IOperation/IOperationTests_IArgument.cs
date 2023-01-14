@@ -3039,7 +3039,6 @@ IInvocationOperation (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void GettingInOutConversionFromCSharpArgumentShouldThrowException()
@@ -3544,9 +3543,15 @@ IPropertyReferenceOperation: System.Int32 P.this[params System.Int32[] array] { 
 [assembly: /*<bind>*/System.CLSCompliant(isCompliant: true)/*</bind>*/]
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.CLSC ... iant: true)')
-  Children(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'System.CLSC ... iant: true)')
+  IObjectCreationOperation (Constructor: System.CLSCompliantAttribute..ctor(System.Boolean isCompliant)) (OperationKind.ObjectCreation, Type: System.CLSCompliantAttribute, IsImplicit) (Syntax: 'System.CLSC ... iant: true)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: isCompliant) (OperationKind.Argument, Type: null) (Syntax: 'isCompliant: true')
+          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3629,7 +3634,7 @@ IInvocationOperation (void P.M2([System.Int32? x = 10])) (OperationKind.Invocati
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3660,7 +3665,7 @@ IInvocationOperation (void P.M2([System.Int32? x = null])) (OperationKind.Invoca
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -4111,7 +4116,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2(1, 2)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "M2").WithArguments("M2").WithLocation(6, 19)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         private class IndexerAccessArgumentVerifier : OperationWalker

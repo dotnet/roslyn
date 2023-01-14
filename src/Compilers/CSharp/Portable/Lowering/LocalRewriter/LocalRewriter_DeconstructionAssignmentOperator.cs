@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitExpression(conditional.Condition),
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Consequence, isUsed: true)!,
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true)!,
-                    conditional.ConstantValue,
+                    conditional.ConstantValueOpt,
                     leftType,
                     wasTargetTyped: true,
                     leftType);
@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();
             BoundExpression? returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
+            reverseAssignmentsToTargetsIfApplicable();
+
             effects.Consolidate();
 
             if (!isUsed)
@@ -103,6 +105,97 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
             }
+
+            // Optimize a deconstruction assignment by reversing the order that we store to the final variables.
+            void reverseAssignmentsToTargetsIfApplicable()
+            {
+                PooledHashSet<Symbol>? visitedSymbols = null;
+
+                Debug.Assert(right is not ({ Kind: BoundKind.TupleLiteral } or BoundConversion { Operand.Kind: BoundKind.TupleLiteral }));
+                // Here are the general requirements for performing the optimization:
+                if (// - the RHS is a tuple literal (which means the temps produced for this assignment are for the tuple elements, which could turn into push-pops into the destination variables)
+                    right is { Kind: BoundKind.ConvertedTupleLiteral } or BoundConversion { Operand.Kind: BoundKind.ConvertedTupleLiteral }
+
+                    // - at least one element in the RHS is actually stored to a temp. i.e. it is not a constant expression.
+                    && effects.init.Any()
+
+                    // - all variables on the LHS are unique, by-value, and are locals or parameters.
+                    //     - Note that this could be expanded into fields of non-nullable value types at some point, but we decided not to invest in that at this time.
+                    && canReorderTargetAssignments(lhsTargets, ref visitedSymbols))
+                {
+                    // Consider a deconstruction assignment like the following:
+                    // (a, b, c) = (x, y, z);
+
+                    // (x, y, z) are evaluated into temps, then the temps are stored to the targets:
+                    // temp1 = x;
+                    // temp2 = y;
+                    // temp3 = z;
+                    // a = temp1;
+                    // b = temp2;
+                    // c = temp3;
+
+                    // As an optimization, ensure that assignments from temps to targets happen in the reverse order of effects:
+                    // temp1 = x;
+                    // temp2 = y;
+                    // temp3 = z;
+                    // c = temp3;
+                    // b = temp2;
+                    // a = temp1;
+
+                    // This makes it more likely that the stack optimizer pass will be able to eliminate the temps and replace them with stack push/pops.
+                    effects.assignments.ReverseContents();
+                }
+
+                visitedSymbols?.Free();
+            }
+
+            static bool canReorderTargetAssignments(ArrayBuilder<Binder.DeconstructionVariable> targets, ref PooledHashSet<Symbol>? visitedSymbols)
+            {
+                // If we know all targets refer to distinct variables, then we can reorder the assignments.
+                // We avoid doing this in any cases where aliasing could occur, e.g.:
+                // var y = 1;
+                // ref var x = ref y;
+                // (x, y) = (a, b);
+
+                foreach (var target in targets)
+                {
+                    Debug.Assert(target is { Single: not null, NestedVariables: null } or { Single: null, NestedVariables: not null });
+                    if (target.Single is { } single)
+                    {
+                        Symbol? symbol;
+                        switch (single)
+                        {
+                            case BoundLocal { LocalSymbol: { RefKind: RefKind.None } localSymbol }:
+                                symbol = localSymbol;
+                                break;
+                            case BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol }:
+                                symbol = parameterSymbol;
+                                break;
+                            case BoundDiscardExpression:
+                                // we don't care in what order we assign to these.
+                                continue;
+                            default:
+                                // This deconstruction assigns to a target which is not sufficiently simple.
+                                // We can't verify that the deconstruction does not use any aliases to variables.
+                                return false;
+                        }
+
+                        visitedSymbols ??= PooledHashSet<Symbol>.GetInstance();
+                        if (!visitedSymbols.Add(symbol))
+                        {
+                            // This deconstruction writes to the same target multiple times, e.g:
+                            // (x, x) = (a, b);
+                            return false;
+                        }
+                    }
+                    else if (!canReorderTargetAssignments(target.NestedVariables!, ref visitedSymbols))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
         /// <summary>
@@ -125,18 +218,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
             ImmutableArray<BoundExpression> rightParts = GetRightParts(right, conversion, temps, effects, ref inInit);
 
-            ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
-            Debug.Assert(!underlyingConversions.IsDefault);
-            Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == conversion.UnderlyingConversions.Length);
+            ImmutableArray<(BoundValuePlaceholder?, BoundExpression?)> deconstructConversionInfo = conversion.DeconstructConversionInfo;
+            Debug.Assert(!deconstructConversionInfo.IsDefault);
+            Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == deconstructConversionInfo.Length);
 
             var builder = isUsed ? ArrayBuilder<BoundExpression>.GetInstance(leftTargets.Count) : null;
             for (int i = 0; i < leftTargets.Count; i++)
             {
                 BoundExpression? resultPart;
+                var (placeholder, nestedConversion) = deconstructConversionInfo[i];
+                Debug.Assert(placeholder is not null);
+                Debug.Assert(nestedConversion is not null);
+
                 if (leftTargets[i].NestedVariables is { } nested)
                 {
                     resultPart = ApplyDeconstructionConversion(nested, rightParts[i],
-                        underlyingConversions[i], temps, effects, isUsed, inInit);
+                        BoundNode.GetConversion(nestedConversion, placeholder), temps, effects, isUsed, inInit);
                 }
                 else
                 {
@@ -148,13 +245,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression? leftTarget = leftTargets[i].Single;
                     Debug.Assert(leftTarget is { Type: { } });
 
-                    resultPart = EvaluateConversionToTemp(rightPart, underlyingConversions[i], leftTarget.Type, temps,
+                    resultPart = EvaluateConversionToTemp(rightPart, placeholder, nestedConversion, temps,
                         effects.conversions);
 
                     if (leftTarget.Kind != BoundKind.DiscardExpression)
                     {
                         effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart, leftTarget.Type,
-                            used: true, isChecked: false, isCompoundAssignment: false));
+                            used: false, isChecked: false, isCompoundAssignment: false));
                     }
                 }
                 Debug.Assert(builder is null || resultPart is { });
@@ -224,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AccessTupleFields(VisitExpression(right), temps, effects.deconstructions);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static bool IsTupleExpression(BoundKind kind)
@@ -269,15 +366,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private BoundExpression EvaluateConversionToTemp(BoundExpression expression, Conversion conversion,
-            TypeSymbol destinationType, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
+        private BoundExpression EvaluateConversionToTemp(BoundExpression expression, BoundValuePlaceholder placeholder, BoundExpression conversion,
+            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
         {
-            if (conversion.IsIdentity)
+            if (BoundNode.GetConversion(conversion, placeholder).IsIdentity)
             {
                 return expression;
             }
-            var evalConversion = MakeConversionNode(expression.Syntax, expression, conversion, destinationType, @checked: false);
-            return EvaluateSideEffectingArgumentToTemp(evalConversion, effects, temps);
+
+            return EvaluateSideEffectingArgumentToTemp(ApplyConversion(conversion, placeholder, expression), effects, temps);
         }
 
         private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructMethodInfo deconstruction, BoundExpression target,
@@ -362,7 +459,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         Debug.Assert(variable.Type is { });
-                        var temp = this.TransformCompoundAssignmentLHS(variable, effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
+                        var temp = this.TransformCompoundAssignmentLHS(variable, isRegularCompoundAssignment: false,
+                                                                       effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
                         assignmentTargets.Add(new Binder.DeconstructionVariable(temp, variable.Syntax));
                         break;
                 }

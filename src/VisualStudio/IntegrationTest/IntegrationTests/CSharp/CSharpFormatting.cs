@@ -315,7 +315,7 @@ class C
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.FormatDocumentViaCommand();
@@ -338,7 +338,7 @@ indent_size = 2
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.FormatDocumentViaCommand();
@@ -355,7 +355,7 @@ indent_size = 2
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.FormatDocumentViaCommand();

@@ -61,10 +61,7 @@ namespace BuildValidator
         public static DirectoryInfo GetNugetCacheDirectory()
         {
             var nugetPackageDirectory = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
-            if (nugetPackageDirectory is null)
-            {
-                nugetPackageDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget");
-            }
+            nugetPackageDirectory ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget");
 
             return new DirectoryInfo(nugetPackageDirectory);
         }

@@ -314,9 +314,22 @@ namespace Microsoft.CodeAnalysis
         System_Text_StringBuilder,
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
+        System_Runtime_CompilerServices_ScopedRefAttribute,
+        System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+
+        System_ArgumentNullException,
+
+        System_Runtime_CompilerServices_RequiredMemberAttribute,
+        System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
+        System_MemoryExtensions,
+
+        System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
+        System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
+
+        System_MissingMethodException,
+        System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
 
         NextAvailable,
-
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
 
@@ -623,6 +636,17 @@ namespace Microsoft.CodeAnalysis
 
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
+            "System.Runtime.CompilerServices.ScopedRefAttribute",
+            "System.Runtime.CompilerServices.RefSafetyRulesAttribute",
+            "System.ArgumentNullException",
+
+            "System.Runtime.CompilerServices.RequiredMemberAttribute",
+            "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute",
+            "System.MemoryExtensions",
+            "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
+            "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
+            "System.MissingMethodException",
+            "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -675,7 +699,7 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName, "Enum name and type name must match");
+                Debug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
             }
 
             Debug.Assert((int)WellKnownType.ExtSentinel == 255);

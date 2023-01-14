@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -31,11 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             if (filePath is null)
                 return null;
 
-            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value)).ToList();
+            return TryUpdateAnalyzerConfigDocument(originalText, filePath, settingsToUpdate.Select(x => GetOptionValueAndLanguage(x.option, x.value)));
 
-            return TryUpdateAnalyzerConfigDocument(originalText, filePath, settings);
-
-            static (string option, string value, Language language) TryGetOptionValueAndLanguage(AnalyzerSetting diagnostic, DiagnosticSeverity severity)
+            static (string option, string value, Language language) GetOptionValueAndLanguage(AnalyzerSetting diagnostic, DiagnosticSeverity severity)
             {
                 var optionName = $"{DiagnosticOptionPrefix}{diagnostic.Id}{SeveritySuffix}";
                 var optionValue = severity.ToEditorConfigString();
@@ -44,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
-                                                                  string filePath,
-                                                                  OptionSet optionSet,
-                                                                  IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(
+            SourceText originalText,
+            string filePath,
+            IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
         {
             if (originalText is null)
                 return null;
@@ -56,52 +55,54 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             if (filePath is null)
                 return null;
 
-            var updatedText = originalText;
-            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value, optionSet))
-                                           .Where(x => x.success)
-                                           .Select(x => (x.option, x.value, x.language))
-                                           .ToList();
+            return TryUpdateAnalyzerConfigDocument(originalText, filePath, settingsToUpdate.Select(x => GetOptionValueAndLanguage(x.option, x.value)));
 
-            return TryUpdateAnalyzerConfigDocument(originalText, filePath, settings);
-
-            static (bool success, string option, string value, Language language) TryGetOptionValueAndLanguage(IOption2 option, object value, OptionSet optionSet)
+            static (string option, string value, Language language) GetOptionValueAndLanguage(IOption2 option, object value)
             {
-                if (option.StorageLocations.FirstOrDefault(x => x is IEditorConfigStorageLocation2) is not IEditorConfigStorageLocation2 storageLocation)
-                {
-                    return (false, null!, null!, default);
-                }
+                var optionName = option.Definition.ConfigName;
+                var optionValue = option.Definition.Serializer.Serialize(value);
 
-                var optionName = storageLocation.KeyName;
-                var optionValue = storageLocation.GetEditorConfigStringValue(value, optionSet);
                 if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
                 {
-                    var severity = codeStyleOption.Notification switch
+                    var severity = codeStyleOption.Notification.Severity switch
                     {
-                        { Severity: ReportDiagnostic.Hidden } => "silent",
-                        { Severity: ReportDiagnostic.Info } => "suggestion",
-                        { Severity: ReportDiagnostic.Warn } => "warning",
-                        { Severity: ReportDiagnostic.Error } => "error",
+                        ReportDiagnostic.Hidden => "silent",
+                        ReportDiagnostic.Info => "suggestion",
+                        ReportDiagnostic.Warn => "warning",
+                        ReportDiagnostic.Error => "error",
                         _ => string.Empty
                     };
                     optionValue = $"{optionValue}:{severity}";
                 }
 
-                var language = option.IsPerLanguage ? Language.CSharp | Language.VisualBasic : Language.CSharp;
-                return (true, optionName, optionValue, language);
+                Language language;
+                if (option is ISingleValuedOption singleValuedOption)
+                {
+                    language = singleValuedOption.LanguageName switch
+                    {
+                        LanguageNames.CSharp => Language.CSharp,
+                        LanguageNames.VisualBasic => Language.VisualBasic,
+                        null => Language.CSharp | Language.VisualBasic,
+                        _ => throw ExceptionUtilities.UnexpectedValue(singleValuedOption.LanguageName),
+                    };
+                }
+                else if (option.IsPerLanguage)
+                {
+                    language = Language.CSharp | Language.VisualBasic;
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(option);
+                }
+
+                return (optionName, optionValue, language);
             }
         }
 
         public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
                                                                   string filePath,
-                                                                  IReadOnlyList<(string option, string value, Language language)> settingsToUpdate)
+                                                                  IEnumerable<(string option, string value, Language language)> settingsToUpdate)
         {
-            if (originalText is null)
-                throw new ArgumentNullException(nameof(originalText));
-            if (filePath is null)
-                throw new ArgumentNullException(nameof(filePath));
-            if (settingsToUpdate is null)
-                throw new ArgumentNullException(nameof(settingsToUpdate));
-
             var updatedText = originalText;
             TextLine? lastValidHeaderSpanEnd;
             TextLine? lastValidSpecificHeaderSpanEnd;
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                         string.Equals(key, optionName, StringComparison.OrdinalIgnoreCase))
                     {
                         // We found the rule in the file -- replace it with updated option value.
-                        textChange = new TextChange(curLine.Span, $"{untrimmedKey}={optionValue}{comment}");
+                        textChange = new TextChange(curLine.Span, $"{untrimmedKey}= {optionValue}{comment}");
                     }
                 }
                 else if (s_headerPattern.IsMatch(curLineText.Trim()))
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             {
                 // We splice on the last occurrence of '.' to account for filenames containing periods.
                 var nameExtensionSplitIndex = mostRecentHeaderText.LastIndexOf('.');
-                var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
+                var fileName = mostRecentHeaderText[..nameExtensionSplitIndex];
                 var splicedFileExtensions = mostRecentHeaderText[(nameExtensionSplitIndex + 1)..].Split(',', ' ', '{', '}');
 
                 // Replacing characters in the header with the regex equivalent.
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                                                                                                                                         string optionValue,
                                                                                                                                         Language language)
         {
-            var newEntry = $"{optionName}={optionValue}";
+            var newEntry = $"{optionName} = {optionValue}";
             if (lastValidSpecificHeaderSpanEnd.HasValue)
             {
                 if (lastValidSpecificHeaderSpanEnd.Value.ToString().Trim().Length != 0)
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     newEntry = "\r\n" + newEntry; // TODO(jmarolf): do we need to read in the users newline settings?
                 }
 
-                return (editorConfigText.WithChanges((TextChange)new TextChange(new TextSpan(lastValidSpecificHeaderSpanEnd.Value.Span.End, 0), newEntry)), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
+                return (editorConfigText.WithChanges(new TextChange(new TextSpan(lastValidSpecificHeaderSpanEnd.Value.Span.End, 0), newEntry)), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
             }
             else if (lastValidHeaderSpanEnd.HasValue)
             {
@@ -311,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     newEntry = "\r\n" + newEntry; // TODO(jmarolf): do we need to read in the users newline settings?
                 }
 
-                return (editorConfigText.WithChanges((TextChange)new TextChange(new TextSpan(lastValidHeaderSpanEnd.Value.Span.End, 0), newEntry)), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
+                return (editorConfigText.WithChanges(new TextChange(new TextSpan(lastValidHeaderSpanEnd.Value.Span.End, 0), newEntry)), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
             }
 
             // We need to generate a new header such as '[*.cs]' or '[*.vb]':
@@ -345,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 prefix += "[*.vb]\r\n";
             }
 
-            var result = editorConfigText.WithChanges((TextChange)new TextChange(new TextSpan(editorConfigText.Length, 0), prefix + newEntry));
+            var result = editorConfigText.WithChanges(new TextChange(new TextSpan(editorConfigText.Length, 0), prefix + newEntry));
             return (result, lastValidHeaderSpanEnd, result.Lines[^2]);
         }
     }

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function AddNamedTypeTo(service As ICodeGenerationService,
                                     destination As TypeBlockSyntax,
                                     namedType As INamedTypeSymbol,
-                                    options As CodeGenerationOptions,
+                                    options As CodeGenerationContextInfo,
                                     availableIndices As IList(Of Boolean),
                                     cancellationToken As CancellationToken) As TypeBlockSyntax
             Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options, cancellationToken)
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function AddNamedTypeTo(service As ICodeGenerationService,
                                     destination As NamespaceBlockSyntax,
                                     namedType As INamedTypeSymbol,
-                                    options As CodeGenerationOptions,
+                                    options As CodeGenerationContextInfo,
                                     availableIndices As IList(Of Boolean),
                                        cancellationToken As CancellationToken) As NamespaceBlockSyntax
             Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options, cancellationToken)
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function AddNamedTypeTo(service As ICodeGenerationService,
                                     destination As CompilationUnitSyntax,
                                     namedType As INamedTypeSymbol,
-                                    options As CodeGenerationOptions,
+                                    options As CodeGenerationContextInfo,
                                     availableIndices As IList(Of Boolean),
                                        cancellationToken As CancellationToken) As CompilationUnitSyntax
             Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options, cancellationToken)
@@ -46,13 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Function GenerateNamedTypeDeclaration(service As ICodeGenerationService,
                                     namedType As INamedTypeSymbol,
-                                    options As CodeGenerationOptions,
+                                    options As CodeGenerationContextInfo,
                                     cancellationToken As CancellationToken) As StatementSyntax
-            options = If(options, CodeGenerationOptions.Default)
-
             Dim declaration = GetDeclarationSyntaxWithoutMembers(namedType, options)
 
-            declaration = If(options.GenerateMembers AndAlso namedType.TypeKind <> TypeKind.Delegate,
+            declaration = If(options.Context.GenerateMembers AndAlso namedType.TypeKind <> TypeKind.Delegate,
                 service.AddMembers(declaration, GetMembers(namedType), options, cancellationToken),
                 declaration)
 
@@ -62,14 +60,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function UpdateNamedTypeDeclaration(service As ICodeGenerationService,
                                                           declaration As StatementSyntax,
                                                           newMembers As IList(Of ISymbol),
-                                                          options As CodeGenerationOptions,
+                                                          options As CodeGenerationContextInfo,
                                                           cancellationToken As CancellationToken) As StatementSyntax
             declaration = RemoveAllMembers(declaration)
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken)
             Return AddFormatterAndCodeGeneratorAnnotationsTo(declaration)
         End Function
 
-        Private Function GetDeclarationSyntaxWithoutMembers(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
+        Private Function GetDeclarationSyntaxWithoutMembers(namedType As INamedTypeSymbol, options As CodeGenerationContextInfo) As StatementSyntax
             Dim reusableDeclarationSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(namedType, options)
             If reusableDeclarationSyntax Is Nothing Then
                 Return GenerateNamedTypeDeclarationWorker(namedType, options)
@@ -91,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function GenerateNamedTypeDeclarationWorker(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
+        Private Function GenerateNamedTypeDeclarationWorker(namedType As INamedTypeSymbol, options As CodeGenerationContextInfo) As StatementSyntax
             ' TODO(cyrusn): Support enums/delegates.
             If namedType.TypeKind = TypeKind.Enum Then
                 Return GenerateEnumDeclaration(namedType, options)
@@ -132,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return typeDeclaration
         End Function
 
-        Private Function GenerateDelegateDeclaration(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
+        Private Function GenerateDelegateDeclaration(namedType As INamedTypeSymbol, options As CodeGenerationContextInfo) As StatementSyntax
             Dim invokeMethod = namedType.DelegateInvokeMethod
             Return SyntaxFactory.DelegateStatement(
                 kind:=If(invokeMethod.ReturnsVoid, SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement),
@@ -146,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                              SyntaxFactory.SimpleAsClause(invokeMethod.ReturnType.GenerateTypeSyntax())))
         End Function
 
-        Private Function GenerateEnumDeclaration(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
+        Private Function GenerateEnumDeclaration(namedType As INamedTypeSymbol, options As CodeGenerationContextInfo) As StatementSyntax
             Dim underlyingType =
                 If(namedType.EnumUnderlyingType IsNot Nothing AndAlso namedType.EnumUnderlyingType.SpecialType <> SpecialType.System_Int32,
                    SyntaxFactory.SimpleAsClause(namedType.EnumUnderlyingType.GenerateTypeSyntax()),
@@ -159,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     underlyingType))
         End Function
 
-        Private Function GenerateAttributes(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As SyntaxList(Of AttributeListSyntax)
+        Private Function GenerateAttributes(namedType As INamedTypeSymbol, options As CodeGenerationContextInfo) As SyntaxList(Of AttributeListSyntax)
             Return AttributeGenerator.GenerateAttributeBlocks(namedType.GetAttributes(), options)
         End Function
 

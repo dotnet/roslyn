@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InvertIf;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
     public partial class InvertIfTests : AbstractCSharpCodeActionTest
     {
         private async Task TestFixOneAsync(
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }";
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_Identifier()
         {
             await TestFixOneAsync(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_IdentifierWithTrivia()
         {
             await TestFixOneAsync(
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if /*0*/(/*1*/!a/*2*/)/*3*/ { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_NotIdentifier()
         {
             await TestFixOneAsync(
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_NotIdentifierWithTrivia()
         {
             await TestFixOneAsync(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if /*0*/(/*1*/a/*2*/)/*3*/ { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_EqualsEquals()
         {
             await TestFixOneAsync(
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a != b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_NotEquals()
         {
             await TestFixOneAsync(
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a == b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_GreaterThan()
         {
             await TestFixOneAsync(
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a <= b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_GreaterThanEquals()
         {
             await TestFixOneAsync(
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a < b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_LessThan()
         {
             await TestFixOneAsync(
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a >= b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_LessThanEquals()
         {
             await TestFixOneAsync(
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a > b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_DoubleParentheses()
         {
             await TestFixOneAsync(
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a) { b(); } else { a(); }");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/26427"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/26427")]
         public async Task TestSingleLine_DoubleParenthesesWithInnerTrivia()
         {
             await TestFixOneAsync(
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (/*1*/!a/*2*/) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_DoubleParenthesesWithMiddleTrivia()
         {
             await TestFixOneAsync(
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (/*1*/!a/*2*/) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_DoubleParenthesesWithOutsideTrivia()
         {
             await TestFixOneAsync(
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if /*before*/(!a)/*after*/ { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_Is()
         {
             await TestFixOneAsync(
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a is not Goo) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_MethodCall()
         {
             await TestFixOneAsync(
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a.Goo()) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_Or()
         {
             await TestFixOneAsync(
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a && !b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_Or2()
         {
             await TestFixOneAsync(
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a && b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_Or3()
         {
             await TestFixOneAsync(
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a && !b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_Or4()
         {
             await TestFixOneAsync(
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a & !b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_And()
         {
             await TestFixOneAsync(
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a || !b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_And2()
         {
             await TestFixOneAsync(
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a || b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_And3()
         {
             await TestFixOneAsync(
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (a || !b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_And4()
         {
             await TestFixOneAsync(
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a | !b) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_ParenthesizeAndForPrecedence()
         {
             await TestFixOneAsync(
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if ((!a || !b) && !c) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_Plus()
         {
             await TestFixOneAsync(
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!(a + b)) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_True()
         {
             await TestFixOneAsync(
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (false) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_TrueWithTrivia()
         {
             await TestFixOneAsync(
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (/*1*/false/*2*/) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_False()
         {
             await TestFixOneAsync(
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (true) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_OtherLiteralExpression()
         {
             await TestFixOneAsync(
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!literalexpression) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_TrueAndFalse()
         {
             await TestFixOneAsync(
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (false || true) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_NoCurlyBraces()
         {
             await TestFixOneAsync(
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a) b(); else a();");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_CurlyBracesOnIf()
         {
             await TestFixOneAsync(
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a) b(); else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_CurlyBracesOnElse()
         {
             await TestFixOneAsync(
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a) { b(); } else a();");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_IfElseIf()
         {
             await TestFixOneAsync(
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a) { if (b) { b(); } } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_IfElseIfElse()
         {
             await TestFixOneAsync(
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a) { if (b) { b(); } else { c(); } } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_CompoundConditional()
         {
             await TestFixOneAsync(
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if ((a != b || c == d) && (e >= f || g)) { b(); } else { a(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_Trivia()
         {
             await TestFixOneAsync(
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if /*1*/ (!a) /*2*/ { if /*7*/ (b) /*8*/ { /*9*/ b(); /*10*/ } /*11*/ else /*12*/ { /*13*/ c(); /*14*/} /*6*/ } else { /*3*/ a() /*4*/; /*5*/ } /*15*/");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestKeepTriviaWithinExpression_BrokenCode()
         {
             await TestInRegularAndScriptAsync(
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestKeepTriviaWithinExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestMultiline_IfElseIfElse()
         {
             await TestInRegularAndScriptAsync(
@@ -482,8 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -528,8 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -574,8 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultilineMissing_IfElseIfElseSubSelection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -599,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestMultiline_IfElse()
         {
             await TestInRegularAndScriptAsync(
@@ -629,7 +626,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestMultiline_OpenCloseBracesSameLine()
         {
             await TestInRegularAndScriptAsync(
@@ -663,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
     }
 }");
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestMultiline_Trivia()
         {
             await TestInRegularAndScriptAsync(
@@ -722,7 +719,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestOverlapsHiddenPosition1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -744,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestOverlapsHiddenPosition2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -766,7 +763,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestOverlapsHiddenPosition3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -788,7 +785,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestOverlapsHiddenPosition4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -810,7 +807,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestOverlapsHiddenPosition5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -832,7 +829,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestOverlapsHiddenPosition6()
         {
             await TestInRegularAndScriptAsync(
@@ -873,7 +870,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestOverlapsHiddenPosition7()
         {
             await TestInRegularAndScriptAsync(
@@ -918,7 +915,7 @@ class C
 #line default");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_SimplifyToLengthEqualsZero()
         {
             await TestFixOneAsync(
@@ -926,7 +923,7 @@ class C
 @"string x; if (x.Length == 0) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_SimplifyToLengthEqualsZero2()
         {
             await TestFixOneAsync(
@@ -934,7 +931,7 @@ class C
 @"string[] x; if (x.Length == 0) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_SimplifyToLengthEqualsZero3()
         {
             await TestFixOneAsync(
@@ -942,7 +939,7 @@ class C
 @"string x; if (x.Length == 0x0) { b(); } else { a(); } } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_SimplifyToLengthEqualsZero4()
         {
             await TestFixOneAsync(
@@ -950,8 +947,7 @@ class C
 @"string x; if (0 == x.Length) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero1()
         {
             await TestFixOneAsync(
@@ -959,8 +955,7 @@ class C
 @"byte x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero2()
         {
             await TestFixOneAsync(
@@ -968,8 +963,7 @@ class C
 @"ushort x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero3()
         {
             await TestFixOneAsync(
@@ -977,8 +971,7 @@ class C
 @"uint x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero4()
         {
             await TestFixOneAsync(
@@ -986,8 +979,7 @@ class C
 @"ulong x = 1; if (x == 0) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToNotEqualsZero1()
         {
             await TestFixOneAsync(
@@ -995,8 +987,7 @@ class C
 @"ulong x = 1; if (0 != x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToNotEqualsZero2()
         {
             await TestFixOneAsync(
@@ -1004,8 +995,7 @@ class C
 @"ulong x = 1; if (x != 0) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact, WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
         public async Task TestSingleLine_SimplifyLongLengthEqualsZero()
         {
             await TestFixOneAsync(
@@ -1013,7 +1003,7 @@ class C
 @"string[] x; if (x.LongLength == 0) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_DoesNotSimplifyToLengthEqualsZero()
         {
             await TestFixOneAsync(
@@ -1021,7 +1011,7 @@ class C
 @"string x; if (x.Length < 0) { b(); } else { a(); } } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task TestSingleLine_DoesNotSimplifyToLengthEqualsZero2()
         {
             await TestFixOneAsync(
@@ -1029,8 +1019,7 @@ class C
 @"string x; if (x.Length <= 0.0f) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        [WorkItem(29434, "https://github.com/dotnet/roslyn/issues/29434")]
+        [Fact, WorkItem(29434, "https://github.com/dotnet/roslyn/issues/29434")]
         public async Task TestIsExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1038,8 +1027,7 @@ class C
 @"class C { void M(object o) { if (o is not C) { } else { a(); } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestEmptyIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1047,8 +1035,7 @@ class C
                 @"class C { void M(string s){ if (s != ""a""){ s = ""b""}}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestOnlySingleLineCommentIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1084,8 +1071,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestOnlyMultilineLineCommentIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1129,6 +1115,379 @@ class C
             * per line.
             */
         }
+    }
+}");
+        }
+
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (!(c is object))
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is null)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is null)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsNotObjectCheck_CSharp8()
+        {
+            // Not terrific.  But the starting code is not legal C#8 either.  In this case because we don't even support
+            // 'not' patterns wee dont' bother diving into the pattern to negate it, and we instead just negate the
+            // expression.
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is not object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is object)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsNotObjectCheck_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is not object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is not null)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestLiftedNullable_GreaterThan()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        [||]if (p > 10)
+                        {
+                            System.Console.WriteLine("p is not null and p.Value > 10");
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        if (!(p > 10))
+                        {
+                            return;
+                        }
+                        System.Console.WriteLine("p is not null and p.Value > 10");
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestLiftedNullable_GreaterThanOrEqual()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        [||]if (p >= 10)
+                        {
+                            System.Console.WriteLine("p is not null and p.Value >= 10");
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        if (!(p >= 10))
+                        {
+                            return;
+                        }
+                        System.Console.WriteLine("p is not null and p.Value >= 10");
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestLiftedNullable_LessThan()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        [||]if (p < 10)
+                        {
+                            System.Console.WriteLine("p is not null and p.Value < 10");
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        if (!(p < 10))
+                        {
+                            return;
+                        }
+                        System.Console.WriteLine("p is not null and p.Value < 10");
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestLiftedNullable_LessThanOrEqual()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        [||]if (p <= 10)
+                        {
+                            System.Console.WriteLine("p is not null and p.Value <= 10");
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int? p)
+                    {
+                        if (!(p <= 10))
+                        {
+                            return;
+                        }
+                        System.Console.WriteLine("p is not null and p.Value <= 10");
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63311, "https://github.com/dotnet/roslyn/issues/63311")]
+        public async Task TestNullableReference_GreaterThan()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                #nullable enable
+                using System;
+                class C
+                {
+                    void M(C? p)
+                    {
+                        [||]if (p > new C())
+                        {
+                            Console.WriteLine("Null-handling semantics may actually change depending on the operator implementation");
+                        }
+                    }
+
+                    public static bool operator <(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator >(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator <=(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator >=(C? left, C? right) => throw new NotImplementedException();
+                }
+                """,
+                """
+                #nullable enable
+                using System;
+                class C
+                {
+                    void M(C? p)
+                    {
+                        if (p <= new C())
+                        {
+                            return;
+                        }
+                        Console.WriteLine("Null-handling semantics may actually change depending on the operator implementation");
+                    }
+
+                    public static bool operator <(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator >(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator <=(C? left, C? right) => throw new NotImplementedException();
+                    public static bool operator >=(C? left, C? right) => throw new NotImplementedException();
+                }
+                """);
+        }
+
+        [Fact, WorkItem(40585, "https://github.com/dotnet/roslyn/issues/40585")]
+        public async Task TestYieldBreak()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections;
+
+class Program
+{
+    public static IEnumerable Method(bool condition)
+    {
+        [||]if (condition)
+        {
+            yield return 1;
+        }
+    }
+}",
+@"using System.Collections;
+
+class Program
+{
+    public static IEnumerable Method(bool condition)
+    {
+        if (!condition)
+        {
+            yield break;
+        }
+        yield return 1;
     }
 }");
         }

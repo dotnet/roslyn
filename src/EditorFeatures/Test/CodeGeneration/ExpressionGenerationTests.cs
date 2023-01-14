@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 cs: "(1) + ((2) + (3))",
                 csSimple: "1 + 2 + 3",
                 vb: "(1) + ((2) + (3))",
-                vbSimple: "1 + 2 + 3");
+                vbSimple: "1 + (2 + 3)");
         }
 
         [Fact]
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 cs: "(1) * ((2) * (3))",
                 csSimple: "1 * 2 * 3",
                 vb: "(1) * ((2) * (3))",
-                vbSimple: "1 * 2 * 3");
+                vbSimple: "1 * (2 * 3)");
         }
 
         [Fact]

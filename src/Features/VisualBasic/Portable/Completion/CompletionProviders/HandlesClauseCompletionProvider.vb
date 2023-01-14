@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -25,15 +26,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Protected Overrides Async Function GetSymbolsAsync(
                 completionContext As CompletionContext,
                 syntaxContext As VisualBasicSyntaxContext,
                 position As Integer,
-                options As OptionSet,
-                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+                options As CompletionOptions,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndSelectionInfo))
 
             Dim symbols = Await GetSymbolsAsync(syntaxContext, position, cancellationToken).ConfigureAwait(False)
-            Return symbols.SelectAsArray(Function(s) (s, preselect:=False))
+            Return symbols.SelectAsArray(Function(s) New SymbolAndSelectionInfo(s, Preselect:=False))
         End Function
 
         Private Overloads Shared Function GetSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
@@ -60,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
         End Function
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
@@ -152,6 +159,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
+        End Function
+
+        Protected Overrides Function CreateItem(completionContext As CompletionContext, displayText As String, displayTextSuffix As String, insertionText As String, symbols As ImmutableArray(Of SymbolAndSelectionInfo), context As VisualBasicSyntaxContext, supportedPlatformData As SupportedPlatformData) As CompletionItem
+            Return CreateItemDefault(displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData)
         End Function
     End Class
 End Namespace

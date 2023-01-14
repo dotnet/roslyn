@@ -14,60 +14,62 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.VSInternalMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(OnAutoInsertHandler)), Shared]
+    [Method(LSP.VSInternalMethods.OnAutoInsertName)]
+    internal sealed class OnAutoInsertHandler : ILspServiceDocumentRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
+        private readonly IGlobalOptionService _globalOptions;
 
-        public override string Method => LSP.VSInternalMethods.OnAutoInsertName;
-
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OnAutoInsertHandler(
             [ImportMany(LanguageNames.CSharp)] IEnumerable<IBraceCompletionService> csharpBraceCompletionServices,
-            [ImportMany(LanguageNames.VisualBasic)] IEnumerable<IBraceCompletionService> visualBasicBraceCompletionServices)
+            [ImportMany(LanguageNames.VisualBasic)] IEnumerable<IBraceCompletionService> visualBasicBraceCompletionServices,
+            IGlobalOptionService globalOptions)
         {
             _csharpBraceCompletionServices = csharpBraceCompletionServices.ToImmutableArray();
-            _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
+            _visualBasicBraceCompletionServices = visualBasicBraceCompletionServices.ToImmutableArray();
+            _globalOptions = globalOptions;
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+        public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             LSP.VSInternalDocumentOnAutoInsertParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
-            {
                 return null;
-            }
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             // We should use the options passed in by LSP instead of the document's options.
-            var documentOptions = await ProtocolConversions.FormattingOptionsToDocumentOptionsAsync(
-                request.Options, document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
 
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
             {
+                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions.LineFormatting, document.Project.Language);
+
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
-                    request, document, service, documentOptions, cancellationToken).ConfigureAwait(false);
+                    request, document, service, docCommentOptions, cancellationToken).ConfigureAwait(false);
                 if (documentationCommentResponse != null)
                 {
                     return documentationCommentResponse;
@@ -77,10 +79,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Only support this for razor as LSP doesn't support overtype yet.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1165179/
             // Once LSP supports overtype we can move all of brace completion to LSP.
-            if (request.Character == "\n" && context.ClientName == document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName)
+            if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
             {
+                var indentationOptions = new IndentationOptions(formattingOptions)
+                {
+                    AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
+                };
+
                 var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(
-                    request, document, documentOptions, cancellationToken).ConfigureAwait(false);
+                    request, document, indentationOptions, cancellationToken).ConfigureAwait(false);
                 if (braceCompletionAfterReturnResponse != null)
                 {
                     return braceCompletionAfterReturnResponse;
@@ -94,7 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
             Document document,
             IDocumentationCommentSnippetService service,
-            DocumentOptionSet documentOptions,
+            DocumentationCommentOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -104,8 +111,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = autoInsertParams.Character == "\n"
-                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, documentOptions, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, documentOptions, cancellationToken);
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
 
             if (result == null)
             {
@@ -126,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
             LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
             Document document,
-            DocumentOptionSet documentOptions,
+            IndentationOptions options,
             CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -139,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, documentOptions, cancellationToken).ConfigureAwait(false);
+            var postReturnEdit = service.GetTextChangeAfterReturn(context, options, cancellationToken);
             if (postReturnEdit == null)
             {
                 return null;
@@ -155,7 +162,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (caretLine.Span.IsEmpty)
                 {
                     // We have an empty line with the caret column at an indented position, let's add whitespace indentation to the text.
-                    var indentedText = GetIndentedText(newSourceText, caretLine, desiredCaretLinePosition, documentOptions);
+                    var indentedText = GetIndentedText(newSourceText, caretLine, desiredCaretLinePosition, options);
 
                     // Get the overall text changes between the original text and the formatted + indented text.
                     textChanges = indentedText.GetTextChanges(sourceText).ToImmutableArray();
@@ -191,13 +198,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 SourceText textToIndent,
                 TextLine lineToIndent,
                 LinePosition desiredCaretLinePosition,
-                DocumentOptionSet documentOptions)
+                IndentationOptions options)
             {
                 // Indent by the amount needed to make the caret line contain the desired indentation column.
                 var amountToIndent = desiredCaretLinePosition.Character - lineToIndent.Span.Length;
 
                 // Create and apply a text change with whitespace for the indentation amount.
-                var indentText = amountToIndent.CreateIndentationString(documentOptions.GetOption(FormattingOptions.UseTabs), documentOptions.GetOption(FormattingOptions.TabSize));
+                var indentText = amountToIndent.CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize);
                 var indentedText = textToIndent.WithChanges(new TextChange(new TextSpan(lineToIndent.End, 0), indentText));
                 return indentedText;
             }
@@ -228,9 +235,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _ => throw new ArgumentException($"Language {document.Project.Language} is not recognized for OnAutoInsert")
             };
 
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
             foreach (var service in servicesForDocument)
             {
-                var context = await service.GetCompletedBraceContextAsync(document, caretLocation, cancellationToken).ConfigureAwait(false);
+                var context = service.GetCompletedBraceContext(parsedDocument, caretLocation);
                 if (context != null)
                 {
                     return (service, context.Value);

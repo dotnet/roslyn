@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
-    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -13,6 +13,10 @@
       .NET Compiler Platform ("Roslyn") support for analyzing Visual Basic projects and solutions.
     </PackageDescription>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="My Project\**" />
+    <EmbeddedResource Remove="My Project\**" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
@@ -24,6 +28,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <!-- BEGIN MONODEVELOP
@@ -44,13 +49,10 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="VBWorkspaceResources.resx" GenerateSource="true" NAmespace="Microsoft.CodeAnalysis.VisualBasic" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Workspace\LanguageServices\" />
-    <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

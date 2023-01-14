@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,16 +27,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
             public bool IsContainedInUnsafeType { get; private set; }
 
+            public Accessibility Accessibility { get; private set; }
+
             public static async Task<State?> TryGenerateAsync(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
+                Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> selectedMembers,
+                NamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, desiredAccessibility, selectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -48,7 +53,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
+                Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> selectedMembers,
+                NamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty))
@@ -58,6 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 SelectedMembers = selectedMembers;
                 ContainingType = containingType;
+                Accessibility = desiredAccessibility ?? (ContainingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public);
                 TextSpan = textSpan;
                 if (ContainingType == null || ContainingType.TypeKind == TypeKind.Interface)
                 {
@@ -66,7 +74,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(containingType);
 
-                var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+                var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 Parameters = DetermineParameters(selectedMembers, rules);
                 MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
@@ -83,7 +91,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     from c in containingType.InstanceConstructors
                     orderby c.Parameters.Length descending
                     where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
-                    where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(p => p.IsParams)
+                    where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(static p => p.IsParams)
                     let constructorTypes = c.Parameters.Select(p => p.Type)
                     let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.Type)
                     where constructorTypes.SequenceEqual(symbolTypes, SymbolEqualityComparer.Default)

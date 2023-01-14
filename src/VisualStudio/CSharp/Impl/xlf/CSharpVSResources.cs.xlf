@@ -7,9 +7,19 @@
         <target state="translated">Při vložení přidat chybějící direktivy using</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">Povolit prázdný řádek za dvojtečkou v inicializátoru konstruktoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">Povolit prázdný řádek za tokenem v klauzuli výrazu šipky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">Povolit prázdný řádek za tokenem v podmíněném výrazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -39,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Block_scoped">
         <source>Block scoped</source>
-        <target state="new">Block scoped</target>
+        <target state="translated">Obor bloku</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -55,6 +65,11 @@
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
         <target state="translated">Pravidla formátování jazyka C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="translated">Při otevření souboru sbalit usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion">
@@ -74,7 +89,7 @@
       </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
-        <target state="new">File scoped</target>
+        <target state="translated">Obor souboru</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -95,6 +110,16 @@
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
         <target state="translated">Při psaní komentářů // na začátek řádku vkládat //</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">Vložit mezeru mezi název volané metody a její levou závorku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">Vložit mezeru mezi název metody a její levou kulatou závorkou</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -122,6 +147,11 @@
         <target state="translated">Pro objekty, kolekce, pole a inicializátory with umístit levou složenou závorku na nový řádek</target>
         <note>{Locked="with"}</note>
       </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Upřednostňovat rozšířený vzor vlastností</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Upřednostňovat implicitní vytvoření objektu, pokud je typ zřejmý</target>
@@ -134,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">Upřednostňovat kontrolu hodnoty null před kontrolou typu</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -170,6 +200,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
         <target state="translated">Zobrazit položky z neimportovaných oborů názvů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">Zobrazit nové prostředí fragmentů kódu (experimentální)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -387,19 +422,9 @@
         <target state="translated">Vložit mezeru mezi kulaté závorky prázdného seznamu argumentů</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Vložit mezeru mezi název metody a její levou kulatou závorkou</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">Vložit mezeru mezi kulaté závorky prázdného seznamu parametrů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Vložit mezeru mezi název metody a její levou kulatou závorkou</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

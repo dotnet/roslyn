@@ -3,24 +3,51 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     /// <summary>
     /// Context for code refactorings provided by a <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    public struct CodeRefactoringContext : ITypeScriptCodeRefactoringContext
+#pragma warning disable CS0612 // Type or member is obsolete
+    public readonly struct CodeRefactoringContext : ITypeScriptCodeRefactoringContext
+#pragma warning restore
     {
         /// <summary>
         /// Document corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
+        /// For code refactorings that support non-source documents by providing a non-default value for
+        /// <see cref="ExportCodeRefactoringProviderAttribute.DocumentKinds"/>, this property will
+        /// throw an <see cref="InvalidOperationException"/>. Such refactorings should use the
+        /// <see cref="CodeRefactoringContext.TextDocument"/> property instead.
         /// </summary>
-        public Document Document { get; }
+        public Document Document
+        {
+            get
+            {
+                if (TextDocument is not Document document)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents);
+                }
+
+                return document;
+            }
+        }
 
         /// <summary>
-        /// Text span within the <see cref="CodeRefactoringContext.Document"/> to refactor.
+        /// TextDocument corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
+        /// This property should be used instead of <see cref="CodeRefactoringContext.Document"/> property by
+        /// code refactorings that support non-source documents by providing a non-default value for
+        /// <see cref="ExportCodeRefactoringProviderAttribute.DocumentKinds"/>
+        /// </summary>
+        public TextDocument TextDocument { get; }
+
+        /// <summary>
+        /// Text span within the <see cref="CodeRefactoringContext.Document"/> or <see cref="CodeRefactoringContext.TextDocument"/> to refactor.
         /// </summary>
         public TextSpan Span { get; }
 
@@ -29,37 +56,59 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        internal readonly CodeActionOptionsProvider Options;
+
+        /// <summary>
+        /// TypeScript specific.
+        /// </summary>
         private readonly bool _isBlocking;
-        bool ITypeScriptCodeRefactoringContext.IsBlocking => _isBlocking;
+
+        [Obsolete]
+        bool ITypeScriptCodeRefactoringContext.IsBlocking
+            => _isBlocking;
 
         private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CodeRefactoringContext(
             Document document,
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
-            : this(document, span, (action, textSpan) => registerRefactoring(action), isBlocking: false, cancellationToken)
+            : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.DefaultProvider, isBlocking: false, cancellationToken)
+        { }
+
+        /// <summary>
+        /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
+        /// </summary>
+        public CodeRefactoringContext(
+            TextDocument document,
+            TextSpan span,
+            Action<CodeAction> registerRefactoring,
+            CancellationToken cancellationToken)
+            : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.DefaultProvider, isBlocking: false, cancellationToken)
         { }
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
         /// </summary>
         internal CodeRefactoringContext(
-            Document document,
+            TextDocument document,
             TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,
+            CodeActionOptionsProvider options,
             bool isBlocking,
             CancellationToken cancellationToken)
         {
             // NOTE/TODO: Don't make this overload public & obsolete the `Action<CodeAction> registerRefactoring`
             // overload to stop leaking the Lambda implementation detail.
-            Document = document ?? throw new ArgumentNullException(nameof(document));
+            TextDocument = document ?? throw new ArgumentNullException(nameof(document));
             Span = span;
             _registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
+            Options = options;
             _isBlocking = isBlocking;
             CancellationToken = cancellationToken;
         }
@@ -99,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
     }
 
+    [Obsolete]
     internal interface ITypeScriptCodeRefactoringContext
     {
         bool IsBlocking { get; }

@@ -2,22 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
     internal partial class CSharpSymbolDisplayService : AbstractSymbolDisplayService
     {
-        public CSharpSymbolDisplayService(HostLanguageServices provider)
-            : base(provider.GetService<IAnonymousTypeDisplayService>())
+        public CSharpSymbolDisplayService(Host.LanguageServices services)
+            : base(services)
         {
         }
 
-        protected override AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => new SymbolDescriptionBuilder(semanticModel, position, workspace, AnonymousTypeDisplayService, cancellationToken);
+        protected override AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(SemanticModel semanticModel, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+            => new SymbolDescriptionBuilder(semanticModel, position, Services.SolutionServices, AnonymousTypeDisplayService, options, cancellationToken);
     }
 }

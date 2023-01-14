@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Utilities;
@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             SemanticModel semanticModel,
             IList<SymbolDisplayPart>? descriptionParts)
         {
-            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
             return CreateItemImpl(
                 method, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 method.IsParams(),
                 c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMethodGroupPreambleParts(method, semanticModel, position),

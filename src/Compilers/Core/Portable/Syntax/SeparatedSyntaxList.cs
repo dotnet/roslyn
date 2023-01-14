@@ -556,6 +556,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
         {
             get { return this.ToArray(); }
@@ -565,6 +566,7 @@ namespace Microsoft.CodeAnalysis
         {
             get { return _list.ToArray(); }
         }
+#pragma warning restore IDE0051 // Remove unused private members
 
 #pragma warning disable RS0041 // uses oblivious reference types
         public Enumerator GetEnumerator()

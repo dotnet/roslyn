@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
@@ -28,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public static async Task<UnitTestingRemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, UnitTestingServiceDescriptorsWrapper serviceDescriptors, UnitTestingRemoteServiceCallbackDispatcherRegistry callbackDispatchers, CancellationToken cancellationToken = default)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client is null)
                 return null;
 

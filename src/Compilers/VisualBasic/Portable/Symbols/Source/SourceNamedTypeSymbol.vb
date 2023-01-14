@@ -9,7 +9,9 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -66,7 +68,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' this field stores the diagnostic.
         ''' </summary>
         Protected m_baseCycleDiagnosticInfo As DiagnosticInfo = Nothing
-
 
         ' Create the type symbol and associated type parameter symbols. Most information
         ' is deferred until later.
@@ -1261,15 +1262,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-        Private Function AsPeOrRetargetingType(potentialBaseType As TypeSymbol) As NamedTypeSymbol
-            Dim peType As NamedTypeSymbol = TryCast(potentialBaseType, Symbols.Metadata.PE.PENamedTypeSymbol)
-            If peType Is Nothing Then
-                peType = TryCast(potentialBaseType, Retargeting.RetargetingNamedTypeSymbol)
-            End If
-
-            Return peType
-        End Function
-
         Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             ' For types nested in a source type symbol (not in a script class): 
             ' before resolving the base type ensure that enclosing type's base type is already resolved
@@ -1804,8 +1796,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function GetAttributeDeclarations() As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
-            Dim result = TypeDeclaration.GetAttributeDeclarations()
+        Private Function GetAttributeDeclarations(Optional quickAttributes As QuickAttributes? = Nothing) As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
+            ' if we were asked to only load attributes if particular quick attributes were set
+            ' then first see if any global aliases might have introduced names for those attributes.
+            ' If so, we'll have to load all type attributes as we really won't know if they might
+            ' be referencing that attribute through an alias or not.
+            If quickAttributes IsNot Nothing Then
+                For Each globalImport In Me.DeclaringCompilation.Options.GlobalImports
+                    If globalImport.Clause.Kind = SyntaxKind.SimpleImportsClause Then
+                        Dim simpleImportsClause = DirectCast(globalImport.Clause, SimpleImportsClauseSyntax)
+
+                        If simpleImportsClause.Alias IsNot Nothing Then
+                            Dim name = QuickAttributeChecker.GetFinalName(simpleImportsClause.Name)
+                            Select Case name
+                                Case AttributeDescription.CaseInsensitiveExtensionAttribute.Name,
+                                     AttributeDescription.ObsoleteAttribute.Name,
+                                     AttributeDescription.DeprecatedAttribute.Name,
+                                     AttributeDescription.ExperimentalAttribute.Name,
+                                     AttributeDescription.MyGroupCollectionAttribute.Name,
+                                     AttributeDescription.TypeIdentifierAttribute.Name
+
+                                    ' a global alias exists to one of the special type.  can't trust the
+                                    ' decl table alone.  so grab all the attributes from the typedecl
+                                    Return TypeDeclaration.GetAttributeDeclarations()
+                            End Select
+                        End If
+                    End If
+                Next
+            End If
+
+            Dim result = TypeDeclaration.GetAttributeDeclarations(quickAttributes)
 
             Debug.Assert(result.Length = 0 OrElse (Not Me.IsScriptClass AndAlso Not Me.IsImplicitClass))  ' Should be handled by above test.
 
@@ -1942,8 +1962,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return typeData IsNot Nothing AndAlso typeData.HasSecurityCriticalAttributes
             End Get
         End Property
-
-
 
         ''' <summary>
         ''' Is System.Runtime.InteropServices.GuidAttribute applied to this type in code.
@@ -2307,7 +2325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' We want this function to be as cheap as possible, it is called for every top level type
             ' and we don't want to bind attributes attached to the declaration unless there is a chance
             ' that one of them is TypeIdentifier attribute.
-            Dim attributeLists As ImmutableArray(Of SyntaxList(Of AttributeListSyntax)) = GetAttributeDeclarations()
+            Dim attributeLists As ImmutableArray(Of SyntaxList(Of AttributeListSyntax)) = GetAttributeDeclarations(QuickAttributes.TypeIdentifier)
 
             For Each list As SyntaxList(Of AttributeListSyntax) In attributeLists
                 Dim sourceFile = ContainingSourceModule.TryGetSourceFile(list.Node.SyntaxTree)
@@ -2447,8 +2465,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             Dim compilation = Me.DeclaringCompilation
 
@@ -2511,6 +2529,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If baseType.ContainsTupleNames() Then
                     AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(baseType))
                 End If
+            End If
+
+            ' Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
+            If moduleBuilder.EncSymbolChanges?.IsReplaced(CType(Me, ISymbolInternal).GetISymbol()) = True Then
+                ' Note that we use this source named type symbol in the attribute argument (of System.Type).
+                ' We do not have access to the original symbol from this compilation. However, System.Type
+                ' is encoded in the attribute as a string containing a fully qualified type name.
+                ' The name of the current type symbol as provided by ISymbol.Name is the same as the name of
+                ' the original type symbol that is being replaced by this type symbol.
+                ' The "#{generation}" suffix is appended to the TypeDef name in the metadata writer,
+                ' but not to the attribute value.
+                Dim originalType = Me
+
+                AddSynthesizedAttribute(
+                    attributes,
+                    compilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+                        ImmutableArray.Create(New TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
+                        isOptionalUse:=True))
             End If
         End Sub
 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable = new();
 
-        private ImmutableArray<AttributeData> _attributes;
+        private readonly ImmutableArray<AttributeData> _attributes;
         protected readonly string _documentationCommentXml;
 
         public Accessibility DeclaredAccessibility { get; }
@@ -177,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
 
+        public abstract TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument);
+
         public string GetDocumentationCommentId()
             => null;
 
@@ -207,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return this.Name;
             }
         }
+
+        public int MetadataToken => 0;
 
         public bool HasUnsupportedMetadata => false;
 

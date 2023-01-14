@@ -9,25 +9,20 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class TypeImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Private Property ShowImportCompletionItemsOptionValue As Boolean = True
-
-        Private Property IsExpandedCompletion As Boolean = True
-
-        Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
-            Return MyBase.WithChangedOptions(options) _
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-        End Function
+        Public Sub New()
+            ShowImportCompletionItemsOptionValue = True
+            ForceExpandedCompletionIndexCreation = True
+        End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(TypeImportCompletionProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        <Fact, WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function AttributeTypeInAttributeNameContext() As Task
 
             Dim file1 = <Text>
@@ -59,8 +54,7 @@ End Class]]></Text>.Value
             Await VerifyItemIsAbsentAsync(markup, "MyVBClass", inlineDescription:="Foo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        <Fact, WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function AttributeTypeInNonAttributeNameContext() As Task
 
             Dim file1 = <Text>
@@ -90,8 +84,7 @@ End Class]]></Text>.Value
             Await VerifyItemIsAbsentAsync(markup, "My", inlineDescription:="Foo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        <Fact, WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function AttributeTypeInAttributeNameContext2() As Task
 
             ' attribute suffix isn't capitalized
@@ -115,8 +108,7 @@ End Class]]></Text>.Value
             Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Foo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        <Fact, WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function CSharpAttributeTypeWithoutSuffixInAttributeNameContext() As Task
 
             ' attribute suffix isn't capitalized
@@ -139,8 +131,7 @@ End Class]]></Text>.Value
             Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Foo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(35124, "https://github.com/dotnet/roslyn/issues/35124")>
+        <Fact, WorkItem(35124, "https://github.com/dotnet/roslyn/issues/35124")>
         Public Async Function GenericTypeShouldDisplayProperVBSyntax() As Task
 
             Dim file1 = <Text>
@@ -162,8 +153,7 @@ End Class]]></Text>.Value
 
         <InlineData(SourceCodeKind.Regular)>
         <InlineData(SourceCodeKind.Script)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        <WpfTheory, WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
         Public Async Function CommitTypeInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
 
             Dim file1 = <Text>
@@ -182,8 +172,7 @@ End Namespace</Text>.Value
 
         <InlineData(SourceCodeKind.Regular)>
         <InlineData(SourceCodeKind.Script)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        <WpfTheory, WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
         Public Async Function CommitGenericTypeParameterInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
 
             Dim file1 = <Text>
@@ -200,7 +189,7 @@ End Namespace</Text>.Value
             Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNoCompletionItemWhenAliasExists() As Task
             Dim file1 = "
 Imports FFF = Foo1.Foo2.Foo3.Foo4
@@ -231,7 +220,7 @@ End Namespace
             Await VerifyItemIsAbsentAsync(markup, "Foo5", inlineDescription:="Foo1.Foo2.Foo3")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAliasHasNoEffectOnGenerics() As Task
             Dim file1 = "
 Imports FFF = Foo1.Foo2.Foo3.Foo4(Of Int)

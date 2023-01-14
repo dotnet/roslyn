@@ -65,7 +65,7 @@ Friend Module Extensions
         Dim lastContainer As NamespaceOrTypeSymbol = Nothing
         Dim members = GetMembers(container, qualifiedName, lastContainer)
         If members.Length = 0 Then
-            Assert.True(False, "Available members:" & vbCrLf + String.Join(vbCrLf, lastContainer.GetMembers()))
+            Return Nothing
         ElseIf members.Length > 1 Then
             Assert.True(False, "Found multiple members of specified name:" & vbCrLf + String.Join(vbCrLf, members))
         End If

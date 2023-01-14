@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -15,19 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         public CSharpFormatEngine(
             SyntaxNode node,
-            AnalyzerConfigOptions options,
+            SyntaxFormattingOptions options,
             IEnumerable<AbstractFormattingRule> formattingRules,
-            SyntaxToken token1,
-            SyntaxToken token2)
+            SyntaxToken startToken,
+            SyntaxToken endToken)
             : base(TreeData.Create(node),
                  options,
                  formattingRules,
-                 token1,
-                 token2)
+                 startToken,
+                 endToken)
         {
         }
 
-        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
             => new TriviaDataFactory(this.TreeData, this.Options);

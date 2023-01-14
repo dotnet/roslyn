@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 callerDeclarationNode,
                 inlineExpression, invocationOperation);
 
-            var nestedCodeAction = new CodeAction.CodeActionWithNestedActions(
+            var nestedCodeAction = CodeAction.CodeActionWithNestedActions.Create(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 codeActions,
                 isInlinable: true);
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IInvocationOperation invocationOperation)
         {
             var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
-            var codeActionRemovesCallee = new MySolutionChangeAction(
+            var codeActionRemovesCallee = CodeAction.Create(
                 string.Format(FeaturesResources.Inline_0, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(
@@ -265,9 +265,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         callerMethodNode,
                         inlineExpression,
                         invocationOperation,
-                        removeCalleeDeclarationNode: true, cancellationToken: cancellationToken));
+                        removeCalleeDeclarationNode: true, cancellationToken: cancellationToken),
+                nameof(FeaturesResources.Inline_0) + "_" + calleeMethodName);
 
-            var codeActionKeepsCallee = new MySolutionChangeAction(
+            var codeActionKeepsCallee = CodeAction.Create(
                 string.Format(FeaturesResources.Inline_and_keep_0, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(
@@ -279,7 +280,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         callerMethodNode,
                         inlineExpression,
                         invocationOperation,
-                        removeCalleeDeclarationNode: false, cancellationToken: cancellationToken));
+                        removeCalleeDeclarationNode: false, cancellationToken: cancellationToken),
+                nameof(FeaturesResources.Inline_and_keep_0) + "_" + calleeMethodName);
 
             return ImmutableArray.Create<CodeAction>(codeActionRemovesCallee, codeActionKeepsCallee);
         }
@@ -312,7 +314,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // }
             // it could be null if the caller is invoked as arrow function
             var statementContainsInvocation = calleeInvocationNode.GetAncestors()
-                .TakeWhile(node => !_syntaxFacts.IsAnonymousFunction(node) && !_syntaxFacts.IsLocalFunction(node))
+                .TakeWhile(node => !_syntaxFacts.IsAnonymousFunctionExpression(node) && !_syntaxFacts.IsLocalFunctionStatement(node))
                 .FirstOrDefault(node => node is TStatementSyntax) as TStatementSyntax;
 
             var methodParametersInfo = await GetMethodParametersInfoAsync(
@@ -581,23 +583,13 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     return fieldSymbol;
                 }
 
-                if (_syntaxFacts.IsAnonymousFunction(node))
+                if (_syntaxFacts.IsAnonymousFunctionExpression(node))
                 {
                     return semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
                 }
             }
 
             return null;
-        }
-
-        private class MySolutionChangeAction : CodeAction.SolutionChangeAction
-        {
-            public MySolutionChangeAction(
-                string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
     }
 }

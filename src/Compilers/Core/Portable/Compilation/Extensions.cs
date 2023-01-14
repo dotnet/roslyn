@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis
             return semanticModel.GetSpeculativeTypeInfo(position, expression, bindingOption);
         }
 
-
         /// <summary>
         /// Gets the symbol associated with a declaration syntax node.
         /// </summary>
@@ -168,7 +167,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
+        /// note (for C#): ConstructorInitializerSyntax and PrimaryConstructorBaseTypeSyntax are treated by this API as regular statements
         /// </summary>
         public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, SyntaxNode statementOrExpression)
         {

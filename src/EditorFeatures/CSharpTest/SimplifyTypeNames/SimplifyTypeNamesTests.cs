@@ -23,6 +23,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
     public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public SimplifyTypeNamesTests(ITestOutputHelper logger)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyGenericName()
         {
             await TestInRegularAndScriptAsync(
@@ -67,7 +68,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias0()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -99,7 +100,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias00()
         {
             await TestInRegularAndScriptAsync(
@@ -123,7 +124,64 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
+        public async Task UseGlobalAlias00()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+global using MyType = System.IO.File;
+
+namespace Root
+{
+    class A
+    {
+        [|System.IO.File|] c;
+    }
+}",
+@"
+global using MyType = System.IO.File;
+
+namespace Root
+{
+    class A
+    {
+        MyType c;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task UseGlobalAlias01()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+global using MyType = System.IO.File;
+        </Document>
+        <Document>
+namespace Root
+{
+    class A
+    {
+        [|System.IO.File|] c;
+    }
+}
+</Document>
+    </Project>
+</Workspace>",
+@"
+namespace Root
+{
+    class A
+    {
+        MyType c;
+    }
+}
+");
+        }
+
+        [Fact]
         public async Task UseAlias00_FileScopedNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -147,7 +205,7 @@ class A
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias()
         {
             var source =
@@ -176,7 +234,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias1()
         {
             await TestInRegularAndScriptAsync(
@@ -200,7 +258,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias2()
         {
             await TestInRegularAndScriptAsync(
@@ -224,7 +282,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias3()
         {
             await TestInRegularAndScriptAsync(
@@ -254,7 +312,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias4()
         {
             await TestInRegularAndScriptAsync(
@@ -272,7 +330,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias5()
         {
             await TestInRegularAndScriptAsync(
@@ -296,7 +354,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias6()
         {
             await TestInRegularAndScriptAsync(
@@ -320,7 +378,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias7()
         {
             await TestInRegularAndScriptAsync(
@@ -350,7 +408,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task UseAlias8()
         {
             await TestInRegularAndScriptAsync(
@@ -380,8 +438,7 @@ namespace Root
 }");
         }
 
-        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
         public async Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
         {
             await TestInRegularAndScript1Async(
@@ -413,8 +470,7 @@ namespace SimplifyInsideNameof
 }");
         }
 
-        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
         {
             await TestInRegularAndScriptAsync(
@@ -447,8 +503,7 @@ namespace SimplifyInsideNameof
 }");
         }
 
-        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
         {
             await TestInRegularAndScriptAsync(
@@ -488,7 +543,7 @@ namespace SimplifyInsideNameof
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TwoAliases()
         {
             await TestInRegularAndScriptAsync(
@@ -516,7 +571,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TwoAliases2()
         {
             await TestInRegularAndScriptAsync(
@@ -544,7 +599,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TwoAliasesConflict()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -561,7 +616,289 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
+        public async Task DoNotChangeToAliasIfConflict1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DoNotChangeToAliasIfConflict2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType() => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DoChangeToAliasIfTypesMatch1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType => 3;
+
+        void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DoChangeToAliasIfTypesMatch2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType = 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType = 3;
+
+        void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DoChangeToAliasIfTypesMatch3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        void M(System.ConsoleColor MyType)
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        void M(System.ConsoleColor MyType)
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DoNotChangeToNamespaceAliasIfConflict()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            [|Root.Inner.Inner2|].Red.Goo();
+        }
+    }
+}",
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            Inner.Inner2.Red.Goo();
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DoChangeToNamespaceAliasIfNoConflict()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        void M()
+        {
+            [|Root.Inner.Inner2|].Red.Goo();
+        }
+    }
+}",
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        void M()
+        {
+            MyType.Red.Goo();
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DoChangeToAliasIfConflictIsntType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        [|System.ConsoleColor|] x;
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        MyType x;
+    }
+}");
+        }
+
+        [Fact]
         public async Task TwoMissingOnAmbiguousCref1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -581,7 +918,7 @@ namespace Root
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TwoMissingOnAmbiguousCref2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -601,7 +938,7 @@ namespace Root
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TwoMissingInNameofMemberGroup()
         {
             // Note: this is something we could potentially support as removing the
@@ -621,7 +958,7 @@ namespace Root
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TwoAliasesConflict2()
         {
             await TestInRegularAndScriptAsync(
@@ -649,7 +986,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task AliasInSiblingNamespace()
         {
             var content =
@@ -668,7 +1005,7 @@ namespace Root
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task KeywordInt32()
         {
             var source =
@@ -691,7 +1028,7 @@ namespace Root
 }", parameters: new TestParameters(options: featureOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task Keywords()
         {
             var builtInTypeMap = new Dictionary<string, string>()
@@ -727,7 +1064,7 @@ namespace Root
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName()
         {
             var content =
@@ -741,7 +1078,7 @@ namespace Root
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName1()
         {
             var source =
@@ -778,7 +1115,7 @@ namespace Root
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName1_FileScopedNamespace()
         {
             var source =
@@ -812,7 +1149,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName2()
         {
             await TestInRegularAndScriptAsync(
@@ -832,7 +1169,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName3()
         {
             await TestInRegularAndScriptAsync(
@@ -866,7 +1203,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName4()
         {
             // this is failing since we can't speculatively bind namespace yet
@@ -901,7 +1238,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName5()
         {
             await TestInRegularAndScriptAsync(
@@ -935,7 +1272,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName6()
         {
             var content =
@@ -957,7 +1294,7 @@ class A
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeName7()
         {
             var source =
@@ -991,7 +1328,7 @@ class A
             await TestActionCountAsync(source, 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyGenericTypeName1()
         {
             var content =
@@ -1006,7 +1343,7 @@ class A
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyGenericTypeName2()
         {
             var source =
@@ -1034,7 +1371,7 @@ namespace N1
             await TestActionCountAsync(source, 1);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task SimplifyGenericTypeName3()
         {
@@ -1059,7 +1396,7 @@ namespace N1
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyGenericTypeName4()
         {
             var content =
@@ -1076,7 +1413,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyGenericTypeName5()
         {
             var source =
@@ -1113,7 +1450,7 @@ namespace N1
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyGenericTypeName6()
         {
             await TestInRegularAndScriptAsync(
@@ -1155,7 +1492,7 @@ namespace N1
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task SimplifyGenericTypeName7()
         {
@@ -1198,7 +1535,7 @@ namespace N1
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task Array1()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1244,7 +1581,7 @@ namespace N1
             ////}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task Array2()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1268,8 +1605,7 @@ namespace N1
 }");
         }
 
-        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1284,8 +1620,7 @@ class Program
 }");
         }
 
-        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1298,8 +1633,7 @@ class Program
 }");
         }
 
-        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1314,8 +1648,7 @@ class Program
 }");
         }
 
-        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         public async Task SimplifyToPredefinedTypeNameShouldBeOfferedInsideFunctionCalledNameOf()
         {
             await TestInRegularAndScriptAsync(
@@ -1349,7 +1682,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyTypeNameInsideNameOf()
         {
             await TestInRegularAndScriptAsync(
@@ -1373,8 +1706,7 @@ class Program
 }");
         }
 
-        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
         public async Task SimplifyCrefAliasPredefinedType()
         {
             await TestInRegularAndScriptAsync(
@@ -1400,8 +1732,7 @@ class Program
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         public async Task SimplifyAlias1()
         {
             var content =
@@ -1417,8 +1748,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         public async Task SimplifyAlias2()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1442,8 +1772,7 @@ namespace N1
 }");
         }
 
-        [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         public async Task SimplifyAlias3()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1473,8 +1802,7 @@ namespace N1
 }");
         }
 
-        [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         public async Task SimplifyAlias4()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1506,8 +1834,7 @@ namespace Outer
 }");
         }
 
-        [WorkItem(544631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544631")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(544631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544631")]
         public async Task SimplifyAlias5()
         {
             var content =
@@ -1528,8 +1855,7 @@ namespace N
             await TestInRegularAndScriptAsync(content, result);
         }
 
-        [WorkItem(919815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/919815")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(919815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/919815")]
         public async Task SimplifyReturnTypeOnMethodCallToAlias()
         {
             await TestInRegularAndScriptAsync(
@@ -1553,8 +1879,7 @@ class A
 }");
         }
 
-        [WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
         public async Task SimplifyComplexGeneric1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1574,8 +1899,7 @@ interface I<T>
 }");
         }
 
-        [WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
         public async Task SimplifyComplexGeneric2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1595,8 +1919,7 @@ interface I<T>
 }");
         }
 
-        [WorkItem(538991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538991")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(538991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538991")]
         public async Task SimplifyMissingOnGeneric()
         {
             var content =
@@ -1608,8 +1931,7 @@ interface I<T>
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
         public async Task SimplifyMissingOnUnmentionableTypeParameter1()
         {
             var content =
@@ -1627,7 +1949,7 @@ interface I<T>
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyErrorTypeParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1639,9 +1961,8 @@ class C
 }");
         }
 
-        [WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
+        [Fact, WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
         [WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyUnmentionableTypeParameter2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1662,8 +1983,7 @@ class C
 }");
         }
 
-        [WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
         public async Task SimplifyUnmentionableTypeParameter2_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1684,7 +2004,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestGlobalAlias()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -1712,8 +2032,7 @@ class Program
 }");
         }
 
-        [WorkItem(541748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541748")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541748")]
         public async Task TestOnErrorInScript()
         {
             await TestMissingAsync(
@@ -1721,7 +2040,7 @@ class Program
 new TestParameters(Options.Script));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestConflicts()
         {
@@ -1879,9 +2198,8 @@ new TestParameters(Options.Script));
 index: 1);
         }
 
-        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestPreventSimplificationToNameInCurrentScope()
         {
             await TestInRegularAndScript1Async(
@@ -1924,9 +2242,8 @@ index: 1);
 }");
         }
 
-        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestPreventSimplificationToNameInCurrentScope2()
         {
             await TestInRegularAndScript1Async(
@@ -1967,9 +2284,8 @@ index: 1);
 }");
         }
 
-        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAllowSimplificationToNameInNestedScope()
         {
             await TestInRegularAndScriptAsync(
@@ -2015,9 +2331,8 @@ index: 1);
 }");
         }
 
-        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAllowSimplificationToNameInNestedScope1()
         {
             await TestInRegularAndScriptAsync(
@@ -2063,8 +2378,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2080,8 +2394,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType2()
         {
             await TestInRegularAndScriptAsync(
@@ -2107,8 +2420,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2124,8 +2436,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2141,8 +2452,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2158,8 +2468,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnOpenType6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2175,8 +2484,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType1()
         {
             await TestInRegularAndScriptAsync(
@@ -2202,8 +2510,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType2()
         {
             await TestInRegularAndScriptAsync(
@@ -2229,8 +2536,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType3()
         {
             await TestInRegularAndScriptAsync(
@@ -2256,8 +2562,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType4()
         {
             await TestInRegularAndScriptAsync(
@@ -2283,8 +2588,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType5()
         {
             await TestInRegularAndScriptAsync(
@@ -2310,8 +2614,7 @@ namespace N
 }");
         }
 
-        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         public async Task TestOnNonOpenType6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2327,8 +2630,7 @@ namespace N
 }");
         }
 
-        [WorkItem(542650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542650")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(542650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542650")]
         public async Task TestWithInterleavedDirective1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2354,8 +2656,7 @@ class B
 }");
         }
 
-        [WorkItem(542719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542719")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(542719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542719")]
         public async Task TestGlobalMissing1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2375,8 +2676,7 @@ class B
 }");
         }
 
-        [WorkItem(544615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544615")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(544615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544615")]
         public async Task TestMissingOnAmbiguousCast()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2393,8 +2693,7 @@ class C
 }");
         }
 
-        [WorkItem(544616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544616")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(544616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544616")]
         public async Task ParenthesizeIfParseChanges()
         {
             await TestInRegularAndScriptAsync(
@@ -2418,8 +2717,7 @@ class C
 }");
         }
 
-        [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         public async Task TestNullableSimplification1()
         {
             await TestInRegularAndScriptAsync(
@@ -2439,8 +2737,7 @@ class C
 }");
         }
 
-        [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         public async Task TestNullableSimplification3()
         {
             await TestInRegularAndScriptAsync(
@@ -2458,8 +2755,7 @@ class C
 }");
         }
 
-        [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         public async Task TestNullableSimplification4()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -2477,8 +2773,7 @@ class C
 }");
         }
 
-        [WorkItem(544977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544977")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(544977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544977")]
         public async Task TestNullableSimplification5()
         {
             await TestInRegularAndScriptAsync(
@@ -2502,8 +2797,7 @@ class Program
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2516,8 +2810,7 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2529,8 +2822,7 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2542,8 +2834,7 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -2563,8 +2854,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2579,9 +2869,8 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [WorkItem(40664, "https://github.com/dotnet/roslyn/issues/40664")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_NotAllowedAtTopLevel()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2594,9 +2883,8 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [WorkItem(40664, "https://github.com/dotnet/roslyn/issues/40664")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_TopLevel2()
         {
             await TestInRegularAndScript1Async(
@@ -2616,8 +2904,7 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
             // Both the 'original' and 'fixed' code here are incorrect as doc comments do not allow
@@ -2639,8 +2926,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType_InParameterList()
         {
             await TestInRegularAndScriptAsync(
@@ -2662,8 +2948,7 @@ class C
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestMissingNullableSimplificationInsideCref8()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2678,8 +2963,7 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref_Indirect()
         {
             await TestInRegularAndScriptAsync(
@@ -2703,8 +2987,7 @@ struct A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref_Direct()
         {
             await TestInRegularAndScriptAsync(
@@ -2728,8 +3011,7 @@ struct A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref2()
         {
             await TestInRegularAndScriptAsync(
@@ -2757,8 +3039,7 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref3()
         {
             await TestInRegularAndScriptAsync(
@@ -2786,8 +3067,7 @@ class A
 }");
         }
 
-        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         public async Task TestNullableSimplificationInsideCref4()
         {
             await TestInRegularAndScriptAsync(
@@ -2815,7 +3095,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestColorColorCase1()
         {
             await TestInRegularAndScriptAsync(
@@ -2871,7 +3151,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestColorColorCase2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2902,8 +3182,7 @@ class Program
 }");
         }
 
-        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
         public async Task TestColorColorCase3()
         {
             await TestInRegularAndScriptAsync(
@@ -2943,8 +3222,7 @@ class Program
 }");
         }
 
-        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
         public async Task TestColorColorCase4()
         {
             await TestInRegularAndScriptAsync(
@@ -2986,8 +3264,7 @@ class Program
 }");
         }
 
-        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
         public async Task TestColorColorCase5()
         {
             await TestMissingAsync(
@@ -3009,7 +3286,7 @@ namespace N
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestColorColorCase6()
         {
             await TestMissingAsync(
@@ -3048,7 +3325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestAliasQualifiedType()
         {
             var source =
@@ -3071,7 +3348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             await TestMissingAsync(source, new TestParameters(GetScriptOptions()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestSimplifyExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -3095,8 +3372,7 @@ class Program
 }");
         }
 
-        [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
         public async Task TestSimplifyStaticMemberAccess()
         {
             var source =
@@ -3135,8 +3411,7 @@ static class M
 }");
         }
 
-        [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
         public async Task TestSimplifyNestedType()
         {
             var source =
@@ -3181,9 +3456,8 @@ class M
 }");
         }
 
-        [WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyNamesWhenThereAreParseErrors()
+        [Fact, WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
+        public async Task DoNotSimplifyNamesWhenThereAreParseErrors()
         {
             var markup =
 @"
@@ -3203,8 +3477,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(markup);
         }
 
-        [WorkItem(566749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(566749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
         public async Task TestMethodGroups1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3219,8 +3492,7 @@ class Program
 }");
         }
 
-        [WorkItem(566749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(566749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
         public async Task TestMethodGroups2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3235,8 +3507,7 @@ class Program
 }");
         }
 
-        [WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
         public async Task TestMethodGroups3()
         {
             await TestInRegularAndScriptAsync(
@@ -3260,8 +3531,7 @@ class Program
 }");
         }
 
-        [WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
         public async Task FixAllOccurrences1()
         {
             await TestInRegularAndScriptAsync(
@@ -3317,9 +3587,8 @@ namespace C
 }");
         }
 
-        [WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontUseAlias1()
+        [Fact, WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
+        public async Task DoNotUseAlias1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -3364,8 +3633,7 @@ namespace NoAlias
 }");
         }
 
-        [WorkItem(577169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(577169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
         public async Task SuitablyReplaceNullables1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3380,8 +3648,7 @@ class Program
 }");
         }
 
-        [WorkItem(577169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(577169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
         public async Task SuitablyReplaceNullables2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3396,8 +3663,7 @@ class Program
 }");
         }
 
-        [WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
         public async Task Bugfix_608190()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3422,8 +3688,7 @@ struct S
 }");
         }
 
-        [WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
         public async Task Bugfix_608190_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3448,8 +3713,7 @@ struct S
 }");
         }
 
-        [WorkItem(608932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608932")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(608932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608932")]
         public async Task Bugfix_608932()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3477,8 +3741,7 @@ namespace X
 }");
         }
 
-        [WorkItem(635933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635933")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(635933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635933")]
         public async Task Bugfix_635933()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3514,8 +3777,7 @@ class C<T> : B
 }");
         }
 
-        [WorkItem(547246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547246")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(547246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547246")]
         public async Task CodeIssueAtRightSpan()
         {
             await TestSpansAsync(@"
@@ -3530,8 +3792,7 @@ class Program
 ");
         }
 
-        [WorkItem(579172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579172")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(579172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579172")]
         public async Task Bugfix_579172()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3543,8 +3804,7 @@ class Program
 }");
         }
 
-        [WorkItem(633182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633182")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(633182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633182")]
         public async Task Bugfix_633182()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3557,8 +3817,7 @@ class Program
 }");
         }
 
-        [WorkItem(627102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627102")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(627102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627102")]
         public async Task Bugfix_627102()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3590,8 +3849,7 @@ class C<T> : B
 }");
         }
 
-        [WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_1()
         {
             await TestSpansAsync(@"
@@ -3628,8 +3886,7 @@ class Program
 ");
         }
 
-        [WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_2()
         {
             await TestSpansAsync(@"
@@ -3666,9 +3923,8 @@ class Program
 ");
         }
 
-        [WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyTypeNameBrokenCode()
+        [Fact, WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
+        public async Task DoNotSimplifyTypeNameBrokenCode()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -3686,9 +3942,8 @@ class Program
 }");
         }
 
-        [WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyAliases()
+        [Fact, WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
+        public async Task DoNotSimplifyAliases()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using Goo = System.Int32;
@@ -3699,8 +3954,7 @@ class C
 }");
         }
 
-        [WorkItem(825541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825541")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(825541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825541")]
         public async Task ShowOnlyRelevantSpanForReductionOfGenericName()
         {
             await TestSpansAsync(@"
@@ -3724,9 +3978,8 @@ namespace A
 }");
         }
 
-        [WorkItem(878773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyAttributeNameWithJustAttribute()
+        [Fact, WorkItem(878773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
+        public async Task DoNotSimplifyAttributeNameWithJustAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
 @"[[|Attribute|]]
@@ -3735,7 +3988,7 @@ class Attribute : System.Attribute
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task ThisQualificationOnFieldOption()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3750,8 +4003,7 @@ class Attribute : System.Attribute
 }", new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue1()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -3773,8 +4025,7 @@ class Attribute : System.Attribute
 }");
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue2()
         {
             await TestInRegularAndScriptAsync(
@@ -3795,8 +4046,7 @@ class C
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInsideCref_Default_1()
         {
             await TestInRegularAndScriptAsync(
@@ -3819,8 +4069,7 @@ class C
 }", options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInsideCref_Default_2()
         {
             await TestInRegularAndScriptAsync(
@@ -3841,8 +4090,7 @@ class C
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInsideCref_Default_3()
         {
             await TestInRegularAndScriptAsync(
@@ -3865,9 +4113,8 @@ class C
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3882,9 +4129,8 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_2()
         {
             await TestInRegularAndScriptAsync(
@@ -3908,9 +4154,8 @@ class C
 }", options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3925,8 +4170,7 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_4()
         {
             await TestInRegularAndScriptAsync(
@@ -3951,8 +4195,7 @@ class C
 options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3965,8 +4208,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferMemberAccess()
         {
             await TestInRegularAndScriptAsync(
@@ -3987,8 +4229,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
         {
             await TestMissingAsync(
@@ -4001,8 +4242,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: PreferIntrinsicTypeInDeclaration));
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4017,8 +4257,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4033,8 +4272,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4049,8 +4287,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInMemberAccess_Default_1()
         {
             await TestInRegularAndScriptAsync(
@@ -4070,8 +4307,7 @@ options: PreferIntrinsicTypeInMemberAccess);
 }", options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInMemberAccess_Default_2()
         {
             await TestInRegularAndScriptAsync(
@@ -4095,8 +4331,7 @@ class C
 }", options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
         public async Task TestIntrinsicTypesInMemberAccess_Default_3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4116,8 +4351,7 @@ class C2
 }");
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4132,8 +4366,7 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4146,8 +4379,7 @@ class C
 }", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
-        [WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
         public async Task TestSimplifyDiagnosticId()
         {
             await TestInRegularAndScriptAsync(
@@ -4195,8 +4427,7 @@ class C
 }", parameters: new TestParameters(options: PreferIntrinsicTypeEverywhere));
         }
 
-        [WorkItem(1019276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019276")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(1019276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019276")]
         public async Task TestSimplifyTypeNameDoesNotAddUnnecessaryParens()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4226,8 +4457,7 @@ class Program
 }");
         }
 
-        [WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         public async Task TestSimplifyTypeNameInPropertyLambda()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4247,8 +4477,7 @@ class Program
 }");
         }
 
-        [WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         public async Task TestSimplifyTypeNameInMethodLambda()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4262,8 +4491,7 @@ class Program
 }");
         }
 
-        [WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         public async Task TestSimplifyTypeNameInIndexerLambda()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4277,8 +4505,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
+        [Fact, WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
         public async Task SimplifyTypeNameWithOutDiscard()
         {
             await TestAsync(
@@ -4307,8 +4534,7 @@ class Program
                 parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
+        [Fact, WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
         public async Task SimplifyTypeNameWithOutDiscard_FeatureDisabled()
         {
             await TestAsync(
@@ -4337,8 +4563,7 @@ class Program
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        [Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
         public async Task TestMemberOfBuiltInType1()
         {
             await TestAsync(
@@ -4362,8 +4587,7 @@ class C
                 options: PreferIntrinsicTypeInDeclaration);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        [Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
         public async Task TestMemberOfBuiltInType2()
         {
             await TestAsync(
@@ -4387,8 +4611,7 @@ class C
                 options: PreferIntrinsicTypeInMemberAccess);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
+        [Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")]
         public async Task TestMemberOfBuiltInType3()
         {
             await TestAsync(
@@ -4497,7 +4720,7 @@ namespace Root
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestGlobalAliasSimplifiesInUsingDirective()
         {
             await TestInRegularAndScriptAsync(
@@ -4505,7 +4728,7 @@ namespace Root
                 "using System.IO;");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Theory]
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
@@ -4526,7 +4749,7 @@ namespace Root
                 $"using My{typeName} = System.{typeName};");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestGlobalAliasSimplifiesInUsingStaticDirective()
         {
             await TestInRegularAndScriptAsync(
@@ -4534,7 +4757,7 @@ namespace Root
                 "using static System.Math;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestGlobalAliasSimplifiesInUsingDirectiveInNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -4550,8 +4773,7 @@ namespace N
 }");
         }
 
-        [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
         public async Task TestCrefIdAtTopLevel()
         {
             await TestDiagnosticInfoAsync(
@@ -4560,11 +4782,10 @@ namespace N
 /// </summary>
 class Base
 {
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
-        [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
         public async Task TestCrefIdAtNestedLevel()
         {
             await TestDiagnosticInfoAsync(
@@ -4574,10 +4795,10 @@ class Base
 class Base
 {
     public void Foo(string s) { }
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Theory]
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
@@ -4602,7 +4823,7 @@ namespace N
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Theory]
         [InlineData("Int8")]
         [InlineData("UInt8")]
         [InlineData("Float32")]
@@ -4622,7 +4843,7 @@ namespace N
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -4638,8 +4859,7 @@ namespace N
 }");
         }
 
-        [WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
         public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred()
         {
             await TestInRegularAndScriptAsync(
@@ -4661,8 +4881,7 @@ class C
 }", options: PreferImplicitTypeEverywhere);
         }
 
-        [WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
         public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4676,8 +4895,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeEverywhere));
         }
 
-        [WorkItem(40647, "https://github.com/dotnet/roslyn/issues/40647")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40647, "https://github.com/dotnet/roslyn/issues/40647")]
         public async Task SimplifyMemberAccessOverPredefinedType()
         {
             await TestInRegularAndScript1Async(
@@ -4697,8 +4915,7 @@ class Base
 ");
         }
 
-        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
         public async Task SimplifyAliasToGeneric1()
         {
             await TestInRegularAndScript1Async(
@@ -4720,8 +4937,7 @@ class Base
 ");
         }
 
-        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
         public async Task SimplifyAliasToGeneric2()
         {
             await TestInRegularAndScript1Async(
@@ -4743,8 +4959,7 @@ class Base
 ");
         }
 
-        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
         public async Task SimplifyAliasToGeneric3()
         {
             await TestInRegularAndScript1Async(
@@ -4766,8 +4981,7 @@ class Base
 ");
         }
 
-        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
         public async Task DoNotSimplifyIncorrectInstantiation()
         {
             await TestMissingAsync(
@@ -4781,8 +4995,7 @@ class Base
 ");
         }
 
-        [WorkItem(40663, "https://github.com/dotnet/roslyn/issues/40663")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40663, "https://github.com/dotnet/roslyn/issues/40663")]
         public async Task SimplifyInTypeOf()
         {
             await TestInRegularAndScriptAsync(
@@ -4808,8 +5021,7 @@ class C
 ");
         }
 
-        [WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
         public async Task SimplifyPredefinedTypeInUsingDirective1()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -4838,7 +5050,7 @@ namespace N
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestSimplifyTopLevelOfCrefOnly1()
         {
             await TestInRegularAndScriptAsync(
@@ -4866,7 +5078,7 @@ namespace A.B.C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestSimplifyTopLevelOfCrefOnly2()
         {
             await TestSpansAsync(
@@ -4883,7 +5095,7 @@ namespace A.B.C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestSimplifyTopLevelOfCrefOnly4()
         {
             await TestInRegularAndScriptAsync(
@@ -4913,7 +5125,7 @@ namespace A.B.C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestSimplifyTopLevelOfCrefOnly5()
         {
             await TestInRegularAndScriptAsync(
@@ -4943,7 +5155,7 @@ namespace A.B.C
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Theory]
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
@@ -4967,7 +5179,7 @@ namespace N
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Theory]
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
@@ -4992,7 +5204,7 @@ namespace N
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Theory]
         [InlineData("Int8")]
         [InlineData("UInt8")]
         [InlineData("Float32")]
@@ -5007,7 +5219,7 @@ namespace N
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyMemberAccessOffOfObjectKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -5031,7 +5243,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoNotSimplifyBaseCallToVirtualInNonSealedClass()
         {
             await TestMissingAsync(
@@ -5046,7 +5258,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoSimplifyBaseCallToVirtualInSealedClass()
         {
             await TestInRegularAndScript1Async(
@@ -5070,7 +5282,7 @@ sealed class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoSimplifyBaseCallToVirtualInStruct()
         {
             await TestInRegularAndScript1Async(
@@ -5094,7 +5306,7 @@ struct C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoNotSimplifyBaseCallToVirtualWithOverride()
         {
             await TestMissingAsync(
@@ -5111,7 +5323,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoSimplifyBaseCallToNonVirtual()
         {
             await TestInRegularAndScript1Async(
@@ -5145,7 +5357,7 @@ class C : Base
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoNotSimplifyBaseCallIfOverloadChanges()
         {
             await TestMissingAsync(
@@ -5167,7 +5379,7 @@ class C : Base
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoNotSimplifyInsideNameof()
         {
             await TestMissingAsync(
@@ -5183,7 +5395,7 @@ class Base
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoSimplifyInferrableTypeArgumentList()
         {
             await TestInRegularAndScript1Async(
@@ -5205,7 +5417,7 @@ class Base
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task DoNotSimplifyNonInferrableTypeArgumentList()
         {
             await TestMissingAsync(
@@ -5219,7 +5431,7 @@ class Base
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyEnumMemberReferenceInsideEnum()
         {
             await TestInRegularAndScript1Async(
@@ -5237,7 +5449,7 @@ enum E
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyEnumMemberReferenceInsideEnumDocComment()
         {
             await TestInRegularAndScript1Async(
@@ -5259,7 +5471,7 @@ enum E
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestInstanceMemberReferenceInCref1()
         {
             await TestInRegularAndScriptAsync(
@@ -5280,7 +5492,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyAttributeReference1()
         {
             await TestInRegularAndScript1Async(
@@ -5308,7 +5520,7 @@ class Bar
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyAttributeReference2()
         {
             await TestInRegularAndScript1Async(
@@ -5336,7 +5548,7 @@ class Bar
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyAttributeReference3()
         {
             await TestInRegularAndScript1Async(
@@ -5370,7 +5582,7 @@ class Bar
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifyAttributeReference4()
         {
             await TestInRegularAndScript1Async(
@@ -5404,7 +5616,7 @@ class Bar
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task SimplifySystemAttribute()
         {
             await TestInRegularAndScript1Async(
@@ -5430,9 +5642,8 @@ namespace Microsoft
 }");
         }
 
-        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [Fact, WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAllowSimplificationThatWouldNotCauseConflict1()
         {
             await TestInRegularAndScriptAsync(
@@ -5478,8 +5689,7 @@ namespace Microsoft
 }");
         }
 
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestAllowSimplificationThatWouldNotCauseConflict2()
         {
             await TestInRegularAndScriptAsync(
@@ -5525,8 +5735,7 @@ namespace Microsoft
 }");
         }
 
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestPreventSimplificationThatWouldCauseConflict1()
         {
             await TestInRegularAndScript1Async(
@@ -5568,8 +5777,7 @@ namespace Microsoft
 }");
         }
 
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         public async Task TestPreventSimplificationThatWouldCauseConflict2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5593,7 +5801,7 @@ namespace Microsoft
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestSimplifyPredefinedTypeMemberAccessThatIsInScope()
         {
             await TestInRegularAndScript1Async(
@@ -5617,7 +5825,7 @@ class Goo
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Theory]
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
@@ -5642,7 +5850,7 @@ namespace N
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5668,7 +5876,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5698,7 +5906,7 @@ namespace N
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestAllowSimplificationWithoutAmbiguity2()
         {
             await TestInRegularAndScript1Async(
@@ -5752,8 +5960,7 @@ namespace N
 }");
         }
 
-        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
         public async Task SimplifyCrefAliasPredefinedType_OnClass()
         {
             await TestInRegularAndScriptAsync(
@@ -5779,7 +5986,7 @@ namespace N
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestMissingOnInstanceMemberAccessOfOtherValue()
         {
             var content =
@@ -5806,7 +6013,7 @@ internal struct BitVector : IEquatable<BitVector>
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestSimplifyStaticMemberAccessThroughDerivedType()
         {
             var source =
@@ -5845,8 +6052,7 @@ static class M
 }");
         }
 
-        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
         public async Task TestSimplifyCallWithDynamicArg()
         {
             await TestInRegularAndScriptAsync(
@@ -5874,8 +6080,7 @@ class P
 }");
         }
 
-        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
         public async Task TestDoSimplifyCallWithDynamicArgWhenCallingThroughDerivedClass()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5901,7 +6106,7 @@ class P
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact]
         public async Task TestNameofReportsSimplifyMemberAccess()
         {
             await TestDiagnosticInfoAsync(
@@ -5913,11 +6118,10 @@ class Base
     {
         var v = nameof([|System|].Int32);
     }
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
-        [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
         public async Task TestNotOnIllegalInstanceCall()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5927,6 +6131,52 @@ class Program
     static void Main(string[] args)
     {
         [|Console.Equals|]("""");
+    }
+}");
+        }
+
+        [Fact, WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        public async Task TestInvocationOffOfFunctionPointerInvocationResult1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.CompilerServices;
+
+public ref struct A
+{
+    private void Goo()
+    {
+    }
+
+    public readonly unsafe ref struct B
+    {
+        private readonly void* a;
+
+        public void Dispose()
+        {
+            [|((delegate*<ref byte, ref A>)(delegate*<ref byte, ref byte>)&Unsafe.As<byte, byte>)(ref *(byte*)a)|].Goo();
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        public async Task TestInvocationOffOfFunctionPointerInvocationResult2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public struct A
+{
+    private void Goo()
+    {
+    }
+
+    public readonly unsafe struct B
+    {
+        private readonly void* a;
+
+        public void Dispose()
+        {
+            [|((delegate*<ref byte, ref A>)&Unsafe.As<byte, A>)(ref *(byte*)a)|].Goo();
+        }
     }
 }");
         }

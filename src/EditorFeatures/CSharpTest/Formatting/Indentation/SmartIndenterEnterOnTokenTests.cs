@@ -5,11 +5,14 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -17,7 +20,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
-using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
@@ -700,8 +703,7 @@ int
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WpfFact, WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ArrayInitializer1()
         {
@@ -736,8 +738,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WpfFact]
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WpfFact, WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer3()
         {
@@ -817,8 +818,7 @@ int
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem(853748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853748")]
+        [WpfFact, WorkItem(853748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853748")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ArrayInitializer()
         {
@@ -838,8 +838,7 @@ int
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(939305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939305")]
+        [WpfFact, WorkItem(939305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939305")]
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ArrayExpression()
@@ -860,8 +859,7 @@ int
                 expectedIndentation: 14);
         }
 
-        [WpfFact]
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WpfFact, WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task CollectionExpression()
         {
@@ -882,8 +880,7 @@ int
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
+        [WpfFact, WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ObjectInitializer()
         {
@@ -922,8 +919,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
-        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
+        [WpfFact, WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_Implicit()
         {
@@ -939,8 +935,7 @@ class What
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
+        [WpfFact, WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_ImplicitNew()
         {
@@ -956,8 +951,7 @@ class What
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
+        [WpfFact, WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_Explicit()
         {
@@ -973,8 +967,7 @@ class What
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
+        [WpfFact, WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_Collection()
         {
@@ -991,8 +984,7 @@ class X {
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
+        [WpfFact, WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_ObjectInitializers()
         {
@@ -1016,8 +1008,7 @@ class What
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationString_1()
         {
@@ -1037,8 +1028,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationString_2()
         {
@@ -1058,8 +1048,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationString_3()
         {
@@ -1079,8 +1068,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationString_4()
         {
@@ -1100,8 +1088,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task OutsideInterpolationString()
         {
@@ -1121,8 +1108,7 @@ class What
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_1()
         {
@@ -1142,8 +1128,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_2()
         {
@@ -1164,8 +1149,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_3()
         {
@@ -1185,8 +1169,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_4()
         {
@@ -1206,8 +1189,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_5()
         {
@@ -1227,8 +1209,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_6()
         {
@@ -1248,8 +1229,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_7()
         {
@@ -1269,8 +1249,7 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
+        [WpfFact, WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task IndentLambdaBodyOneIndentationToFirstTokenOfTheStatement()
         {
@@ -1290,8 +1269,7 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
-        [WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
+        [WpfFact, WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task IndentAutoPropertyInitializerAsPartOfTheDeclaration()
         {
@@ -1349,6 +1327,27 @@ class C
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
                 code,
                 indentationLine: 8,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task IndentListPattern()
+        {
+            var code = @"
+class C
+{
+    void Main(object o)
+    {
+        var y = o is
+        [
+
+        ]
+    }
+}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 7,
                 expectedIndentation: 12);
         }
 
@@ -1478,32 +1477,27 @@ class C
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
-
             var hostdoc = workspace.Documents.First();
-
             var buffer = hostdoc.GetTextBuffer();
-
             var snapshot = buffer.CurrentSnapshot;
             var line = snapshot.GetLineFromLineNumber(indentationLine);
-
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var options = new IndentationOptions(
+                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions { UseTabs = useTabs }));
 
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
+                    Formatter.GetDefaultFormattingRules(document),
+                    root, line.AsTextLine(), options, out _));
 
-            var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
+            var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch, useTabs);
             Assert.Equal(expectedIndentation.Value, actualIndentation);
         }
 
-        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -1513,7 +1507,7 @@ class C
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, indentStyle).ConfigureAwait(false);
         }
 
-        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -1522,9 +1516,6 @@ class C
         {
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();
             var snapshot = buffer.CurrentSnapshot;
@@ -1535,14 +1526,17 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var options = new IndentationOptions(CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions { UseTabs = useTabs }))
+            {
+                IndentStyle = indentStyle
+            };
 
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
+                    Formatter.GetDefaultFormattingRules(document),
+                    root, line.AsTextLine(), options, out _));
 
-            TestIndentation(workspace, indentationLine, expectedIndentation);
+            TestIndentation(workspace, indentationLine, expectedIndentation, indentStyle, useTabs);
         }
     }
 }

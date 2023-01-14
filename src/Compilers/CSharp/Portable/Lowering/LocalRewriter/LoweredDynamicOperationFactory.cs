@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol callSiteTypeGeneric = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T);
             MethodSymbol callSiteFactoryGeneric = _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Create);
             FieldSymbol callSiteTargetFieldGeneric = (FieldSymbol)_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Target);
-            MethodSymbol delegateInvoke;
+            MethodSymbol? delegateInvoke;
 
             if (binderConstruction == null ||
                 delegateTypeOverMethodTypeParameters is null ||
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // as well as the alternative where x is a const null of type object.
 
-            if (boundArgument.ConstantValue != null)
+            if (boundArgument.ConstantValueOpt != null)
             {
                 flags |= CSharpArgumentInfoFlags.Constant;
             }

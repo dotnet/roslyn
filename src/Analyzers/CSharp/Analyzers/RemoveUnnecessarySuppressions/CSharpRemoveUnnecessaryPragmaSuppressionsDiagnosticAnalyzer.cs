@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions

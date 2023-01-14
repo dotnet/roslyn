@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<string> KeyFileSearchPaths { get; internal set; }
 
         /// <summary>
-        /// If true, use UTF8 for output.
+        /// If true, use UTF-8 for output.
         /// </summary>
         public bool Utf8Output { get; internal set; }
 
@@ -493,6 +493,9 @@ namespace Microsoft.CodeAnalysis
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
                         diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesFramework, analyzerReference.FullPath, e.TypeName!);
                         break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesNewerCompiler, analyzerReference.FullPath, e.ReferencedCompilerVersion!.ToString(), typeof(AnalyzerFileReference).Assembly.GetName().Version!.ToString());
+                        break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                     default:
                         return;
@@ -507,16 +510,26 @@ namespace Microsoft.CodeAnalysis
                 }
             };
 
-            var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
+            var resolvedReferencesSet = PooledHashSet<AnalyzerFileReference>.GetInstance();
+            var resolvedReferencesList = ArrayBuilder<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences)
             {
                 var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
-                    resolvedReferences.Add(resolvedReference);
+                    var isAdded = resolvedReferencesSet.Add(resolvedReference);
+                    if (isAdded)
+                    {
+                        // register the reference to the analyzer loader:
+                        analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
 
-                    // register the reference to the analyzer loader:
-                    analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
+                        resolvedReferencesList.Add(resolvedReference);
+                    }
+                    else
+                    {
+                        // https://github.com/dotnet/roslyn/issues/63856
+                        //diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_DuplicateAnalyzerReference, reference.FilePath));
+                    }
                 }
                 else
                 {
@@ -524,20 +537,23 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // All analyzer references are registered now, we can start loading them:
-            foreach (var resolvedReference in resolvedReferences)
+            // All analyzer references are registered now, we can start loading them.
+            foreach (var resolvedReference in resolvedReferencesList)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
-                if (!skipAnalyzers)
-                    resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
                 resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
-            resolvedReferences.Free();
+            resolvedReferencesList.Free();
+            resolvedReferencesSet.Free();
 
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();
+
+            // If we are skipping analyzers, ensure that we only add suppressors.
+            bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
         private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

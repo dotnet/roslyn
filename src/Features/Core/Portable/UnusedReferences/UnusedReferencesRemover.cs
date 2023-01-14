@@ -19,12 +19,10 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         // This is the order that we look for used references. We set this processing order because we
         // want to favor transitive references when possible. For instance we process Projects before
         // Packages, since a particular Package could be brought in transitively by a Project reference.
-        private static readonly ReferenceType[] _processingOrder = new[]
-        {
+        private static readonly ImmutableArray<ReferenceType> s_processingOrder = ImmutableArray.Create(
             ReferenceType.Project,
             ReferenceType.Package,
-            ReferenceType.Assembly
-        };
+            ReferenceType.Assembly);
 
         public static async Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
             Solution solution,
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             // assemblies brought in transitively by each reference.
 
             // Pass 1: Find all directly used references and remove them.
-            foreach (var referenceType in _processingOrder)
+            foreach (var referenceType in s_processingOrder)
             {
                 if (!referencesByType.TryGetValue(referenceType, out var referencesForReferenceType))
                 {
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             }
 
             // Pass 2: Find all transitively used refrences and remove them.
-            foreach (var referenceType in _processingOrder)
+            foreach (var referenceType in s_processingOrder)
             {
                 if (!referencesByType.TryGetValue(referenceType, out var referencesForReferenceType))
                 {
@@ -154,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
                     // We will look at the project assemblies brought in directly by the
                     // references to see if they are used.
-                    if (!projectAssemblyFileNames.Any(usedProjectFileNames.Contains))
+                    if (!projectAssemblyFileNames.Any(static (name, usedProjectFileNames) => usedProjectFileNames.Contains(name), usedProjectFileNames))
                     {
                         // None of the project assemblies brought into this compilation are in the
                         // used assemblies list, so we will consider the reference unused.
@@ -169,7 +167,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 {
                     // We will look at the compilation assemblies brought in directly by the
                     // references to see if they are used.
-                    if (!reference.CompilationAssemblies.Any(usedAssemblyFilePaths.Contains))
+                    if (!reference.CompilationAssemblies.Any(static (name, usedAssemblyFilePaths) => usedAssemblyFilePaths.Contains(name), usedAssemblyFilePaths))
                     {
                         // None of the assemblies brought into this compilation are in the
                         // used assemblies list, so we will consider the reference unused.
@@ -239,12 +237,12 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
         internal static bool ContainsAnyCompilationAssembly(ReferenceInfo reference, HashSet<string> usedAssemblyFilePaths)
         {
-            if (reference.CompilationAssemblies.Any(usedAssemblyFilePaths.Contains))
+            if (reference.CompilationAssemblies.Any(static (name, usedAssemblyFilePaths) => usedAssemblyFilePaths.Contains(name), usedAssemblyFilePaths))
             {
                 return true;
             }
 
-            return reference.Dependencies.Any(dependency => ContainsAnyCompilationAssembly(dependency, usedAssemblyFilePaths));
+            return reference.Dependencies.Any(static (dependency, usedAssemblyFilePaths) => ContainsAnyCompilationAssembly(dependency, usedAssemblyFilePaths), usedAssemblyFilePaths);
         }
 
         internal static void RemoveAllCompilationAssemblies(ReferenceInfo reference, HashSet<string> usedAssemblyFilePaths)
@@ -266,17 +264,15 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 .ToImmutableArray();
         }
 
-        public static async Task<Solution> UpdateReferencesAsync(
+        public static async Task UpdateReferencesAsync(
             Solution solution,
             string projectFilePath,
             ImmutableArray<ReferenceUpdate> referenceUpdates,
             CancellationToken cancellationToken)
         {
-            var referenceCleanupService = solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
+            var referenceCleanupService = solution.Services.GetRequiredService<IReferenceCleanupService>();
 
             await ApplyReferenceUpdatesAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
-
-            return solution.Workspace.CurrentSolution;
         }
 
         internal static async Task ApplyReferenceUpdatesAsync(

@@ -71,6 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             finallyBlockOpt As BoundBlock,
             exitLabelOpt As LabelSymbol
         ) As BoundStatement
+
             If Not Me.OptimizationLevelIsDebug Then
                 ' When optimizing and the try block has no side effects, we can discard the catch blocks.
                 If Not HasSideEffects(tryBlock) Then

@@ -5,8 +5,10 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -21,24 +23,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     internal sealed class VisualStudioWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
     {
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IGlobalOptionService _optionsService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceTelemetryService(
             VisualStudioWorkspace workspace,
-            IGlobalOptionService optionsService)
+            IGlobalOptionService globalOptions)
         {
             _workspace = workspace;
-            _optionsService = optionsService;
+            _globalOptions = globalOptions;
         }
 
-        protected override ILogger CreateLogger(TelemetrySession telemetrySession)
+        protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
             => AggregateLogger.Create(
                 CodeMarkerLogger.Instance,
-                new EtwLogger(_optionsService),
-                new VSTelemetryLogger(telemetrySession),
-                new FileLogger(_optionsService),
+                new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions)),
+                TelemetryLogger.Create(telemetrySession, logDelta),
+                new FileLogger(_globalOptions),
                 Logger.GetLogger());
 
         protected override void TelemetrySessionInitialized()
@@ -54,13 +56,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 var settings = SerializeCurrentSessionSettings();
                 Contract.ThrowIfNull(settings);
 
+                // Only log "delta" property for block end events if feature flag is enabled.
+                var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
+
                 // initialize session in the remote service
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteHost,
-                    nameof(IRemoteHostService.InitializeTelemetrySession),
-                    solution: null,
-                    new object?[] { Process.GetCurrentProcess().Id, settings },
-                    callbackTarget: null,
+                _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                    (service, cancellationToken) => service.InitializeTelemetrySessionAsync(Process.GetCurrentProcess().Id, settings, logDelta, cancellationToken),
                     CancellationToken.None).ConfigureAwait(false);
             });
         }

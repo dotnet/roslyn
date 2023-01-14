@@ -24,13 +24,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExtendedPropertySubpattern_01()
         {
-            UsingExpression(@"e is { a.b.c: p }", TestOptions.Regular10);
+            var test = @"e is { a.b.c: p }";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
+                // (1,44): error CS0103: The name 'p' does not exist in the current context
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(1, 44));
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
+                // (1,42): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, ":").WithArguments("extended property patterns", "10.0").WithLocation(1, 42),
+                // (1,44): error CS0103: The name 'p' does not exist in the current context
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(1, 44));
+
+            UsingExpression(test, TestOptions.Regular10);
             verify();
 
-            UsingExpression(@"e is { a.b.c: p }", TestOptions.Regular9,
-                // (1,8): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // e is { a.b.c: p }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a.b.c").WithArguments("extended property patterns", "10.0").WithLocation(1, 8));
+            UsingExpression(test, TestOptions.Regular9);
             verify();
 
             void verify()
@@ -96,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { {}: p }",
                 // (1,10): error CS1003: Syntax error, ',' expected
                 // e is { {}: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 10),
                 // (1,12): error CS1003: Syntax error, ',' expected
                 // e is { {}: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 12));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -199,10 +217,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { name[0]: p }",
                     // (1,15): error CS1003: Syntax error, ',' expected
                     // e is { name[0]: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 15),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 15),
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // e is { name[0]: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 17));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -364,15 +382,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ExtendedPropertySubpattern_07()
         {
             UsingExpression(@"e is { [0]: p }",
-                    // (1,8): error CS1001: Identifier expected
-                    // e is { [0]: p }
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "[").WithLocation(1, 8),
-                    // (1,10): error CS1003: Syntax error, ',' expected
-                    // e is { [0]: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",", "]").WithLocation(1, 10),
-                    // (1,13): error CS1003: Syntax error, ',' expected
-                    // e is { [0]: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 13));
+                // (1,11): error CS1003: Syntax error, ',' expected
+                // e is { [0]: p }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 11),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // e is { [0]: p }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 13));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -388,12 +403,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.ConstantPattern);
+                            N(SyntaxKind.ListPattern);
                             {
-                                N(SyntaxKind.NumericLiteralExpression);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ConstantPattern);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
                                 }
+                                N(SyntaxKind.CloseBracketToken);
                             }
                         }
                         M(SyntaxKind.CommaToken);
@@ -420,10 +440,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { not a: p }",
                     // (1,13): error CS1003: Syntax error, ',' expected
                     // e is { not a: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 13),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 13),
                     // (1,15): error CS1003: Syntax error, ',' expected
                     // e is { not a: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 15));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 15));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -475,10 +495,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { x or y: p }",
                     // (1,14): error CS1003: Syntax error, ',' expected
                     // e is { x or y: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 14),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 14),
                     // (1,16): error CS1003: Syntax error, ',' expected
                     // e is { x or y: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 16));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 16));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -579,10 +599,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { >1: p }",
                     // (1,10): error CS1003: Syntax error, ',' expected
                     // e is { >1: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 10),
                     // (1,12): error CS1003: Syntax error, ',' expected
                     // e is { >1: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 12));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 12));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -748,15 +768,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ExtendedPropertySubpattern_14()
         {
             UsingExpression(@"e is { [0].b: p }",
-                    // (1,8): error CS1001: Identifier expected
-                    // e is { [0].b: p }
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "[").WithLocation(1, 8),
-                    // (1,10): error CS1003: Syntax error, ',' expected
-                    // e is { [0].b: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",", "]").WithLocation(1, 10),
-                    // (1,12): error CS1003: Syntax error, ',' expected
-                    // e is { [0].b: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",", "").WithLocation(1, 12));
+                // (1,11): error CS1003: Syntax error, ',' expected
+                // e is { [0].b: p }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 11),
+                // (1,12): error CS1003: Syntax error, ',' expected
+                // e is { [0].b: p }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 12));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -772,12 +789,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.ConstantPattern);
+                            N(SyntaxKind.ListPattern);
                             {
-                                N(SyntaxKind.NumericLiteralExpression);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ConstantPattern);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
                                 }
+                                N(SyntaxKind.CloseBracketToken);
                             }
                         }
                         M(SyntaxKind.CommaToken);

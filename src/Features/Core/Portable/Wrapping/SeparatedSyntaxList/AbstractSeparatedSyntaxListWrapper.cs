@@ -4,12 +4,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 {
-    using Microsoft.CodeAnalysis.Indentation;
-    using Microsoft.CodeAnalysis.Shared.Extensions;
-
     /// <summary>
     /// Base type for all wrappers that involve wrapping a comma-separated list of items.
     /// </summary>
@@ -20,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        //protected abstract string ListName { get; }
-        //protected abstract string ItemNamePlural { get; }
-        //protected abstract string ItemNameSingular { get; }
-
         protected abstract string Unwrap_list { get; }
         protected abstract string Wrap_long_list { get; }
 
@@ -35,30 +30,41 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
         protected abstract string Wrap_every_item { get; }
 
+        public abstract bool Supports_WrapEveryGroup_UnwrapFirst { get; }
+        public abstract bool Supports_UnwrapGroup_WrapFirst_IndentRest { get; }
+        public abstract bool Supports_WrapLongGroup_UnwrapFirst { get; }
+
         protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
             : base(indentationService)
         {
         }
 
+        protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
+        protected abstract bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options);
+
+        protected abstract SyntaxToken FirstToken(TListSyntax listSyntax);
+        protected abstract SyntaxToken LastToken(TListSyntax listSyntax);
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
-            SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
+            SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, TListSyntax listSyntax);
 
         public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
+            Document document, int position, SyntaxNode declaration, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
-            if (listSyntax == null)
-            {
+            if (listSyntax == null || listSyntax.Span.IsEmpty)
                 return null;
-            }
+
+            var firstToken = FirstToken(listSyntax);
+            var lastToken = LastToken(listSyntax);
+
+            if (firstToken.IsMissing || lastToken.IsMissing || firstToken.Span.IsEmpty || lastToken.Span.IsEmpty)
+                return null;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!PositionIsApplicable(root, position, declaration, listSyntax))
-            {
+            if (!PositionIsApplicable(root, position, declaration, containsSyntaxError, listSyntax))
                 return null;
-            }
 
             var listItems = GetListItems(listSyntax);
             if (listItems.Count <= 1)
@@ -73,11 +79,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 document, listItems.GetWithSeparators(), cancellationToken).ConfigureAwait(false);
 
             if (containsUnformattableContent)
-            {
                 return null;
-            }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new SeparatedSyntaxListCodeActionComputer(
                 this, document, sourceText, options, listSyntax, listItems, cancellationToken);

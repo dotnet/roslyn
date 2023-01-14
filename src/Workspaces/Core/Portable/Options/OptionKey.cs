@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -19,17 +20,23 @@ namespace Microsoft.CodeAnalysis.Options
 
         public OptionKey(IOption option, string? language = null)
         {
+            if (option is null)
+            {
+                throw new ArgumentNullException(nameof(option));
+            }
+
             if (language != null && !option.IsPerLanguage)
             {
                 throw new ArgumentException(WorkspacesResources.A_language_name_cannot_be_specified_for_this_option);
             }
-            else if (language == null && option.IsPerLanguage)
+
+            if (language == null && option.IsPerLanguage)
             {
                 throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
             }
 
-            this.Option = option ?? throw new ArgumentNullException(nameof(option));
-            this.Language = language;
+            Option = option;
+            Language = language;
         }
 
         public override bool Equals(object? obj)
@@ -44,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Options
 
             static bool OptionEqual(IOption thisOption, IOption otherOption)
             {
-                if (!(thisOption is IOption2 thisOption2) ||
-                    !(otherOption is IOption2 otherOption2))
+                if (thisOption is not IOption2 thisOption2 ||
+                    otherOption is not IOption2 otherOption2)
                 {
                     // Third party definition of 'IOption'.
                     return thisOption.Equals(otherOption);

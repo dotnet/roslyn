@@ -4,10 +4,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.AddImports
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal static class AddImportHelpers
     {

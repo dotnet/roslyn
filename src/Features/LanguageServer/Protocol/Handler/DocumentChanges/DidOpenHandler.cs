@@ -8,14 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentDidOpenName)]
-    internal class DidOpenHandler : AbstractStatelessRequestHandler<LSP.DidOpenTextDocumentParams, object?>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidOpenHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentDidOpenName)]
+    internal class DidOpenHandler : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidOpenTextDocumentParams, Uri>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,24 +24,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public override string Method => LSP.Methods.TextDocumentDidOpenName;
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => false;
 
-        public override bool MutatesSolutionState => true;
-        public override bool RequiresLSPSolution => false;
+        public Uri GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument.Uri;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => new() { Uri = request.TextDocument.Uri };
-
-        public override Task<object?> HandleRequestAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
             context.TraceInformation($"didOpen for {request.TextDocument.Uri}");
 
             // Add the document and ensure the text we have matches whats on the client
-            var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8);
+            // TODO (https://github.com/dotnet/roslyn/issues/63583):
+            // Create SourceText from binary representation of the document, retrieve encoding from the request and checksum algorithm from the project.
+            var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm);
 
             context.StartTracking(request.TextDocument.Uri, sourceText);
 
-            return SpecializedTasks.Default<object>();
+            return Task.CompletedTask;
         }
     }
 }

@@ -1813,7 +1813,6 @@ option3 = config2
 option2 = config3
 ", "/path/to/.editorconfig"));
 
-
             var options = GetAnalyzerConfigOptions(
                  new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
                  configs);
@@ -1968,7 +1967,6 @@ dotnet_diagnostic.cs000.severity = error
                 configs);
             configs.Free();
 
-
             Assert.Equal(new[] {
                 SyntaxTree.EmptyDiagnosticOptions,
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
@@ -2046,7 +2044,6 @@ dotnet_diagnostic.cs000.severity = warning
                 configs);
             configs.Free();
 
-
             Assert.Equal(new[] {
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Warn))
@@ -2114,7 +2111,6 @@ root = true
 [*.cs]
 option2 = config3
 ", "/path/to/.editorconfig"));
-
 
             var options = GetAnalyzerConfigOptions(
                  new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
@@ -2483,6 +2479,79 @@ global_level = abc
 
             Assert.Equal(100, userGlobalConfig.GlobalLevel);
             Assert.Equal(0, nonUserGlobalConfig.GlobalLevel);
+        }
+
+        [Theory]
+        [InlineData("/dir1/dir3/../dir2/file.cs", true)]
+        [InlineData("/dir1/./././././dir2/file.cs", true)]
+        [InlineData("/dir1/../dir1/../dir1/../dir1/dir2/file.cs", true)]
+        [InlineData("/dir1/dir3/dir4/../dir2/file.cs", false)]
+        [InlineData("file.cs", false)]
+        [InlineData("", false)]
+        [InlineData("/../../dir1/dir2/file.cs", true)]
+        [InlineData("/./../dir1/dir2/file.cs", true)]
+        [InlineData("/dir1/../../dir1/dir2/file.cs", true)]
+        [InlineData("/..", false)]
+        [InlineData("/../file.cs", false)]
+        [InlineData("/dir1/../file.cs", false)]
+        [InlineData("./dir1/dir2/file.cs", false)]
+        [InlineData("././../.././dir1/dir2/file.cs", false)]
+        [InlineData("./dir1/../file.cs", false)]
+        [InlineData("../dir1/dir2.cs", false)]
+        public void EquivalentSourcePathNames(string sourcePath, bool shouldMatch)
+        {
+            string sectionName = "/dir1/dir2/file.cs";
+
+            // append the drive root on windows (use something other than C: to ensure its not working by luck)
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                sectionName = sectionName.Insert(0, "X:");
+                sourcePath = sourcePath.Insert(0, "X:");
+            }
+
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+is_global = true
+[{sectionName}]
+a = b
+", "/.editorconfig"));
+
+            var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            var options = configSet.GetOptionsForSourcePath(sourcePath);
+
+            if (shouldMatch)
+            {
+                Assert.Single(options.AnalyzerOptions);
+                Assert.Equal("b", options.AnalyzerOptions["a"]);
+            }
+            else
+            {
+                Assert.Empty(options.AnalyzerOptions);
+            }
+        }
+
+        [Fact]
+        public void CorrectlyMergeGlobalConfigWithEscapedPaths()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+[/Test.cs]
+a = a
+[/\Test.cs]
+b = b
+", "/.editorconfig"));
+
+            var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            var options = configSet.GetOptionsForSourcePath("/Test.cs");
+
+            Assert.Equal(2, options.AnalyzerOptions.Count);
+            Assert.Equal("a", options.AnalyzerOptions["a"]);
+            Assert.Equal("b", options.AnalyzerOptions["b"]);
         }
 
         #endregion

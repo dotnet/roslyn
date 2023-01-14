@@ -69,6 +69,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         public const uint KEYEVENTF_UNICODE = 0x0004;
         public const uint KEYEVENTF_SCANCODE = 0x0008;
 
+        public const int SM_CXSCREEN = 0;
+        public const int SM_CYSCREEN = 1;
+
         public const uint WM_GETTEXT = 0x000D;
         public const uint WM_GETTEXTLENGTH = 0x000E;
 
@@ -121,6 +124,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
             public IntPtr dwExtraInfo;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int x;
+            public int y;
+        }
+
         [UnmanagedFunctionPointer(CallingConvention.Winapi, SetLastError = false)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public delegate bool WNDENUMPROC(IntPtr hWnd, IntPtr lParam);
@@ -132,6 +142,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         [DllImport(User32)]
         public static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
 
+        [DllImport(User32, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetCursorPos(out POINT point);
+
+        public static System.Windows.Point GetCursorPos()
+        {
+            if (!GetCursorPos(out var point))
+            {
+                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+            }
+
+            return new System.Windows.Point(point.x, point.y);
+        }
+
         [DllImport(User32)]
         public static extern IntPtr GetDesktopWindow();
 
@@ -140,6 +164,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         [DllImport(User32, SetLastError = true)]
         public static extern IntPtr GetParent(IntPtr hWnd);
+
+        [DllImport(User32, CharSet = CharSet.Unicode)]
+        public static extern int GetSystemMetrics(int nIndex);
 
         [DllImport(User32, SetLastError = true)]
         public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);

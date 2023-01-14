@@ -7,12 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -339,6 +340,146 @@ class C {
             for (int i = 0; i < directives.Count; i++)
             {
                 Assert.Equal(directives[i], descendantDirectives[i]);
+            }
+        }
+
+        [Fact]
+        public void TestContainsDirective()
+        {
+            // Empty compilation unit shouldn't have any directives in it.
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+                Assert.False(SyntaxFactory.ParseCompilationUnit("").ContainsDirective(kind));
+
+            // basic file shouldn't have any directives in it.
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { }").ContainsDirective(kind));
+
+            // directive in trailing trivia is not a thing
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedKeyword; kind++)
+            {
+                var compilationUnit = SyntaxFactory.ParseCompilationUnit("namespace N { } #if false");
+                compilationUnit.GetDiagnostics().Verify(
+                    // (1,17): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17),
+                    // (1,26): error CS1027: #endif directive expected
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 26));
+                Assert.False(compilationUnit.ContainsDirective(kind));
+            }
+
+            testContainsHelper1("#define x", SyntaxKind.DefineDirectiveTrivia);
+            testContainsHelper1("#if true\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            testContainsHelper1("#if false\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            testContainsHelper1("#if false\r\n#elif false", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            testContainsHelper1("#elif true", SyntaxKind.BadDirectiveTrivia);
+            testContainsHelper1("#if true\r\n#else", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia);
+            testContainsHelper1("#else", SyntaxKind.BadDirectiveTrivia);
+            testContainsHelper1("#if true\r\n#endif", SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+            testContainsHelper1("#endif", SyntaxKind.BadDirectiveTrivia);
+            testContainsHelper1("#region\r\n#endregion", SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+            testContainsHelper1("#endregion", SyntaxKind.BadDirectiveTrivia);
+            testContainsHelper1("#error", SyntaxKind.ErrorDirectiveTrivia);
+            testContainsHelper1("#if true", SyntaxKind.IfDirectiveTrivia);
+            testContainsHelper1("#nullable enable", SyntaxKind.NullableDirectiveTrivia);
+            testContainsHelper1("#region enable", SyntaxKind.RegionDirectiveTrivia);
+            testContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
+            testContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
+
+            // !# is special and is only recognized at start of a script file and nowhere else.
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
+            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
+            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+
+            return;
+
+            void testContainsHelper1(string directive, params SyntaxKind[] directiveKinds)
+            {
+                Assert.True(directiveKinds.Length > 0);
+
+                // directive on its own.
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive));
+
+                // Two of the same directive back to back.
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    {{directive}}
+                    {{directive}}
+                    """));
+
+                // Two of the same directive back to back with additional trivia
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                       {{directive}}
+                       {{directive}}
+                    """));
+
+                // Directive inside a namespace
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                    {{directive}}
+                    }
+                    """));
+
+                // Multiple Directive inside a namespace
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                    {{directive}}
+                    {{directive}}
+                    }
+                    """));
+
+                // Multiple Directive inside a namespace with additional trivia
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                       {{directive}}
+                       {{directive}}
+                    }
+                    """));
+
+                // Directives on different elements in a namespace
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                    {{directive}}
+                        class C
+                        {
+                        }
+                    {{directive}}
+                        class D
+                        {
+                        }
+                    }
+                    """));
+
+                // Directives on different elements in a namespace with additional trivia
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                        {{directive}}
+                        class C
+                        {
+                        }
+                        {{directive}}
+                        class D
+                        {
+                        }
+                    }
+                    """));
+            }
+
+            void testContainsHelper2(SyntaxKind[] directiveKinds, CompilationUnitSyntax compilationUnit)
+            {
+                Assert.True(compilationUnit.ContainsDirectives);
+                foreach (var directiveKind in directiveKinds)
+                    Assert.True(compilationUnit.ContainsDirective(directiveKind));
+
+                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.ScopedType; kind++)
+                {
+                    if (!directiveKinds.Contains(kind))
+                        Assert.False(compilationUnit.ContainsDirective(kind));
+                }
             }
         }
 
@@ -1303,6 +1444,34 @@ class C {
             Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d4.Kind());
             var d5 = d4.GetPreviousDirective();
             Assert.Null(d5);
+        }
+
+        [Fact]
+        public void TestGetNextAndPreviousDirectiveWithDuplicateTrivia()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(
+@"#region R
+class C {
+}
+");
+            var c = tree.GetCompilationUnitRoot().Members[0];
+
+            // Duplicate the leading trivia on the class
+            c = c.WithLeadingTrivia(c.GetLeadingTrivia().Concat(c.GetLeadingTrivia()));
+
+            var leadingTriviaWithDuplicate = c.GetLeadingTrivia();
+            Assert.Equal(2, leadingTriviaWithDuplicate.Count);
+
+            var firstDirective = Assert.IsType<RegionDirectiveTriviaSyntax>(leadingTriviaWithDuplicate[0].GetStructure());
+            var secondDirective = Assert.IsType<RegionDirectiveTriviaSyntax>(leadingTriviaWithDuplicate[1].GetStructure());
+
+            // Test GetNextDirective works correctly
+            Assert.Same(secondDirective, firstDirective.GetNextDirective());
+            Assert.Null(secondDirective.GetNextDirective());
+
+            // Test GetPreviousDirective works correctly
+            Assert.Null(firstDirective.GetPreviousDirective());
+            Assert.Same(secondDirective.GetPreviousDirective(), firstDirective);
         }
 
         [Fact]
@@ -2553,7 +2722,6 @@ class C
 #endregion
 }";
 
-
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
 
@@ -3608,7 +3776,6 @@ namespace HelloWorld
             Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
         }
 
-
         [WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")]
         [Fact]
         public void TestFindTrivia_NoStackOverflowOnLargeExpression()
@@ -3647,6 +3814,134 @@ namespace HelloWorld
             Assert.True(firstParens.Contains(e));
         }
 
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_AddAsync()
+        {
+            var text = "static delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_AddAsync()
+        {
+            var text = "static (a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async (a) => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_AddAsync()
+        {
+            var text = "static a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async a => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_ReplaceAsync()
+        {
+            var text = "static async/**/delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_ReplaceAsync()
+        {
+            var text = "static async/**/(a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async (a) => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_ReplaceAsync()
+        {
+            var text = "static async/**/a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async a => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveExistingAsync()
+        {
+            var text = "static async/**/delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal("static delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_RemoveExistingAsync()
+        {
+            var text = "static async (a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal("static (a) => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_RemoveExistingAsync()
+        {
+            var text = "static async/**/a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal("static a => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveNonExistingAsync()
+        {
+            var text = "static delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal(text, withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_RemoveNonExistingAsync()
+        {
+            var text = "static (a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal(text, withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_RemoveNonExistingAsync()
+        {
+            var text = "static a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal(text, withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_ReplaceAsync_ExistingTwoKeywords()
+        {
+            var text = "static async/*async1*/ async/*async2*/delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var newAsync = SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space);
+            var withAsync = expression.WithAsyncKeyword(newAsync).ToString();
+            Assert.Equal("static async async/*async2*/delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveAllExistingAsync()
+        {
+            var text = "static async/*async1*/ async/*async2*/ delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default);
+            Assert.Equal("static delegate(int i) { }", withAsync.ToString());
+            Assert.Equal(default, withAsync.AsyncKeyword);
+        }
+
         private static void TestWithWindowsAndUnixEndOfLines(string inputText, string expectedText, Action<CompilationUnitSyntax, string> action)
         {
             inputText = inputText.NormalizeLineEndings();
@@ -3662,6 +3957,28 @@ namespace HelloWorld
             {
                 action(SyntaxFactory.ParseCompilationUnit(test.Key), test.Value);
             }
+        }
+
+        [Fact]
+        [WorkItem(56740, "https://github.com/dotnet/roslyn/issues/56740")]
+        public void TestStackAllocKeywordUpdate()
+        {
+            var text = "stackalloc/**/int[50]";
+            var expression = (StackAllocArrayCreationExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var replacedKeyword = SyntaxFactory.Token(SyntaxKind.StackAllocKeyword).WithTrailingTrivia(SyntaxFactory.Space);
+            var newExpression = expression.Update(replacedKeyword, expression.Type).ToString();
+            Assert.Equal("stackalloc int[50]", newExpression);
+        }
+
+        [Fact]
+        [WorkItem(58597, "https://github.com/dotnet/roslyn/issues/58597")]
+        public void TestExclamationExclamationUpdate()
+        {
+            var text = "(string s!!)";
+            var parameter = SyntaxFactory.ParseParameterList(text).Parameters[0];
+            var newParameter = parameter.Update(parameter.AttributeLists, parameter.Modifiers, parameter.Type, parameter.Identifier, parameter.Default);
+            Assert.Equal("string s!!", newParameter.ToFullString());
+            Assert.Equal("string s", newParameter.ToString());
         }
     }
 }

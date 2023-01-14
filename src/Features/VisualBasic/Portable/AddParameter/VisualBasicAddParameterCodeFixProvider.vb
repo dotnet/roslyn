@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddParameter
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
         Public Sub New()
         End Sub
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(Of String)(
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(
             BC30057, BC30272, BC30274, BC30311, BC30389, BC30512, BC32006, BC30387, BC30516, BC36582, BC36625)
 
         Protected Overrides ReadOnly Property TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) =
@@ -47,5 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
 
         Protected Overrides ReadOnly Property CannotConvertDiagnosticIds As ImmutableArray(Of String) =
             GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds
+
+        Protected Overrides Function GetArgumentType(argumentNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ITypeSymbol
+            Return DirectCast(argumentNode, ArgumentSyntax).DetermineType(semanticModel, cancellationToken)
+        End Function
     End Class
 End Namespace

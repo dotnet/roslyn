@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.DelegateInvoke;
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 foreach (var document in project.Documents)
                 {
-                    var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
+                    var changeSignatureService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
                     var cascaded = await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
                         symbol, document, cancellationToken).ConfigureAwait(false);
                     result.AddRange(cascaded);
@@ -62,8 +61,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -72,29 +72,27 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
-            Document document,
-            SemanticModel semanticModel,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // FAR on the Delegate type and use those results to find Invoke calls
 
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = state.Root;
             var nodes = root.DescendantNodes();
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedAnonymousFunctions);
             foreach (var node in nodes)
             {
-                if (!syntaxFactsService.IsAnonymousFunction(node))
+                if (!syntaxFacts.IsAnonymousFunctionExpression(node))
                     continue;
 
-                var convertedType = (ISymbol)semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
+                var convertedType = (ISymbol?)state.SemanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
                 if (convertedType != null)
                 {
-                    convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(false)
+                    convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, state.Solution, cancellationToken).ConfigureAwait(false)
                         ?? convertedType;
                 }
 
@@ -102,26 +100,20 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     convertedAnonymousFunctions.Add(node);
             }
 
-            var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
-                .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
+            var invocations = nodes.Where(syntaxFacts.IsInvocationExpression)
+                .Where(e => state.SemanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
-                  node => new FinderLocation(
-                      node,
-                      new ReferenceLocation(
-                          document,
-                          alias: null,
-                          node.GetLocation(),
-                          isImplicit: false,
-                          symbolUsageInfo: GetSymbolUsageInfo(
-                              node,
-                              semanticModel,
-                              syntaxFactsService,
-                              semanticFactsService,
-                              cancellationToken),
-                          additionalProperties: GetAdditionalFindUsagesProperties(
-                              node, semanticModel, syntaxFactsService),
-                          candidateReason: CandidateReason.None)));
+                node => new FinderLocation(
+                    node,
+                    new ReferenceLocation(
+                        state.Document,
+                        alias: null,
+                        node.GetLocation(),
+                        isImplicit: false,
+                        GetSymbolUsageInfo(node, state, cancellationToken),
+                        GetAdditionalFindUsagesProperties(node, state),
+                        CandidateReason.None)));
         }
     }
 }

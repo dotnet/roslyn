@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // If the next token is a semicolon, and we aren't in the initializer of a for-loop, use that token as the end.
 
             var nextToken = lastToken.GetNextToken(includeSkipped: true);
-            if (nextToken.Kind() != SyntaxKind.None && nextToken.Kind() == SyntaxKind.SemicolonToken)
+            if (nextToken.Kind() is not SyntaxKind.None and SyntaxKind.SemicolonToken)
             {
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
                 if (forStatement != null && forStatement.FirstSemicolonToken == nextToken)
@@ -135,10 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             Contract.ThrowIfNull(prefix);
 
             var prefixLength = prefix.Length;
-            return prefix + " " + text.Substring(prefixLength).Trim() + " " + Ellipsis;
+            return prefix + " " + text[prefixLength..].Trim() + " " + Ellipsis;
         }
 
-        private static string GetCommentBannerText(SyntaxTrivia comment)
+        public static string GetCommentBannerText(SyntaxTrivia comment)
         {
             Contract.ThrowIfFalse(comment.IsSingleLineComment() || comment.IsMultiLineComment());
 
@@ -153,12 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 var text = comment.ToString();
                 if (lineBreakStart >= 0)
                 {
-                    text = text.Substring(0, lineBreakStart);
+                    text = text[..lineBreakStart];
                 }
                 else
                 {
                     text = text.Length >= "/**/".Length && text.EndsWith(MultiLineCommentSuffix)
-                        ? text.Substring(0, text.Length - MultiLineCommentSuffix.Length)
+                        ? text[..^MultiLineCommentSuffix.Length]
                         : text;
                 }
 
@@ -182,15 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 type: BlockTypes.Comment,
                 bannerText: GetCommentBannerText(startComment),
                 autoCollapse: true);
-        }
-
-        // For testing purposes
-        internal static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
-            SyntaxTriviaList triviaList)
-        {
-            using var result = TemporaryArray<BlockSpan>.Empty;
-            CollectCommentBlockSpans(triviaList, ref result.AsRef());
-            return result.ToImmutableAndClear();
         }
 
         public static void CollectCommentBlockSpans(
@@ -224,14 +215,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     }
                     else if (trivia.IsMultiLineComment())
                     {
-                        completeSingleLineCommentGroup(ref spans);
-
-                        var multilineCommentRegion = CreateCommentBlockSpan(trivia, trivia);
-                        spans.Add(multilineCommentRegion);
+                        // Multiline comments are handled by the MultilineCommentBlockStructureProvider.
+                        continue;
                     }
-                    else if (!trivia.MatchesKind(SyntaxKind.WhitespaceTrivia,
-                                                 SyntaxKind.EndOfLineTrivia,
-                                                 SyntaxKind.EndOfFileToken))
+                    else if (trivia is not SyntaxTrivia(
+                        SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia or SyntaxKind.EndOfFileToken))
                     {
                         completeSingleLineCommentGroup(ref spans);
                     }
@@ -244,14 +232,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public static void CollectCommentBlockSpans(
             SyntaxNode node,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider)
+            in BlockStructureOptions options)
         {
             if (node == null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (optionProvider.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
+            if (options.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
             {
                 spans.Add(span);
             }
@@ -275,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     return false;
                 }
 
-                var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia));
+                var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia) || t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
 
-                var startPosition = firstComment.HasValue ? firstComment.Value.SpanStart : startToken.SpanStart;
+                var startPosition = firstComment.HasValue ? firstComment.Value.FullSpan.Start : startToken.SpanStart;
                 var endPosition = endToken.SpanStart;
 
                 // TODO (tomescht): Mark the regions to be collapsed by default.
@@ -299,88 +287,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
 
             static SyntaxToken GetEndToken(SyntaxNode node)
-            {
-                if (node.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax constructorDeclaration))
+                => node switch
                 {
-                    return constructorDeclaration.Modifiers.FirstOrNull() ?? constructorDeclaration.Identifier;
-                }
-                else if (node.IsKind(SyntaxKind.ConversionOperatorDeclaration, out ConversionOperatorDeclarationSyntax conversionOperatorDeclaration))
-                {
-                    return conversionOperatorDeclaration.Modifiers.FirstOrNull() ?? conversionOperatorDeclaration.ImplicitOrExplicitKeyword;
-                }
-                else if (node.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax delegateDeclaration))
-                {
-                    return delegateDeclaration.Modifiers.FirstOrNull() ?? delegateDeclaration.DelegateKeyword;
-                }
-                else if (node.IsKind(SyntaxKind.DestructorDeclaration, out DestructorDeclarationSyntax destructorDeclaration))
-                {
-                    return destructorDeclaration.TildeToken;
-                }
-                else if (node.IsKind(SyntaxKind.EnumDeclaration, out EnumDeclarationSyntax enumDeclaration))
-                {
-                    return enumDeclaration.Modifiers.FirstOrNull() ?? enumDeclaration.EnumKeyword;
-                }
-                else if (node.IsKind(SyntaxKind.EnumMemberDeclaration, out EnumMemberDeclarationSyntax enumMemberDeclaration))
-                {
-                    return enumMemberDeclaration.Identifier;
-                }
-                else if (node.IsKind(SyntaxKind.EventDeclaration, out EventDeclarationSyntax eventDeclaration))
-                {
-                    return eventDeclaration.Modifiers.FirstOrNull() ?? eventDeclaration.EventKeyword;
-                }
-                else if (node.IsKind(SyntaxKind.EventFieldDeclaration, out EventFieldDeclarationSyntax eventFieldDeclaration))
-                {
-                    return eventFieldDeclaration.Modifiers.FirstOrNull() ?? eventFieldDeclaration.EventKeyword;
-                }
-                else if (node.IsKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax fieldDeclaration))
-                {
-                    return fieldDeclaration.Modifiers.FirstOrNull() ?? fieldDeclaration.Declaration.GetFirstToken();
-                }
-                else if (node.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexerDeclaration))
-                {
-                    return indexerDeclaration.Modifiers.FirstOrNull() ?? indexerDeclaration.Type.GetFirstToken();
-                }
-                else if (node.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax methodDeclaration))
-                {
-                    return methodDeclaration.Modifiers.FirstOrNull() ?? methodDeclaration.ReturnType.GetFirstToken();
-                }
-                else if (node.IsKind(SyntaxKind.OperatorDeclaration, out OperatorDeclarationSyntax operatorDeclaration))
-                {
-                    return operatorDeclaration.Modifiers.FirstOrNull() ?? operatorDeclaration.ReturnType.GetFirstToken();
-                }
-                else if (node.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDeclaration))
-                {
-                    return propertyDeclaration.Modifiers.FirstOrNull() ?? propertyDeclaration.Type.GetFirstToken();
-                }
-                else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or
-                    SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
-                {
-                    var typeDeclaration = (TypeDeclarationSyntax)node;
-                    return typeDeclaration.Modifiers.FirstOrNull() ?? typeDeclaration.Keyword;
-                }
-                else
-                {
-                    return default;
-                }
-            }
+                    ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.Modifiers.FirstOrNull() ?? constructorDeclaration.Identifier,
+                    ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.Modifiers.FirstOrNull() ?? conversionOperatorDeclaration.ImplicitOrExplicitKeyword,
+                    DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.Modifiers.FirstOrNull() ?? delegateDeclaration.DelegateKeyword,
+                    DestructorDeclarationSyntax destructorDeclaration => destructorDeclaration.TildeToken,
+                    EnumDeclarationSyntax enumDeclaration => enumDeclaration.Modifiers.FirstOrNull() ?? enumDeclaration.EnumKeyword,
+                    EnumMemberDeclarationSyntax enumMemberDeclaration => enumMemberDeclaration.Identifier,
+                    EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers.FirstOrNull() ?? eventDeclaration.EventKeyword,
+                    EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Modifiers.FirstOrNull() ?? eventFieldDeclaration.EventKeyword,
+                    FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.FirstOrNull() ?? fieldDeclaration.Declaration.GetFirstToken(),
+                    IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.Modifiers.FirstOrNull() ?? indexerDeclaration.Type.GetFirstToken(),
+                    MethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers.FirstOrNull() ?? methodDeclaration.ReturnType.GetFirstToken(),
+                    OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.Modifiers.FirstOrNull() ?? operatorDeclaration.ReturnType.GetFirstToken(),
+                    PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers.FirstOrNull() ?? propertyDeclaration.Type.GetFirstToken(),
+                    TypeDeclarationSyntax typeDeclaration => typeDeclaration.Modifiers.FirstOrNull() ?? typeDeclaration.Keyword,
+                    _ => default
+                };
 
             static SyntaxToken GetHintTextEndToken(SyntaxNode node)
-            {
-                if (node.IsKind(SyntaxKind.EnumDeclaration, out EnumDeclarationSyntax enumDeclaration))
+                => node switch
                 {
-                    return enumDeclaration.OpenBraceToken.GetPreviousToken();
-                }
-                else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or
-                    SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
-                {
-                    var typeDeclaration = (TypeDeclarationSyntax)node;
-                    return typeDeclaration.OpenBraceToken.GetPreviousToken();
-                }
-                else
-                {
-                    return node.GetLastToken();
-                }
-            }
+                    EnumDeclarationSyntax enumDeclaration => enumDeclaration.OpenBraceToken.GetPreviousToken(),
+                    TypeDeclarationSyntax typeDeclaration => typeDeclaration.OpenBraceToken.GetPreviousToken(),
+                    _ => node.GetLastToken()
+                };
         }
 
         private static BlockSpan CreateBlockSpan(
@@ -388,13 +320,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             string type, bool isCollapsible)
         {
             return CreateBlockSpan(
-                textSpan, textSpan, bannerText, autoCollapse, type, isCollapsible);
+                textSpan, textSpan, bannerText, autoCollapse, type, isCollapsible, isDefaultCollapsed: false);
         }
 
         private static BlockSpan CreateBlockSpan(
             TextSpan textSpan, TextSpan hintSpan,
             string bannerText, bool autoCollapse,
-            string type, bool isCollapsible)
+            string type, bool isCollapsible, bool isDefaultCollapsed)
         {
             return new BlockSpan(
                 textSpan: textSpan,
@@ -402,7 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText: bannerText,
                 autoCollapse: autoCollapse,
                 type: type,
-                isCollapsible: isCollapsible);
+                isCollapsible: isCollapsible,
+                isDefaultCollapsed: isDefaultCollapsed);
         }
 
         public static BlockSpan CreateBlockSpan(
@@ -451,7 +384,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText,
                 autoCollapse,
                 type,
-                isCollapsible);
+                isCollapsible,
+                isDefaultCollapsed: false);
         }
 
         private static TextSpan GetHintSpan(SyntaxNode node, int endPos)
@@ -526,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // node in the list.
         public static BlockSpan? CreateBlockSpan(
             IEnumerable<SyntaxNode> syntaxList, bool compressEmptyLines, bool autoCollapse,
-            string type, bool isCollapsible)
+            string type, bool isCollapsible, bool isDefaultCollapsed)
         {
             if (syntaxList.IsEmpty())
             {
@@ -551,7 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText: Ellipsis,
                 autoCollapse: autoCollapse,
                 type: type,
-                isCollapsible: isCollapsible);
+                isCollapsible: isCollapsible,
+                isDefaultCollapsed: isDefaultCollapsed);
         }
     }
 }

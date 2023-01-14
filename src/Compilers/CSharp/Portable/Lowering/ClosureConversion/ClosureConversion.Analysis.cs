@@ -67,10 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode node,
                 MethodSymbol method,
                 int topLevelMethodOrdinal,
-                MethodSymbol substitutedSourceMethod,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
-                ArrayBuilder<ClosureDebugInfo> closureDebugInfo,
                 DiagnosticBag diagnostics)
             {
                 var methodsConvertedToDelegates = PooledHashSet<MethodSymbol>.GetInstance();
@@ -187,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (capturedEnvs.Count > 0)
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
 
                         capturedEnvs.Free();
@@ -401,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (currentScope == null)
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
 
                         if (currentScope.DeclaredEnvironment is null ||
@@ -477,7 +475,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         currentScope = parentScope;
                     }
-
 
                     if (bestScope == scope) // no better scope was found, so continue
                         continue;
@@ -601,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public static Scope GetScopeWithMatchingBoundNode(Scope treeRoot, BoundNode node)
             {
-                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
+                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable();
 
                 Scope Helper(Scope currentScope)
                 {
@@ -643,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     currentScope = currentScope.Parent;
                 }
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             /// <summary>
@@ -651,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public static NestedFunction GetNestedFunctionInTree(Scope treeRoot, MethodSymbol functionSymbol)
             {
-                return helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
+                return helper(treeRoot) ?? throw ExceptionUtilities.Unreachable();
 
                 NestedFunction helper(Scope scope)
                 {

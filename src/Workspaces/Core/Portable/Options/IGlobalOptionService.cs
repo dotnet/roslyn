@@ -5,115 +5,66 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Provides services for reading and writing options.
-    /// This will provide support for options at the global level (i.e. shared among
-    /// all workspaces/services).
-    /// 
-    /// In general you should not import this type directly, and should instead get an
-    /// <see cref="IOptionService"/> from <see cref="Workspace.Services"/>
+    /// Provides services for reading and writing global client (in-proc) options
+    /// shared across all workspaces.
     /// </summary>
-    internal interface IGlobalOptionService
+    internal interface IGlobalOptionService : IOptionsReader
     {
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        T? GetOption<T>(Option<T> option);
+        T GetOption<T>(Option2<T> option);
 
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        T? GetOption<T>(Option2<T> option);
+        T GetOption<T>(PerLanguageOption2<T> option, string language);
 
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        T? GetOption<T>(PerLanguageOption<T> option, string? languageName);
-
-        /// <summary>
-        /// Gets the current value of the specific option.
-        /// </summary>
-        T? GetOption<T>(PerLanguageOption2<T> option, string? languageName);
-
-        /// <summary>
-        /// Gets the current value of the specific option.
-        /// </summary>
-        object? GetOption(OptionKey optionKey);
+        T GetOption<T>(OptionKey2 optionKey);
 
         /// <summary>
         /// Gets the current values of specified options.
         /// All options are read atomically.
         /// </summary>
-        ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys);
+        ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys);
 
-        /// <summary>
-        /// Applies a set of options.
-        /// If any option changed its value invokes registered option persisters, updates current solutions of all registered workspaces and triggers <see cref="OptionChanged"/>.
-        /// </summary>
-        void SetOptions(OptionSet optionSet);
+        void SetGlobalOption<T>(Option2<T> option, T value);
+
+        void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value);
 
         /// <summary>
         /// Sets and persists the value of a global option.
         /// Sets the value of a global option.
         /// Invokes registered option persisters.
         /// Triggers <see cref="OptionChanged"/>.
-        /// Does not update any workspace (since this option is not a solution option).
         /// </summary>
-        void SetGlobalOption(OptionKey optionKey, object? value);
+        void SetGlobalOption(OptionKey2 optionKey, object? value);
 
         /// <summary>
         /// Atomically sets the values of specified global options. The option values are persisted.
         /// Triggers <see cref="OptionChanged"/>.
-        /// Does not update any workspace (since this option is not a solution option).
         /// </summary>
-        void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
-
-        /// <summary>
-        /// Gets force computed serializable options snapshot with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
-        /// </summary>
-        SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService);
-
-        /// <summary>
-        /// Returns the set of all registered options.
-        /// </summary>
-        IEnumerable<IOption> GetRegisteredOptions();
-
-        /// <summary>
-        /// Map an <strong>.editorconfig</strong> key to a corresponding <see cref="IEditorConfigStorageLocation2"/> and
-        /// <see cref="OptionKey"/> that can be used to read and write the value stored in an <see cref="OptionSet"/>.
-        /// </summary>
-        /// <param name="key">The <strong>.editorconfig</strong> key.</param>
-        /// <param name="language">The language to use for the <paramref name="optionKey"/>, if the matching option has
-        /// <see cref="IOption.IsPerLanguage"/> set.</param>
-        /// <param name="storageLocation">The <see cref="IEditorConfigStorageLocation2"/> for the key.</param>
-        /// <param name="optionKey">The <see cref="OptionKey"/> for the key and language.</param>
-        /// <returns><see langword="true"/> if a matching option was found; otherwise, <see langword="false"/>.</returns>
-        bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey);
-
-        /// <summary>
-        /// Returns the set of all registered serializable options applicable for the given <paramref name="languages"/>.
-        /// </summary>
-        ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);
+        /// <remarks>
+        /// Returns true if any option changed its value stored in the global options.
+        /// </remarks>
+        bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options);
 
         event EventHandler<OptionChangedEventArgs>? OptionChanged;
 
         /// <summary>
-        /// Refreshes the stored value of a serialized option. This should only be called from serializers.
+        /// Refreshes the stored value of an option. This should only be called from persisters.
+        /// Does not persist the new option value.
         /// </summary>
-        void RefreshOption(OptionKey optionKey, object? newValue);
-
-        /// <summary>
-        /// Registers a workspace with the option service.
-        /// </summary>
-        void RegisterWorkspace(Workspace workspace);
-
-        /// <summary>
-        /// Unregisters a workspace from the option service.
-        /// </summary>
-        void UnregisterWorkspace(Workspace workspace);
+        /// <remarks>
+        /// Returns true if the option changed its value stored in the global options.
+        /// </remarks>
+        bool RefreshOption(OptionKey2 optionKey, object? newValue);
     }
 }

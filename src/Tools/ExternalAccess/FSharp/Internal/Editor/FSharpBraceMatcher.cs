@@ -5,16 +5,16 @@
 #nullable disable
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
-    [ExportBraceMatcher(LanguageNames.FSharp)]
+    [ExportBraceMatcher(LanguageNames.FSharp), Shared]
     internal class FSharpBraceMatcher : IBraceMatcher
     {
         private readonly IFSharpBraceMatcher _braceMatcher;
@@ -26,17 +26,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _braceMatcher = braceMatcher;
         }
 
-        public async Task<Microsoft.CodeAnalysis.Editor.BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken = default)
+        public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
             var result = await _braceMatcher.FindBracesAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (result.HasValue)
-            {
-                return new Microsoft.CodeAnalysis.Editor.BraceMatchingResult(result.Value.LeftSpan, result.Value.RightSpan);
-            }
-            else
-            {
-                return null;
-            }
+            return result.HasValue ? new BraceMatchingResult(result.Value.LeftSpan, result.Value.RightSpan) : null;
         }
     }
 }

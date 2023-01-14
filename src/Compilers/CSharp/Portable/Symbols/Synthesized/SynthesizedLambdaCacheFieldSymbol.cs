@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -31,6 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // When the containing top-level method body is updated we don't need to attempt to update the cache field
         // since a field update is a no-op.
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => false;
+
+        public override RefKind RefKind => RefKind.None;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {

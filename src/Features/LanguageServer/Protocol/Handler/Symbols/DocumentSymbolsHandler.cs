@@ -8,27 +8,27 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : AbstractStatelessRequestHandler<DocumentSymbolParams, object[]>
+    /// <summary>
+    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
+    /// we no longer reference VS icon types.
+    /// </summary>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
+    [Method(Methods.TextDocumentDocumentSymbolName)]
+    internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, object[]>
     {
-        public override string Method => Methods.TextDocumentDocumentSymbolName;
-
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,16 +36,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 
-        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<object[]> HandleRequestAsync(RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            if (document == null)
-                return Array.Empty<SymbolInformation>();
+            var document = context.GetRequiredDocument();
+            var clientCapabilities = context.GetRequiredClientCapabilities();
 
-            var navBarService = document.Project.LanguageServices.GetRequiredService<INavigationBarItemService>();
-            var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, cancellationToken).ConfigureAwait(false);
+            var navBarService = document.Project.Services.GetRequiredService<INavigationBarItemService>();
+            var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, forceFrozenPartialSemanticsForCrossProcessOperations: false, cancellationToken).ConfigureAwait(false);
             if (navBarItems.IsEmpty)
                 return Array.Empty<object>();
 
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // TODO - Return more than 2 levels of symbols.
             // https://github.com/dotnet/roslyn/projects/45#card-20033869
             using var _ = ArrayBuilder<object>.GetInstance(out var symbols);
-            if (context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
+            if (clientCapabilities.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true || request.UseHierarchicalSymbols)
             {
                 // only top level ones
                 foreach (var item in navBarItems)
@@ -84,18 +83,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Location.InDocumentInfo == null)
                 return null;
 
-            return new VSSymbolInformation
-            {
-                Name = item.Text,
-                Location = new LSP.Location
+            var service = document.Project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
+            return service.Create(
+                item.Text,
+                containerName,
+                ProtocolConversions.GlyphToSymbolKind(item.Glyph),
+                new LSP.Location
                 {
                     Uri = document.GetURI(),
                     Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
                 },
-                Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
-                ContainerName = containerName,
-                Icon = ProtocolConversions.GetImageIdFromGlyph(item.Glyph),
-            };
+                item.Glyph);
         }
 
         /// <summary>

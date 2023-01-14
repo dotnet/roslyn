@@ -4,8 +4,9 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class MultiLineLambdaTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyWithFunctionLambda()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -24,7 +25,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyWithFunctionLambdaWithMissingEndFunction()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -41,7 +42,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyWithSubLambda()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -60,7 +61,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
+        <WpfFact, WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Sub TestApplyWithSubLambdaWithNoParameterParenthesis()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -79,7 +80,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
+        <WpfFact, WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Sub TestApplyWithSubLambdaInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -98,7 +99,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
+        <WpfFact, WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Sub TestApplyWithSubLambdaAndStatementInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -117,7 +118,7 @@ End Class",
                 afterCaret:={3, 10})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
+        <WpfFact, WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Sub TestApplyWithFunctionLambdaInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -136,7 +137,7 @@ End Class",
                 afterCaret:={3, 17})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyAnonymousType()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -155,7 +156,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifySingleLineLambdaFunc()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -166,7 +167,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifySingleLineLambdaSub()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -177,7 +178,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyAsDefaultParameterValue()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -192,7 +193,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyNestedLambda()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -215,7 +216,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyInField()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -230,7 +231,7 @@ End Class",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidLambdaSyntax()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -241,7 +242,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNotAppliedIfSubLambdaContainsEndSub()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -252,7 +253,7 @@ End Class",
                 caret:={2, 21})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNotAppliedIfSyntaxIsFunctionLambdaContainsEndFunction()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -263,7 +264,7 @@ End Class",
                 caret:={2, 26})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyLambdaWithImplicitLC()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -274,7 +275,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyLambdaWithMissingParenthesis()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -293,7 +294,7 @@ End Class",
                    afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifySingleLineSubLambdaToMultiLine()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -312,7 +313,7 @@ End Class",
                    afterCaret:={3, 20})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
+        <WpfFact, WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Sub TestVerifySingleLineSubLambdaToMultiLineWithTrailingTrivia()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -331,7 +332,7 @@ End Class",
                    afterCaret:={3, 20})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifySingleLineFunctionLambdaToMultiLine()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -350,7 +351,7 @@ End Class",
                    afterCaret:={3, 27})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
+        <WpfFact, WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Sub TestVerifySingleLineFunctionLambdaToMultiLineWithTrailingTrivia()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -370,7 +371,7 @@ End Class",
         End Sub
 
         <WorkItem(1922, "https://github.com/dotnet/roslyn/issues/1922")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
+        <WpfFact, WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Sub TestVerifySingleLineFunctionLambdaToMultiLineInsideXMLTag()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -390,7 +391,7 @@ End Class",
         End Sub
 
         <WorkItem(1922, "https://github.com/dotnet/roslyn/issues/1922")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
+        <WpfFact, WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Sub TestVerifySingleLineSubLambdaToMultiLineInsideXMLTag()
             VerifyStatementEndConstructApplied(
                 before:="Class C

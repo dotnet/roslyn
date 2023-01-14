@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.NavigationBar;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -24,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor
                   underlyingItem.Text,
                   underlyingItem.Glyph,
                   GetSpans(underlyingItem),
-                  GetNavigationSpan(underlyingItem),
                   underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,
@@ -35,16 +36,31 @@ namespace Microsoft.CodeAnalysis.Editor
 
         private static ImmutableArray<TextSpan> GetSpans(RoslynNavigationBarItem underlyingItem)
         {
-            return underlyingItem is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null
-                ? symbolItem.Location.InDocumentInfo.Value.spans
-                : ImmutableArray<TextSpan>.Empty;
-        }
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var spans);
+            AddSpans(underlyingItem, spans);
+            spans.SortAndRemoveDuplicates(Comparer<TextSpan>.Default);
+            return spans.ToImmutable();
 
-        private static TextSpan? GetNavigationSpan(RoslynNavigationBarItem underlyingItem)
-        {
-            return underlyingItem is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null
-                ? symbolItem.Location.InDocumentInfo.Value.navigationSpan
-                : null;
+            static void AddSpans(RoslynNavigationBarItem underlyingItem, ArrayBuilder<TextSpan> spans)
+            {
+                // For a regular symbol we want to select it if the user puts their caret in any of the spans of it in this file.
+                if (underlyingItem is RoslynNavigationBarItem.SymbolItem { Location.InDocumentInfo.spans: var symbolSpans })
+                {
+                    spans.AddRange(symbolSpans);
+                }
+                else if (underlyingItem is RoslynNavigationBarItem.ActionlessItem)
+                {
+                    // An actionless item represents something that exists just to show a child-list, but should otherwise
+                    // not navigate or cause anything to be generated.  However, we still want to automatically select it
+                    // whenever the user puts their caret in any of the spans of its child items in this file.
+                    //
+                    // For example, in VB any withevents members will be put in the type-list, and the events those members
+                    // are hooked up to will then be in the member-list.  In this case, we want moving into the span of that
+                    // member to select the withevent member in the type-list.
+                    foreach (var child in underlyingItem.ChildItems)
+                        AddSpans(child, spans);
+                }
+            }
         }
 
         public override bool Equals(object? obj)

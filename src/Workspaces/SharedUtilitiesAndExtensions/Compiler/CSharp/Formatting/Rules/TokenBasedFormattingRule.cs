@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -19,28 +16,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Token Based Formatting Rule";
 
-        private readonly CachedOptions _options;
+        private readonly CSharpSyntaxFormattingOptions _options;
 
         public TokenBasedFormattingRule()
-            : this(new CachedOptions(null))
+            : this(CSharpSyntaxFormattingOptions.Default)
         {
         }
 
-        private TokenBasedFormattingRule(CachedOptions options)
+        private TokenBasedFormattingRule(CSharpSyntaxFormattingOptions options)
         {
             _options = options;
         }
 
-        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
         {
-            var cachedOptions = new CachedOptions(options);
+            var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
-            if (cachedOptions == _options)
+            if (_options.SeparateImportDirectiveGroups == newOptions.SeparateImportDirectiveGroups)
             {
                 return this;
             }
 
-            return new TokenBasedFormattingRule(cachedOptions);
+            return new TokenBasedFormattingRule(newOptions);
         }
 
         public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
@@ -203,9 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var attributeOwner = previousToken.Parent?.Parent;
 
-                if (attributeOwner is CompilationUnitSyntax ||
-                    attributeOwner is MemberDeclarationSyntax ||
-                    attributeOwner is AccessorDeclarationSyntax)
+                if (attributeOwner is CompilationUnitSyntax or
+                    MemberDeclarationSyntax or
+                    AccessorDeclarationSyntax)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -220,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken previousToken, SyntaxToken currentToken)
         {
             // between anything that isn't a using directive, we don't touch newlines after a semicolon
-            if (!(previousToken.Parent is UsingDirectiveSyntax previousUsing))
+            if (previousToken.Parent is not UsingDirectiveSyntax previousUsing)
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
 
             // if the user is separating using-groups, and we're between two usings, and these
@@ -311,12 +308,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // new (int, int)[]
-            if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
-                previousToken.Kind() == SyntaxKind.NewKeyword &&
-                previousToken.Parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression))
+            if (previousToken.Kind() == SyntaxKind.NewKeyword)
             {
-                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                // After a 'new' we almost always want a space.  only exceptions are `new()` as an implicit object 
+                // creation, or `new()` as a constructor constraint or `new[] {}` for an implicit array creation.
+                var spaces = previousToken.Parent is (kind:
+                    SyntaxKind.ConstructorConstraint or
+                    SyntaxKind.ImplicitObjectCreationExpression or
+                    SyntaxKind.ImplicitArrayCreationExpression) ? 0 : 1;
+                return CreateAdjustSpacesOperation(spaces, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // some * "(" cases
@@ -326,7 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     previousToken.Kind() == SyntaxKind.DefaultKeyword ||
                     previousToken.Kind() == SyntaxKind.BaseKeyword ||
                     previousToken.Kind() == SyntaxKind.ThisKeyword ||
-                    previousToken.Kind() == SyntaxKind.NewKeyword ||
                     previousToken.IsGenericGreaterThanToken() ||
                     currentToken.IsParenInArgumentList())
                 {
@@ -371,6 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * [
             if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
+                !currentToken.Parent.IsKind(SyntaxKind.AttributeList) &&
                 !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
                 if (previousToken.IsOpenBraceOfAccessorList() ||
@@ -390,14 +390,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // { Property1.Property2: ... }
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
-                if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
-                                               SyntaxKind.CasePatternSwitchLabel,
-                                               SyntaxKind.DefaultSwitchLabel,
-                                               SyntaxKind.LabeledStatement,
-                                               SyntaxKind.AttributeTargetSpecifier,
-                                               SyntaxKind.NameColon,
-                                               SyntaxKind.ExpressionColon,
-                                               SyntaxKind.SwitchExpressionArm))
+                if (currentToken.Parent is (kind:
+                        SyntaxKind.CaseSwitchLabel or
+                        SyntaxKind.CasePatternSwitchLabel or
+                        SyntaxKind.DefaultSwitchLabel or
+                        SyntaxKind.LabeledStatement or
+                        SyntaxKind.AttributeTargetSpecifier or
+                        SyntaxKind.NameColon or
+                        SyntaxKind.ExpressionColon or SyntaxKind.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // generic name
-            if (previousToken.Parent.IsKind(SyntaxKind.TypeArgumentList, SyntaxKind.TypeParameterList, SyntaxKind.FunctionPointerType))
+            if (previousToken.Parent is (kind: SyntaxKind.TypeArgumentList or SyntaxKind.TypeParameterList or SyntaxKind.FunctionPointerType))
             {
                 // generic name < * 
                 if (previousToken.Kind() == SyntaxKind.LessThanToken)
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // generic name * < or * >
             if ((currentToken.Kind() == SyntaxKind.LessThanToken || currentToken.Kind() == SyntaxKind.GreaterThanToken) &&
-                currentToken.Parent.IsKind(SyntaxKind.TypeArgumentList, SyntaxKind.TypeParameterList))
+                currentToken.Parent is (kind: SyntaxKind.TypeArgumentList or SyntaxKind.TypeParameterList))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // nullable
             if (currentToken.Kind() == SyntaxKind.QuestionToken &&
-                currentToken.Parent.IsKind(SyntaxKind.NullableType, SyntaxKind.ClassConstraint))
+                currentToken.Parent is (kind: SyntaxKind.NullableType or SyntaxKind.ClassConstraint))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -541,45 +541,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return nextOperation.Invoke(in previousToken, in currentToken);
-        }
-
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
-        {
-            public readonly bool SeparateImportDirectiveGroups;
-
-            public CachedOptions(AnalyzerConfigOptions? options)
-            {
-                SeparateImportDirectiveGroups = GetOptionOrDefault(options, GenerationOptions.SeparateImportDirectiveGroups);
-            }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
-
-            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, PerLanguageOption2<T> option)
-            {
-                if (options is null)
-                    return option.DefaultValue;
-
-                return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return SeparateImportDirectiveGroups == other.SeparateImportDirectiveGroups;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 1) + (SeparateImportDirectiveGroups ? 1 : 0);
-                return hashCode;
-            }
         }
     }
 }

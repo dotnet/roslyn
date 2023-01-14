@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             DestructorDeclarationSyntax destructorDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, ref spans, options);
 
             // fault tolerance
             if (destructorDeclaration.Body == null ||

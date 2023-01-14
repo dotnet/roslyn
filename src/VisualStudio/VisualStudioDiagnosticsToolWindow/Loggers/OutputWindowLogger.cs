@@ -21,27 +21,15 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class OutputWindowLogger : ILogger
     {
-        private readonly Func<FunctionId, bool> _loggingChecker;
+        private readonly Func<FunctionId, bool> _isEnabledPredicate;
 
-        public OutputWindowLogger()
-            : this((Func<FunctionId, bool>)null)
+        public OutputWindowLogger(Func<FunctionId, bool> isEnabledPredicate)
         {
-        }
-
-        public OutputWindowLogger(IGlobalOptionService optionService)
-            : this(Logger.GetLoggingChecker(optionService))
-        {
-        }
-
-        public OutputWindowLogger(Func<FunctionId, bool> loggingChecker)
-        {
-            _loggingChecker = loggingChecker;
+            _isEnabledPredicate = isEnabledPredicate;
         }
 
         public bool IsEnabled(FunctionId functionId)
-        {
-            return _loggingChecker == null || _loggingChecker(functionId);
-        }
+            => _isEnabledPredicate(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {

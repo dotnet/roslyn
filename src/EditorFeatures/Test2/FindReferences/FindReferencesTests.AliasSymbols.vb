@@ -5,8 +5,9 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAlias1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAlias2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -55,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAlias3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -79,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpAttributeEndingWithAttributeThroughAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -109,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
         Public Async Function TestMultipleAliasSymbols(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -141,7 +142,7 @@ namespace NS
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
         Public Async Function TestMultipleAliasSymbols2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -172,7 +173,7 @@ namespace NS
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBAttributeEndingWithAttributeThroughAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -204,7 +205,7 @@ namespace NS
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAliasReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -223,6 +224,236 @@ namespace N
         }
     }
 }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAliasReferenceInGlobalSuppression_WithAttributeSuffix(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using $$AliasToC = N.[|C|];
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("RuleCategory", "RuleId", Scope = "member", Target = "~M:N.[|C|].Goo")]
+
+namespace N
+{
+    class {|Definition:C|}
+    {
+        void Goo()
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAliasReferenceInGlobalSuppression_WithUsing(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using $$AliasToC = N.[|C|];
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage("RuleCategory", "RuleId", Scope = "member", Target = "~M:N.[|C|].Goo")]
+
+namespace N
+{
+    class {|Definition:C|}
+    {
+        void Goo()
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAliasReferenceInGlobalSuppression_WithUsing_WithAttributeSuffix(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using $$AliasToC = N.[|C|];
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessageAttribute("RuleCategory", "RuleId", Scope = "member", Target = "~M:N.[|C|].Goo")]
+
+namespace N
+{
+    class {|Definition:C|}
+    {
+        void Goo()
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestGlobalAlias1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+        partial class C
+        {
+            [|D|] date;
+
+            void Goo()
+            {
+            }
+        }
+        </Document>
+        <Document>
+        partial class C
+        {
+            [|D|] date;
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestGlobalAlias2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+        </Document>
+        <Document>
+        partial class C
+        {
+            [|D|] date;
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestGlobalAlias3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$DAttribute = System.[|CLSCompliantAttribute|];
+        </Document>
+        <Document>
+        [[|DAttribute|]]
+        partial class C
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestGlobalAlias4(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$DAttribute = System.[|CLSCompliantAttribute|];
+        </Document>
+        <Document>
+        [[|DAttribute|](false)]
+        partial class C
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestGlobalAlias5(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$DAttribute = System.[|CLSCompliantAttribute|];
+        </Document>
+        <Document>
+        [[|D|]]
+        partial class D
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestGlobalAlias6(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$DAttribute = System.[|CLSCompliantAttribute|];
+        </Document>
+        <Document>
+        [[|D|](false)]
+        partial class D
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestGlobalAlias7(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+
+        </Document>
+        <Document>
+        namespace Outer
+        {
+            using D2 = [|D|];
+            partial class C
+            {
+                [|D2|] date;
+            }
+        }
         </Document>
     </Project>
 </Workspace>

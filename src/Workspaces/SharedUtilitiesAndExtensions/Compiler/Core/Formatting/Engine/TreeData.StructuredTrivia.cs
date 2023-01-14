@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var text = GetText();
 
                 _initialColumn = initialColumn;
-                _treeData = (text == null) ? (TreeData)new Node(root) : new NodeAndText(root, text);
+                _treeData = (text == null) ? new Node(root) : new NodeAndText(root, text);
             }
 
             public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return _treeData.GetOriginalColumn(tabSize, token);
                 }
 
-                var text = _trivia.ToFullString().Substring(0, token.SpanStart - _trivia.FullSpan.Start);
+                var text = _trivia.ToFullString()[..(token.SpanStart - _trivia.FullSpan.Start)];
 
                 return text.GetTextColumn(tabSize, _initialColumn);
             }

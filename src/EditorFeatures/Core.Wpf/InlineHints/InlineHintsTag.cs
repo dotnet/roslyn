@@ -13,13 +13,16 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// This is the tag which implements the IntraTextAdornmentTag and is meant to create the UIElements that get shown
     /// in the editor
     /// </summary>
-    internal class InlineHintsTag : IntraTextAdornmentTag
+    internal sealed class InlineHintsTag : IntraTextAdornmentTag
     {
         public const string TagId = "inline hints";
 
@@ -49,7 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             InlineHintsTaggerProvider taggerProvider)
             : base(adornment,
                    removalCallback: null,
-                   PositionAffinity.Predecessor)
+                   topSpace: null,
+                   baseline: null,
+                   textHeight: null,
+                   bottomSpace: null,
+                   PositionAffinity.Predecessor,
+                   hint.Ranking)
         {
             _textView = textView;
             _span = span;
@@ -61,6 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // information in the Border_ToolTipOpening event handler
             adornment.ToolTip = "Quick info";
             adornment.ToolTipOpening += Border_ToolTipOpening;
+
+            if (_hint.ReplacementTextChange is not null)
+            {
+                adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
+            }
         }
 
         /// <summary>
@@ -91,8 +104,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
                 if (!taggedText.IsDefaultOrEmpty)
                 {
+                    var classificationOptions = _taggerProvider.EditorOptionsService.GlobalOptions.GetClassificationOptions(document.Project.Language);
+                    var lineFormattingOptions = _span.Snapshot.TextBuffer.GetLineFormattingOptions(_taggerProvider.EditorOptionsService, explicitFormat: false);
+
                     var context = new IntellisenseQuickInfoBuilderContext(
                         document,
+                        classificationOptions,
+                        lineFormattingOptions,
                         _taggerProvider.ThreadingContext,
                         _taggerProvider.OperationExecutor,
                         _taggerProvider.AsynchronousOperationListener,
@@ -112,17 +130,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             ClassificationTypeMap typeMap,
             bool classify)
         {
-            // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
+            // Constructs the hint block which gets assigned parameter name and FontStyles according to the options
             // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
             // well with VS at any zoom level or font size.
-
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
                 FontSize = 0.75 * format.FontRenderingEmSize,
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
-
                 // Adds a little bit of padding to the left of the text relative to the border to make the text seem
                 // more balanced in the border
                 Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0)
@@ -144,8 +160,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 block.Inlines.Add(run);
             }
 
-            // Encapsulates the textblock within a border. Gets foreground/background colors from the options menu.
+            block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
+            // Encapsulates the TextBlock within a border. Gets foreground/background colors from the options menu.
             // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
             // left or right side.
             var left = leftPadding * 5;
@@ -160,15 +177,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 Margin = new Thickness(left, top: 0, right, bottom: 0),
             };
 
-            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             // gets pixel distance of baseline to top of the font height
             var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
-
             var dockPanel = new DockPanel
             {
                 Height = dockPanelHeight,
                 LastChildFill = false,
-                // VerticalAlignment is set to Top because it will rest to the top relative to the stackpanel
+                // VerticalAlignment is set to Top because it will rest to the top relative to the StackPanel
                 VerticalAlignment = VerticalAlignment.Top
             };
 
@@ -183,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             };
 
             stackPanel.Children.Add(dockPanel);
-            // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
+            // Need to set these properties to avoid unnecessary reformatting because some dependency properties
             // affect layout
             TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
             TextOptions.SetTextHintingMode(stackPanel, TextOptions.GetTextHintingMode(textView.VisualElement));
@@ -255,6 +270,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(threadingContext.DisposalToken);
 
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
+        }
+
+        private void Adornment_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2)
+            {
+                e.Handled = true;
+                var textChange = _hint.ReplacementTextChange!.Value;
+
+                var snapshot = _span.Snapshot;
+                var subjectBuffer = snapshot.TextBuffer;
+
+                // Selected SpanTrackingMode to be EdgeExclusive by default.
+                // Will revise if there are some scenarios we did not think of that produce undesirable behavior.
+                subjectBuffer.Replace(
+                    textChange.Span.ToSnapshotSpan(snapshot).TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive),
+                    textChange.NewText);
+            }
         }
     }
 }

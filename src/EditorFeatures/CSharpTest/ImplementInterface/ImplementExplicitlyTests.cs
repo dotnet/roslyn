@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,10 +9,12 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
     public class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
     {
         private const int SingleMember = 0;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestSingleMember()
         {
             await TestInRegularAndScriptAsync(
@@ -57,7 +57,7 @@ class C : IGoo, IBar
 }", index: SingleMember);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestSameInterface()
         {
             await TestInRegularAndScriptAsync(
@@ -87,7 +87,7 @@ class C : IGoo, IBar
 }", index: SameInterface);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestAllInterfaces()
         {
             await TestInRegularAndScriptAsync(
@@ -117,7 +117,7 @@ class C : IGoo, IBar
 }", index: AllInterfaces);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -137,7 +137,7 @@ class C : IGoo
 }", index: SingleMember);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestEvent()
         {
             await TestInRegularAndScriptAsync(
@@ -157,7 +157,7 @@ class C : IGoo
 }", index: SingleMember);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestNotOnExplicitMember()
         {
             await TestMissingAsync(
@@ -170,7 +170,7 @@ class C : IGoo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestNotOnUnboundImplicitImpl()
         {
             await TestMissingAsync(
@@ -183,7 +183,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestUpdateReferences_InsideDeclarations_Explicit()
         {
             await TestInRegularAndScriptAsync(
@@ -209,7 +209,7 @@ class C : IGoo
 }", index: SameInterface);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestUpdateReferences_InsideDeclarations_Implicit()
         {
             await TestInRegularAndScriptAsync(
@@ -235,7 +235,7 @@ class C : IGoo
 }", index: SameInterface);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestUpdateReferences_InternalImplicit()
         {
             await TestInRegularAndScriptAsync(
@@ -291,7 +291,7 @@ class C : IGoo
 }", index: SameInterface);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestUpdateReferences_InternalExplicit()
         {
             await TestInRegularAndScriptAsync(
@@ -347,7 +347,7 @@ class C : IGoo
 }", index: SameInterface);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestUpdateReferences_External()
         {
             await TestInRegularAndScriptAsync(
@@ -419,7 +419,7 @@ class T
 }", index: SameInterface);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestUpdateReferences_CrossLanguage()
         {
             await TestInRegularAndScriptAsync(
@@ -499,7 +499,7 @@ end class
 ", index: SameInterface);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestMemberWhichImplementsMultipleMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -531,7 +531,7 @@ class C : IGoo, IBar
 }", index: SingleMember);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestMemberWhichImplementsMultipleMembers2()
         {
             await TestInRegularAndScriptAsync(
@@ -561,6 +561,156 @@ class C : IGoo, IBar
         return ((IGoo)this).M(1);
     }
 }", index: SingleMember);
+        }
+
+        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithContraints()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IRepro
+{
+    void A<T>(int value) where T : class;
+}
+
+class Repro : IRepro
+{
+    public void [||]A<T>(int value) where T : class
+    {
+    }
+}",
+@"
+interface IRepro
+{
+    void A<T>(int value) where T : class;
+}
+
+class Repro : IRepro
+{
+    void IRepro.A<T>(int value)
+    {
+    }
+}");
+        }
+
+        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithDefaultParameterValues()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value = 0)
+    {
+    }
+}",
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value)
+    {
+    }
+}");
+        }
+
+        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefaultParameterValues()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value = 1)
+    {
+    }
+}",
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value = 1)
+    {
+    }
+}");
+        }
+
+        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefault1()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+interface IRepro
+{
+    void A(int value);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value = 1)
+    {
+    }
+}",
+    @"
+interface IRepro
+{
+    void A(int value);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value = 1)
+    {
+    }
+}");
+        }
+
+        [Fact, WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefault2()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value)
+    {
+    }
+}",
+    @"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value)
+    {
+    }
+}");
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -26,6 +26,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts, string? rootNamespace = null)
         {
             var parts = folders.SelectMany(folder => folder.Split(NamespaceSeparatorArray)).SelectAsArray(syntaxFacts.EscapeIdentifier);
+
+            // The root namespace can come directly from the project file name and/or
+            // editor config file, so if its not valid we don't want to use it.
+            if (rootNamespace is { Length: > 0 } &&
+                !rootNamespace.Split(NamespaceSeparatorArray).All(syntaxFacts.IsValidIdentifier))
+            {
+                rootNamespace = null;
+            }
 
             if (parts.IsDefaultOrEmpty)
             {
@@ -59,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (rootNamespace is not null && @namespace.StartsWith(rootNamespace + ".", StringComparison.OrdinalIgnoreCase))
             {
                 // Add 1 to get rid of the starting "." as well
-                @namespace = @namespace.Substring(rootNamespace.Length + 1);
+                @namespace = @namespace[(rootNamespace.Length + 1)..];
             }
 
             var parts = @namespace.Split(NamespaceSeparatorArray, options: StringSplitOptions.RemoveEmptyEntries);

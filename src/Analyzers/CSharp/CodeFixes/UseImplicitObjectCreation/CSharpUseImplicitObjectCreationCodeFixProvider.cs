@@ -33,22 +33,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_new, nameof(CSharpAnalyzersResources.Use_new));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // process from inside->out so that outer rewrites see the effects of inner changes.
             foreach (var diagnostic in diagnostics.OrderBy(d => d.Location.SourceSpan.End))
@@ -75,14 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             return newKeyword.TrailingTrivia.All(t => t.IsWhitespace())
                 ? newKeyword.WithoutTrailingTrivia()
                 : newKeyword;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_new, createChangedDocument, CSharpAnalyzersResources.Use_new)
-            {
-            }
         }
     }
 }

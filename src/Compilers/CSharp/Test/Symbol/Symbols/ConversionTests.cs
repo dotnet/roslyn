@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var mscorlibRef = TestMetadata.Net40.mscorlib;
             var compilation = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
             var sys = compilation.GlobalNamespace.ChildNamespace("System");
-            Conversions c = new BuckStopsHereBinder(compilation).Conversions;
+            Conversions c = new BuckStopsHereBinder(compilation, associatedFileIdentifier: null).Conversions;
             var types = new TypeSymbol[]
             {
             sys.ChildType("Object"),
@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             // UNDONE: Conversions involving expressions: null, lambda, method group
         }
 
-
         [Fact]
         public void TestIsSameTypeIgnoringDynamic()
         {
@@ -311,7 +310,7 @@ class C
 
             Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
 
-            var conv = new BuckStopsHereBinder(compilation).Conversions;
+            var conv = new BuckStopsHereBinder(compilation, associatedFileIdentifier: null).Conversions;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             // no custom modifiers to custom modifiers
@@ -1735,7 +1734,7 @@ class C<T>
             var forEachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var memberModel = ((CSharpSemanticModel)model).GetMemberModel(forEachSyntax);
             var boundForEach = memberModel.GetBoundNodes(forEachSyntax).OfType<BoundForEachStatement>().Single();
-            var elementConversion = boundForEach.ElementConversion;
+            var elementConversion = BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder);
             Assert.Equal(LookupResultKind.OverloadResolutionFailure, elementConversion.ResultKind);
             AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions.GetPublicSymbols(), conversionSymbols);
         }

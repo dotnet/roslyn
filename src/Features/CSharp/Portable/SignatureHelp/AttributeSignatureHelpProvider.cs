@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-            => ch == '(' || ch == ',';
+            => ch is '(' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == ')';
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 token != expression.ArgumentList.CloseParenToken;
         }
 
-        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (!TryGetAttributeExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var attribute))
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var accessibleConstructors = attributeType.InstanceConstructors
                                                       .WhereAsArray(c => c.IsAccessibleWithin(within))
-                                                      .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                                                      .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
                                                       .Sort(semanticModel, attribute.SpanStart);
 
             if (!accessibleConstructors.Any())
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormatter = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList!);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
 
             return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
-                Convert(c, within, attribute, semanticModel, anonymousTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
+                Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
-        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (TryGetAttributeExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList!).Start)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISymbol within,
             AttributeSyntax attribute,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormatter,
             CancellationToken cancellationToken)
         {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var item = CreateItem(
                 constructor, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 isVariadic,
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),

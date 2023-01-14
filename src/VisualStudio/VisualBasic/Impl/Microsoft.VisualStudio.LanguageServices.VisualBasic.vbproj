@@ -6,7 +6,8 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <RootNamespace></RootNamespace>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>

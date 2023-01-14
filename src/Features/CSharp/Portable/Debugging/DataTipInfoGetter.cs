@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 var token = root.FindToken(position);
 
-                if (!(token.Parent is ExpressionSyntax expression))
+                if (token.Parent is not ExpressionSyntax expression)
                 {
                     return token.IsKind(SyntaxKind.IdentifierToken)
                         ? new DebugDataTipInfo(token.Span, text: null)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 // NOTE(cyrusn): This behavior is to mimic what we did in Dev10, I'm not sure if it's
                 // necessary or not.
-                if (expression.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+                if (expression is InvocationExpressionSyntax invocation)
                 {
                     expression = invocation.Expression;
                 }

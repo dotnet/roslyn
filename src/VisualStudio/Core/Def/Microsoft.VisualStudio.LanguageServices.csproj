@@ -9,7 +9,7 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
 
     <!-- Vsix -->
     <CreateVsixContainer>false</CreateVsixContainer>
@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true" />
+    <None Include="CodeCleanup\readme.md" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
     <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
@@ -64,7 +65,6 @@
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" Aliases="InteractiveHost" />
-    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
@@ -75,6 +75,8 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
@@ -85,19 +87,14 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <!-- <TODO> remove, once project system is updated https://github.com/dotnet/roslyn/issues/20320 -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <!-- </TODO> -->
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <internalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.IntegrationTests" />
+    <internalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
@@ -109,6 +106,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
+    <InternalsVisibleTo Include="IdeBenchmarks" />
     <RestrictedInternalsVisibleTo Include="ManagedSourceCodeAnalysis" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
     <RestrictedInternalsVisibleTo Include="CodeAnalysis" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
     <RestrictedInternalsVisibleTo Include="StanCore" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
@@ -118,16 +116,17 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsFormsIntegration" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="$(MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion)" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" Version="$(MicrosoftInternalVisualStudioInteropVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="$(MicrosoftVisualStudioDesignerInterfacesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Search" Version="$(MicrosoftVisualStudioSearchVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
@@ -137,7 +136,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="$(MicrosoftVisualStudioProgressionCodeSchemaVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Progression.Common" Version="$(MicrosoftVisualStudioProgressionCommonVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces" Version="$(MicrosoftVisualStudioProgressionInterfacesVersion)" />
@@ -151,6 +149,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="$(MicrosoftVisualStudioVsInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="$(MicrosoftVisualStudioWinFormsInterfacesVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="VsWebsite.Interop" Version="$(VsWebsiteInteropVersion)" />
@@ -159,6 +158,17 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
     <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
+    <!-- 
+        This is necessary because Microsoft.VisualStudio.LanguageServer.Client.Implementation has transitive dependencies on Microsoft.VisualStudio.Workspace.
+        This package causes Namespace/Type collisions with Microsoft.CodeAnalysis.Workspace. We only reference ILanguageServiceBroker2 from here so the simplest
+        fix is to reference the Microsoft.VisualStudio.LanguageServer.Client.Implementation dll directly.
+        
+        The fix for this is tracked internally by https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1542016
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="$(MicrosoftVisualStudioLanguageServerClientImplementationVersion)" ExcludeAssets="all" GeneratePathProperty="true" />
+    <Reference Include="$(PkgMicrosoft_VisualStudio_LanguageServer_Client_Implementation)\lib\net472\Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll">
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ServicesVSResources.resx" GenerateSource="true" />
@@ -184,12 +194,12 @@
   <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
     <ItemGroup>
       <!-- Add registrations 64-bit, and 64-bit Server GC on desktop host -->
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" />
       
       <!-- Add registrations for 64-bit and 64-bit Server GC on .Net Core host -->
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" SubFolder="$(ServiceHubCoreSubPath)" />
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" SubFolder="$(ServiceHubCoreSubPath)" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" SubFolder="$(ServiceHubCoreSubPath)" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" SubFolder="$(ServiceHubCoreSubPath)" />
 
       <PkgDefBrokeredService Include="@(InProcService)" ProfferingPackageId="$(RoslynPackageGuid)" />
     </ItemGroup>

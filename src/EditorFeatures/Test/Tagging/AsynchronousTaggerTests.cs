@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -32,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         /// This hits a special codepath in the product that is optimized for more than 100 spans.
         /// I'm leaving this test here because it covers that code path (as shown by code coverage)
         /// </summary>
-        [WpfFact]
-        [WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
+        [WpfFact, WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
         public async Task LargeNumberOfSpans()
         {
             using var workspace = TestWorkspace.CreateCSharp(@"class Program
@@ -64,15 +64,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
             var eventSource = CreateEventSource();
             var taggerProvider = new TestTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                workspace.GetService<IThreadingContext>(),
                 tagProducer,
                 eventSource,
+                workspace.GetService<IGlobalOptionService>(),
                 asyncListener);
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
             var snapshot = textBuffer.CurrentSnapshot;
             var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
+            Contract.ThrowIfNull(tagger);
 
             using var disposable = (IDisposable)tagger;
             var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
             var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+            Contract.ThrowIfNull(tagger);
 
             using var disposable = (IDisposable)tagger;
             // The very first all to get tags will not be synchronous as this contains no #region tag
@@ -123,6 +126,7 @@ class Program
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
             var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+            Contract.ThrowIfNull(tagger);
 
             using var disposable = (IDisposable)tagger;
             // The very first all to get tags will be synchronous because of the #region
@@ -152,8 +156,9 @@ class Program
                 IThreadingContext threadingContext,
                 Callback callback,
                 ITaggerEventSource eventSource,
+                IGlobalOptionService globalOptions,
                 IAsynchronousOperationListener asyncListener)
-                : base(threadingContext, asyncListener)
+                : base(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
             {
                 _callback = callback;
                 _eventSource = eventSource;
@@ -161,12 +166,13 @@ class Program
 
             protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
-            protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+            protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
                 => _eventSource;
 
-            protected override Task ProduceTagsAsync(TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
+            protected override Task ProduceTagsAsync(
+                TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
             {
-                var tags = _callback(snapshotSpan.SnapshotSpan, context.CancellationToken);
+                var tags = _callback(snapshotSpan.SnapshotSpan, cancellationToken);
                 if (tags != null)
                 {
                     foreach (var tag in tags)
@@ -177,6 +183,9 @@ class Program
 
                 return Task.CompletedTask;
             }
+
+            protected override bool TagEquals(TestTag tag1, TestTag tag2)
+                => tag1 == tag2;
         }
 
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource

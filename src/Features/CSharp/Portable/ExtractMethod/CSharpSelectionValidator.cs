@@ -11,9 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,12 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpSelectionValidator : SelectionValidator
     {
+        private readonly bool _localFunction;
+
         public CSharpSelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            OptionSet options)
+            ExtractMethodOptions options,
+            bool localFunction)
             : base(document, textSpan, options)
         {
+            _localFunction = localFunction;
         }
 
         public override async Task<SelectionResult> GetValidSelectionAsync(CancellationToken cancellationToken)
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text);
-            selectionInfo = ApplySpecialCases(selectionInfo, text);
+            selectionInfo = ApplySpecialCases(selectionInfo, text, SemanticDocument.SyntaxTree.Options, _localFunction);
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
             // there was a fatal error that we couldn't even do negative preview, return error result
@@ -88,9 +92,46 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text)
+        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
         {
-            if (selectionInfo.Status.FailedWithNoBestEffortSuggestion() || !selectionInfo.SelectionInExpression)
+            if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
+            {
+                return selectionInfo;
+            }
+
+            if (selectionInfo.CommonRootFromOriginalSpan.IsKind(SyntaxKind.CompilationUnit)
+                || selectionInfo.CommonRootFromOriginalSpan.IsParentKind(SyntaxKind.GlobalStatement))
+            {
+                // Cannot extract a local function from a global statement in script code
+                if (localFunction && options is { Kind: SourceCodeKind.Script })
+                {
+                    return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_include_global_statements));
+                }
+
+                // Cannot extract a method from a top-level statement in normal code
+                if (!localFunction && options is { Kind: SourceCodeKind.Regular })
+                {
+                    return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_include_top_level_statements));
+                }
+            }
+
+            if (_localFunction)
+            {
+                foreach (var ancestor in selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf())
+                {
+                    if (ancestor.IsKind(SyntaxKind.BaseConstructorInitializer) || ancestor.IsKind(SyntaxKind.ThisConstructorInitializer))
+                    {
+                        return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer));
+                    }
+
+                    if (ancestor is AnonymousFunctionExpressionSyntax)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (!selectionInfo.SelectionInExpression)
             {
                 return selectionInfo;
             }
@@ -322,6 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             var range = GetStatementRangeContainingSpan<StatementSyntax>(
+                CSharpSyntaxFacts.Instance,
                 root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
                 cancellationToken);
 
@@ -363,19 +405,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // set final span
-            var start = (selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan) ?
-                            Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.OriginalSpan.Start) :
-                            selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
+            var start = (selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan)
+                            ? Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.OriginalSpan.Start)
+                            : selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
 
-            var end = (selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan) ?
-                            Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, selectionInfo.OriginalSpan.End) :
-                            selectionInfo.LastTokenInFinalSpan.FullSpan.End;
+            var end = (selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan)
+                            ? Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, selectionInfo.OriginalSpan.End)
+                            : selectionInfo.LastTokenInFinalSpan.FullSpan.End;
 
             return selectionInfo.With(s => s.FinalSpan = GetAdjustedSpan(text, TextSpan.FromBounds(start, end)));
         }
 
         public override bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion)
-            => jumpsOutOfRegion.Where(n => !(n is ReturnStatementSyntax)).Any();
+            => jumpsOutOfRegion.Where(n => n is not ReturnStatementSyntax).Any();
 
         public override IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion)
         {
@@ -438,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // now, only method is okay to be extracted out
-            if (!(body.Parent is MethodDeclarationSyntax method))
+            if (body.Parent is not MethodDeclarationSyntax method)
             {
                 return false;
             }

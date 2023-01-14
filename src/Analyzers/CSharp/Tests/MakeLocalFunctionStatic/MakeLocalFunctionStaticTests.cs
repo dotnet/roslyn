@@ -510,5 +510,33 @@ class C
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [WorkItem(53179, "https://github.com/dotnet/roslyn/issues/53179")]
+        public async Task TestLocalFunctionAsTopLevelStatement()
+        {
+            await TestAsync(@"
+void [||]A()
+{
+}", @"
+static void A()
+{
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [WorkItem(59286, "https://github.com/dotnet/roslyn/issues/59286")]
+        public async Task TestUnsafeLocalFunction()
+        {
+            await TestAsync(@"
+unsafe void [||]A()
+{
+}", @"
+static unsafe void A()
+{
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }

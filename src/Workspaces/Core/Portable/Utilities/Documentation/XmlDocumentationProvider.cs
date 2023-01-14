@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(object obj)
             {
                 // Only one instance is expected to exist, so reference equality is fine.
-                return (object)this == obj;
+                return ReferenceEquals(this, obj);
             }
 
             public override int GetHashCode()

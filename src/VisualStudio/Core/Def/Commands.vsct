@@ -66,6 +66,8 @@
 
       <Group guid="guidRoslynGrpId" id="grpSetActiveRuleSet">
       </Group>
+
+      <Group guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" />
     </Groups>
 
     <Buttons>
@@ -322,6 +324,16 @@
           <CommandName>AnalysisScopeEntireSolution</CommandName>
         </Strings>
       </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeNone" priority="500" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;None</ButtonText>
+          <CanonicalName>None</CanonicalName>
+          <LocCanonicalName>None</LocCanonicalName>
+          <CommandName>AnalysisScopeNone</CommandName>
+        </Strings>
+      </Button>
       <!-- Button to open the diagnostic help link -->
       <Button guid="guidRoslynGrpId" id="cmdidOpenDiagnosticHelpLink" priority="100" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticProperties" />
@@ -480,7 +492,42 @@
           <ButtonText>Track Value Source</ButtonText>
           <CommandName>ShowValueTrackingCommandName</CommandName>
           <CanonicalName>ShowValueTracking</CanonicalName>
-          <LocCanonicalName>ViewEditorConfigSettings</LocCanonicalName>
+          <LocCanonicalName>ShowValueTracking</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStackTraceExplorer" id="cmdIdShowStackTraceExplorer" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Stack Trace Explorer</ButtonText>
+          <CommandName>ShowStackTraceExplorerCommandName</CommandName>
+          <CanonicalName>ShowStackTraceExplorer</CanonicalName>
+          <LocCanonicalName>ShowStackTraceExplorer</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStackTraceExplorer" id="cmdIdPasteStackTraceExplorer" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Paste" />
+        <CommandFlag>IconAndText</CommandFlag>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Paste</ButtonText>
+          <CommandName>PasteStackTraceExplorerCommandName</CommandName>
+          <CanonicalName>PasteStackTraceExplorer</CanonicalName>
+          <LocCanonicalName>PasteStackTraceExplorer</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStackTraceExplorer" id="cmdIdClearStackTraceExplorer" type="Button">
+        <Icon guid="ImageCatalogGuid" id="ClearCollection" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>IconAndText</CommandFlag>
+        <Strings>
+          <ButtonText>Clear</ButtonText>
+          <CommandName>CleearStackTraceExplorerCommandName</CommandName>
+          <CanonicalName>ClearStackTraceExplorer</CanonicalName>
+          <LocCanonicalName>ClearStackTraceExplorer</LocCanonicalName>
         </Strings>
       </Button>
     </Buttons>
@@ -560,6 +607,14 @@
           <LocCanonicalName>Set severity</LocCanonicalName>
         </Strings>
       </Menu>
+      
+      <!-- StackTraceExplorer menus -->
+      <Menu guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenu" type="Context">
+        <Strings>
+          <MenuText>StackTrace Explorer</MenuText>
+          <ButtonText>StackTrace Explorer</ButtonText>
+        </Strings>
+      </Menu>
     </Menus>
   </Commands>
 
@@ -610,6 +665,18 @@
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0xF200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
     </CommandPlacement>
+
+    <CommandPlacement guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" priority="0x0001">
+      <Parent guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenu" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidStackTraceExplorer" id="cmdIdPasteStackTraceExplorer" priority="0x0001">
+      <Parent guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidStackTraceExplorer" id="cmdIdClearStackTraceExplorer" priority="0x0002">
+      <Parent guid="guidStackTraceExplorer" id="StackTraceExplorerContextMenuGrp" />
+    </CommandPlacement>
   </CommandPlacements>
 
   <KeyBindings>
@@ -620,6 +687,7 @@
 
     <KeyBinding guid="guidCSharpGrpId" id="cmdidCSharpOrganizeRemoveAndSort" mod1="Control" key1="R" key2="G" editor="guidVSStd97" />
     <KeyBinding guid="guidCSharpGrpId" id="cmdidCSharpOrganizeRemoveAndSort" mod1="Control" key1="R" mod2="Control" key2="G" editor="guidVSStd97" />
+    <KeyBinding guid="guidStackTraceExplorer" id="cmdIdShowStackTraceExplorer" mod1="Control" key1="E" mod2="Control" key2="S" editor="guidVSStd97" />
   </KeyBindings>
 
   <UsedCommands>
@@ -698,6 +766,7 @@
       <IDSymbol name="cmdidAnalysisScopeEntireSolution" value="0x0134" />
       <IDSymbol name="grpAnalysisScope" value="0x0135" />
       <IDSymbol name="grpAnalysisScopeItems" value="0x0136" />
+      <IDSymbol name="cmdidAnalysisScopeNone" value="0x0137" />
 
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
 
@@ -731,6 +800,14 @@
     <!--guidReferenceContext is aka: ShellMainMenu_guid -->
     <GuidSymbol name="guidReferenceContext" value="{D309F791-903F-11D0-9EFC-00A0C911004F}">
       <IDSymbol name="cmdAddReferenceGroup" value="0x450" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidStackTraceExplorer" value="{FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA}">
+      <IDSymbol name="cmdIdShowStackTraceExplorer" value="0x0100" />
+      <IDSymbol name="cmdIdPasteStackTraceExplorer" value="0x0101" />
+      <IDSymbol name="cmdIdClearStackTraceExplorer" value="0x0102" />
+      <IDSymbol name="StackTraceExplorerContextMenuGrp" value="0x0200" />
+      <IDSymbol name="StackTraceExplorerContextMenu" value="0x0300" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

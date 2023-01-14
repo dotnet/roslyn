@@ -4,7 +4,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
@@ -20,25 +19,25 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            DocumentOptionSet options,
+            in DocumentationCommentOptions options,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            DocumentOptionSet options,
+            in DocumentationCommentOptions options,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            DocumentOptionSet options,
+            in DocumentationCommentOptions options,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(
-            DocumentOptionSet options,
+            in DocumentationCommentOptions options,
             TextLine currentLine,
             TextLine previousLine);
 

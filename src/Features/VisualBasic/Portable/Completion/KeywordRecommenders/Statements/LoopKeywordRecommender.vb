@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
 
-            If context.IsSingleLineStatementContext Then
+            If context.IsStatementContext Then
                 Dim doBlock = targetToken.GetAncestor(Of DoLoopBlockSyntax)()
 
                 If doBlock Is Nothing OrElse Not doBlock.LoopStatement.IsMissing Then

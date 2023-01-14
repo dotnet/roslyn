@@ -43,20 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
         {
             var type = symbol as ITypeSymbol;
-            if (type != null && type.ContainsAnonymousType())
+            var containsAnonymousType = type != null && type.ContainsAnonymousType();
+
+            if (containsAnonymousType && allowVar)
             {
                 // something with an anonymous type can only be represented with 'var', regardless
                 // of what the user's preferences might be.
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
-                               .WithAdditionalAnnotations(Simplifier.Annotation);
+            var syntax = containsAnonymousType
+                ? TypeSyntaxGeneratorVisitor.CreateSystemObject()
+                : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
+                        .WithAdditionalAnnotations(Simplifier.Annotation);
 
             if (!allowVar)
-            {
                 syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
-            }
 
             if (type != null && type.IsReferenceType)
             {
@@ -68,10 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
                 };
 
-                if (additionalAnnotation is object)
-                {
+                if (additionalAnnotation is not null)
                     syntax = syntax.WithAdditionalAnnotations(additionalAnnotation);
-                }
             }
 
             return syntax;
@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return null;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -153,31 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 ? compilationUnit.Usings.Concat(namespaceUsings)
                 : namespaceUsings;
             return allUsings.Where(u => u.Alias != null);
-        }
-
-        public static bool IsIntrinsicType(this ITypeSymbol typeSymbol)
-        {
-            switch (typeSymbol.SpecialType)
-            {
-                case SpecialType.System_Boolean:
-                case SpecialType.System_Char:
-                case SpecialType.System_SByte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_Byte:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Single:
-                case SpecialType.System_Double:
-                // NOTE: VB treats System.DateTime as an intrinsic, while C# does not, see "predeftype.h"
-                //case SpecialType.System_DateTime:
-                case SpecialType.System_Decimal:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         public static bool TryGetRecordPrimaryConstructor(this INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)

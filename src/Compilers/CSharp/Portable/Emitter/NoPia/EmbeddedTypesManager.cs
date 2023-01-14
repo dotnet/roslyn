@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             DiagnosticBag diagnostics)
         {
             Debug.Assert(method.AdaptedSymbol.IsDefinition);
-            Debug.Assert(!method.AdaptedMethodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: false));
+            Debug.Assert(!method.AdaptedMethodSymbol.IsDefaultValueTypeConstructor());
 
             EmbeddedMethod embedded = new EmbeddedMethod(type, method);
             EmbeddedMethod cached = EmbeddedMethodsMap.GetOrAdd(method, embedded);
@@ -588,6 +588,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             Debug.Assert(member.AdaptedSymbol.IsDefinition);
             Debug.Assert(ModuleBeingBuilt.SourceModule.AnyReferencedAssembliesAreLinked);
+
+            if (member.AdaptedSymbol.OriginalDefinition is SynthesizedGlobalMethodSymbol)
+            {
+                // No need to embed an internal type from current assembly
+                return null;
+            }
 
             NamedTypeSymbol namedType = member.AdaptedSymbol.ContainingType;
 

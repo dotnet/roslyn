@@ -2,11 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -63,10 +67,10 @@ End NameSpace"
         Private Shared Function TestNoImportsAddedAsync(
             initialText As String,
             useSymbolAnnotations As Boolean,
-            Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing,
+            Optional placeSystemNamespaceFirst As Boolean = False,
             Optional globalImports As String() = Nothing) As Task
 
-            Return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, optionsTransform, globalImports, performCheck:=False)
+            Return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, placeSystemNamespaceFirst, globalImports, performCheck:=False)
         End Function
 
         Private Shared Async Function TestAsync(
@@ -74,30 +78,34 @@ End NameSpace"
                 importsAddedText As String,
                 simplifiedText As String,
                 useSymbolAnnotations As Boolean,
-                Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing,
+                Optional placeSystemNamespaceFirst As Boolean = True,
                 Optional globalImports As String() = Nothing,
                 Optional performCheck As Boolean = True) As Task
 
             Dim doc = Await GetDocument(initialText, useSymbolAnnotations, globalImports)
-            Dim options = doc.Project.Solution.Workspace.Options
-            If optionsTransform IsNot Nothing Then
-                options = optionsTransform(options)
-            End If
+
+            Dim addImportOptions = New AddImportPlacementOptions() With
+            {
+                .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
+            }
+
+            Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
+            Dim simplifierOptions = VisualBasicSimplifierOptions.Default
 
             Dim imported = If(
                     useSymbolAnnotations,
-                    Await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, options),
-                    Await ImportAdder.AddImportsFromSyntaxesAsync(doc, options))
+                    Await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None),
+                    Await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None))
 
             If importsAddedText IsNot Nothing Then
-                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options)
+                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(importsAddedText, actualText)
             End If
 
             If simplifiedText IsNot Nothing Then
-                Dim reduced = Await Simplifier.ReduceAsync(imported, options)
-                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options)
+                Dim reduced = Await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None)
+                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(simplifiedText, actualText)
             End If
@@ -175,7 +183,7 @@ Class C
     Public F As List(Of Integer)
 End Class",
             useSymbolAnnotations,
-            Function(options) options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, False))
+            placeSystemNamespaceFirst:=False)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
@@ -1045,7 +1053,7 @@ Namespace N
         End Sub
     End Module
 End Namespace", useSymbolAnnotations:=True)
-        End function
+        End Function
 
 #End Region
 

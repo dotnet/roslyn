@@ -8,9 +8,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -20,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     internal class DiagnosticTaggerWrapper<TProvider, TTag> : IDisposable
-        where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
+        where TProvider : AbstractPushOrPullDiagnosticsTaggerProvider<TTag>
         where TTag : ITag
     {
         private readonly TestWorkspace _workspace;
@@ -43,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+            // Change the background analysis scope to OpenFiles instead of ActiveFile (default),
+            // so that every diagnostic tagger test does not need to mark test files as "active" file.
+            workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.OpenFiles);
+            workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.OpenFiles);
 
             _workspace = workspace;
 
@@ -76,7 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                     if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider)
                         || typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider)
-                        || typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider))
+                        || typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider)
+                        || typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                     {
                         _taggerProvider = _workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
                             .OfType<TProvider>()
@@ -100,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
                 _workspace,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.ErrorSquiggles,
                 FeatureAttribute.Classification);

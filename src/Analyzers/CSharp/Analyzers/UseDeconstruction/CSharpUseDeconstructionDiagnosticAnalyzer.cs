@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
                    EnforceOnBuildValues.UseDeconstruction,
                    CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_deconstructed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -42,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration, context.Node.SyntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferDeconstructedVariableDeclaration;
             if (!option.Value)
             {
                 return;
@@ -260,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return true;
             }
 
-            if (type.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax? tupleType))
+            if (type is TupleTypeSyntax tupleType)
             {
                 // '(int x, int y) t' can be convered to '(int x, int y)'.  So all the elements
                 // need names.
@@ -290,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                     var symbol = semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol();
                     if (local.Equals(symbol))
                     {
-                        if (!(identifierName.Parent is MemberAccessExpressionSyntax memberAccess))
+                        if (identifierName.Parent is not MemberAccessExpressionSyntax memberAccess)
                         {
                             // We referenced the local in a location where we're not accessing a 
                             // field off of it.  i.e. Console.WriteLine(tupleLocal);
@@ -298,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                         }
 
                         var member = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol();
-                        if (!(member is IFieldSymbol field))
+                        if (member is not IFieldSymbol field)
                         {
                             // Accessed some non-field member of it (like .ToString()).
                             return false;

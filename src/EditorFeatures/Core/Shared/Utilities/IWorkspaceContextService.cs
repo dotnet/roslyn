@@ -6,6 +6,8 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
@@ -26,13 +28,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     [ExportWorkspaceService(typeof(IWorkspaceContextService), ServiceLayer.Default), Shared]
     internal sealed class DefaultWorkspaceContextService : IWorkspaceContextService
     {
+        /// <summary>
+        /// Roslyn LSP feature flag name, as defined in the PackageRegistraion.pkgdef
+        /// by everything following '$RootKey$\FeatureFlags\' and '\' replaced by '.'
+        /// </summary>
+        public const string LspEditorFeatureFlagName = "Roslyn.LSP.Editor";
+
+        private readonly IGlobalOptionService _globalOptionsService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultWorkspaceContextService()
+        public DefaultWorkspaceContextService(IGlobalOptionService globalOptionsService)
         {
+            _globalOptionsService = globalOptionsService;
         }
 
-        public bool IsInLspEditorContext() => false;
+        public bool IsInLspEditorContext() => _globalOptionsService.GetOption(LspOptions.LspEditorFeatureFlag);
 
         public bool IsCloudEnvironmentClient() => false;
     }

@@ -26,32 +26,38 @@ namespace Microsoft.CodeAnalysis.Classification
 
         public abstract ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers();
         public abstract ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
+        public abstract string? GetSyntacticClassificationForIdentifier(SyntaxToken identifier);
 
         public async Task AddSemanticClassificationsAsync(
-            Document document, TextSpan textSpan,
-            Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
-            Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                AddSemanticClassifications(semanticModel, textSpan, document.Project.Solution.Workspace, getNodeClassifiers, getTokenClassifiers, result, cancellationToken);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        public void AddSemanticClassifications(
-            SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
+            Document document,
+            TextSpan textSpan,
+            ClassificationOptions options,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            Worker.Classify(workspace, semanticModel, textSpan, result, getNodeClassifiers, getTokenClassifiers, cancellationToken);
+            try
+            {
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, result, options, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        public void AddSemanticClassifications(
+            SemanticModel semanticModel,
+            TextSpan textSpan,
+            Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
+            Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
+            ArrayBuilder<ClassifiedSpan> result,
+            ClassificationOptions options,
+            CancellationToken cancellationToken)
+        {
+            Worker.Classify(semanticModel, textSpan, result, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
         }
 
         public TextChangeRange? ComputeSyntacticChangeRange(SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)

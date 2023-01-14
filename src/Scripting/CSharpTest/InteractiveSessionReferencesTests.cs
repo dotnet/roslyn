@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
         /// Test adding a reference to NetStandard 2.0 library.
         /// Validates that we resolve all references correctly in the first and the subsequent submissions.
         /// </summary>
-        [Fact]
-        [WorkItem(345, "https://github.com/dotnet/try/issues/345")]
+        [Fact, WorkItem(345, "https://github.com/dotnet/try/issues/345")]
         public async Task LibraryReference_NetStandard20()
         {
             var libSource = @"

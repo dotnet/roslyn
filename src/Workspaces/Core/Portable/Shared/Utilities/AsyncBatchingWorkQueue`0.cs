@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Roslyn.Utilities
@@ -23,10 +23,10 @@ namespace Roslyn.Utilities
         {
         }
 
-        private static Func<ImmutableArray<VoidResult>, CancellationToken, ValueTask> Convert(Func<CancellationToken, ValueTask> processBatchAsync)
+        private static Func<ImmutableSegmentedList<VoidResult>, CancellationToken, ValueTask> Convert(Func<CancellationToken, ValueTask> processBatchAsync)
             => (items, ct) => processBatchAsync(ct);
 
-        public void AddWork()
-            => base.AddWork(default(VoidResult));
+        public void AddWork(bool cancelExistingWork = false)
+            => base.AddWork(default(VoidResult), cancelExistingWork);
     }
 }

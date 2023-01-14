@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
             }
 
-            private IReadOnlyList<MemberDeclarationSyntax> GetValidMembers(SyntaxNode node)
+            private static IReadOnlyList<MemberDeclarationSyntax> GetValidMembers(SyntaxNode node)
             {
                 return CSharpCodeModelService
                     .GetChildMemberNodes(node)
@@ -243,8 +243,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldMember is BaseTypeDeclarationSyntax ||
-                    oldMember is DelegateDeclarationSyntax)
+                if (oldMember is BaseTypeDeclarationSyntax or
+                    DelegateDeclarationSyntax)
                 {
                     return CompareTypeDeclarations(oldMember, newMember, newNodeParent, eventQueue);
                 }
@@ -513,8 +513,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 CodeModelEventQueue eventQueue)
             {
                 Debug.Assert(oldMember != null && newMember != null);
-                Debug.Assert(oldMember is BaseTypeDeclarationSyntax || oldMember is DelegateDeclarationSyntax);
-                Debug.Assert(newMember is BaseTypeDeclarationSyntax || newMember is DelegateDeclarationSyntax);
+                Debug.Assert(oldMember is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
+                Debug.Assert(newMember is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
 
                 // If the kind doesn't match, it has to be a remove/add.
                 if (oldMember.Kind() != newMember.Kind())
@@ -663,8 +663,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldNamespaceOrType is BaseTypeDeclarationSyntax ||
-                    oldNamespaceOrType is DelegateDeclarationSyntax)
+                if (oldNamespaceOrType is BaseTypeDeclarationSyntax or
+                    DelegateDeclarationSyntax)
                 {
                     return CompareTypeDeclarations(oldNamespaceOrType, newNamespaceOrType, newNodeParent, eventQueue);
                 }
@@ -708,10 +708,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return false;
             }
 
-            private bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMember)
+            private static bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMember)
                 => oldMember.GetModifierFlags() == newMember.GetModifierFlags();
 
-            private bool CompareModifiers(ParameterSyntax oldParameter, ParameterSyntax newParameter)
+            private static bool CompareModifiers(ParameterSyntax oldParameter, ParameterSyntax newParameter)
                 => oldParameter.GetParameterFlags() == newParameter.GetParameterFlags();
 
             private bool CompareNames(NameSyntax oldName, NameSyntax newName)
@@ -826,7 +826,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return false;
             }
 
-            private TypeSyntax GetReturnType(BaseMethodDeclarationSyntax method)
+            private static TypeSyntax GetReturnType(BaseMethodDeclarationSyntax method)
             {
                 if (method is MethodDeclarationSyntax methodDecl)
                 {
@@ -968,7 +968,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            private void AddEventToEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, Action<SyntaxNode, SyntaxNode> enqueueAddOrRemoveEvent)
+            private static void AddEventToEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, Action<SyntaxNode, SyntaxNode> enqueueAddOrRemoveEvent)
             {
                 if (parent is BaseFieldDeclarationSyntax baseField)
                 {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // EnC: We need to insert a hidden sequence point to handle function remapping in case
                     // the containing method is edited while methods invoked in the expression are being executed.
                     var instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, loweredSwitchGoverningExpression, _factory);
-                    if (loweredSwitchGoverningExpression.ConstantValue == null)
+                    if (loweredSwitchGoverningExpression.ConstantValueOpt == null)
                     {
                         loweredSwitchGoverningExpression = instrumentedExpression;
                     }
@@ -94,7 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(node.InnerLocals);
 
                 // Evaluate the input and set up sharing for dag temps with user variables
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result, out _);
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
+                    node.GetDecisionDagForLowering(_factory.Compilation),
+                    loweredSwitchGoverningExpression, result, out _);
 
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
                 // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into

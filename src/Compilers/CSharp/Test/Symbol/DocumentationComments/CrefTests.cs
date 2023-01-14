@@ -2286,7 +2286,7 @@ class C
         }
 
         [Fact]
-        public void UnaryOperator_NoParameters()
+        public void UnaryOperator_NoParameters_01()
         {
             var source = @"
 /// <summary>
@@ -2307,6 +2307,33 @@ class C
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
+        }
+
+        [Fact]
+        public void UnaryOperator_NoParameters_02()
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator -""/>.
+/// </summary>
+class C
+{
+    public static C operator -(C c)
+    {
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var crefSyntax = GetCrefSyntaxes(compilation).Single();
+
+            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator -' that could not be resolved
+                // /// See <see cref="operator -"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator -").WithArguments("operator -").WithLocation(3, 20)
+                );
+
+            Assert.Null(actualSymbol);
         }
 
         [Fact]
@@ -4458,30 +4485,30 @@ class C
             // BREAK: dev11 doesn't report CS1581 for "Q[]" or "Q*" because it only checks for error
             // types and it finds an array type and a pointer type, respectively.
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (2,16): warning CS1581: Invalid return type in XML comment cref attribute
+                // (2,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithArguments("Q", "explicit operator Q"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithLocation(2, 34),
                 // (2,16): warning CS1574: XML comment has cref attribute 'explicit operator Q' that could not be resolved
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q"),
-                // (3,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q").WithLocation(2, 16),
+                // (3,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithArguments("C{Q}", "explicit operator C{Q}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithLocation(3, 34),
                 // (3,16): warning CS1574: XML comment has cref attribute 'explicit operator C{Q}' that could not be resolved
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}"),
-                // (4,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}").WithLocation(3, 16),
+                // (4,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithArguments("Q[]", "explicit operator Q[]"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithLocation(4, 34),
                 // (4,16): warning CS1574: XML comment has cref attribute 'explicit operator Q[]' that could not be resolved
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]"),
-                // (5,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]").WithLocation(4, 16),
+                // (5,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithArguments("Q*", "explicit operator Q*"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithLocation(5, 34),
                 // (5,16): warning CS1574: XML comment has cref attribute 'explicit operator Q*' that could not be resolved
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*").WithLocation(5, 16));
         }
 
         [Fact]
@@ -6584,7 +6611,7 @@ class Cat { }
 
         private static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
 
-        private static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
+        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
         {
             return compilation.SyntaxTrees.SelectMany(tree =>
             {
@@ -6593,7 +6620,7 @@ class Cat { }
             });
         }
 
-        private static Symbol GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
+        internal static Symbol GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
             Symbol ambiguityWinner;
             var references = GetReferencedSymbols(crefSyntax, compilation, out ambiguityWinner, expectedDiagnostics);

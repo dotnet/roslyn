@@ -6,9 +6,10 @@ using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -34,14 +35,14 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
+            if (!helpers.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !helpers.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             context.RegisterRefactoring(
                 new GenerateOverridesWithDialogCodeAction(
-                    this, document, textSpan, containingType, overridableMembers),
+                    this, document, textSpan, containingType, overridableMembers, context.Options),
                 typeDeclaration.Span);
         }
     }

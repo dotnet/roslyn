@@ -2,23 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator.CSharpUseRangeOperatorDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator.CSharpUseRangeOperatorCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpUseRangeOperatorDiagnosticAnalyzer,
+        CSharpUseRangeOperatorCodeFixProvider>;
+
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
     public class UseRangeOperatorTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestNotInCSharp7()
         {
             var source =
@@ -40,7 +42,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestWithMissingReference()
         {
             var source =
@@ -75,8 +77,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
         public async Task TestNotWithoutSystemRange()
         {
             var source =
@@ -94,11 +95,47 @@ class C
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.CSharp7,
+                LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
+        public async Task TestNotWithInaccessibleSystemRange()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring(1, s.Length - 1);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalProjects =
+                    {
+                        ["AdditionalProject"] =
+                        {
+                            Sources =
+                            {
+                                "namespace System { internal struct Range { } }"
+                            }
+                        }
+                    },
+                    AdditionalProjectReferences = { "AdditionalProject" },
+                },
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestSimple()
         {
             var source =
@@ -173,7 +210,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestComplexSubstraction()
         {
             var source =
@@ -203,7 +240,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestSubstringOneArgument()
         {
             var source =
@@ -233,7 +270,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestSliceOneArgument()
         {
             var source =
@@ -265,7 +302,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestExpressionOneArgument()
         {
             var source =
@@ -295,7 +332,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestConstantSubtraction1()
         {
             var source =
@@ -325,7 +362,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestNotWithoutSubtraction()
         {
             var source =
@@ -347,7 +384,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestNonStringType()
         {
             var source =
@@ -379,7 +416,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestNonStringTypeWithoutRangeIndexer()
         {
             var source =
@@ -411,7 +448,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestNonStringType_Assignment()
         {
             var source =
@@ -442,7 +479,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestMethodToMethod()
         {
             var source =
@@ -474,7 +511,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestFixAllInvocationToElementAccess1()
         {
             // Note: once the IOp tree has support for range operators, this should 
@@ -506,7 +543,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestFixAllInvocationToElementAccess2()
         {
             // Note: once the IOp tree has support for range operators, this should 
@@ -538,7 +575,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestWithTypeWithActualSliceMethod1()
         {
             var source =
@@ -570,7 +607,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestWithTypeWithActualSliceMethod2()
         {
             var source =
@@ -602,8 +639,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestWritableType()
         {
             var source =
@@ -630,7 +666,7 @@ class C
                 FixedCode = source,
             }.RunAsync();
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestReturnByRef()
         {
             var source =
@@ -661,8 +697,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestIntWritableType()
         {
             var source =
@@ -706,8 +741,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestReadWriteProperty()
         {
             var source =
@@ -750,7 +784,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestWithTypeWithActualSliceMethod3()
         {
             var source =
@@ -781,8 +815,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(36997, "https://github.com/dotnet/roslyn/issues/36997")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(36997, "https://github.com/dotnet/roslyn/issues/36997")]
         public async Task TestExpressionWithAddOperatorArgument()
         {
             var source =
@@ -812,7 +845,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact]
         public async Task TestExpressionWithElementAccessShouldNotAddParentheses()
         {
             var source =
@@ -842,8 +875,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
         public async Task TestExpressionWithNullConditionalAccess()
         {
             var source =
@@ -870,8 +902,7 @@ public class Test
             }.RunAsync();
         }
 
-        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
         public async Task TestExpressionWithNullConditionalAccessWithPropertyAccess()
         {
             var source =
@@ -896,8 +927,7 @@ public class Test
             }.RunAsync();
         }
 
-        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Theory, WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
         [InlineData(
             "c.Prop.Substring([|42|])",
             "c.Prop[42..]")]
@@ -924,7 +954,7 @@ public class C
 public class Test
 {{
     public object M(C c)
-        => { subStringCode };
+        => {subStringCode};
 }}";
             var fixedSource =
 @$"
@@ -935,7 +965,7 @@ public class C
 public class Test
 {{
     public object M(C c)
-        => { rangeCode };
+        => {rangeCode};
 }}";
             await new VerifyCS.Test
             {
@@ -945,8 +975,7 @@ public class Test
             }.RunAsync();
         }
 
-        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
         public async Task TestStringMethod()
         {
             var source =
@@ -1012,8 +1041,7 @@ namespace System
             }.RunAsync();
         }
 
-        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Fact, WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
         public async Task TestSliceOnThis()
         {
             var source =
@@ -1040,6 +1068,181 @@ class C
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = source,
                 FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        public async Task TestStartingFromZero()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|0|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        public async Task TestStartingFromAribtraryPosition()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|5|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[5..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        public async Task TestStartingFromZeroToArbitraryEnd()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|0, 5|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[..5];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        public async Task TestStartingFromZeroGoingToLength()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|0, s.Length|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(40438, "https://github.com/dotnet/roslyn/issues/40438")]
+        public async Task TestStartingFromZeroGoingToLengthMinus1()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|0, s.Length - 1|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[..^1];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
+        public async Task TestNotInExpressionTree()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M()
+    {
+        Expression<Func<string, int, string>> e = (s, i) => s.Substring(i);
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = source,
             }.RunAsync();
         }
     }

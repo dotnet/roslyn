@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
@@ -31,13 +32,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             [Public] = CUShort(Accessibility.Public)
             AccessibilityMask = &H7
 
-            [Class] = CUShort(TYPEKIND.Class) << TypeKindShift
-            [Structure] = CUShort(TYPEKIND.Structure) << TypeKindShift
-            [Interface] = CUShort(TYPEKIND.Interface) << TypeKindShift
-            [Enum] = CUShort(TYPEKIND.Enum) << TypeKindShift
-            [Delegate] = CUShort(TYPEKIND.Delegate) << TypeKindShift
-            [Module] = CUShort(TYPEKIND.Module) << TypeKindShift
-            Submission = CUShort(TYPEKIND.Submission) << TypeKindShift
+            [Class] = CUShort(TypeKind.Class) << TypeKindShift
+            [Structure] = CUShort(TypeKind.Structure) << TypeKindShift
+            [Interface] = CUShort(TypeKind.Interface) << TypeKindShift
+            [Enum] = CUShort(TypeKind.Enum) << TypeKindShift
+            [Delegate] = CUShort(TypeKind.Delegate) << TypeKindShift
+            [Module] = CUShort(TypeKind.Module) << TypeKindShift
+            Submission = CUShort(TypeKind.Submission) << TypeKindShift
             TypeKindMask = &HF0
             TypeKindShift = 4
 
@@ -86,9 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' An array of members in declaration order.
         Private _lazyMembersFlattened As ImmutableArray(Of Symbol)
-
-        ' Type parameters (Nothing if not created yet)
-        Private _lazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
         Private _lazyEmitExtensionAttribute As ThreeState = ThreeState.Unknown
         Private _lazyContainsExtensionMethods As ThreeState = ThreeState.Unknown
@@ -242,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' In case Vb Core Runtime is being embedded, we should mark attribute 
                     ' 'Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute'
                     ' as being referenced if the named type just created is a module
-                    If type.TypeKind = TYPEKIND.Module Then
+                    If type.TypeKind = TypeKind.Module Then
                         type.DeclaringCompilation.EmbeddedSymbolManager.RegisterModuleDeclaration()
                     End If
 
@@ -1267,9 +1265,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeKind As TYPEKIND
+        Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return CType((_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TYPEKIND)
+                Return CType((_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TypeKind)
             End Get
         End Property
 
@@ -2337,7 +2335,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-
         ''' <summary>
         ''' Returns true if at least one of the elements of this list needs to be injected into a 
         ''' constructor because it's not a const or it is a const and it's type is either decimal 
@@ -2665,7 +2662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If propertySymbol.IsAutoProperty AndAlso
                         propertySymbol.ContainingType.TypeKind = TypeKind.Structure Then
 
-                        binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
+                        Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
                     End If
 
                     AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
@@ -2782,7 +2779,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ' already have an instance|shared constructor. Don't add another one.
                 End If
             End If
-
 
             ' Add a new instance|shared constructor.
             Dim syntaxRef = SyntaxReferences.First() ' use arbitrary part
@@ -2916,7 +2912,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 AddMember(eventSymbol.AssociatedField, binder, members, omitDiagnostics:=False)
             End If
         End Sub
-
 
         Private Sub CheckMemberDiagnostics(
                              members As MembersAndInitializersBuilder,
@@ -3408,7 +3403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     If ShouldReportImplementationError(ifaceMember) Then
                                         If implementingSet.Count = 0 Then
                                             'member was not implemented.
-                                            Dim diag = If(useSiteInfo.DiagnosticInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMember3,
+                                            Dim diag = If(useSiteInfo.DiagnosticInfo, ErrorFactory.ErrorInfo(If(ifaceMember.IsShared, ERRID.ERR_UnimplementedSharedMember, ERRID.ERR_UnimplementedMember3),
                                                                             If(Me.IsStructureType(), "Structure", "Class"),
                                                                             CustomSymbolDisplayFormatter.ShortErrorName(Me),
                                                                             ifaceMember,
@@ -3441,11 +3436,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Should we report implementation errors for this member?
         ' We don't report errors on accessors, because we already report the errors on their containing property/event.
         Private Function ShouldReportImplementationError(interfaceMember As Symbol) As Boolean
-            If interfaceMember.Kind = SymbolKind.Method AndAlso DirectCast(interfaceMember, MethodSymbol).MethodKind <> MethodKind.Ordinary Then
+            Dim method = TryCast(interfaceMember, MethodSymbol)
+
+            If method IsNot Nothing AndAlso
+               method.MethodKind <> MethodKind.Ordinary AndAlso
+               method.MethodKind <> MethodKind.UserDefinedOperator AndAlso
+               method.MethodKind <> MethodKind.Conversion Then
                 Return False
-            Else
-                Return True
             End If
+
+            Return True
         End Function
 
         ''' <summary>
@@ -3486,7 +3486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me.IsDefinition) ' Don't do this on constructed types
 
             ' Enums and Delegates have nothing to do.
-            Dim myTypeKind As TYPEKIND = Me.TypeKind
+            Dim myTypeKind As TypeKind = Me.TypeKind
             Dim operatorsKnownToHavePair As HashSet(Of MethodSymbol) = Nothing
 
             If myTypeKind = TypeKind.Class OrElse myTypeKind = TypeKind.Interface OrElse myTypeKind = TypeKind.Structure OrElse myTypeKind = TypeKind.Module Then
@@ -4024,8 +4024,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If EmitExtensionAttribute Then
                 AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeExtensionAttribute())

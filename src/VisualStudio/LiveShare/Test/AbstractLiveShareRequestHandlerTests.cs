@@ -15,20 +15,26 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public abstract class AbstractLiveShareRequestHandlerTests : AbstractLanguageServerProtocolTests
     {
-        private static readonly TestComposition s_composition = LiveShareTestCompositions.Features.AddParts(
-            typeof(MockDocumentNavigationServiceFactory),
-            typeof(TestLspWorkspaceRegistrationService));
+        private static readonly TestComposition s_composition = LiveShareTestCompositions.Features
+            .AddParts(typeof(MockDocumentNavigationServiceFactory))
+            .AddParts(typeof(TestWorkspaceRegistrationService))
+            .AddParts(typeof(TestWorkspaceConfigurationService));
+
+        protected AbstractLiveShareRequestHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
 
         private class MockHostProtocolConverter : IHostProtocolConverter
         {
             private readonly Func<Uri, Uri> _uriConversionFunction;
 
-            public MockHostProtocolConverter() => _uriConversionFunction = uri => { return uri; };
+            public MockHostProtocolConverter() => _uriConversionFunction = uri => uri;
 
             public MockHostProtocolConverter(Func<Uri, Uri> uriConversionFunction) => _uriConversionFunction = uriConversionFunction;
 

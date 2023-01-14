@@ -11,7 +11,9 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -45,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim renameService = workspace.GetService(Of IInlineRenameService)()
             Dim sessionInfo = GetSessionInfo(workspace)
 
-            Return DirectCast(renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan).Session, InlineRenameSession)
+            Return DirectCast(renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, CancellationToken.None).Session, InlineRenameSession)
         End Function
 
         Public Sub AssertTokenRenamable(workspace As TestWorkspace)
@@ -66,15 +68,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub
 
-        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String) As Task
+        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace) As Task
             Await WaitForRename(workspace)
-            For Each document In workspace.Documents
-                For Each selectedSpan In document.SelectedSpans
-                    Dim trackingSpan = document.InitialTextSnapshot.CreateTrackingSpan(selectedSpan.ToSpan(), SpanTrackingMode.EdgeInclusive)
-                    Assert.Equal(newIdentifierName, trackingSpan.GetText(document.GetTextBuffer().CurrentSnapshot).Trim)
-                Next
-            Next
-
             For Each document In workspace.Documents
                 For Each annotations In document.AnnotatedSpans
                     Dim expectedReplacementText = annotations.Key
@@ -114,10 +109,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)
             Dim tracker = New RenameTrackingTaggerProvider(
-                workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                workspace.ExportProvider.GetExport(Of IInlineRenameService)().Value,
-                workspace.ExportProvider.GetExport(Of IDiagnosticAnalyzerService)().Value,
-                workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
+                workspace.GetService(Of IThreadingContext),
+                workspace.GetService(Of IInlineRenameService)(),
+                workspace.GetService(Of IDiagnosticAnalyzerService)(),
+                workspace.GetService(Of IGlobalOptionService)(),
+                workspace.GetService(Of IAsynchronousOperationListenerProvider))
 
             Return tracker.CreateTagger(Of RenameTrackingTag)(document.GetTextBuffer())
         End Function

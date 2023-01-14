@@ -14,12 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
 {
+    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
         internal override AbstractSyntaxStructureProvider CreateProvider() => new TypeDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task WithAttributes()
         {
             const string code = @"
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
@@ -65,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        [WorkItem(47889, "https://github.com/dotnet/roslyn/issues/47889")]
+        [Fact, WorkItem(47889, "https://github.com/dotnet/roslyn/issues/47889")]
         public async Task RecordWithCommentsAndAttributes()
         {
             const string code = @"
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task RecordStructWithCommentsAndAttributes()
         {
             const string code = @"
@@ -91,6 +91,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 //     This is a doc comment.
 [Bar, Baz]
 |}{|#0:public record struct $$C|}{|textspan2:
+{
+    void M();
+}|}|#0}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact]
+        public async Task WithDocComments()
+        {
+            const string code = @"
+{|hint:{|textspan:/// <summary>This is a doc comment.</summary>
+|}{|#0:public class $$C|}{|textspan2:
+{
+    void M();
+}|}|#0}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact]
+        public async Task WithMultilineDocComments()
+        {
+            const string code = @"
+{|hint:{|textspan:/// <summary>This is a doc comment.</summary>
+/// <remarks>
+/// Comments are cool
+/// </remarks>
+|}{|#0:public class $$C|}{|textspan2:
 {
     void M();
 }|}|#0}";

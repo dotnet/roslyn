@@ -28,12 +28,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(body As BoundStatement,
                        method As MethodSymbol,
                        stateMachineType As AsyncStateMachine,
+                       stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                        slotAllocatorOpt As VariableSlotAllocator,
                        asyncKind As AsyncMethodKind,
                        compilationState As TypeCompilationState,
                        diagnostics As BindingDiagnosticBag)
 
-            MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+            MyBase.New(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
 
             Me._binder = CreateMethodBinder(method)
             Me._lookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
@@ -71,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
                                                  methodOrdinal As Integer,
+                                                 stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
                                                  diagnostics As BindingDiagnosticBag,
@@ -92,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
 
-            Dim rewriter As New AsyncRewriter(body, method, stateMachineType, slotAllocatorOpt, asyncMethodKind, compilationState, diagnostics)
+            Dim rewriter As New AsyncRewriter(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, asyncMethodKind, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then
@@ -214,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             bodyBuilder.Add(
                 Me.F.Assignment(
                     stateFieldAsLValue,
-                    Me.F.Literal(StateMachineStates.NotStartedStateMachine)))
+                    Me.F.Literal(StateMachineState.NotStartedOrRunningState)))
 
             ' STAT:   localStateMachine.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of typeArgs).Create()
             Dim constructedBuilderField As FieldSymbol = Me._builderField.AsMember(frameType)
@@ -250,19 +252,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub GenerateMoveNext(moveNextMethod As MethodSymbol)
-            Dim rewriter = New AsyncMethodToClassRewriter(method:=Me.Method,
-                                                          F:=Me.F,
-                                                          state:=Me.StateField,
-                                                          builder:=Me._builderField,
-                                                          hoistedVariables:=Me.hoistedVariables,
-                                                          nonReusableLocalProxies:=Me.nonReusableLocalProxies,
-                                                          synthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
-                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
-                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
-                                                          owner:=Me,
-                                                          diagnostics:=Diagnostics)
+            Dim rewriter = New AsyncMethodToClassRewriter(
+                method:=Method,
+                F:=F,
+                state:=StateField,
+                builder:=_builderField,
+                hoistedVariables:=hoistedVariables,
+                nonReusableLocalProxies:=nonReusableLocalProxies,
+                StateDebugInfoBuilder,
+                slotAllocatorOpt:=SlotAllocatorOpt,
+                owner:=Me,
+                diagnostics:=Diagnostics)
 
-            rewriter.GenerateMoveNext(Me.Body, moveNextMethod)
+            rewriter.GenerateMoveNext(Body, moveNextMethod)
         End Sub
 
         Friend Overrides Function RewriteBodyIfNeeded(body As BoundStatement, topMethod As MethodSymbol, currentMethod As MethodSymbol) As BoundStatement

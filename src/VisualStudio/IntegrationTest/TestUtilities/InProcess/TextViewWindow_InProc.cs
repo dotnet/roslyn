@@ -9,7 +9,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -17,9 +19,10 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
-using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -69,11 +72,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             InvokeOnUIThread(cancellationToken =>
             {
                 var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
-                var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
+                var cmdGroup = typeof(VSConstants.VSStd14CmdID).GUID;
                 var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
 
-                const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
-                var cmdID = ECMD_SMARTTASKS;
+                var cmdID = VSConstants.VSStd14CmdID.ShowQuickFixes;
                 object? obj = null;
                 shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
             });
@@ -81,9 +83,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void WaitForLightBulbSession()
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
@@ -257,9 +259,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void InvokeQuickInfo()
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
                 var session = await broker.TriggerQuickInfoAsync(GetActiveTextView());
@@ -269,9 +271,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string GetQuickInfo()
         {
-            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            return JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
@@ -335,9 +337,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string[] GetLightBulbActions()
         {
-            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            return JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
@@ -347,7 +349,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private async Task<IEnumerable<ISuggestedAction>> GetLightBulbActionsAsync(ILightBulbBroker broker, IWpfTextView view)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             if (!broker.IsLightBulbSessionActive(view))
             {
@@ -356,26 +358,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             var activeSession = broker.GetSession(view);
-            if (activeSession == null || !activeSession.IsExpanded)
+            if (activeSession == null)
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
                 throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
             }
 
-            if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
-            {
-                actionSets = Array.Empty<SuggestedActionSet>();
-            }
-
+            var actionSets = await LightBulbHelper.WaitForItemsAsync(broker, view);
             return await SelectActionsAsync(actionSets);
         }
 
         public bool ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
         {
             var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, blockUntilComplete);
-            var task = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            var task = JoinableTaskFactory.RunAsync(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var activeTextView = GetActiveTextView();
                 return await lightBulbAction(activeTextView);
@@ -395,7 +393,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             return async view =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
 
@@ -423,7 +421,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(CancellationToken.None);
-                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value);
+                    var fixAllAction = await GetFixAllSuggestedActionAsync(JoinableTaskFactory, actionSetsForAction!, fixAllScope.Value);
                     if (fixAllAction == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
@@ -432,13 +430,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     action = fixAllAction;
 
                     if (willBlockUntilComplete
-                        && action is FixAllSuggestedAction fixAllSuggestedAction
-                        && fixAllSuggestedAction.CodeAction is FixSomeCodeAction fixSomeCodeAction)
+                        && action is AbstractFixAllSuggestedAction fixAllSuggestedAction
+                        && fixAllSuggestedAction.CodeAction is AbstractFixAllCodeAction fixAllCodeAction)
                     {
                         // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                         // the caller would not be able to interact with the preview changes dialog, and the tests would
                         // either timeout or deadlock.
-                        fixSomeCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
+                        fixAllCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
                     }
 
                     if (string.IsNullOrEmpty(actionName))
@@ -450,15 +448,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     broker.DismissSession(view);
                 }
 
-                action.Invoke(CancellationToken.None);
-                return !(action is SuggestedAction suggestedAction)
-                    || suggestedAction.GetTestAccessor().IsApplied;
+                if (action is not SuggestedAction suggestedAction)
+                    return true;
+
+                broker.DismissSession(view);
+                var threadOperationExecutor = GetComponentModelService<IUIThreadOperationExecutor>();
+                var guardedOperations = GetComponentModelService<IGuardedOperations2>();
+                threadOperationExecutor.Execute(
+                    title: "Execute Suggested Action",
+                    defaultDescription: Accelerator.StripAccelerators(action.DisplayText, '_'),
+                    allowCancellation: true,
+                    showProgress: true,
+                    action: context =>
+                    {
+                        guardedOperations.CallExtensionPoint(
+                            errorSource: suggestedAction,
+                            call: () => suggestedAction.Invoke(context),
+                            exceptionGuardFilter: e => e is not OperationCanceledException);
+                    });
+
+                return true;
             };
         }
 
         private async Task<IEnumerable<ISuggestedAction>> SelectActionsAsync(IEnumerable<SuggestedActionSet> actionSets)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var actions = new List<ISuggestedAction>();
 
@@ -471,9 +486,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         foreach (var action in actionSet.Actions)
                         {
                             actions.Add(action);
-                            var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
-                            var nestedActions = await SelectActionsAsync(nestedActionSets);
-                            actions.AddRange(nestedActions);
+                            if (action.HasActionSets)
+                            {
+                                var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
+                                var nestedActions = await SelectActionsAsync(nestedActionSets!);
+                                actions.AddRange(nestedActions);
+                            }
                         }
                     }
                 }
@@ -482,17 +500,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return actions;
         }
 
-        private static async Task<FixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
+        private static async Task<AbstractFixAllSuggestedAction?> GetFixAllSuggestedActionAsync(JoinableTaskFactory joinableTaskFactory, IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             foreach (var actionSet in actionSets)
             {
                 foreach (var action in actionSet.Actions)
                 {
-                    if (action is FixAllSuggestedAction fixAllSuggestedAction)
+                    if (action is AbstractFixAllSuggestedAction fixAllSuggestedAction)
                     {
-                        var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixSomeCodeAction;
+                        var fixAllCodeAction = fixAllSuggestedAction.CodeAction as AbstractFixAllCodeAction;
                         if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)
                         {
                             return fixAllSuggestedAction;
@@ -502,7 +520,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     if (action.HasActionSets)
                     {
                         var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
-                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope);
+                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(joinableTaskFactory, nestedActionSets!, fixAllScope);
                         if (fixAllCodeAction != null)
                         {
                             return fixAllCodeAction;

@@ -7,10 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
@@ -18,104 +18,234 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks
 {
+    // [GcServer(true)]
     [MemoryDiagnoser]
+    [SimpleJob(launchCount: 1, warmupCount: 0, targetCount: 0, invocationCount: 1, id: "QuickJob")]
     public class NavigateToBenchmarks
     {
-        [Benchmark]
-        public async Task RunNavigateTo()
+        string _solutionPath;
+        MSBuildWorkspace _workspace;
+
+        [GlobalSetup]
+        public void GlobalSetup()
         {
-            try
-            {
-                // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
-                // installations on .NET Core. We use the one with the most recent version.
-                var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
+            RestoreCompilerSolution();
+            SetUpWorkspace();
+        }
 
-                MSBuildLocator.RegisterInstance(msBuildInstance);
+        [IterationSetup]
+        public void IterationSetup() => LoadSolution();
 
-                var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-                var solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Roslyn.sln");
+        private void RestoreCompilerSolution()
+        {
+            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
+            var restoreOperation = Process.Start("dotnet", $"restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true {_solutionPath}");
+            restoreOperation.WaitForExit();
+            if (restoreOperation.ExitCode != 0)
+                throw new ArgumentException($"Unable to restore {_solutionPath}");
+        }
 
-                if (!File.Exists(solutionPath))
-                    throw new ArgumentException("Couldn't find Roslyn.sln");
+        private static void SetUpWorkspace()
+        {
+            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
+            // installations on .NET Core. We use the one with the most recent version.
+            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
 
-                Console.Write("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
+            MSBuildLocator.RegisterInstance(msBuildInstance);
+        }
 
-                var assemblies = MSBuildMefHostServices.DefaultAssemblies
-                    .Add(typeof(AnalyzerRunnerHelper).Assembly)
-                    .Add(typeof(FindReferencesBenchmarks).Assembly);
-                var services = MefHostServices.Create(assemblies);
+        private void LoadSolution()
+        {
+            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
 
-                var workspace = MSBuildWorkspace.Create(new Dictionary<string, string>
+            if (!File.Exists(_solutionPath))
+                throw new ArgumentException("Couldn't find Roslyn.sln");
+
+            Console.WriteLine("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
+            var assemblies = MSBuildMefHostServices.DefaultAssemblies
+                .Add(typeof(AnalyzerRunnerHelper).Assembly)
+                .Add(typeof(FindReferencesBenchmarks).Assembly);
+            var services = MefHostServices.Create(assemblies);
+
+            _workspace = MSBuildWorkspace.Create(new Dictionary<string, string>
                 {
                     // Use the latest language version to force the full set of available analyzers to run on the project.
                     { "LangVersion", "9.0" },
                 }, services);
 
-                if (workspace == null)
-                    throw new ArgumentException("Couldn't create workspace");
+            if (_workspace == null)
+                throw new ArgumentException("Couldn't create workspace");
 
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)
-                    .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)));
+            Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
-                Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
+            var start = DateTime.Now;
 
-                var start = DateTime.Now;
-                var solution = workspace.OpenSolutionAsync(solutionPath, progress: null, CancellationToken.None).Result;
-                Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
+            var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
+            Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
+            var docCount = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Count();
+            Console.WriteLine("Doc count: " + docCount);
 
-                // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
-                // perform, including seeing how big the initial string table is.
-                var storageService = workspace.Services.GetService<IPersistentStorageService>();
-                if (storageService == null)
-                    throw new ArgumentException("Couldn't get storage service");
+            // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
+            // perform, including seeing how big the initial string table is.
+            //var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
+            //if (storageService == null)
+            //    throw new ArgumentException("Couldn't get storage service");
+        }
 
-                using (var storage = await storageService.GetStorageAsync(workspace.CurrentSolution, CancellationToken.None))
-                {
-                    Console.WriteLine();
-                }
+        [IterationCleanup]
+        public void IterationCleanup()
+        {
+            _workspace.Dispose();
+            _workspace = null;
+        }
 
-                Console.WriteLine("Starting navigate to");
-
-                start = DateTime.Now;
-                // Search each project with an independent threadpool task.
-                var searchTasks = solution.Projects.Select(
-                    p => Task.Run(() => SearchAsync(p, priorityDocuments: ImmutableArray<Document>.Empty), CancellationToken.None)).ToArray();
-
-                var result = await Task.WhenAll(searchTasks).ConfigureAwait(false);
-                var sum = result.Sum();
-
-                start = DateTime.Now;
-                Console.WriteLine("Num results: " + (DateTime.Now - start));
-            }
-            catch (ReflectionTypeLoadException ex)
+        [Benchmark]
+        public async Task RunSerialParsing()
+        {
+            Console.WriteLine("start profiling now");
+            Thread.Sleep(10000);
+            Console.WriteLine("Starting serial parsing.");
+            var start = DateTime.Now;
+            var roots = new List<SyntaxNode>();
+            foreach (var project in _workspace.CurrentSolution.Projects)
             {
-                foreach (var ex2 in ex.LoaderExceptions)
-                    Console.WriteLine(ex2);
+                foreach (var document in project.Documents)
+                {
+                    // await WalkTree(document);
+                    roots.Add(await document.GetSyntaxRootAsync());
+                }
             }
+
+            Console.WriteLine("Serial: " + (DateTime.Now - start));
+            Console.WriteLine($"{nameof(DocumentState.TestAccessor.TryReuseSyntaxTree)} - {DocumentState.TestAccessor.TryReuseSyntaxTree}");
+            Console.WriteLine($"{nameof(DocumentState.TestAccessor.CouldReuseBecauseOfEqualPPNames)} - {DocumentState.TestAccessor.CouldReuseBecauseOfEqualPPNames}");
+            Console.WriteLine($"{nameof(DocumentState.TestAccessor.CouldReuseBecauseOfNoDirectives)} - {DocumentState.TestAccessor.CouldReuseBecauseOfNoDirectives}");
+            Console.WriteLine($"{nameof(DocumentState.TestAccessor.CouldReuseBecauseOfNoPPDirectives)} - {DocumentState.TestAccessor.CouldReuseBecauseOfNoPPDirectives}");
+            Console.WriteLine($"{nameof(DocumentState.TestAccessor.CouldNotReuse)} - {DocumentState.TestAccessor.CouldNotReuse}");
+
+            for (var i = 0; i < 10; i++)
+            {
+                GC.Collect(0, GCCollectionMode.Forced, blocking: true);
+                GC.Collect(1, GCCollectionMode.Forced, blocking: true);
+                GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            }
+
+            Console.ReadLine();
+            GC.KeepAlive(roots);
+        }
+
+        // [Benchmark]
+        public async Task RunSerialIndexing()
+        {
+            Console.WriteLine("start profiling now");
+            // Thread.Sleep(10000);
+            Console.WriteLine("Starting serial indexing");
+            var start = DateTime.Now;
+            foreach (var project in _workspace.CurrentSolution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    // await WalkTree(document);
+                    await SyntaxTreeIndex.GetIndexAsync(document, default).ConfigureAwait(false);
+                }
+            }
+            Console.WriteLine("Serial: " + (DateTime.Now - start));
+            Console.ReadLine();
+        }
+
+        // [Benchmark]
+        public async Task RunProjectParallelIndexing()
+        {
+            Console.WriteLine("start profiling now");
+            // Thread.Sleep(10000);
+            Console.WriteLine("Starting parallel indexing");
+            var start = DateTime.Now;
+            foreach (var project in _workspace.CurrentSolution.Projects)
+            {
+                var tasks = project.Documents.Select(d => Task.Run(
+                    async () =>
+                    {
+                        // await WalkTree(d);
+                        await TopLevelSyntaxTreeIndex.GetIndexAsync(d, default);
+                    })).ToList();
+                await Task.WhenAll(tasks);
+            }
+            Console.WriteLine("Project parallel: " + (DateTime.Now - start));
+            Console.ReadLine();
+        }
+
+        // [Benchmark]
+        public async Task RunFullParallelIndexing()
+        {
+            Console.WriteLine("Attach now");
+            Thread.Sleep(1000);
+            Console.WriteLine("Starting indexing");
+
+            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
+            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
+            {
+                Console.WriteLine("Successfully got persistent storage instance");
+                var start = DateTime.Now;
+                var indexTime = TimeSpan.Zero;
+                var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
+                    async () =>
+                    {
+                        var tree = await d.GetSyntaxRootAsync();
+                        var stopwatch = SharedStopwatch.StartNew();
+                        await TopLevelSyntaxTreeIndex.GetIndexAsync(d, default);
+                        await SyntaxTreeIndex.GetIndexAsync(d, default);
+                        indexTime += stopwatch.Elapsed;
+                    })).ToList();
+                await Task.WhenAll(tasks);
+                Console.WriteLine("Indexing time    : " + indexTime);
+                Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
+            }
+            Console.WriteLine("DB flushed");
+            Console.ReadLine();
+        }
+
+        // [Benchmark]
+        public async Task RunNavigateTo()
+        {
+            Console.WriteLine("Starting navigate to");
+
+            var start = DateTime.Now;
+            // Search each project with an independent threadpool task.
+            var searchTasks = _workspace.CurrentSolution.Projects.Select(
+                p => Task.Run(() => SearchAsync(p, priorityDocuments: ImmutableArray<Document>.Empty), CancellationToken.None)).ToArray();
+
+            var result = await Task.WhenAll(searchTasks).ConfigureAwait(false);
+            var sum = result.Sum();
+
+            Console.WriteLine("Num results: " + sum);
+            Console.WriteLine("Time to search: " + (DateTime.Now - start));
         }
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
-            var service = project.LanguageServices.GetService<INavigateToSearchService>();
+            var service = project.Services.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectAsync(
-                project, priorityDocuments, "Document", service.KindsProvided,
+                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
                 r =>
                 {
                     lock (results)
                         results.Add(r);
 
                     return Task.CompletedTask;
-                }, isFullyLoaded: true, CancellationToken.None);
+                }, CancellationToken.None);
 
             return results.Count;
         }

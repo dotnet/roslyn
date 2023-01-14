@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
@@ -72,6 +73,7 @@ dotnet_style_prefer_auto_properties = true
 dotnet_style_prefer_compound_assignment = true
 dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 dotnet_style_prefer_inferred_anonymous_type_member_names = true
 dotnet_style_prefer_inferred_tuple_names = true
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true
@@ -111,6 +113,7 @@ csharp_style_expression_bodied_properties = true
 # Pattern matching preferences
 csharp_style_pattern_matching_over_as_with_null_check = true
 csharp_style_pattern_matching_over_is_with_cast_check = true
+csharp_style_prefer_extended_property_pattern = true
 csharp_style_prefer_not_pattern = true
 csharp_style_prefer_pattern_matching = true
 csharp_style_prefer_switch_expression = true
@@ -120,22 +123,27 @@ csharp_style_conditional_delegate_call = true
 
 # Modifier preferences
 csharp_prefer_static_local_function = true
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
+csharp_style_prefer_readonly_struct = true
 
 # Code-block preferences
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
 csharp_style_namespace_declarations = block_scoped
+csharp_style_prefer_method_group_conversion = true
+csharp_style_prefer_top_level_statements = true
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true
 csharp_style_deconstructed_variable_declaration = true
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 csharp_style_inlined_variable_declaration = true
-csharp_style_pattern_local_over_anonymous_function = true
 csharp_style_prefer_index_operator = true
+csharp_style_prefer_local_over_anonymous_function = true
 csharp_style_prefer_null_check_over_type_check = true
 csharp_style_prefer_range_operator = true
+csharp_style_prefer_tuple_swap = true
+csharp_style_prefer_utf8_string_literals = true
 csharp_style_throw_expression = true
 csharp_style_unused_value_assignment_preference = discard_variable
 csharp_style_unused_value_expression_statement_preference = discard_variable
@@ -145,6 +153,8 @@ csharp_using_directive_placement = outside_namespace
 
 # New line preferences
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true
 csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
 csharp_style_allow_embedded_statements_on_same_line_experimental = true
 
@@ -238,7 +248,8 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, workspace.Options, LanguageNames.CSharp)
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
@@ -246,8 +257,9 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorToggleOptions()
             Using workspace = TestWorkspace.CreateCSharp("")
-                Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey2(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.CSharp),
-                                                                         New CodeStyleOption2(Of Boolean)(False, NotificationOption2.[Error]))
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                options.SetOption(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.CSharp, New CodeStyleOption2(Of Boolean)(False, NotificationOption2.[Error]))
+
                 Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
@@ -303,6 +315,7 @@ dotnet_style_prefer_auto_properties = true
 dotnet_style_prefer_compound_assignment = true
 dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 dotnet_style_prefer_inferred_anonymous_type_member_names = true
 dotnet_style_prefer_inferred_tuple_names = true
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true
@@ -342,6 +355,7 @@ csharp_style_expression_bodied_properties = true
 # Pattern matching preferences
 csharp_style_pattern_matching_over_as_with_null_check = true
 csharp_style_pattern_matching_over_is_with_cast_check = true
+csharp_style_prefer_extended_property_pattern = true
 csharp_style_prefer_not_pattern = true
 csharp_style_prefer_pattern_matching = true
 csharp_style_prefer_switch_expression = true
@@ -351,22 +365,27 @@ csharp_style_conditional_delegate_call = true
 
 # Modifier preferences
 csharp_prefer_static_local_function = true
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
+csharp_style_prefer_readonly_struct = true
 
 # Code-block preferences
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
 csharp_style_namespace_declarations = block_scoped
+csharp_style_prefer_method_group_conversion = true
+csharp_style_prefer_top_level_statements = true
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true
 csharp_style_deconstructed_variable_declaration = true
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 csharp_style_inlined_variable_declaration = true
-csharp_style_pattern_local_over_anonymous_function = true
 csharp_style_prefer_index_operator = true
+csharp_style_prefer_local_over_anonymous_function = true
 csharp_style_prefer_null_check_over_type_check = true
 csharp_style_prefer_range_operator = true
+csharp_style_prefer_tuple_swap = true
+csharp_style_prefer_utf8_string_literals = true
 csharp_style_throw_expression = true
 csharp_style_unused_value_assignment_preference = discard_variable
 csharp_style_unused_value_expression_statement_preference = discard_variable
@@ -376,6 +395,8 @@ csharp_using_directive_placement = outside_namespace
 
 # New line preferences
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true
 csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
 csharp_style_allow_embedded_statements_on_same_line_experimental = true
 
@@ -469,7 +490,7 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, changedOptions, LanguageNames.CSharp)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub

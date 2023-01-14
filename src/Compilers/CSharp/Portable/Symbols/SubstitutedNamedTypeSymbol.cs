@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal abstract override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes);
@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
+        internal sealed override bool HasDeclaredRequiredMembers => OriginalDefinition.HasDeclaredRequiredMembers;
+
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
             var builder = ArrayBuilder<Symbol>.GetInstance();
@@ -227,13 +229,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            builder = AddOrWrapTupleMembersIfNecessary(builder);
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private ArrayBuilder<Symbol> AddOrWrapTupleMembersIfNecessary(ArrayBuilder<Symbol> builder)
+        {
             if (IsTupleType)
             {
-                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
+                var existingMembers = builder.ToImmutableAndFree();
+                var replacedFields = new HashSet<Symbol>(ReferenceEqualityComparer.Instance);
+                builder = MakeSynthesizedTupleMembers(existingMembers, replacedFields);
+                foreach (var existingMember in existingMembers)
+                {
+                    // Note: fields for tuple elements have a tuple field symbol instead of a substituted field symbol
+                    if (!replacedFields.Contains(existingMember))
+                    {
+                        builder.Add(existingMember);
+                    }
+                }
                 Debug.Assert(builder is object);
             }
 
-            return builder.ToImmutableAndFree();
+            return builder;
         }
 
         internal sealed override ImmutableArray<Symbol> GetMembersUnordered()
@@ -258,11 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsTupleType)
-            {
-                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
-                Debug.Assert(builder is object);
-            }
+            builder = AddOrWrapTupleMembersIfNecessary(builder);
 
             return builder.ToImmutableAndFree();
         }
@@ -337,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
@@ -395,25 +410,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override IEnumerable<EventSymbol> GetEventsToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override IEnumerable<PropertySymbol> GetPropertiesToEmit()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 

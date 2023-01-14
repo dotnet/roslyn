@@ -45,6 +45,7 @@
               <xs:attribute name="Name" type="xs:string" use="required" />
               <xs:attribute name="Base" type="xs:string" use="required" />
               <xs:attribute name="SkipInNullabilityRewriter" type="xs:boolean" use="optional" />
+              <xs:attribute name="HasValidate" type="xs:boolean" use="optional" />
             </xs:complexType>
           </xs:element>
         </xs:choice>

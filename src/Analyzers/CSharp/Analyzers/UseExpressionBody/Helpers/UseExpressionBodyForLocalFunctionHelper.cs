@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,12 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private UseExpressionBodyForLocalFunctionHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForLocalFunctionsDiagnosticId,
                    EnforceOnBuildValues.UseExpressionBodyForLocalFunctions,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_local_functions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_local_functions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_local_function), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_local_function), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,
                    ImmutableArray.Create(SyntaxKind.LocalFunctionStatement))
         {
         }
+
+        public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
+            => options.PreferExpressionBodiedLocalFunctions;
 
         protected override BlockSyntax GetBody(LocalFunctionStatementSyntax statement)
             => statement.Body;

@@ -4,55 +4,103 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport>
+    [Method(VSInternalMethods.DocumentPullDiagnosticName)]
+    internal partial class DocumentPullDiagnosticHandler : AbstractDocumentPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[], VSInternalDiagnosticReport[]>
     {
-        private readonly IDiagnosticAnalyzerService _analyzerService;
-
-        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
-
         public DocumentPullDiagnosticHandler(
-            IDiagnosticService diagnosticService,
-            IDiagnosticAnalyzerService analyzerService)
-            : base(diagnosticService)
+            IDiagnosticAnalyzerService analyzerService,
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IGlobalOptionService globalOptions)
+            : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
         {
-            _analyzerService = analyzerService;
         }
+
+        protected override string? GetDiagnosticCategory(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
 
-        protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new VSInternalDiagnosticReport
+        protected override VSInternalDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
+            => new[]
             {
-                Diagnostics = diagnostics,
-                ResultId = resultId,
-                Identifier = DocumentDiagnosticIdentifier,
-                // Mark these diagnostics as superseding any diagnostics for the same document from the
-                // WorkspacePullDiagnosticHandler. We are always getting completely accurate and up to date diagnostic
-                // values for a particular file, so our results should always be preferred over the workspace-pull
-                // values which are cached and may be out of date.
-                Supersedes = WorkspaceDiagnosticIdentifier,
+                new VSInternalDiagnosticReport
+                {
+                    Diagnostics = diagnostics,
+                    ResultId = resultId,
+                    Identifier = DocumentDiagnosticIdentifier,
+                    // Mark these diagnostics as superseding any diagnostics for the same document from the
+                    // WorkspacePullDiagnosticHandler. We are always getting completely accurate and up to date diagnostic
+                    // values for a particular file, so our results should always be preferred over the workspace-pull
+                    // values which are cached and may be out of date.
+                    Supersedes = WorkspaceDiagnosticIdentifier,
+                }
             };
 
-        protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
-            => new[] { diagnosticsParams };
+        protected override VSInternalDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
+            => CreateReport(identifier, diagnostics: null, resultId: null);
 
-        protected override IProgress<VSInternalDiagnosticReport[]>? GetProgress(VSInternalDocumentDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PartialResultToken;
+        protected override VSInternalDiagnosticReport[] CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+            => CreateReport(identifier, diagnostics: null, resultId);
+
+        protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+        {
+            if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
+            {
+                return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
+            }
+
+            // The client didn't provide us with a previous result to look for, so we can't lookup anything.
+            return null;
+        }
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
             => ConvertTags(diagnosticData, potentialDuplicate: false);
 
-        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+            VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
+        {
+            var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
+
+            if (category == PullDiagnosticCategories.Task)
+                return new(GetDiagnosticSources(diagnosticKind: default, taskList: true, context, GlobalOptions));
+
+            var diagnosticKind = category switch
+            {
+                PullDiagnosticCategories.DocumentCompilerSyntax => DiagnosticKind.CompilerSyntax,
+                PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
+                PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSemantic,
+                PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
+                // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
+                null => DiagnosticKind.All,
+                // if it's a category we don't recognize, return nothing.
+                _ => (DiagnosticKind?)null,
+            };
+
+            if (diagnosticKind is null)
+                return new(ImmutableArray<IDiagnosticSource>.Empty);
+
+            return new(GetDiagnosticSources(diagnosticKind.Value, taskList: false, context, GlobalOptions));
+        }
+
+        protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
+        {
+            return progress.GetFlattenedValues();
+        }
+
+        internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(
+            DiagnosticKind diagnosticKind, bool taskList, RequestContext context, IGlobalOptionService globalOptions)
         {
             // For the single document case, that is the only doc we want to process.
             //
@@ -62,29 +110,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //
             // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
             // handler treats those as separate worlds that they are responsible for.
-            if (context.Document == null)
+            var document = context.Document;
+            if (document is null)
             {
                 context.TraceInformation("Ignoring diagnostics request because no document was provided");
-                return ImmutableArray<Document>.Empty;
+                return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            if (!context.IsTracking(context.Document.GetURI()))
+            if (!context.IsTracking(document.GetURI()))
             {
-                context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
-                return ImmutableArray<Document>.Empty;
+                context.TraceWarning($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
+                return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            return ImmutableArray.Create(context.Document);
-        }
-
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
-        {
-            // For open documents, directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
-            // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
-            // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
-            // and do not need to be adjusted.
-            return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
+            return taskList
+                ? ImmutableArray.Create<IDiagnosticSource>(new TaskListDiagnosticSource(document, globalOptions))
+                : ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, document));
         }
     }
 }

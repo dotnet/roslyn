@@ -8,9 +8,9 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 {
     [ExportLanguageServiceFactory(typeof(ISyntaxKindsService), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxKindsServiceFactory : ILanguageServiceFactory

@@ -67,14 +67,29 @@
         <target state="translated">ブロックの直後にステートメントを許可する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="translated">常時</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">わかりやすくするために常に</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_use_default_symbol_servers_for_navigation">
+        <source>Always use default symbol servers for navigation</source>
+        <target state="translated">ナビゲーションに常に既定のシンボル サーバーを使用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">ソース生成ファイルの分析</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
-        <target state="new">Analyzer Defaults</target>
+        <target state="translated">アナライザーの既定値</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzers">
@@ -102,6 +117,11 @@
         <target state="translated">アセンブリ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="translated">フォーカス時に スタック トレース エクスプローラーを自動的に開く</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">値を暗黙的に無視する式ステートメントを指定しないでください</target>
@@ -122,9 +142,9 @@
         <target state="translated">戻る</target>
         <note />
       </trans-unit>
-      <trans-unit id="Background_analysis_scope_colon">
-        <source>Background analysis scope:</source>
-        <target state="translated">バックグラウンドの分析スコープ:</target>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="translated">行の先頭</target>
         <note />
       </trans-unit>
       <trans-unit id="Bitness32">
@@ -149,12 +169,17 @@
       </trans-unit>
       <trans-unit id="Calculating">
         <source>Calculating...</source>
-        <target state="new">Calculating...</target>
+        <target state="translated">計算しています...</target>
         <note>Used in UI to represent progress in the context of loading items. </note>
       </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">依存を計算しています...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="translated">呼び出し階層</target>
         <note />
       </trans-unit>
       <trans-unit id="Call_site_value">
@@ -187,6 +212,16 @@
         <target state="translated">未使用の参照に対して実行する操作を選択します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Clear">
+        <source>Clear</source>
+        <target state="translated">クリア</target>
+        <note>Clear content action</note>
+      </trans-unit>
+      <trans-unit id="Close_tab">
+        <source>Close Tab</source>
+        <target state="translated">タブを閉じる</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Style">
         <source>Code Style</source>
         <target state="translated">コード スタイル</target>
@@ -212,9 +247,29 @@
         <target state="translated">コード分析が、ソリューションでの完了前に終了しました。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_signature_files_on_open">
+        <source>Collapse metadata signature files to definitions on file open</source>
+        <target state="translated">ファイルを開くときにメタデータ署名ファイルを定義に折りたたむ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="translated">ファイルを開くときに #regions を折りたたむ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
+        <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
+        <target state="translated">ファイルを開くときに、ソース リンク、埋め込み、および逆コンパイルされたソースの定義を折りたたむ</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">色のヒント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="translated">JSON 文字列の色付け</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -224,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
         <source>Combine inheritance margin with indicator margin</source>
-        <target state="new">Combine inheritance margin with indicator margin</target>
+        <target state="translated">継承の余白とインジケーターの余白を組み合わせる</target>
         <note />
       </trans-unit>
       <trans-unit id="Comments">
@@ -234,7 +289,7 @@
       </trans-unit>
       <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
         <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
+        <target state="translated">クイック アクションを非同期で計算する (試験的、再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -259,22 +314,27 @@
       </trans-unit>
       <trans-unit id="Default_Current_Document">
         <source>Default (Current Document)</source>
-        <target state="new">Default (Current Document)</target>
+        <target state="translated">既定値 (現在のドキュメント)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Entire_Solution">
         <source>Default (Entire Solution)</source>
-        <target state="new">Default (Entire Solution)</target>
+        <target state="translated">既定値 (ソリューション全体)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="translated">既定 (なし)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
         <source>Default (Open Documents)</source>
-        <target state="new">Default (Open Documents)</target>
+        <target state="translated">既定値 (ドキュメントを開く)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
-        <target state="new">Derived types</target>
+        <target state="translated">派生型</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -287,6 +347,11 @@
         <target state="translated">Alt+F1 を押しながらすべてのヒントを表示する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="translated">診断をインラインで表示する (試験的)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
         <target state="translated">インライン パラメーター名のヒントを表示する(_L)</target>
@@ -295,6 +360,41 @@
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
         <target state="translated">インライン型のヒントを表示する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline">
+        <source>Document Outline</source>
+        <target state="translated">ドキュメント アウトライン</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Collapse_All">
+        <source>Collapse All</source>
+        <target state="translated">すべて折りたたむ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Expand_All">
+        <source>Expand All</source>
+        <target state="translated">すべて展開</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Search">
+        <source>Search Document Outline</source>
+        <target state="translated">ドキュメント アウトラインの検索</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Name">
+        <source>Sort By Name</source>
+        <target state="translated">名前で並べ替え</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Order">
+        <source>Sort By Order</source>
+        <target state="translated">順番に並べ替え</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Type">
+        <source>Sort By Type</source>
+        <target state="translated">種類で並べ替え</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -337,6 +437,11 @@
         <target state="translated">診断のファイル ログを有効にする (' %Temp%/Roslyn ' フォルダーにログインしています)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
+        <source>Enable navigation to Source Link and Embedded sources</source>
+        <target state="translated">Source Link および埋め込みソースに移動できるようにする</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">'pull' 診断を有効にする (試験段階、再起動が必要)</target>
@@ -345,6 +450,11 @@
       <trans-unit id="Enabled">
         <source>Enabled</source>
         <target state="translated">有効</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="translated">行の末尾</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -362,6 +472,11 @@
         <target state="translated">ソリューション全体</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_solution_and_external_sources">
+        <source>Entire Solution and External Sources</source>
+        <target state="translated">ソリューションと外部ソース全体</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">エラー</target>
@@ -377,14 +492,49 @@
         <target state="translated">評価中 ({0} 個のタスクがキューにあります)</target>
         <note />
       </trans-unit>
+      <trans-unit id="External_sources">
+        <source>External Sources</source>
+        <target state="translated">外部ソース</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_Base_Class">
         <source>Extract Base Class</source>
         <target state="translated">基底クラスの抽出</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Base_Record">
+        <source>Extract Base Record</source>
+        <target state="translated">基底 Record の抽出</target>
+        <note>{Locked="Record"} "Record" is a language construct for C# and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">終了</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
+        <source>Fix text pasted into string literals (experimental)</source>
+        <target state="translated">文字列リテラルに貼り付けられたテキストを修正する (試験段階)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors">
+        <source>Fix analyzer warnings and errors</source>
+        <target state="translated">アナライザーの警告とエラーを修正</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix all warnings and errors set in EditorConfig</source>
+        <target state="translated">EditorConfig で設定されたすべての警告とエラーを修正</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix analyzer warnings and errors set in EditorConfig</source>
+        <target state="translated">EditorConfig で設定されたアナライザーの警告とエラーを修正</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="translated">非インターフェイスメンバーの場合</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
@@ -395,6 +545,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">設定から .editorconfig ファイルを生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="translated">定義へ移動</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -409,7 +564,7 @@
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
         <source>Implemented interfaces</source>
-        <target state="new">Implemented interfaces</target>
+        <target state="translated">実装されたインターフェイス</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_members">
@@ -424,12 +579,17 @@
       </trans-unit>
       <trans-unit id="Implementing_types">
         <source>Implementing types</source>
-        <target state="new">Implementing types</target>
+        <target state="translated">実装する型</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">その他の演算子内で</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_global_imports">
+        <source>Include global imports</source>
+        <target state="translated">グローバル インポートを含める</target>
         <note />
       </trans-unit>
       <trans-unit id="Index">
@@ -454,17 +614,22 @@
       </trans-unit>
       <trans-unit id="Inheritance_Margin">
         <source>Inheritance Margin</source>
-        <target state="new">Inheritance Margin</target>
+        <target state="translated">継承の余白</target>
         <note />
       </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
-        <target state="new">Inherited interfaces</target>
+        <target state="translated">継承されたインターフェイス</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="translated">インライン診断 (試験的)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">インラインのヒント</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -487,9 +652,19 @@
         <target state="translated">未定義の TODO 変数の導入</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="translated">型名が無効です</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">項目の送信元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="translated">JSON 文字列</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -506,11 +681,6 @@
         <source>Kind</source>
         <target state="translated">種類</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Language_client_initialization_failed">
-        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
-        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
-        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -539,7 +709,7 @@
       </trans-unit>
       <trans-unit id="Location">
         <source>Location</source>
-        <target state="new">Location</target>
+        <target state="translated">場所</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -560,6 +730,11 @@
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
         <target state="translated">修飾子設定:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="translated">静的メンバーを別の型に移動する:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -599,12 +774,12 @@
       </trans-unit>
       <trans-unit id="Namespace_declarations">
         <source>Namespace declarations</source>
-        <target state="new">Namespace declarations</target>
+        <target state="translated">名前空間の宣言</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespaces_have_been_updated">
         <source>Namespaces have been updated.</source>
-        <target state="new">Namespaces have been updated.</target>
+        <target state="translated">名前空間が更新されました。</target>
         <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -752,9 +927,29 @@
         <target state="translated">名前付けルール</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="translated">非同期に移動する (試験段階)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">'{0}' に移動する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="translated">外部ソースに移動する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="translated">移動中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">行わない</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -779,7 +974,7 @@
       </trans-unit>
       <trans-unit id="No_namespaces_needed_updating">
         <source>No namespaces needed updating.</source>
-        <target state="new">No namespaces needed updating.</target>
+        <target state="translated">更新する必要のある名前空間はありません。</target>
         <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="No_unused_references_were_found">
@@ -797,6 +992,11 @@
         <target state="translated">なし</target>
         <note />
       </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="translated">既定値の場合は省略する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
         <target state="translated">省略 (省略可能なパラメーターの場合のみ)</target>
@@ -805,6 +1005,11 @@
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">開かれているドキュメント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="translated">折り返し時の演算子の配置</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -834,12 +1039,12 @@
       </trans-unit>
       <trans-unit id="Package_install_canceled">
         <source>Package install canceled</source>
-        <target state="new">Package install canceled</target>
+        <target state="translated">パッケージのインストールが取り消されました</target>
         <note />
       </trans-unit>
       <trans-unit id="Package_uninstall_canceled">
         <source>Package uninstall canceled</source>
-        <target state="new">Package uninstall canceled</target>
+        <target state="translated">パッケージのアンインストールが取り消されました</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -887,6 +1092,16 @@
         <target state="translated">かっこの優先順位:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">貼り付け</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_valid_stack_trace">
+        <source>Paste a stack trace to view and navigate it's values.</source>
+        <target state="translated">有効なスタック トレースを貼り付けて、値を表示して移動します。</target>
+        <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">一時停止中 ({0} 個のタスクがキューにあります)</target>
@@ -902,6 +1117,11 @@
         <target state="translated">'GetHashCode' の 'System.HashCode' を優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_Utf8_string_literals">
+        <source>Prefer UTF-8 string literals</source>
+        <target state="translated">UTF-8 文字列リテラルを優先する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">複合代入を優先</target>
@@ -912,9 +1132,24 @@
         <target state="translated">インデックス演算子を優先</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="translated">メソッド グループ変換を優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="translated">名前空間とフォルダー一致構造を優先する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">範囲演算子を優先</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct">
+        <source>Prefer read-only struct</source>
+        <target state="translated">読み取り専用の構造体を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
@@ -932,9 +1167,24 @@
         <target state="translated">簡素化されたブール式を優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="translated">シンプルな補間を優先する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">静的ローカル関数を優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_top_level_statements">
+        <source>Prefer top-level statements</source>
+        <target state="translated">最上位レベルのステートメントを優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="translated">タプル スワップを優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -949,7 +1199,7 @@
       </trans-unit>
       <trans-unit id="Quick_Actions">
         <source>Quick Actions</source>
-        <target state="new">Quick Actions</target>
+        <target state="translated">クイック アクション</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -977,9 +1227,29 @@
         <target state="translated">未使用の参照を削除する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">不要な using の削除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="translated">名前の変更</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">{0} の名前を {1} に変更</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_asynchronously_experimental">
+        <source>Rename asynchronously (experimental)</source>
+        <target state="translated">非同期的な名前の変更 (試験段階)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="translated">無効な JSON 文字列を報告する</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -990,6 +1260,11 @@
       <trans-unit id="Repository">
         <source>Repository</source>
         <target state="translated">リポジトリ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="translated">アクセシビリティ修飾子が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="Require_colon">
@@ -1022,9 +1297,14 @@
         <target state="translated">{0} で Code Analysis を実行</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_background_code_analysis_for_colon">
+        <source>Run background code analysis for:</source>
+        <target state="translated">バックグラウンド コード分析の対象:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
         <source>Run code analysis in separate process (requires restart)</source>
-        <target state="new">Run code analysis in separate process (requires restart)</target>
+        <target state="translated">別のプロセスでコード分析を実行する (再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1054,7 +1334,7 @@
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
-        <target state="new">Select an appropriate symbol to start value tracking</target>
+        <target state="translated">値の追跡を開始するための適切なシンボルを選択します</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
@@ -1097,6 +1377,21 @@
         <target state="translated">ソリューション エクスプローラーで [未使用の参照を削除する] コマンドを表示する (試験段階)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_UI_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="translated">右上にダッシュボードとして UI を表示する</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_UI_inline">
+        <source>Show UI Inline</source>
+        <target state="translated">UI インラインの表示</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="translated">次のコンパイラ エラーと警告を表示する:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">入力候補一覧の表示</target>
@@ -1114,7 +1409,7 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_indexers">
         <source>Show hints for indexers</source>
-        <target state="new">Show hints for indexers</target>
+        <target state="translated">インデクサーのヒントを表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
@@ -1139,7 +1434,7 @@
       </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
         <source>Skip analyzers for implicitly triggered builds</source>
-        <target state="new">Skip analyzers for implicitly triggered builds</target>
+        <target state="translated">暗黙的にトリガーされたビルドに対してアナライザーをスキップします</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -1147,9 +1442,34 @@
         <target state="translated">一部の配色パターンの色は、[環境] &gt; [フォントおよび色] オプション ページで行われた変更によって上書きされます。[フォントおよび色] オプション ページで [既定値を使用] を選択すると、すべてのカスタマイズが元に戻ります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">using を並べ替える</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="translated">スタック トレース</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace_Explorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">スタック トレース エクスプローラー</target>
+        <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
+      </trans-unit>
+      <trans-unit id="Stack_trace_0">
+        <source>Stack Trace {0}</source>
+        <target state="translated">スタック トレース {0}</target>
+        <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">提案事項</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="translated">引数がパラメーター名と一致するとき、ヒントを抑制する</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1169,7 +1489,7 @@
       </trans-unit>
       <trans-unit id="Sync_Namespaces">
         <source>Sync Namespaces</source>
-        <target state="new">Sync Namespaces</target>
+        <target state="translated">名前空間の同期</target>
         <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
@@ -1209,7 +1529,7 @@
       </trans-unit>
       <trans-unit id="This_rule_is_not_configurable">
         <source>This rule is not configurable</source>
-        <target state="new">This rule is not configurable</target>
+        <target state="translated">このルールは構成できません</target>
         <note />
       </trans-unit>
       <trans-unit id="Title">
@@ -1239,7 +1559,7 @@
       </trans-unit>
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>
-        <target state="new">Underline reassigned variables</target>
+        <target state="translated">再割り当てされる変数に下線を引く</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -1254,7 +1574,7 @@
       </trans-unit>
       <trans-unit id="Updating_namspaces">
         <source>Updating namespaces...</source>
-        <target state="new">Updating namespaces...</target>
+        <target state="translated">名前空間を更新しています...</target>
         <note>"namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Updating_project_references">
@@ -1289,7 +1609,7 @@
       </trans-unit>
       <trans-unit id="Value_Tracking">
         <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
+        <target state="translated">値の追跡</target>
         <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
@@ -1324,7 +1644,7 @@
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">
         <source>Visual Studio Settings</source>
-        <target state="new">Visual Studio Settings</target>
+        <target state="translated">Visual Studio の設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
@@ -1352,9 +1672,14 @@
         <target state="translated">このワークスペースでは、Visual Basic コンパイル オプションの更新がサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Where_should_the_rename_UI_be_shown">
+        <source>Where should the rename UI be shown?</source>
+        <target state="translated">名前変更 UI はどこに表示されますか?</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>
-        <target state="new">Whitespace</target>
+        <target state="translated">空白</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
@@ -1472,6 +1797,11 @@
         <target state="translated">有効な値ではありません</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_1">
+        <source>{0} ({1})</source>
+        <target state="translated">{0} ({1})</target>
+        <note>Used to show a symbol name, followed by the project name it came from</note>
+      </trans-unit>
       <trans-unit id="_0_is_inherited">
         <source>'{0}' is inherited</source>
         <target state="translated">'{0}' が継承済み</target>
@@ -1490,6 +1820,11 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">'{0}' はパブリックに変更されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="translated">コード行の末尾で</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -1550,11 +1885,6 @@
       <trans-unit id="Base_Types">
         <source>Base Types</source>
         <target state="translated">基本型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">その他のファイル</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
@@ -2518,6 +2848,11 @@ Additional information: {1}</source>
         <target state="translated">プロパティ、イベント、メソッドを挿入する際には、次の場所に挿入します:</target>
         <note />
       </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="translated">エディター ウィンドウの右端</target>
+        <note />
+      </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
         <source>with other members of the same kind</source>
         <target state="translated">同じ種類の他のメンバーと共に</target>
@@ -2576,11 +2911,6 @@ Additional information: {1}</source>
       <trans-unit id="Pick_members">
         <source>Pick members</source>
         <target state="translated">メンバーの選択</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">Visual Studio で使用されたプロセスで、修復不可能なエラーが発生しました。作業内容を保存してから Visual Studio を終了し、再起動してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
@@ -2720,7 +3050,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
-        <target state="needs-review-translation">逆コンパイルされたソースへのナビゲーションを有効にする (試験段階)</target>
+        <target state="translated">逆コンパイルされたソースへのナビゲーションを有効にする</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

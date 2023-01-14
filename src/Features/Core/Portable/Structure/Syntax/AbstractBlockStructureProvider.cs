@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Structure
                 var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
                 using var spans = TemporaryArray<BlockSpan>.Empty;
                 BlockSpanCollector.CollectBlockSpans(
-                    syntaxRoot, context.OptionProvider, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
+                    syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
 
                 foreach (var span in spans)
                     context.AddBlockSpan(span);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

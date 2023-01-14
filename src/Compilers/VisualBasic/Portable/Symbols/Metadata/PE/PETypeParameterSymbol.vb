@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Reflection
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -106,6 +107,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _name
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -277,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(primaryDependency)
 
                 For Each pair In diagnosticsBuilder
-                    useSiteInfo = MergeUseSiteInfo(useSiteInfo, pair.UseSiteInfo)
+                    MergeUseSiteInfo(useSiteInfo, pair.UseSiteInfo)
                     If useSiteInfo.DiagnosticInfo IsNot Nothing Then
                         Exit For
                     End If
@@ -298,12 +305,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCachedBoundsUseSiteInfo.ToUseSiteInfo(PrimaryDependency)
         End Function
 
+        Friend Function DeriveCompilerFeatureRequiredDiagnostic(decoder As MetadataDecoder) As DiagnosticInfo
+            Return DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(ContainingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
+        End Function
+
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
         Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+            Get
+                Dim containingModule = DirectCast(Me.ContainingModule, PEModuleSymbol)
+                Dim containingMethod = TryCast(Me.ContainingSymbol, PEMethodSymbol)
+                Dim decoder = If(containingMethod IsNot Nothing,
+                    New MetadataDecoder(containingModule, containingMethod),
+                    New MetadataDecoder(containingModule, DirectCast(ContainingSymbol, PENamedTypeSymbol)))
+                Dim info As DiagnosticInfo = DeriveCompilerFeatureRequiredDiagnostic(decoder)
+
+                Return info IsNot Nothing AndAlso info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer) OrElse MyBase.HasUnsupportedMetadata
             End Get
         End Property
 

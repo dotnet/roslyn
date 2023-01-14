@@ -11,9 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,16 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class CSharpSyntaxFactsService : CSharpSyntaxFacts, ISyntaxFactsService
         {
             internal static new readonly CSharpSyntaxFactsService Instance = new();
-
-            public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-            {
-                if (syntaxTree == null)
-                {
-                    return false;
-                }
-
-                return syntaxTree.IsInInactiveRegion(position, cancellationToken);
-            }
 
             public bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             {
@@ -53,12 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 newRoot = new AddFirstMissingCloseBraceRewriter(contextNode).Visit(root);
                 newContextNode = (TContextNode)newRoot.GetAnnotatedNodes(s_annotation).Single();
-            }
-
-            public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-            {
-                var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-                return syntaxTree.IsPossibleTupleContext(token, position);
             }
 
             private class AddFirstMissingCloseBraceRewriter : CSharpSyntaxRewriter

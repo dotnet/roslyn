@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
                     foreachCollectionExpression.GetTrailingTrivia().Where(Function(t) t.IsWhitespaceOrEndOfLine()))
 
             ' and remove all trailing trivia if it is used for cast
-            If foreachInfo.RequireExplicitCastInterface Then
+            If foreachInfo.ExplicitCastInterface IsNot Nothing Then
                 expression = expression.WithoutTrailingTrivia()
             End If
 
