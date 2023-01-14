@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             // group them together by having only 1 line break.
             // The current token here is a closing brace of an accessor list:
             // public int Prop { get; } <-- this one
-            if (currentTokenParent.Parent is PropertyDeclarationSyntax property &&
+            if (currentTokenParent?.Parent is PropertyDeclarationSyntax property &&
                 IsSingleLineProperty(property) &&
                 nextToken.Parent is PropertyDeclarationSyntax)
             {
