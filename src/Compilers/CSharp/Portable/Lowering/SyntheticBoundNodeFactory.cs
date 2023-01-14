@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode Syntax { get; set; }
         public PEModuleBuilder? ModuleBuilderOpt { get { return CompilationState.ModuleBuilderOpt; } }
         public BindingDiagnosticBag Diagnostics { get; }
+        public InstrumentationState? InstrumentationState { get; }
         public TypeCompilationState CompilationState { get; }
 
         // Current enclosing type, or null if not available.
@@ -145,8 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
-            : this(topLevelMethod, topLevelMethod.ContainingType, node, compilationState, diagnostics)
+        /// <param name="instrumentationState">Instrumentation state, if the factory is used for local lowering phase.</param>
+        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics, InstrumentationState? instrumentationState = null)
+            : this(topLevelMethod, topLevelMethod.ContainingType, node, compilationState, diagnostics, instrumentationState)
         {
         }
 
@@ -155,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol? topLevelMethodOpt, NamedTypeSymbol? currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        /// <param name="instrumentationState">Instrumentation state, if the factory is used for local lowering phase.</param>
+        public SyntheticBoundNodeFactory(MethodSymbol? topLevelMethodOpt, NamedTypeSymbol? currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics, InstrumentationState? instrumentationState = null)
         {
             Debug.Assert(node != null);
             Debug.Assert(compilationState != null);
@@ -167,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentFunction = topLevelMethodOpt;
             this.Syntax = node;
             this.Diagnostics = diagnostics;
+            this.InstrumentationState = instrumentationState;
         }
 
         [Conditional("DEBUG")]
@@ -357,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A symbol for the well-known member, or null if it is missing and <paramref name="isOptional"/> == true</returns>
         public Symbol? WellKnownMember(WellKnownMember wm, bool isOptional)
         {
-            Symbol wellKnownMember = Binder.GetWellKnownTypeMember(Compilation, wm, Diagnostics, syntax: Syntax, isOptional: true);
+            Symbol? wellKnownMember = Binder.GetWellKnownTypeMember(Compilation, wm, Diagnostics, syntax: Syntax, isOptional: true);
             if (wellKnownMember is null && !isOptional)
             {
                 RuntimeMembers.MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(wm);
