@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly SemanticModel _semanticModel;
 
         private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = new();
+        private readonly ConcurrentDictionary<SyntaxToken, PreprocessingSymbolInfo> _preprocessingSymbolInfoCache = new();
         private readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> _identifierCache;
 
         private ImmutableHashSet<string>? _aliasNameSet;
@@ -48,6 +49,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public SymbolInfo GetSymbolInfo(SyntaxNode node, CancellationToken cancellationToken)
         {
             return _symbolInfoCache.GetOrAdd(node, static (n, arg) => arg._semanticModel.GetSymbolInfo(n, arg.cancellationToken), (_semanticModel, cancellationToken));
+        }
+
+        public PreprocessingSymbolInfo GetPreprocessingSymbolInfo(SyntaxToken token, CancellationToken cancellationToken)
+        {
+            return _preprocessingSymbolInfoCache.GetOrAdd(token, static (t, arg) => arg._semanticModel.GetPreprocessingSymbolInfo(t), (_semanticModel, cancellationToken));
         }
 
         public IAliasSymbol? GetAliasInfo(

@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
         /// <summary>
         /// Determines if there is preprocessor trivia *between* any of the <paramref name="tokens"/>
         /// provided.  The <paramref name="tokens"/> will be deduped and then ordered by position.
-        /// Specifically, the first token will not have it's leading trivia checked, and the last
-        /// token will not have it's trailing trivia checked.  All other trivia will be checked to
+        /// Specifically, the first token will not have its leading trivia checked, and the last
+        /// token will not have its trailing trivia checked.  All other trivia will be checked to
         /// see if it contains a preprocessor directive.
         /// </summary>
         public static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, IEnumerable<SyntaxToken> tokens)
@@ -247,6 +247,31 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         private static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxTriviaList list)
             => list.Any(syntaxFacts.IsPreprocessorDirective);
+
+        public static bool SpansIfOrElseIfPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxToken token)
+        {
+            var parent = token.Parent;
+            return syntaxFacts.SpansIfOrElseIfPreprocessorDirective(parent);
+        }
+        public static bool SpansIfOrElseIfPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxNode? node)
+        {
+            var kinds = syntaxFacts.SyntaxKinds;
+
+            var ifDirectiveKind = kinds.IfDirectiveTrivia;
+            var elseIfDirectiveKind = kinds.ElseIfDirectiveTrivia;
+
+            while (node is not null)
+            {
+                if (node.RawKind == ifDirectiveKind)
+                    return true;
+                if (node.RawKind == elseIfDirectiveKind)
+                    return true;
+
+                node = node.Parent;
+            }
+
+            return false;
+        }
 
         public static bool IsLegalIdentifier(this ISyntaxFacts syntaxFacts, string name)
         {

@@ -2916,6 +2916,29 @@ _Default:
         Friend MustOverride Function GetAwaitExpressionInfoWorker(awaitExpression As AwaitExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As AwaitExpressionInfo
 
         ''' <summary>
+        ''' If the given token is within a preprocessing directive, gets the preprocessing symbol info for it.
+        ''' </summary>
+        ''' <param name="token">Preprocessing symbol syntax token.</param>
+        Public Shadows Function GetPreprocessingSymbolInfo(token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
+
+            Dim parent = DirectCast(token.Parent, VisualBasicSyntaxNode)
+            CheckSyntaxNode(parent)
+
+            If parent.Kind() = SyntaxKind.ConstKeyword Then
+                Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = token.SyntaxTree.GetPreprocessingSymbolInfo(token)
+
+                Return RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo, token)
+            End If
+
+            Dim identifierParent = TryCast(parent, IdentifierNameSyntax)
+            If identifierParent IsNot Nothing Then
+                Return GetPreprocessingSymbolInfo(identifierParent)
+            End If
+
+            Return VisualBasicPreprocessingSymbolInfo.None
+        End Function
+
+        ''' <summary>
         ''' If the given node is within a preprocessing directive, gets the preprocessing symbol info for it.
         ''' </summary>
         ''' <param name="node">Preprocessing symbol identifier node.</param>
@@ -2925,15 +2948,21 @@ _Default:
             If SyntaxFacts.IsWithinPreprocessorConditionalExpression(node) Then
                 Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node)
 
-                If symbolInfo.Symbol IsNot Nothing Then
-                    Debug.Assert(CaseInsensitiveComparison.Equals(symbolInfo.Symbol.Name, node.Identifier.ValueText))
-                    Return symbolInfo
-                End If
-
-                Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(node.Identifier.ValueText), constantValueOpt:=Nothing, isDefined:=False)
+                Return RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo, node.Identifier)
             End If
 
             Return VisualBasicPreprocessingSymbolInfo.None
+        End Function
+
+        Private Function RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo As VisualBasicPreprocessingSymbolInfo, token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
+
+            If symbolInfo.Symbol IsNot Nothing Then
+                Debug.Assert(CaseInsensitiveComparison.Equals(symbolInfo.Symbol.Name, token.ValueText))
+                Return symbolInfo
+            End If
+
+            Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(token.ValueText, Compilation.Assembly, Compilation.SourceModule), constantValueOpt:=Nothing, isDefined:=False)
+
         End Function
 
         ''' <summary>
@@ -3194,6 +3223,10 @@ _Default:
             End If
 
             Return Nothing
+        End Function
+
+        Protected NotOverridable Overrides Function GetPreprocessingSymbolInfoCore(token As SyntaxToken) As PreprocessingSymbolInfo
+            Return GetPreprocessingSymbolInfo(token)
         End Function
 
         Protected NotOverridable Overrides Function GetPreprocessingSymbolInfoCore(node As SyntaxNode) As PreprocessingSymbolInfo

@@ -267,6 +267,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension>
+        Friend Function GetPreprocessingSymbolInfo(syntaxTree As SyntaxTree, identifierNode As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
+            Dim vbTree = DirectCast(syntaxTree, VisualBasicSyntaxTree)
+            Return vbTree.GetPreprocessingSymbolInfo(identifierNode)
+        End Function
+
+        <Extension>
         Friend Function Errors(trivia As SyntaxTrivia) As InternalSyntax.SyntaxDiagnosticInfoList
             Return New InternalSyntax.SyntaxDiagnosticInfoList(DirectCast(trivia.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode))
         End Function

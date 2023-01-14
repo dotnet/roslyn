@@ -4838,6 +4838,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node);
 
         /// <summary>
+        /// If the given token is within a preprocessing directive, gets the preprocessing symbol info for it.
+        /// Define and undefine directive trivia parents are supported too.
+        /// </summary>
+        /// <param name="token">Preprocessing symbol syntax token.</param>
+        public new PreprocessingSymbolInfo GetPreprocessingSymbolInfo(SyntaxToken token)
+        {
+            var parent = token.Parent as CSharpSyntaxNode;
+            CheckSyntaxNode(parent);
+
+            if (parent.Kind() is SyntaxKind.DefineDirectiveTrivia or SyntaxKind.UndefDirectiveTrivia)
+                return CreatePreprocessingSymbolInfo(token);
+
+            if (parent is IdentifierNameSyntax identifier)
+                return GetPreprocessingSymbolInfo(identifier);
+
+            return PreprocessingSymbolInfo.None;
+        }
+        /// <summary>
         /// If the given node is within a preprocessing directive, gets the preprocessing symbol info for it.
         /// </summary>
         /// <param name="node">Preprocessing symbol identifier node.</param>
@@ -4847,15 +4865,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
             {
-                bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
-                var preprocessingSymbol = new Symbols.PublicModel.PreprocessingSymbol(
-                    node.Identifier.ValueText,
-                    Compilation.Assembly.ISymbol as IAssemblySymbol,
-                    Compilation.SourceModule.ISymbol as IModuleSymbol);
-                return new PreprocessingSymbolInfo(preprocessingSymbol, isDefined);
+                return CreatePreprocessingSymbolInfo(node.Identifier);
             }
 
             return PreprocessingSymbolInfo.None;
+        }
+
+        private PreprocessingSymbolInfo CreatePreprocessingSymbolInfo(in SyntaxToken identifier)
+        {
+            bool isDefined = SyntaxTree.IsPreprocessorSymbolDefined(identifier.ValueText, identifier.SpanStart);
+            var preprocessingSymbol = CreatePreprocessingSymbol(identifier);
+            return new(preprocessingSymbol, isDefined);
+        }
+        private Symbols.PublicModel.PreprocessingSymbol CreatePreprocessingSymbol(in SyntaxToken identifier)
+        {
+            return new(
+                identifier.ValueText,
+                Compilation.Assembly.ISymbol as IAssemblySymbol,
+                Compilation.SourceModule.ISymbol as IModuleSymbol);
         }
 
         /// <summary>
@@ -5064,6 +5091,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override IAliasSymbol GetAliasInfoCore(SyntaxNode node, CancellationToken cancellationToken)
         {
             return node is IdentifierNameSyntax nameSyntax ? GetAliasInfo(nameSyntax, cancellationToken) : null;
+        }
+
+        protected sealed override PreprocessingSymbolInfo GetPreprocessingSymbolInfoCore(SyntaxToken token)
+        {
+            return GetPreprocessingSymbolInfo(token);
         }
 
         protected sealed override PreprocessingSymbolInfo GetPreprocessingSymbolInfoCore(SyntaxNode node)

@@ -842,6 +842,15 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool IsEventUsableAsFieldCore(int position, IEventSymbol eventSymbol);
 
         /// <summary>
+        /// If <paramref name="token"/> is an identifier token for a preprocessor symbol, return the <see cref="PreprocessingSymbolInfo"/> corresponding
+        /// to it.
+        /// </summary>
+        /// <param name="token">The syntax token to get semantic information for.</param>
+        public PreprocessingSymbolInfo GetPreprocessingSymbolInfo(SyntaxToken token)
+        {
+            return GetPreprocessingSymbolInfoCore(token);
+        }
+        /// <summary>
         /// If <paramref name="nameSyntax"/> is an identifier name syntax node, return the <see cref="PreprocessingSymbolInfo"/> corresponding
         /// to it.
         /// </summary>
@@ -850,6 +859,13 @@ namespace Microsoft.CodeAnalysis
         {
             return GetPreprocessingSymbolInfoCore(nameSyntax);
         }
+
+        /// <summary>
+        /// If <paramref name="token"/> is an identifier token for a preprocessor symbol, return the <see cref="PreprocessingSymbolInfo"/> corresponding
+        /// to it.
+        /// </summary>
+        /// <param name="token">The syntax token to get semantic information for.</param>
+        protected abstract PreprocessingSymbolInfo GetPreprocessingSymbolInfoCore(SyntaxToken token);
 
         /// <summary>
         /// If <paramref name="nameSyntax"/> is an identifier name syntax node, return the <see cref="PreprocessingSymbolInfo"/> corresponding

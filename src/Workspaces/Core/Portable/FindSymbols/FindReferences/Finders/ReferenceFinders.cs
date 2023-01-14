@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public static readonly IReferenceFinder Operator = new OperatorSymbolReferenceFinder();
         public static readonly IReferenceFinder OrdinaryMethod = new OrdinaryMethodReferenceFinder();
         public static readonly IReferenceFinder Parameter = new ParameterSymbolReferenceFinder();
+        public static readonly IReferenceFinder Preprocessing = new PreprocessingSymbolReferenceFinder();
         public static readonly IReferenceFinder Property = new PropertySymbolReferenceFinder();
         public static readonly IReferenceFinder PropertyAccessor = new PropertyAccessorSymbolReferenceFinder();
         public static readonly IReferenceFinder RangeVariable = new RangeVariableSymbolReferenceFinder();
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 Operator,
                 OrdinaryMethod,
                 Parameter,
+                Preprocessing,
                 Property,
                 PropertyAccessor,
                 RangeVariable,

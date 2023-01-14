@@ -13,10 +13,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IPreprocessingSymbol
 
         Private ReadOnly _name As String
+        Private ReadOnly _assembly As IAssemblySymbol
+        Private ReadOnly _module As IModuleSymbol
 
         Friend Sub New(name As String)
+            Me.New(name, Nothing, Nothing)
+        End Sub
+
+        Friend Sub New(name As String, assembly As IAssemblySymbol, moduleSymbol As IModuleSymbol)
             MyBase.New()
             _name = name
+            _assembly = assembly
+            _module = moduleSymbol
         End Sub
 
         Public Overrides ReadOnly Property Name As String
@@ -91,6 +99,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
+            Get
+                Return TryCast(ISymbolContainingAssembly, AssemblySymbol)
+            End Get
+        End Property
+
+        Friend Overloads ReadOnly Property ISymbolContainingAssembly As IAssemblySymbol Implements ISymbol.ContainingAssembly
+            Get
+                Return _assembly
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
+            Get
+                Return TryCast(ISymbolContainingModule, ModuleSymbol)
+            End Get
+        End Property
+
+        Friend Overloads ReadOnly Property ISymbolContainingModule As IModuleSymbol Implements ISymbol.ContainingModule
+            Get
+                Return _module
+            End Get
+        End Property
+
         Public Overrides Function Equals(obj As Object) As Boolean
             If obj Is Me Then
                 Return True
@@ -109,27 +141,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Overrides Sub Accept(visitor As SymbolVisitor)
-            Throw New NotSupportedException()
+            visitor.DefaultVisit(Me)
         End Sub
 
         Public Overloads Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
-            Throw New NotSupportedException()
+            visitor.DefaultVisit(Me)
         End Sub
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
-            Throw New NotSupportedException()
+            visitor.DefaultVisit(Me)
         End Function
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw New NotSupportedException()
+            visitor.DefaultVisit(Me, argument)
         End Function
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
-            Throw New NotSupportedException()
+            visitor.DefaultVisit(Me)
         End Function
 
         Friend Overloads Overrides Function Accept(Of TArgument, TResult)(visitor As VisualBasicSymbolVisitor(Of TArgument, TResult), arg As TArgument) As TResult
-            Throw New NotSupportedException()
+            visitor.DefaultVisit(Me, arg)
         End Function
     End Class
 

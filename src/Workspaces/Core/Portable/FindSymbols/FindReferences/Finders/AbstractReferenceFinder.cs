@@ -36,9 +36,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        private static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+        private static async ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
             ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
         {
+            if (symbol is IPreprocessingSymbol preprocessingSearchSymbol)
+            {
+                var matched = await PreprocessingSymbolsMatchAsync(preprocessingSearchSymbol, state, token, cancellationToken).ConfigureAwait(false);
+                return (matched, reason: CandidateReason.None);
+            }
+
             // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
             // reference to a type (as we don't have any real constructor symbols that can actually cascade to).  So
             // don't do any special finding in that case.
@@ -47,10 +53,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : state.SyntaxFacts.TryGetBindableParent(token);
             parent ??= token.Parent!;
 
-            return SymbolsMatchAsync(symbol, state, parent, cancellationToken);
+            return await SymbolsMatchAsync(symbol, state, parent, cancellationToken).ConfigureAwait(false);
         }
 
         protected static async ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+            ISymbol searchSymbol, FindReferencesDocumentState state, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            return await CommonSymbolsMatchAsync(searchSymbol, state, node, cancellationToken).ConfigureAwait(false);
+        }
+        private static async ValueTask<bool> PreprocessingSymbolsMatchAsync(
+            IPreprocessingSymbol searchSymbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            var symbolInfo = state.Cache.GetPreprocessingSymbolInfo(token, cancellationToken);
+
+            return await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false);
+        }
+        private static async ValueTask<(bool matched, CandidateReason reason)> CommonSymbolsMatchAsync(
             ISymbol searchSymbol, FindReferencesDocumentState state, SyntaxNode node, CancellationToken cancellationToken)
         {
             var symbolInfo = state.Cache.GetSymbolInfo(node, cancellationToken);

@@ -31,6 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ShebangDirectiveTrivia As Integer? Implements ISyntaxKinds.ShebangDirectiveTrivia
 
         Public ReadOnly Property IfDirectiveTrivia As Integer = SyntaxKind.IfDirectiveTrivia Implements ISyntaxKinds.IfDirectiveTrivia
+        Public ReadOnly Property ElseIfDirectiveTrivia As Integer = SyntaxKind.ElseIfDirectiveTrivia Implements ISyntaxKinds.ElseIfDirectiveTrivia
+        Public ReadOnly Property DefineDirectiveTrivia As Integer = SyntaxKind.ConstDirectiveTrivia Implements ISyntaxKinds.DefineDirectiveTrivia
+        Public ReadOnly Property UndefDirectiveTrivia As Integer? Implements ISyntaxKinds.UndefDirectiveTrivia
 
         Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
         Public ReadOnly Property ColonToken As Integer = SyntaxKind.ColonToken Implements ISyntaxKinds.ColonToken

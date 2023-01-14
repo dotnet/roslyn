@@ -314,7 +314,7 @@ namespace ComplexNamespace;
             var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
 
             // Do not assert the glyph
-            AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 4);
+            AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
         }
 
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)

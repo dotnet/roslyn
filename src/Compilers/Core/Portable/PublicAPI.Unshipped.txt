@@ -1,5 +1,6 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 *REMOVED*static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.IDisposable! owner, bool disposeOwner) -> Microsoft.CodeAnalysis.ModuleMetadata!
+abstract Microsoft.CodeAnalysis.SemanticModel.GetPreprocessingSymbolInfoCore(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.PreprocessingSymbolInfo
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! leftType, Microsoft.CodeAnalysis.ITypeSymbol! rightType) -> Microsoft.CodeAnalysis.IMethodSymbol!
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! operandType) -> Microsoft.CodeAnalysis.IMethodSymbol!
 Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.IsGeneratedCode.get -> bool
@@ -21,6 +22,7 @@ Microsoft.CodeAnalysis.ScopedKind
 Microsoft.CodeAnalysis.ScopedKind.None = 0 -> Microsoft.CodeAnalysis.ScopedKind
 Microsoft.CodeAnalysis.ScopedKind.ScopedRef = 1 -> Microsoft.CodeAnalysis.ScopedKind
 Microsoft.CodeAnalysis.ScopedKind.ScopedValue = 2 -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.SemanticModel.GetPreprocessingSymbolInfo(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.PreprocessingSymbolInfo
 Microsoft.CodeAnalysis.SymbolDisplayLocalOptions.IncludeModifiers = 4 -> Microsoft.CodeAnalysis.SymbolDisplayLocalOptions
 Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeModifiers = 2 -> Microsoft.CodeAnalysis.SymbolDisplayParameterOptions
 Microsoft.CodeAnalysis.SyntaxNode.ContainsDirective(int rawKind) -> bool
