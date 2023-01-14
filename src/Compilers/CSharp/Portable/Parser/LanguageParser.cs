@@ -788,6 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var usingToken = this.EatToken(SyntaxKind.UsingKeyword);
             var staticToken = this.TryEatToken(SyntaxKind.StaticKeyword);
+            var unsafeToken = this.TryEatToken(SyntaxKind.UnsafeKeyword);
 
             var alias = this.IsNamedAssignment() ? ParseNameEquals() : null;
 
@@ -823,17 +824,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (type is RefTypeSyntax)
                     type = AddError(type, ErrorCode.ERR_BadRefInUsingAlias);
 
+                // If we can see a semicolon ahead, then the current token was probably supposed to be an identifier
                 if (type.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
-                {
-                    //if we can see a semicolon ahead, then the current token was
-                    //probably supposed to be an identifier
                     type = AddTrailingSkippedSyntax(type, this.EatToken());
-                }
+
+                if (unsafeToken != null && alias == null)
+                    unsafeToken = AddError(unsafeToken, ErrorCode.ERR_BadUnsafeInUsingDirective);
 
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
-            return _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, alias, type, semicolon);
+            return _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, unsafeToken, alias, type, semicolon);
         }
 
         private bool IsPossibleGlobalAttributeDeclaration()

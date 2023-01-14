@@ -6853,6 +6853,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadRefInUsingAlias" xml:space="preserve">
     <value>Using alias cannot be a 'ref' type.</value>
   </data>
+  <data name="ERR_BadUnsafeInUsingDirective" xml:space="preserve">
+    <value>Only a using alias can be 'unsafe'.</value>
+  </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in this context is not supported.</value>
   </data>

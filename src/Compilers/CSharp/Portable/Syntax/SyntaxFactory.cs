@@ -2655,7 +2655,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static UsingDirectiveSyntax UsingDirective(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
         {
-            return UsingDirective(globalKeyword: default(SyntaxToken), usingKeyword, staticKeyword, alias, name, semicolonToken);
+            return UsingDirective(
+                globalKeyword: default,
+                usingKeyword,
+                staticKeyword,
+                unsafeKeyword: default,
+                alias,
+                name,
+                semicolonToken);
         }
 
         /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>

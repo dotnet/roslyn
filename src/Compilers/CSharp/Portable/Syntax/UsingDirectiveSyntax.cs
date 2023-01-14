@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public NameSyntax? Name => this.Type as NameSyntax;
 
         public UsingDirectiveSyntax Update(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
-            => this.Update(this.GlobalKeyword, usingKeyword, staticKeyword, alias, type: name, semicolonToken);
+            => this.Update(this.GlobalKeyword, usingKeyword, staticKeyword, this.UnsafeKeyword, alias, type: name, semicolonToken);
 
         public UsingDirectiveSyntax WithName(NameSyntax name)
             => WithType(name);
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name)
-            => UsingDirective(staticKeyword, alias, type: name);
+            => UsingDirective(globalKeyword: default, usingKeyword: default, staticKeyword, unsafeKeyword: default, alias, type: name, semicolonToken: default);
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameSyntax name)

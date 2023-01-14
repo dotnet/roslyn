@@ -3075,8 +3075,15 @@
       <Kind Name="UsingKeyword"/>
     </Field>
     <Choice Optional="true">
-      <Field Name="StaticKeyword" Type="SyntaxToken"/>
-      <Field Name="Alias" Type="NameEqualsSyntax"/>
+      <Field Name="StaticKeyword" Type="SyntaxToken">
+        <Kind Name="StaticKeyword"/>
+      </Field>
+      <Sequence>
+        <Field Name="UnsafeKeyword" Type="SyntaxToken" Optional="true">
+          <Kind Name="UnsafeKeyword"/>
+        </Field>
+        <Field Name="Alias" Type="NameEqualsSyntax"/>
+      </Sequence>
     </Choice>
     <Field Name="Type" Type="TypeSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">

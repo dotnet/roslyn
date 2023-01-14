@@ -2167,6 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# preview
 
         ERR_BadRefInUsingAlias = 9105,
+        ERR_BadUnsafeInUsingDirective = 9106,
 
         #endregion
 
