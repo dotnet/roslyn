@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     else
                     {
-                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: \r\n{string.Join("\r\n", map.Keys)}");
+                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}}{string.Join(Environment.NewLine, map.Keys)}");
                     }
                 }
 
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (actualSuccess != expectedSuccess)
             {
                 throw new Exception(expectedSuccess ?
-                    "IL Verify failed unexpectedly: \r\n" + actualMessage :
+                    $"IL Verify failed unexpectedly:{Environment.NewLine}{actualMessage}" :
                     "IL Verify succeeded unexpectedly");
             }
 
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result, MetadataReader metadataReader)
             {
-                return string.Join("\r\n", result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
+                return string.Join(Environment.NewLine, result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
             }
 
             static string printMethod(MethodDefinitionHandle method, MetadataReader metadataReader)
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (actualPdbXml.StartsWith("<error>"))
                 {
-                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:\r\n{actualPdbXml}");
+                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:{Environment.NewLine}{actualPdbXml}");
                 }
 
                 markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
