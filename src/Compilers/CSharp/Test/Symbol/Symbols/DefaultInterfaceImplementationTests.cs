@@ -31560,7 +31560,7 @@ class Test1 : I1.T1
             ValidateNestedTypes_01(source1);
         }
 
-        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public, TargetFramework targetFramework = TargetFramework.Standard, bool execute = true, Verification verify = Verification.Passes)
+        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public, TargetFramework targetFramework = TargetFramework.Standard, bool execute = true, Verification verify = default)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,

@@ -3514,7 +3514,7 @@ static void Test()
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = default)
         {
             return base.CompileAndVerify(
                 source,
