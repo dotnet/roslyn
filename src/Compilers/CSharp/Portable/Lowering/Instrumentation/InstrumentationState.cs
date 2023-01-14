@@ -19,14 +19,16 @@ internal sealed class InstrumentationState
     /// </summary>
     public Instrumenter Instrumenter { get; set; } = Instrumenter.NoOp;
 
-    public void RemoveDynamicAnalysisInstrumentation()
-        => Instrumenter = RemoveDynamicAnalysisInjector(Instrumenter);
+    public void RemoveCodeCoverageInstrumenter()
+    {
+        Instrumenter = recurse(Instrumenter);
 
-    private static Instrumenter RemoveDynamicAnalysisInjector(Instrumenter instrumenter)
-        => instrumenter switch
-        {
-            DynamicAnalysisInjector { Previous: var previous } => RemoveDynamicAnalysisInjector(previous),
-            CompoundInstrumenter compound => compound.WithPrevious(RemoveDynamicAnalysisInjector(compound.Previous)),
-            _ => instrumenter,
-        };
+        static Instrumenter recurse(Instrumenter instrumenter)
+            => instrumenter switch
+            {
+                CodeCoverageInstrumenter { Previous: var previous } => recurse(previous),
+                CompoundInstrumenter compound => compound.WithPrevious(recurse(compound.Previous)),
+                _ => instrumenter,
+            };
+    }
 }

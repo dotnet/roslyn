@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var instrumenter = Instrumenter.NoOp;
 
-                DynamicAnalysisInjector? testCoverageInstrumenter = null;
+                CodeCoverageInstrumenter? codeCoverageInstrumenter = null;
                 if (instrumentForDynamicAnalysis &&
-                    DynamicAnalysisInjector.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, instrumenter, out testCoverageInstrumenter))
+                    CodeCoverageInstrumenter.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, instrumenter, out codeCoverageInstrumenter))
                 {
-                    instrumenter = testCoverageInstrumenter;
+                    instrumenter = codeCoverageInstrumenter;
                 }
 
                 instrumentationState.Instrumenter = DebugInfoInjector.Create(instrumenter);
@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
-                if (testCoverageInstrumenter != null)
+                if (codeCoverageInstrumenter != null)
                 {
-                    dynamicAnalysisSpans = testCoverageInstrumenter.DynamicAnalysisSpans;
+                    dynamicAnalysisSpans = codeCoverageInstrumenter.DynamicAnalysisSpans;
                 }
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = lambda;
                 if (lambda.IsDirectlyExcludedFromCodeCoverage)
                 {
-                    InstrumentationState.RemoveDynamicAnalysisInstrumentation();
+                    InstrumentationState.RemoveCodeCoverageInstrumenter();
                 }
 
                 return base.VisitLambda(node)!;
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
                 {
-                    InstrumentationState.RemoveDynamicAnalysisInstrumentation();
+                    InstrumentationState.RemoveCodeCoverageInstrumenter();
                 }
 
                 if (localFunction.IsGenericMethod)

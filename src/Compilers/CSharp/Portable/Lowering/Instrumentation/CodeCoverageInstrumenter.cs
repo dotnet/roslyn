@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This type provides means for instrumenting compiled methods for dynamic analysis.
     /// It can be combined with other <see cref="Instrumenter"/>s.
     /// </summary>
-    internal sealed class DynamicAnalysisInjector : CompoundInstrumenter
+    internal sealed class CodeCoverageInstrumenter : CompoundInstrumenter
     {
         private readonly MethodSymbol _method;
         private readonly BoundStatement _methodBody;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             Instrumenter previous,
-            out DynamicAnalysisInjector instrumenter)
+            out CodeCoverageInstrumenter instrumenter)
         {
             instrumenter = null;
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            instrumenter = new DynamicAnalysisInjector(
+            instrumenter = new CodeCoverageInstrumenter(
                 method,
                 methodBody,
                 methodBodyFactory,
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private DynamicAnalysisInjector(
+        private CodeCoverageInstrumenter(
             MethodSymbol method,
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
