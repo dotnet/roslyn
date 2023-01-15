@@ -2277,6 +2277,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
                 case ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion:
                 case ErrorCode.ERR_BadSpecialByRefUsing:
+                case ERR_BadRefInUsingAlias:
+                case ERR_BadUnsafeInUsingDirective:
+                case ERR_BadNullableReferenceTypeInUsingAlias:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
