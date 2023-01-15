@@ -452,3 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 }
+
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
+{
+}

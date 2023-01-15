@@ -4,6 +4,12 @@
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.WithScopedKeyword(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp11 = 1100 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Name.get -> Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax?
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.UnsafeKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken globalKeyword, Microsoft.CodeAnalysis.SyntaxToken usingKeyword, Microsoft.CodeAnalysis.SyntaxToken staticKeyword, Microsoft.CodeAnalysis.SyntaxToken unsafeKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.NameEqualsSyntax? alias, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.WithUnsafeKeyword(Microsoft.CodeAnalysis.SyntaxToken unsafeKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax!
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FileKeyword = 8449 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.ScopedKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
