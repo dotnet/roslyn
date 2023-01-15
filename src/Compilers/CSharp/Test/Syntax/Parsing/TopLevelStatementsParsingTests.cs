@@ -2717,14 +2717,7 @@ e
         {
             var test = @"using s = delegate*<void>;";
 
-            UsingTree(test,
-                // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
-                // (1,26): error CS1001: Identifier expected
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26)
-                );
+            UsingTree(test);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2739,42 +2732,24 @@ e
                         }
                         N(SyntaxKind.EqualsToken);
                     }
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.FunctionPointerType);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.FunctionPointerType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                N(SyntaxKind.AsteriskToken);
-                                N(SyntaxKind.FunctionPointerParameterList);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.FunctionPointerParameter);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.VoidKeyword);
-                                        }
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
+                                    N(SyntaxKind.VoidKeyword);
                                 }
                             }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
