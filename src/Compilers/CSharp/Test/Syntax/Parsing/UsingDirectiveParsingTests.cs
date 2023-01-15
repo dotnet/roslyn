@@ -355,20 +355,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void StaticUsingDirectiveRefType()
         {
-            UsingTree(
-@"using x = ref int;",
-                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // using x = ref int;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref int").WithArguments("using type alias").WithLocation(1, 11),
-                // (1,11): error CS9000: Using alias cannot be a 'ref' type.
-                // using x = ref int;
-                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 11));
+            var text = @"using static x = ref int;";
+            UsingTree(text,
+                // (1,18): error CS9105: Using alias cannot be a 'ref' type.
+                // using static x = ref int;
+                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 18));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using static x = ref int;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static x = ref int;").WithLocation(1, 1),
+                // (1,14): error CS8085: A 'using static' directive cannot be used to declare an alias
+                // using static x = ref int;
+                Diagnostic(ErrorCode.ERR_NoAliasHere, "x").WithLocation(1, 14),
+                // (1,14): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using static x = ref int;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 14),
+                // (1,18): error CS9105: Using alias cannot be a 'ref' type.
+                // using static x = ref int;
+                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 18));
 
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.UsingDirective);
                 {
                     N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.StaticKeyword);
                     N(SyntaxKind.NameEquals);
                     {
                         N(SyntaxKind.IdentifierName);
@@ -597,13 +608,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void AliasUsingDirectiveNamePointer()
+        public void AliasUsingDirectiveNamePointer1()
         {
-            UsingTree(
-@"using x = A*;",
-                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            var text =
+@"using x = A*;
+
+struct A { }";
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using x = A*;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A*").WithArguments("using type alias").WithLocation(1, 11));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = A*;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using x = A*;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
+                // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using x = A*;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "A*").WithLocation(1, 11));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -628,19 +649,86 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
 
         [Fact]
-        public void AliasUsingDirectiveFunctionPointer()
+        public void AliasUsingDirectiveNamePointer2()
         {
-            UsingTree(
-@"using x = delegate*<int, void>;",
-                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            var text =
+@"using unsafe x = A*;
+
+struct A { }";
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe x = A*;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe x = A*;").WithLocation(1, 1),
+                // (1,14): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using unsafe x = A*;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 14));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingDirectiveFunctionPointer1()
+        {
+            var text = @"using x = delegate*<int, void>;";
+
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using x = delegate*<int, void>;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<int, void>").WithArguments("using type alias").WithLocation(1, 11));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = delegate*<int, void>;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using x = delegate*<int, void>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
+                // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using x = delegate*<int, void>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 11));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -688,13 +776,154 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void AliasUsingDirectiveFunctionPointer2()
+        {
+            var text = @"using unsafe x = delegate*<int, void>;";
+
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe x = delegate*<int, void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe x = delegate*<int, void>;").WithLocation(1, 1),
+                // (1,14): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using unsafe x = delegate*<int, void>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 14));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingUnsafeNonAlias()
+        {
+            var text = @"using unsafe System;";
+
+            UsingTree(text,
+                // (1,7): error CS9106: Only a using alias can be 'unsafe'.
+                // using unsafe System;
+                Diagnostic(ErrorCode.ERR_BadUnsafeInUsingDirective, "unsafe").WithLocation(1, 7));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe System;").WithLocation(1, 1),
+                // (1,7): error CS9106: Only a using alias can be 'unsafe'.
+                // using unsafe System;
+                Diagnostic(ErrorCode.ERR_BadUnsafeInUsingDirective, "unsafe").WithLocation(1, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingStaticUnsafeNonAlias()
+        {
+            var text = @"using static unsafe System.Console;";
+
+            UsingTree(text,
+                // (1,14): error CS9106: Only a using alias can be 'unsafe'.
+                // using static unsafe System.Console;
+                Diagnostic(ErrorCode.ERR_BadUnsafeInUsingDirective, "unsafe").WithLocation(1, 14));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using static unsafe System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static unsafe System.Console;").WithLocation(1, 1),
+                // (1,14): error CS9106: Only a using alias can be 'unsafe'.
+                // using static unsafe System.Console;
+                Diagnostic(ErrorCode.ERR_BadUnsafeInUsingDirective, "unsafe").WithLocation(1, 14));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "System");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Console");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void AliasUsingDirectivePredefinedType()
         {
-            UsingTree(
-@"using x = int;",
-                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            var text = @"using x = int;";
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using x = int;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("using type alias").WithLocation(1, 11));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = int;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using x = int;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -723,12 +952,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void AliasUsingDirectiveRefType()
         {
-            UsingTree(
-@"using x = ref int;",
-                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // using x = ref int;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref int").WithArguments("using type alias").WithLocation(1, 11),
+            var text = @"using x = ref int;";
+            UsingTree(text,
                 // (1,11): error CS9000: Using alias cannot be a 'ref' type.
+                // using x = ref int;
+                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 11));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using x = ref int;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = ref int;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using x = ref int;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
+                // (1,11): error CS9105: Using alias cannot be a 'ref' type.
                 // using x = ref int;
                 Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 11));
 
@@ -761,13 +997,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void AliasUsingDirectivePredefinedTypePointer()
+        public void AliasUsingDirectivePredefinedTypePointer1()
         {
-            UsingTree(
-@"using x = int*;",
-                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            var text = @"using x = int*;";
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using x = int*;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("using type alias").WithLocation(1, 11));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = int*;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using x = int*;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
+                // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using x = int*;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 11));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -798,13 +1041,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void AliasUsingDirectivePredefinedTypePointer2()
+        {
+            var text = @"using unsafe x = int*;";
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe x = int*;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe x = int*;").WithLocation(1, 1),
+                // (1,14): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using unsafe x = int*;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 14));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void AliasUsingDirectiveTuple()
         {
-            UsingTree(
-@"using x = (int, int);",
-                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            var text = @"using x = (int, int);";
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using x = (int, int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int, int)").WithArguments("using type alias").WithLocation(1, 11));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = (int, int);").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using x = (int, int);
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -838,6 +1127,94 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingNullableValueType()
+        {
+            var text = @"using x = int?;";
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using x = int?;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = int?;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using x = int?;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingNullableReferenceType()
+        {
+            var text = @"using x = string?;";
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using x = string?;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = string?;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using x = string?;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
+                // (1,17): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                // using x = string?;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(1, 17),
+                // (1,17): error CS9107: Using alias cannot be a nullable reference type..
+                // using x = string?;
+                Diagnostic(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, "?").WithLocation(1, 17));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.QuestionToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
