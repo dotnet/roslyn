@@ -1619,10 +1619,7 @@ using VT2 = (int, int);
             var tree = UsingTree(test, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
 
             var actualErrors = tree.GetDiagnostics();
-            actualErrors.Verify(
-                // (2,13): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int, int)").WithArguments("using type alias").WithLocation(2, 13));
+            actualErrors.Verify();
 
             N(SyntaxKind.CompilationUnit);
             {
