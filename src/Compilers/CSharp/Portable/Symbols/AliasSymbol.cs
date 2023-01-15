@@ -322,19 +322,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // symbol. If it is an extern alias then find the target in the list of metadata references.
                 var newDiagnostics = BindingDiagnosticBag.GetInstance();
 
-                NamespaceOrTypeSymbol symbol;
-                if (this.IsExtern)
-                {
-                    symbol = ResolveExternAliasTarget(newDiagnostics);
-                }
-                else
-                {
-                    var usingDirective = (UsingDirectiveSyntax)_directive.GetSyntax();
-                    if (usingDirective.Type is not NameSyntax)
-                        MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(newDiagnostics, usingDirective.Type);
-
-                    symbol = ResolveAliasTarget(usingDirective, newDiagnostics, basesBeingResolved);
-                }
+                NamespaceOrTypeSymbol symbol = this.IsExtern
+                    ? ResolveExternAliasTarget(newDiagnostics)
+                    : ResolveAliasTarget((UsingDirectiveSyntax)_directive.GetSyntax(), newDiagnostics, basesBeingResolved);
 
                 if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
@@ -387,6 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             ConsList<TypeSymbol>? basesBeingResolved)
         {
+            if (usingDirective.Type is not NameSyntax)
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.Type);
+
             var syntax = usingDirective.Type;
             var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
             if (usingDirective.UnsafeKeyword != default)
