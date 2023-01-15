@@ -1414,5 +1414,309 @@ class C
             }
             EOF();
         }
+
+        [Fact]
+        public void AliasUsingVoidPointer3()
+        {
+            var text = @"using VP = void*;
+
+class C
+{
+    unsafe void M(VP vp) { }
+}";
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (1,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using VP = void*;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(1, 12));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "VP");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.UnsafeKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "VP");
+                                }
+                                N(SyntaxKind.IdentifierToken, "vp");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingVoid1()
+        {
+            var text = @"using V = void;
+
+class C
+{
+    void M(V v) { }
+}";
+            UsingTree(text,
+                // (1,11): error CS1547: Keyword 'void' cannot be used in this context
+                // using V = void;
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(1, 11));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (1,11): error CS1547: Keyword 'void' cannot be used in this context
+                // using V = void;
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(1, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "V");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "V");
+                                }
+                                N(SyntaxKind.IdentifierToken, "v");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingVoid2()
+        {
+            var text = @"using V = void;
+
+class C
+{
+    V M() { }
+}";
+            UsingTree(text,
+                // (1,11): error CS1547: Keyword 'void' cannot be used in this context
+                // using V = void;
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(1, 11));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (1,11): error CS1547: Keyword 'void' cannot be used in this context
+                // using V = void;
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(1, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "V");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "V");
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingVoid3()
+        {
+            var text = @"using V = void[];
+
+class C
+{
+    V M() { }
+}";
+            UsingTree(text,
+                // (1,11): error CS1547: Keyword 'void' cannot be used in this context
+                // using V = void;
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(1, 11));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (1,11): error CS1547: Keyword 'void' cannot be used in this context
+                // using V = void[];
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(1, 11),
+                // (5,7): error CS0161: 'C.M()': not all code paths return a value
+                //     V M() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(5, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "V");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "V");
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
