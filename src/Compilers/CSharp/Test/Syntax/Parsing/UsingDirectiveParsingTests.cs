@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Regular9);
         }
 
-        private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var tree = base.UsingTree(text);
+        //private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
+        //{
+        //    var tree = base.UsingTree(text);
 
-            var actualErrors = tree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
+        //    var actualErrors = tree.GetDiagnostics();
+        //    actualErrors.Verify(expectedErrors);
 
-            return tree;
-        }
+        //    return tree;
+        //}
 
         [Fact]
         public void SimpleUsingDirectiveNamePointer()

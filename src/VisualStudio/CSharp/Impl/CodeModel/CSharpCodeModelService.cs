@@ -1557,7 +1557,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             foreach (UsingDirectiveSyntax usingDirective in GetImportNodes(parentNode))
             {
-                if (usingDirective.Name.ToString() == dottedName)
+                if (usingDirective.Name?.ToString() == dottedName)
                 {
                     importNode = usingDirective;
                     return true;
@@ -1838,7 +1838,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             if (importNode is UsingDirectiveSyntax usingDirective)
             {
-                return usingDirective.Name.ToString();
+                return usingDirective.Type.ToString();
             }
 
             throw new InvalidOperationException();
@@ -1852,7 +1852,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     ? null
                     : usingDirective.Parent;
 
-                name = usingDirective.Name.ToString();
+                name = usingDirective.Type.ToString();
 
                 return;
             }
