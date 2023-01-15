@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var attributes = _pool.ToListAndFree(attributesBuilder);
 
             var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
-            if (inExpressionContext && this.CurrentToken.Kind == SyntaxKind.DotToken)
+            if (inExpressionContext && ParseAsCollectionLiteral())
             {
                 // we're in an expression and we've seen `[A, B].`  This is actually the start of a collection literal
                 // that someone is explicitly accessing a member off of.
@@ -918,6 +918,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return _syntaxFactory.AttributeList(openBracket, location, attributes, closeBracket);
+
+            bool ParseAsCollectionLiteral()
+            {
+                // `[A, B].` is a member access off of a collection literal. 
+                if (this.CurrentToken.Kind == SyntaxKind.DotToken)
+                    return true;
+
+                // `[A, B]->` is a member access off of a collection literal. Note: this will always be illegal
+                // semantically (as a collection literal has the natural type List<> which is not a pointer type).  But
+                // we leave that check to binding.
+                if (this.CurrentToken.Kind == SyntaxKind.MinusGreaterThanToken)
+                    return true;
+
+                // `[A, B]?.`  The `?` is unnecessary (as a collection literal is always non-null).  But it is fine if
+                // the use wants to include it unnecessarily.  A linter could always advise they remove it.
+                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
+                    this.PeekToken(1).Kind == SyntaxKind.DotToken)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private void ParseAttributes(SeparatedSyntaxListBuilder<AttributeSyntax> nodes)
