@@ -936,17 +936,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
-
-            //static bool ContainsPointer(NamespaceOrTypeSymbol nsOrType)
-            //{
-            //    // pointers can only legall be within an array symbol.  In all other cases (like a named type like
-            //    // X<int*>) they are already illegal.  So we just need to unwrap arrays, then see if we're pointing
-            //    // directly at a pointer.
-            //    while (nsOrType is ArrayTypeSymbol array)
-            //        nsOrType = array.ElementType;
-
-            //    return nsOrType.Kind is SymbolKind.PointerType or SymbolKind.FunctionPointerType;
-            //}
         }
 
         /// <summary>
