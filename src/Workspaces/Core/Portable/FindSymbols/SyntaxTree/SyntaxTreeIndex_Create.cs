@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsGlobalSuppressMessageAttribute = false;
                 var containsConversion = false;
                 var containsGlobalKeyword = false;
-                var containsIdentifierContainerPreprocessorDirective = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -90,7 +89,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
                             containsElementAccess = containsElementAccess || (syntaxFacts.IsElementAccessExpression(node) || syntaxFacts.IsImplicitElementAccess(node));
                             containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCref(node);
-                            containsIdentifierContainerPreprocessorDirective = containsIdentifierContainerPreprocessorDirective || syntaxFacts.IsIdentifierContainerPreprocessorDirectiveTrivia(node);
 
                             containsDeconstruction = containsDeconstruction || syntaxFacts.IsDeconstructionAssignment(node)
                                 || syntaxFacts.IsDeconstructionForEachStatement(node);
@@ -188,8 +186,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation,
                             containsGlobalSuppressMessageAttribute,
                             containsConversion,
-                            containsGlobalKeyword,
-                            containsIdentifierContainerPreprocessorDirective),
+                            containsGlobalKeyword),
                     globalAliasInfo);
             }
             finally

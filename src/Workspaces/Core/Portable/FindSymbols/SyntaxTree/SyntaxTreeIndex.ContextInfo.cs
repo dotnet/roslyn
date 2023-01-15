@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsImplicitObjectCreation,
                 bool containsGlobalSuppressMessageAttribute,
                 bool containsConversion,
-                bool containsGlobalKeyword,
-                bool containsIdentifierContainerPreprocessingDirective)
+                bool containsGlobalKeyword)
                 : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -51,8 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsImplicitObjectCreation,
                          containsGlobalSuppressMessageAttribute,
                          containsConversion,
-                         containsGlobalKeyword,
-                         containsIdentifierContainerPreprocessingDirective))
+                         containsGlobalKeyword))
             {
             }
 
@@ -78,8 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsImplicitObjectCreation,
                 bool containsGlobalSuppressMessageAttribute,
                 bool containsConversion,
-                bool containsGlobalKeyword,
-                bool containsIdentifierContainerPreprocessingDirective)
+                bool containsGlobalKeyword)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -98,7 +95,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsGlobalSuppressMessageAttribute ? ContainingNodes.ContainsGlobalSuppressMessageAttribute : 0;
                 containingNodes |= containsConversion ? ContainingNodes.ContainsConversion : 0;
                 containingNodes |= containsGlobalKeyword ? ContainingNodes.ContainsGlobalKeyword : 0;
-                containingNodes |= containsIdentifierContainerPreprocessingDirective ? ContainingNodes.ContainsIdentifierContainerPreprocessingDirective : 0;
 
                 return containingNodes;
             }
@@ -154,9 +150,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ContainsConversion
                 => (_containingNodes & ContainingNodes.ContainsConversion) == ContainingNodes.ContainsConversion;
 
-            public bool ContainsIdentifierContainerPreprocessingDirective
-                => (_containingNodes & ContainingNodes.ContainsIdentifierContainerPreprocessingDirective) == ContainingNodes.ContainsIdentifierContainerPreprocessingDirective;
-
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt32(_predefinedTypes);
@@ -200,7 +193,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsGlobalSuppressMessageAttribute = 1 << 12,
                 ContainsConversion = 1 << 13,
                 ContainsGlobalKeyword = 1 << 14,
-                ContainsIdentifierContainerPreprocessingDirective = 1 << 15,
             }
         }
     }

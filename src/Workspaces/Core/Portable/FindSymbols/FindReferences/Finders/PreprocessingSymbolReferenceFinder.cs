@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -22,7 +23,7 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
     {
         var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
 
-        var normalReferences = await FindReferencesInTokensAsync(
+        var normalReferences = await FindPreprocessingReferencesInTokensAsync(
             symbol, state,
             tokens.WhereAsArray(MatchesPreprocessingReference, state),
             cancellationToken).ConfigureAwait(false);
@@ -69,13 +70,58 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
         //       After all, writing any name for a preprocessing symbol, defined or not, is valid and will
         //       be computed during preprocessing evaluation of the tree
 
-        return await FindDocumentsWithPredicateAsync(project, documents, HasIdentifierContainerPreprocessorDirectiveTrivia, cancellationToken)
+        return await FindDocumentsAsync(project, documents, HasDirectiveProbablyContainsIdentifier, symbol, cancellationToken)
             .ConfigureAwait(false);
 
-        bool HasIdentifierContainerPreprocessorDirectiveTrivia(SyntaxTreeIndex syntaxTreeIndex)
+        static async ValueTask<bool> HasDirectiveProbablyContainsIdentifier(Document document, IPreprocessingSymbol symbol, CancellationToken ct)
         {
-            return syntaxTreeIndex.ContainsIdentifierContainerPreprocessingDirective
-                && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
+            var root = await document.GetSyntaxRootAsync(ct).ConfigureAwait(false);
+            if (root is not { ContainsDirectives: true })
+                return false;
+
+            var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(ct).ConfigureAwait(false);
+            return syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
         }
     }
+
+    private static async ValueTask<ImmutableArray<FinderLocation>> FindPreprocessingReferencesInTokensAsync(
+        ISymbol symbol,
+        FindReferencesDocumentState state,
+        ImmutableArray<SyntaxToken> tokens,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
+        foreach (var token in tokens)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var matched = await PreprocessingSymbolMatchesAsync(
+                symbol, state, token, cancellationToken).ConfigureAwait(false);
+            if (matched)
+            {
+                var finderLocation = CreateFinderLocation(state, token, cancellationToken);
+
+                locations.Add(finderLocation);
+            }
+        }
+
+        return locations.ToImmutable();
+    }
+
+    private static async ValueTask<bool> PreprocessingSymbolMatchesAsync(ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
+    {
+        var preprocessingSearchSymbol = symbol as IPreprocessingSymbol;
+        Debug.Assert(preprocessingSearchSymbol is not null);
+
+        return await PreprocessingSymbolsMatchAsync(preprocessingSearchSymbol, state, token, cancellationToken).ConfigureAwait(false);
+    }
+    private static async ValueTask<bool> PreprocessingSymbolsMatchAsync(
+        IPreprocessingSymbol searchSymbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
+    {
+        var symbolInfo = state.Cache.GetPreprocessingSymbolInfo(token);
+        return await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static FinderLocation CreateFinderLocation(FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
+        => CreateFinderLocation(state, token, CandidateReason.None, cancellationToken);
 }
