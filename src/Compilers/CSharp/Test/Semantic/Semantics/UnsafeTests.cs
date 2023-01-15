@@ -9506,7 +9506,10 @@ class C
 }
 ";
             var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X t) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
         }
 
         [Fact]
@@ -9514,6 +9517,284 @@ class C
         {
             var csharp = @"
 using unsafe X = int*[];
+
+class C
+{
+    unsafe void M(X t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias13()
+        {
+            var csharp = @"
+using unsafe X = int*[][];
+
+class C
+{
+    void M(X t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X t) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias14()
+        {
+            var csharp = @"
+using unsafe X = int*[][];
+
+class C
+{
+    unsafe void M(X t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias1_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>;
+
+class C
+{
+    void M(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias2_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>;
+
+class C
+{
+    unsafe void M(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias3_FP()
+        {
+            var csharp = @"
+using X = delegate*<int,int>;
+
+class C
+{
+    void M(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = delegate*<int,int>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11),
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias4_FP()
+        {
+            var csharp = @"
+using X = delegate*<int,int>;
+
+class C
+{
+    unsafe void M(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = delegate*<int,int>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias5_FP()
+        {
+            var csharp = @"
+using X = delegate*<int,int>;
+
+class C
+{
+    void M(int* x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using X = delegate*<int,int>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = delegate*<int,int>;").WithLocation(2, 1),
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = delegate*<int,int>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11),
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(int* x) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias6_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>;
+
+class C
+{
+    unsafe void M((X x1, X x2) t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
+                //     unsafe void M((X x1, X x2) t) { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("delegate*<int, int>").WithLocation(6, 32),
+                // (6,32): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
+                //     unsafe void M((X x1, X x2) t) { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("delegate*<int, int>").WithLocation(6, 32));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias7_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>;
+
+class C
+{
+    unsafe void M(X[] t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias8_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>;
+
+class C
+{
+    void M(X[] t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X[] t) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias9_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>[];
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe X = delegate*<int,int>[];
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = delegate*<int,int>[];").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias10_FP()
+        {
+            var csharp = @"
+using X = delegate*<int,int>[];
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using X = delegate*<int,int>[];
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = delegate*<int,int>[];").WithLocation(2, 1),
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = delegate*<int,int>[];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias11_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>[];
+
+class C
+{
+    void M(X t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X t) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias12_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>[];
+
+class C
+{
+    unsafe void M(X t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias13_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>[][];
+
+class C
+{
+    void M(X t) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X t) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias14_FP()
+        {
+            var csharp = @"
+using unsafe X = delegate*<int,int>[][];
 
 class C
 {

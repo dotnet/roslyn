@@ -919,18 +919,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bindingResult.Kind == SymbolKind.Alias)
                 {
                     var aliasTarget = ((AliasSymbol)bindingResult).GetAliasTarget(basesBeingResolved);
-                    if (aliasTarget.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)aliasTarget).ContainsDynamic())
+                    if (aliasTarget is TypeSymbol type)
                     {
-                        ReportUseSiteDiagnosticForDynamic(diagnostics, node);
-                    }
+                        if (type.ContainsDynamic())
+                        {
+                            ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                        }
 
-                    if (aliasTarget.Kind is SymbolKind.PointerType or SymbolKind.FunctionPointerType)
-                        ReportUnsafeIfNotAllowed(node, diagnostics);
+                        if (type.IsUnsafe())
+                        {
+                            ReportUnsafeIfNotAllowed(node, diagnostics);
+                        }
+                    }
                 }
             }
 
             result.Free();
             return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
+
+            //static bool ContainsPointer(NamespaceOrTypeSymbol nsOrType)
+            //{
+            //    // pointers can only legall be within an array symbol.  In all other cases (like a named type like
+            //    // X<int*>) they are already illegal.  So we just need to unwrap arrays, then see if we're pointing
+            //    // directly at a pointer.
+            //    while (nsOrType is ArrayTypeSymbol array)
+            //        nsOrType = array.ElementType;
+
+            //    return nsOrType.Kind is SymbolKind.PointerType or SymbolKind.FunctionPointerType;
+            //}
         }
 
         /// <summary>
