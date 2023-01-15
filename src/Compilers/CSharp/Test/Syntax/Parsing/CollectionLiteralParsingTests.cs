@@ -1043,9 +1043,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingTree(
                 "_ = [:B];",
-                // (1,6): error CS1003: Syntax error, ',' expected
+                // (1,6): error CS1525: Invalid expression term ':'
                 // _ = [:B];
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 6));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 6));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1063,8 +1063,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.CollectionCreationExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.ExpressionElement);
+                                N(SyntaxKind.DictionaryElement);
                                 {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.ColonToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "B");
