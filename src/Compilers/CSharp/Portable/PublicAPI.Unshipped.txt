@@ -20,3 +20,4 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ScopedType(Microsoft.CodeAnal
 static Microsoft.CodeAnalysis.CSharpExtensions.ContainsDirective(this Microsoft.CodeAnalysis.SyntaxNode! node, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax! node) -> TResult?
+static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsIdentifierContainerDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
