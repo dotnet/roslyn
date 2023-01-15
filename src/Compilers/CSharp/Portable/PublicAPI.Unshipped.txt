@@ -3,6 +3,7 @@
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.WithScopedKeyword(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Name.get -> Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax!
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp11 = 1100 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Name.get -> Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax?
 Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax!
