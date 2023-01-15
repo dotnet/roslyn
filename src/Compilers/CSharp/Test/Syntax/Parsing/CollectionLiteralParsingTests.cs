@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Xunit;
 using Xunit.Abstractions;
 
@@ -974,9 +972,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingTree(
                 "_ = [:];",
-                // (1,6): error CS1003: Syntax error, ',' expected
+                // (1,6): error CS1525: Invalid expression term ':'
                 // _ = [:];
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 6));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 6),
+                // (1,7): error CS1525: Invalid expression term ']'
+                // _ = [:];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 7));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -994,6 +995,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.CollectionCreationExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.DictionaryElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
                                 N(SyntaxKind.CloseBracketToken);
                             }
                         }
