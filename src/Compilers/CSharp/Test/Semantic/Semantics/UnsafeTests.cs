@@ -9314,5 +9314,65 @@ namespace Interop
             var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestUnsafeAlias1()
+        {
+            var csharp = @"
+using unsafe X = int*;
+
+class C
+{
+    void M(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias2()
+        {
+            var csharp = @"
+using unsafe X = int*;
+
+class C
+{
+    unsafe void M(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias3()
+        {
+            var csharp = @"
+using X = int*;
+
+class C
+{
+    void M(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias4()
+        {
+            var csharp = @"
+using X = int*;
+
+class C
+{
+    unsafe void M(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
     }
 }
