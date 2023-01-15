@@ -115,6 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => syntaxTree.IsPreProcessorDirectiveContext(
                 position, syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true), cancellationToken);
 
+        public bool IsIdentifierContainerPreprocessorDirectiveTrivia(SyntaxNode node)
+            => SyntaxFacts.IsIdentifierContainerDirectiveTrivia(node.Kind());
+
         public bool IsEntirelyWithinStringOrCharOrNumericLiteral([NotNullWhen(true)] SyntaxTree? syntaxTree, int position, CancellationToken cancellationToken)
         {
             if (syntaxTree == null)

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -35,10 +33,10 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
         {
             var syntaxFacts = state.SyntaxFacts;
 
-            // Quickly evaluate the common case that the parent is a #define or #undef directive
             var tokenParent = token.Parent;
             Debug.Assert(tokenParent is not null);
 
+            // Quickly evaluate the common case that the parent is a #define or #undef directive
             var parentKind = tokenParent.RawKind;
             if (parentKind == syntaxFacts.SyntaxKinds.DefineDirectiveTrivia)
                 return true;
@@ -46,14 +44,14 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
             if (parentKind == syntaxFacts.SyntaxKinds.UndefDirectiveTrivia)
                 return true;
 
-            // Only inside an #if or #elif directive are preprocessor symbols used
+            // Only inside an #if or #elif directive are preprocessing symbols used
             return syntaxFacts.SpansIfOrElseIfPreprocessorDirective(tokenParent);
         }
     }
 
     protected override bool CanFind(IPreprocessingSymbol symbol) => true;
 
-    protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
         IPreprocessingSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
@@ -70,6 +68,14 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
         //       and line.
         //       After all, writing any name for a preprocessing symbol, defined or not, is valid and will
         //       be computed during preprocessing evaluation of the tree
-        return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
+
+        return await FindDocumentsWithPredicateAsync(project, documents, HasIdentifierContainerPreprocessorDirectiveTrivia, cancellationToken)
+            .ConfigureAwait(false);
+
+        bool HasIdentifierContainerPreprocessorDirectiveTrivia(SyntaxTreeIndex syntaxTreeIndex)
+        {
+            return syntaxTreeIndex.ContainsIdentifierContainerPreprocessingDirective
+                && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
+        }
     }
 }

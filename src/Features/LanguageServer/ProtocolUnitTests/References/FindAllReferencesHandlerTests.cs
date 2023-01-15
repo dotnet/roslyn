@@ -308,6 +308,11 @@ namespace MoreSimpleNamespace;
 #else
 namespace ComplexNamespace;
 #endif
+
+// PREPROCESSING_SYMBOL
+class PREPROCESSING_SYMBOL
+{
+}
 ";
             await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
