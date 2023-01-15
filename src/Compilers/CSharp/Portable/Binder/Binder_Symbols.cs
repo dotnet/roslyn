@@ -923,6 +923,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                     }
+
+                    if (aliasTarget.Kind is SymbolKind.PointerType or SymbolKind.FunctionPointerType)
+                        ReportUnsafeIfNotAllowed(node, diagnostics);
                 }
             }
 
