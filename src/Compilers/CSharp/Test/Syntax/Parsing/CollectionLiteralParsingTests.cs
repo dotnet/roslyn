@@ -850,6 +850,77 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void BinaryOperator()
+        {
+            UsingTree("_ = [A, B] + [C, D];");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.AddExpression);
+                            {
+                                N(SyntaxKind.CollectionCreationExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.CollectionCreationExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "C");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "D");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void EmptyCollection()
         {
             UsingTree("_ = [];");
@@ -968,6 +1039,97 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void DictionarySyntaxMissingKey()
+        {
+            UsingTree(
+                "_ = [:B];",
+                // (1,6): error CS1003: Syntax error, ',' expected
+                // _ = [:B];
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 6));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.CollectionCreationExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DictionarySyntaxMissingValue()
+        {
+            UsingTree(
+                "_ = [A:];",
+                // (1,8): error CS1525: Invalid expression term ']'
+                // _ = [A:];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 8));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.CollectionCreationExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.DictionaryElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void DictionarySyntaxMissingKeyAndValue()
         {
             UsingTree(
@@ -1005,6 +1167,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     M(SyntaxKind.IdentifierName);
                                     {
                                         M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DictionaryWithTypeExpressions()
+        {
+            UsingTree("_ = [A::B: C::D];");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.CollectionCreationExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.DictionaryElement);
+                                {
+                                    N(SyntaxKind.AliasQualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                        N(SyntaxKind.ColonColonToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.AliasQualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "C");
+                                        }
+                                        N(SyntaxKind.ColonColonToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "D");
+                                        }
                                     }
                                 }
                                 N(SyntaxKind.CloseBracketToken);
