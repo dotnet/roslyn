@@ -819,6 +819,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
+                // In the case where we don't have an alias, only parse out a name for this using-directive.  This is
+                // worse for error recovery, but it means all code that consumes a using-directive can keep on assuming
+                // it has a name when there is no alias.  Only code that specifically has to process aliases then has to
+                // deal with getting arbitrary types back.
                 type = alias == null ? this.ParseQualifiedName() : this.ParseType();
 
                 if (type is RefTypeSyntax)
