@@ -2558,6 +2558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.GlobalKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind);
             Assert.Null(node.StaticKeyword);
+            Assert.Null(node.UnsafeKeyword);
             Assert.Null(node.Alias);
             Assert.NotNull(node.Type);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
@@ -10427,7 +10428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.ExternAliasDirective(SyntaxFactory.Token(SyntaxKind.ExternKeyword), SyntaxFactory.Token(SyntaxKind.AliasKeyword), SyntaxFactory.Identifier("Identifier"), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static UsingDirectiveSyntax GenerateUsingDirective()
-            => SyntaxFactory.UsingDirective(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.UsingKeyword), default(SyntaxToken), default(NameEqualsSyntax), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => SyntaxFactory.UsingDirective(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.UsingKeyword), default(SyntaxToken), default(SyntaxToken), default(NameEqualsSyntax), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
             => SyntaxFactory.NamespaceDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<ExternAliasDirectiveSyntax>(), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<MemberDeclarationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default(SyntaxToken));
@@ -12530,10 +12531,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.GlobalKeyword.Kind());
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind());
             Assert.Equal(SyntaxKind.None, node.StaticKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.UnsafeKeyword.Kind());
             Assert.Null(node.Alias);
-            Assert.NotNull(node.Name);
+            Assert.NotNull(node.Type);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
-            var newNode = node.WithGlobalKeyword(node.GlobalKeyword).WithUsingKeyword(node.UsingKeyword).WithStaticKeyword(node.StaticKeyword).WithAlias(node.Alias).WithName(node.Name).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithGlobalKeyword(node.GlobalKeyword).WithUsingKeyword(node.UsingKeyword).WithStaticKeyword(node.StaticKeyword).WithUnsafeKeyword(node.UnsafeKeyword).WithAlias(node.Alias).WithType(node.Type).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
 
