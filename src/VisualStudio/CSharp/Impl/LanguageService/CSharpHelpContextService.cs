@@ -546,7 +546,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         public override string? FormatSymbol(ISymbol? symbol)
         {
-            if (symbol == null)
+            if (symbol is null)
+                return null;
+
+            // Currently consider not finding help for a preprocessing symbol
+            if (symbol is IPreprocessingSymbol)
                 return null;
 
             if (symbol is ITypeSymbol or INamespaceSymbol)
