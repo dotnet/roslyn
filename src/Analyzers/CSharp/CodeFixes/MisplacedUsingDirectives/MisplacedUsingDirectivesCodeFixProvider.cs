@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static async Task<SyntaxNode> ExpandUsingDirectiveAsync(Document document, UsingDirectiveSyntax usingDirective, CancellationToken cancellationToken)
         {
-            var newName = await Simplifier.ExpandAsync(usingDirective.Name, document, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return usingDirective.WithName(newName);
+            var newType = await Simplifier.ExpandAsync(usingDirective.Type, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return usingDirective.WithType(newType);
         }
 
         private static CompilationUnitSyntax MoveUsingsInsideNamespace(CompilationUnitSyntax compilationUnit)
