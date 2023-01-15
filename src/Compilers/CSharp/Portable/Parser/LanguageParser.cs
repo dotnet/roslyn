@@ -10271,6 +10271,7 @@ tryAgain:
                 case SyntaxKind.ArrayCreationExpression:
                 case SyntaxKind.BaseExpression:
                 case SyntaxKind.CharacterLiteralExpression:
+                case SyntaxKind.CollectionCreationExpression:
                 case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.DeclarationExpression:
                 case SyntaxKind.DefaultExpression:
@@ -12064,13 +12065,13 @@ tryAgain:
         {
             var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
 
-            var expression = this.ParseExpression();
+            var expression = this.ParseExpressionCore();
             if (dotDotToken != null)
                 return _syntaxFactory.SpreadElement(dotDotToken, expression);
 
             var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
             if (colonToken != null)
-                return _syntaxFactory.DictionaryElement(expression, colonToken, this.ParseExpression());
+                return _syntaxFactory.DictionaryElement(expression, colonToken, this.ParseExpressionCore());
 
             return _syntaxFactory.ExpressionElement(expression);
         }
