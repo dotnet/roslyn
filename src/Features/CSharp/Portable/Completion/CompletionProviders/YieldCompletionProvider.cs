@@ -54,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             yield return CommonCompletionItem.Create(
                 displayText: "yield return",
                 displayTextSuffix: "",
-                sortText: "yield1", // Hack to unsure `yield return` comes before `yield break` as more commonly used one
+                sortText: "yield1", // Hack to ensure `yield return` comes before `yield break` as more commonly used one
                 filterText: "yieldReturn", // Uppercase R and no space to select "yield return" if "yr" is written.
                 glyph: Glyph.Keyword,
                 rules: CompletionItemRules.Default);
             yield return CommonCompletionItem.Create(
                 displayText: "yield break",
                 displayTextSuffix: "",
-                sortText: "yield2", // Hack to unsure `yield break` comes after `yield return` as less commonly used one
+                sortText: "yield2", // Hack to ensure `yield break` comes after `yield return` as less commonly used one
                 filterText: "yieldBreak", // Uppercase B and no space to select "yield break" if "yb" is written.
                 glyph: Glyph.Keyword,
                 rules: CompletionItemRules.Default);
