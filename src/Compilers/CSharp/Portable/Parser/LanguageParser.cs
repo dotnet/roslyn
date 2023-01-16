@@ -7121,12 +7121,14 @@ done:;
                     case ParseTypeMode.AfterIs:
                     case ParseTypeMode.DefinitePattern:
                     case ParseTypeMode.AsExpression:
-                        // These contexts might be a type that is at the end of an expression.
-                        // In these contexts we only permit the nullable qualifier if it is followed
-                        // by a token that could not start an expression, because for backward
-                        // compatibility we want to consider a `?` token as part of the `?:`
-                        // operator if possible.
-                        return !CanStartExpression();
+                        // These contexts might be a type that is at the end of an expression. In these contexts we only
+                        // permit the nullable qualifier if it is followed by a token that could not start an
+                        // expression, because for backward compatibility we want to consider a `?` token as part of the
+                        // `?:` operator if possible.
+                        //
+                        // Similarly, if we have `T?[]` we do want to treat that as an array of nullables (following
+                        // existing parsing), not a conditional that returns a list.
+                        return !CanStartExpression() || this.CurrentToken.Kind is SyntaxKind.OpenBracketToken;
                     case ParseTypeMode.NewExpression:
                         // A nullable qualifier is permitted as part of the type in a `new` expression.
                         // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
