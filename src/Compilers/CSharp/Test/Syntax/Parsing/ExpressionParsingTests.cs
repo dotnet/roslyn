@@ -5969,6 +5969,11 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionCreationExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
