@@ -11099,6 +11099,7 @@ tryAgain:
                 // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
                 using var _ = GetDisposableResetPoint(resetOnDispose: true);
 
+                this.EatToken();
                 var collectionExpression = this.ParseCollectionCreationExpression();
 
                 // PROTOTYPE: Def back compat concern here.  What if the user has `x ? y?[0] : z` this would be legal,
