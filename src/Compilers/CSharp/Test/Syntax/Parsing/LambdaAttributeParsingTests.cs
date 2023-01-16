@@ -279,24 +279,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // [A] ref x => x
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("ref").WithLocation(1, 1));
 
-            N(SyntaxKind.ElementAccessExpression);
+            N(SyntaxKind.CollectionCreationExpression);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                N(SyntaxKind.BracketedArgumentList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Argument);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
+                        N(SyntaxKind.IdentifierToken, "A");
                     }
-                    N(SyntaxKind.CloseBracketToken);
                 }
+                N(SyntaxKind.CloseBracketToken);
             }
             EOF();
         }
@@ -310,24 +303,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // [A] in x => x
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("in").WithLocation(1, 1));
 
-            N(SyntaxKind.ElementAccessExpression);
+            N(SyntaxKind.CollectionCreationExpression);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                N(SyntaxKind.BracketedArgumentList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Argument);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
+                        N(SyntaxKind.IdentifierToken, "A");
                     }
-                    N(SyntaxKind.CloseBracketToken);
                 }
+                N(SyntaxKind.CloseBracketToken);
             }
             EOF();
         }
@@ -1208,24 +1194,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.MinusMinusToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionCreationExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1250,24 +1229,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.ExclamationToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionCreationExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1384,24 +1356,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.AsteriskToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionCreationExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1946,35 +1911,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.RangeExpression);
                         {
                             N(SyntaxKind.DotDotToken);
-                        }
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Argument);
-                    {
-                        N(SyntaxKind.ParenthesizedLambdaExpression);
-                        {
-                            N(SyntaxKind.AttributeList);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
+                                N(SyntaxKind.CollectionCreationExpression);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "A");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
                                     }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
                             }
                         }
                     }
