@@ -5665,7 +5665,7 @@ class C
                         "service"
                     }
 
-                state.AssertItemsInOrder(expectedOrder)
+                state.AssertCompletionItemsInOrder(expectedOrder)
             End Using
         End Function
 
@@ -7827,7 +7827,7 @@ namespace NS
                         "ATaAaSaKa"
                     }
 
-                state.AssertItemsInOrder(expectedOrder)
+                state.AssertCompletionItemsInOrder(expectedOrder)
             End Using
         End Function
 
@@ -7887,7 +7887,7 @@ namespace NS2
                         ("MyTask2", "NS2"),
                         ("MyTask3", "NS2")
                     }
-                state.AssertItemsInOrder(expectedOrder)
+                state.AssertCompletionsItemsInOrder(expectedOrder)
             End Using
         End Function
 
@@ -8418,7 +8418,7 @@ namespace B
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.SendInvokeCompletionList()
-                state.AssertItemsInOrder(New String() {
+                state.AssertCompletionItemsInOrder(New String() {
                     "A", ' Method, properties, and imported extension methods alphabetical ordered
                     "AM",
                     "Equals",
@@ -11084,7 +11084,7 @@ class C
                 </Document>)
 
                 state.SendTypeChars("yie")
-                state.AssertItemsInOrder({"yield", "yield return", "yield break"})
+                state.AssertCompletionItemsInOrder({"yield", "yield return", "yield break"})
             End Using
         End Sub
 

@@ -381,22 +381,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.True(items.Any(predicate))
         End Function
 
-        Public Sub AssertItemsInOrder(expectedOrder As String())
+        Public Sub AssertCompletionItemsInOrder(expectedOrder As String())
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
             Dim items = session.GetComputedItems(CancellationToken.None).Items
-            Assert.Equal(expectedOrder.Count, items.Count)
-            For i = 0 To expectedOrder.Count - 1
+            Assert.Equal(expectedOrder.Length, items.Count)
+            For i = 0 To expectedOrder.Length - 1
                 Assert.Equal(expectedOrder(i), items(i).DisplayText)
             Next
         End Sub
 
-        Public Sub AssertItemsInOrder(expectedOrder As (String, String)())
+        Public Sub AssertCompletionsItemsInOrder(expectedOrder As (String, String)())
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
             Dim items = session.GetComputedItems(CancellationToken.None).Items
-            Assert.Equal(expectedOrder.Count, items.Count)
-            For i = 0 To expectedOrder.Count - 1
+            Assert.Equal(expectedOrder.Length, items.Count)
+            For i = 0 To expectedOrder.Length - 1
                 Assert.Equal(expectedOrder(i).Item1, items(i).DisplayText)
                 Assert.Equal(expectedOrder(i).Item2, items(i).Suffix)
             Next
