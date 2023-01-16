@@ -11049,5 +11049,79 @@ class Program
                 Await state.AssertCompletionItemsContain("string", displayTextSuffix:="")
             End Using
         End Function
+
+        <WpfFact, WorkItem(65390, "https://github.com/dotnet/roslyn/issues/65390")>
+        Public Async Function TestKeepSingleYieldSelectedByDefault() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        $$
+    }
+}
+                </Document>)
+
+                state.SendTypeChars("yie")
+                Await state.AssertSelectedCompletionItem("yield")
+                Await state.AssertCompletionItemsContain("yield return", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("yield break", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(65390, "https://github.com/dotnet/roslyn/issues/65390")>
+        Public Sub TestShowYieldReturnBeforeYieldBreak()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        $$
+    }
+}
+                </Document>)
+
+                state.SendTypeChars("yie")
+                state.AssertItemsInOrder({"yield", "yield return", "yield break"})
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(65390, "https://github.com/dotnet/roslyn/issues/65390")>
+        Public Async Function TestShowYieldReturnWhenTypingYr() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        $$
+    }
+}
+                </Document>)
+
+                state.SendTypeChars("yr")
+                Await state.AssertSelectedCompletionItem("yield return")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(65390, "https://github.com/dotnet/roslyn/issues/65390")>
+        Public Async Function TestShowYieldBreakWhenTypingYb() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        $$
+    }
+}
+                </Document>)
+
+                state.SendTypeChars("yb")
+                Await state.AssertSelectedCompletionItem("yield break")
+            End Using
+        End Function
     End Class
 End Namespace
