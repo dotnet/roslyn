@@ -11052,6 +11052,7 @@ class Program
 
         <WpfFact, WorkItem(65390, "https://github.com/dotnet/roslyn/issues/65390")>
         Public Async Function TestKeepSingleYieldSelectedByDefault() As Task
+            ' Delete if single `yield` keyword completion is decided to be removed
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 class C
