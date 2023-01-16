@@ -524,11 +524,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0]')
       IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
         Children(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term '['
-                //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(6, 27)
-            };
+            var expectedDiagnostics = new DiagnosticDescription[] { };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
