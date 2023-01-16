@@ -548,7 +548,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 }
                             }
 
-
                             goto default;
 
                         default:
@@ -10057,7 +10056,7 @@ tryAgain:
         /// </summary>
         private bool CanStartExpression()
         {
-            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false, allowAttributes: false);
+            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false);
         }
 
         /// <summary>
@@ -10065,10 +10064,10 @@ tryAgain:
         /// </summary>
         private bool IsPossibleExpression()
         {
-            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true, allowAttributes: true);
+            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true);
         }
 
-        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions, bool allowAttributes)
+        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions)
         {
             SyntaxKind tk = this.CurrentToken.Kind;
             switch (tk)
