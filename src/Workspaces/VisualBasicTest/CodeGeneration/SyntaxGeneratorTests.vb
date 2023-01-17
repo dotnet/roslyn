@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -42,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
             Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
-            AssertEx.Equal(fixedExpectations, normalized)
+            Assert.Equal(fixedExpectations, normalized)
         End Sub
 
         Private Shared Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -2110,7 +2109,7 @@ Dim y As x")
                         Generator.Attribute("a")),
                     Generator.Attribute("b")),
 "<a>
-                                                                                                                                                            <b>
+<b>
 Dim y As x")
 
             VerifySyntax(Of MethodStatementSyntax)(
@@ -2211,7 +2210,7 @@ End Namespace
                         Generator.Attribute("a")),
                     Generator.Attribute("b")),
 "<Assembly:a>
-                                                                                                                                                                                                                <Assembly:b>
+<Assembly:b>
 Namespace n
 End Namespace
 ")
@@ -3610,7 +3609,7 @@ End Class")
                 Generator.InsertAttributes(declC, 0, Generator.Attribute("A")),
 "' Comment
 <A>
-                                                                                                                                                                                                                                                                                                                                                                                                                                <X, Y, Z>
+<X, Y, Z>
 Public Class C
 End Class")
 
@@ -3618,8 +3617,8 @@ End Class")
                 Generator.InsertAttributes(declC, 1, Generator.Attribute("A")),
 "' Comment
 <X>
-                                                                                                                                                                                                                                                                                                                                                                                                                                        <A>
-                                                                                                                                                                                                                                                                                                                                                                                                                                            <Y, Z>
+<A>
+<Y, Z>
 Public Class C
 End Class")
 
@@ -3627,8 +3626,8 @@ End Class")
                 Generator.InsertAttributes(declC, 2, Generator.Attribute("A")),
 "' Comment
 <X, Y>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                    <A>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Z>
+<A>
+<Z>
 Public Class C
 End Class")
 
@@ -3636,7 +3635,7 @@ End Class")
                 Generator.InsertAttributes(declC, 3, Generator.Attribute("A")),
 "' Comment
 <X, Y, Z>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                <A>
+<A>
 Public Class C
 End Class")
 
