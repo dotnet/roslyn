@@ -5664,7 +5664,7 @@ tryAgain:
             {
                 var saveTerm = _termState;
                 _termState = TerminatorState.IsEndOfTypeArgumentList;
-                attrs = this.ParseAttributeDeclarations(inExpressionContext: true);
+                attrs = this.ParseAttributeDeclarations(inExpressionContext: false);
                 _termState = saveTerm;
             }
 
