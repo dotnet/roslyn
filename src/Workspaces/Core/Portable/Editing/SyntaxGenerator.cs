@@ -257,6 +257,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a parameter declaration.
         /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public SyntaxNode ParameterDeclaration(
             string name,
             SyntaxNode? type = null,
@@ -265,6 +266,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         private protected abstract SyntaxNode ParameterDeclaration(
             string name,
