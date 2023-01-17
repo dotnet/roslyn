@@ -36,6 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("abc(1).cs")]
         [InlineData("abc[1].cs")]
         [InlineData("abc{1}.cs")]
+        [InlineData("..")]
+        [InlineData(".")]
+        [InlineData("abc/")]
+        [InlineData("abc/ ")]
+        [InlineData("a/b/c")]
+        [InlineData(" abc ")]
+        [InlineData(" abc/generated.cs")]
+        [InlineData(" a/ b/ generated.cs")]
         [WorkItem(58476, "https://github.com/dotnet/roslyn/issues/58476")]
         public void HintName_ValidValues(string hintName)
         {
@@ -76,12 +84,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("|")]
         [InlineData("\0")]
         [InlineData("abc\u00A0.cs")] // unicode non-breaking space
+        [InlineData("/..")]
+        [InlineData("\\..")]
+        [InlineData("//")]
+        [InlineData("../")]
+        [InlineData("./")]
+        [InlineData(" /")]
+        [InlineData(" /generated.cs")]
+        [InlineData(" /a/generated.cs")]
+        [InlineData(" /abc")]
+        [InlineData(" /a/ b/c/ ")]
+        [InlineData(" a/ b /c ")]
+        [InlineData(" /a/ b/c/ generated.cs")]
+        [InlineData(" a/ b /c generated.cs")]
+        [InlineData(" abc /generated.cs")]
         public void HintName_InvalidValues(string hintName)
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             var exception = Assert.Throws<ArgumentException>(nameof(hintName), () => asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8)));
 
-            Assert.Contains(hintName, exception.Message);
+            Assert.Contains(hintName.Replace('\\', '/'), exception.Message);
         }
 
         [Fact]

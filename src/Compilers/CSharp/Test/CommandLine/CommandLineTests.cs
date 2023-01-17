@@ -13442,6 +13442,39 @@ class C
             Directory.Delete(dir.Path, true);
         }
 
+        [Theory]
+        [InlineData("subdir")]
+        [InlineData("a/b/c")]
+        [InlineData(" subdir")]
+        [InlineData(" a/ b/ c")]
+        public void SourceGenerators_WriteGeneratedSources_WithDirectories(string subdir)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+                class C
+                {
+                }
+                """);
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generatedFileName = "generatedSource.cs";
+            var generatedPath = Path.Combine(subdir, generatedFileName);
+            var generator = new SingleFileTestGenerator(generatedSource, generatedPath);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateWrittenSources(new()
+            {
+                { Path.Combine(generatedDir.Path, generatorPrefix, subdir), new() { { generatedFileName, generatedSource } } }
+            });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
         [ConditionalFact(typeof(DesktopClrOnly))]  //CoreCLR doesn't support SxS loading
         [WorkItem(47990, "https://github.com/dotnet/roslyn/issues/47990")]
         public void SourceGenerators_SxS_AssemblyLoading()
