@@ -8187,7 +8187,7 @@ done:;
             return null;
         }
 
-        private BlockSyntax ParsePossiblyAttributedBlock() => ParseBlock(this.ParseAttributeDeclarations(inExpressionContext: true));
+        private BlockSyntax ParsePossiblyAttributedBlock() => ParseBlock(this.ParseAttributeDeclarations(inExpressionContext: false));
 
         /// <summary>
         /// Used to parse the block-body for a method or accessor.  For blocks that appear *inside*
