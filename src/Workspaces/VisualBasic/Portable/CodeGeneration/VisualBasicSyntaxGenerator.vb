@@ -404,7 +404,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return namespaceOrTypeSymbol.GenerateTypeSyntax()
         End Function
 
-        Public Overrides Function TypeExpression(typeSymbol As ITypeSymbol) As SyntaxNode
+        Private Protected Overrides Function TypeExpression(typeSymbol As ITypeSymbol, refKind As RefKind) As SyntaxNode
+            ' VB doesn't support explicit ref-kinds for types.
             Return typeSymbol.GenerateTypeSyntax()
         End Function
 

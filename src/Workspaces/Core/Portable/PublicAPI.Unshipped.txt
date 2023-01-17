@@ -1,3 +1,4 @@
+*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TypeExpression(Microsoft.CodeAnalysis.ITypeSymbol typeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext(Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.Diagnostic diagnostic, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext(Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument
@@ -17,6 +18,7 @@ Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> M
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.SolutionServices services) -> void
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TypeExpression(Microsoft.CodeAnalysis.ITypeSymbol typeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Host.HostLanguageServices.LanguageServices.get -> Microsoft.CodeAnalysis.Host.LanguageServices
 Microsoft.CodeAnalysis.Host.LanguageServices
 Microsoft.CodeAnalysis.Host.LanguageServices.GetRequiredService<TLanguageService>() -> TLanguageService
