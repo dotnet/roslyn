@@ -524,7 +524,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case SyntaxKind.OpenBracketToken:
                             if (this.IsPossibleGlobalAttributeDeclaration())
                             {
-                                // Could be an attribute, or it could be a collection literal at the top level.  e.g. `[1, 2, 3].XYZ();`
+                                // Could be an attribute, or it could be a collection literal at the top level.  e.g.
+                                // `[assembly: 1].XYZ();`. While this is definitely odd code, it is totally legal (as
+                                // `assembly` is just an identifier).
                                 var attribute = this.TryParseAttributeDeclaration(inExpressionContext: parentKind == SyntaxKind.CompilationUnit);
                                 if (attribute != null)
                                 {
