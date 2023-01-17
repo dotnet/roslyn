@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var label in node.SwitchLabels)
             {
                 TakeIncrementalSnapshot(label);
+                VisitForRewriting(label.Pattern);
 
                 if (!State.Reachable && label.WhenClause != null)
                 {
@@ -289,7 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitForRewriting(label.WhenClause);
                 }
 
-                VisitForRewriting(label.Pattern);
                 VisitLabel(label.Label, node);
             }
 
@@ -872,6 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(getStateForArm(arm, labelStateMap));
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
                 TakeIncrementalSnapshot(arm);
+                VisitForRewriting(arm.Pattern);
 
                 if (!State.Reachable && arm.WhenClause != null)
                 {
@@ -879,7 +880,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitForRewriting(arm.WhenClause);
                 }
 
-                VisitForRewriting(arm.Pattern);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
                 SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
