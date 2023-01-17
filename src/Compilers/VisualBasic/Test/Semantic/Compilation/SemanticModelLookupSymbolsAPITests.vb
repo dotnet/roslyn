@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -914,6 +915,40 @@ End Class
             result.Free()
         End Sub
 
+        <Fact>
+        Public Sub LookupExtensionMethodOnReceiverTypeSystemVoid()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Structure C
+    Public Sub M()
+        ' in M
+    End Sub
+End Structure
+Module E
+    <Extension()>
+    Friend Sub ExtMethod(o As ValueType)
+    End Sub
+End Module
+]]></file>
+</compilation>, {TestMetadata.Net40.SystemCore})
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim posInside As Integer = CompilationUtils.FindPositionFromText(tree, "' in M")
+
+            ' Lookup should return ExtMethod for object of type C
+            Dim actual_lookupSymbols = semanticModel.LookupSymbols(posInside, container:=compilation.GetTypeByMetadataName("C"), includeReducedExtensionMethods:=True)
+            Dim actual_lookupSymbols_as_string = actual_lookupSymbols.Select(Function(e) e.ToTestDisplayString())
+            Assert.Contains("Sub System.ValueType.ExtMethod()", actual_lookupSymbols_as_string)
+
+            ' Lookup should not return ExtMethod for object of System>Void, even though it's a ValueType
+            actual_lookupSymbols = semanticModel.LookupSymbols(posInside, container:=compilation.GetSpecialType(SpecialType.System_Void), includeReducedExtensionMethods:=True)
+            actual_lookupSymbols_as_string = actual_lookupSymbols.Select(Function(e) e.ToTestDisplayString())
+            Assert.DoesNotContain("Sub System.ValueType.ExtMethod()", actual_lookupSymbols_as_string)
+        End Sub
 #End Region
 
 #Region "Regression"

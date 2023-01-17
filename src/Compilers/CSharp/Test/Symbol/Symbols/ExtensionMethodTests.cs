@@ -4102,6 +4102,9 @@ public static class C
 
             var reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, null!);
             Assert.Null(reduced);
+
+            reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, compilation);
+            Assert.Null(reduced);
         }
     }
 }
