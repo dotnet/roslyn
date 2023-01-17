@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.NormalizeWhitespace().ToFullString();
-            Assert.Equal(expectedText, normalized);
+            AssertEx.Equal(expectedText, normalized);
         }
 
         private static void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
@@ -1637,6 +1637,20 @@ public interface IFace
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.FieldDeclaration("f", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Sealed) }),
                 "interface i\r\n{\r\n    t f { get; set; }\r\n}");
+        }
+
+        [Fact, WorkItem(66377, "https://github.com/dotnet/roslyn/issues/66377")]
+        public void TestInterfaceVariance()
+        {
+            var compilation = Compile("""
+                interface I<in X, out Y> { }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("I").Single();
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                "internal interface I<in X, out Y>\r\n{\r\n}");
         }
 
         [Fact]
