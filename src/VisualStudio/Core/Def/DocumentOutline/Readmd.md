@@ -8,7 +8,7 @@ The intended design is that the LSP protocol (specifically the document symbol A
 
 ### Visual Studio API and Document Outline Lifecycle
 
-Visual Studio calls us whenever a code window is opened. This can be opening a file for the first time, or switching focus to it in the editor. Once this happens we create an instance of the document outline window and kickoff an LSP request to populate ourselves. Once focus changes to another window, we are disposed and we cancel all ongoing background work. Because of this life cycle it is expected that we are associated with one text buffer at a time and it would be a Visual Studio editor bug to arbitrarily attach is to a different buffer after we are created.
+Visual Studio calls us whenever a code window is opened. This can be opening a file for the first time, or switching focus to it in the editor. Once this happens we create an instance of the document outline window and kickoff an LSP request to populate ourselves. Once focus changes to another window, we are disposed and we cancel all ongoing background work. Because of this life cycle it is expected that we are associated with one text buffer at a time and it would be a Visual Studio editor bug to arbitrarily attach to a different buffer after we are created.
 
 ### Sorting
 
