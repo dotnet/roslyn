@@ -12063,13 +12063,13 @@ tryAgain:
                             list.Add(this.ParseCollectionElement());
                             continue;
                         }
-                        else if (SkipBadCollectionCreationExpressionTokens(ref openBracket, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                        else if (skipBadCollectionCreationExpressionTokens(ref openBracket, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                         {
                             break;
                         }
                     }
                 }
-                else if (SkipBadCollectionCreationExpressionTokens(ref openBracket, list, SyntaxKind.CommaToken) == PostSkipAction.Continue)
+                else if (skipBadCollectionCreationExpressionTokens(ref openBracket, list, SyntaxKind.CommaToken) == PostSkipAction.Continue)
                 {
                     goto tryAgain;
                 }
@@ -12080,7 +12080,7 @@ tryAgain:
                 _pool.ToListAndFree(list),
                 this.EatToken(SyntaxKind.CloseBracketToken));
 
-            PostSkipAction SkipBadCollectionCreationExpressionTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<CollectionElementSyntax> list, SyntaxKind expected)
+            PostSkipAction skipBadCollectionCreationExpressionTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<CollectionElementSyntax> list, SyntaxKind expected)
             {
                 return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
                     p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleCollectionCreationExpression(),
