@@ -9038,6 +9038,8 @@ public class MyAttribute : System.Attribute
 }
 ";
             var comp = CreateCompilation(source);
+
+            // PROTOTYPE: Should report CS0103: The name 'parameter' does not exist in the current context
             comp.VerifyDiagnostics(
                 // (6,59): error CS1002: ; expected
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
