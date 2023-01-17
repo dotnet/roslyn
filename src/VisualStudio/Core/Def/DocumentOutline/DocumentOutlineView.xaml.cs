@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly ICollectionView _collectionView;
 
         // Used to suspend all event handlers for caret movement while we navigate the cursor
-        // Should only be written to withing the SymbolTree_MouseDown method which always
+        // Should only be written to within the SymbolTree_MouseDown method which always
         // is called by WPF on the UI thread.
         private bool _isNavigating;
 
