@@ -2,7 +2,7 @@
 
 ## Design
 
-The intended design is that the LSP protocol (specifically the document symbol api) provides all of the data we need to populate this feature. User interactions are queued and processed after a slight delay (250 ms) to ensure that multiple UI operations do not cause things to lock up. All the user interactions are received on the UI thread before being queued for processing. Events such as the text document changing can come in from any thread.
+The intended design is that the LSP protocol (specifically the document symbol API) provides all of the data we need to populate this feature. User interactions are queued and processed after a slight delay (250 ms) to ensure that multiple UI operations do not cause things to lock up. All the user interactions are received on the UI thread before being queued for processing. Events such as the text document changing can come in from any thread.
 
 ## Implementation Notes
 
