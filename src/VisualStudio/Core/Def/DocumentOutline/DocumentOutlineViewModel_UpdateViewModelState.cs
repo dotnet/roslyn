@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -23,16 +23,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// Queue for updating the state of the view model
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<ViewModelStateData> _updateViewModelStateQueue;
+        private readonly AsyncBatchingWorkQueue<ViewModelStateDataChange> _updateViewModelStateQueue;
 
         public void EnqueueFilter(string newText)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateData(newText, null, null, false));
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, null, null, false));
 
         public void EnqueueSelectTreeNode(CaretPosition caretPoint)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateData(null, caretPoint, null, false));
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(null, caretPoint, null, false));
 
         public void EnqueueExpandOrCollapse(ExpansionOption option)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateData(null, null, option, false));
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(null, null, option, false));
 
         /// <summary>
         /// state that is only updated in <see cref="UpdateViewModelStateAsync"/>
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private CaretPosition? _currentCaretPosition = null;
         private ExpansionOption? _currentExpansionOption = null;
 
-        private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<ViewModelStateData> viewModelStateData, CancellationToken cancellationToken)
+        private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<ViewModelStateDataChange> viewModelStateData, CancellationToken cancellationToken)
         {
             var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             Assumes.NotNull(model); // This can only be null if no work was ever enqueued, we expect at least one item to always have been queued in the constructor

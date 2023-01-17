@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
-            _updateViewModelStateQueue.AddWork(new ViewModelStateData(null, null, null, true));
+            _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(null, null, null, true));
 
             return model;
         }
