@@ -12986,7 +12986,7 @@ tryAgain:
 
         private ParameterSyntax ParseLambdaParameter()
         {
-            var attributes = ParseAttributeDeclarations(inExpressionContext: true);
+            var attributes = ParseAttributeDeclarations(inExpressionContext: false);
 
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
