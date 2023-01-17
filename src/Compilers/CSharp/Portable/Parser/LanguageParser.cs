@@ -905,22 +905,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? _syntaxFactory.AttributeTargetSpecifier(ConvertToKeyword(this.EatToken()), this.EatToken(SyntaxKind.ColonToken))
                 : null;
 
-            var attributesBuilder = _pool.AllocateSeparated<AttributeSyntax>();
-            this.ParseAttributes(attributesBuilder);
-            var attributes = _pool.ToListAndFree(attributesBuilder);
+            var attributes = _pool.AllocateSeparated<AttributeSyntax>();
+            this.ParseAttributes(attributes);
 
             var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
-            if (inExpressionContext && ParseAsCollectionLiteral())
+            if (inExpressionContext && parseAsCollectionLiteral())
             {
                 // we're in an expression and we've seen `[A, B].`  This is actually the start of a collection literal
                 // that someone is explicitly accessing a member off of.
+                _pool.Free(attributes);
                 resetPoint.Reset();
                 return null;
             }
 
-            return _syntaxFactory.AttributeList(openBracket, location, attributes, closeBracket);
+            return _syntaxFactory.AttributeList(openBracket, location, _pool.ToListAndFree(attributes), closeBracket);
 
-            bool ParseAsCollectionLiteral()
+            bool parseAsCollectionLiteral()
             {
                 // `[A, B].` is a member access off of a collection literal. 
                 if (this.CurrentToken.Kind == SyntaxKind.DotToken)
