@@ -146,6 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
-        private record ViewModelStateData(string? SearchText, CaretPosition? CaretPositionOfNodeToSelect, ExpansionOption? ExpansionOption, bool DataUpdated);
+        private record ViewModelStateDataChange(string? SearchText, CaretPosition? CaretPositionOfNodeToSelect, ExpansionOption? ExpansionOption, bool DataUpdated);
     }
 }
