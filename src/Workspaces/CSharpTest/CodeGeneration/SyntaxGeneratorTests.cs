@@ -2242,6 +2242,27 @@ public class C { } // end").Members[0];
                 """);
         }
 
+        [Fact, WorkItem(65835, "https://github.com/dotnet/roslyn/issues/65835")]
+        public void TestMethodDeclarationFromSymbol4()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                static class C
+                {
+                    static void M(this ref int i) { }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers("M").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method), """
+                private static void M(this ref global::System.Int32 i)
+                {
+                }
+                """);
+        }
+
         [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
         public void TestConstructorDeclarationFromSymbol1()
         {
