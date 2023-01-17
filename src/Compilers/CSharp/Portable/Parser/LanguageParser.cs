@@ -4417,7 +4417,7 @@ tryAgain:
                 return (ParameterSyntax)this.EatNode();
             }
 
-            var attributes = this.ParseAttributeDeclarations(inExpressionContext: true);
+            var attributes = this.ParseAttributeDeclarations(inExpressionContext: false);
 
             var modifiers = _pool.Allocate();
             this.ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
