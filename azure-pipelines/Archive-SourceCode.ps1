@@ -116,11 +116,10 @@ if (!$OwnerAlias) {
     if ($env:BUILD_REQUESTEDFOREMAIL) {
         Write-Verbose 'Using $env:BUILD_REQUESTEDFOREMAIL and slicing to just the alias for OwnerAlias.'
         $OwnerAlias = ($env:BUILD_REQUESTEDFOREMAIL -split '@')[0]
+    } else {
+        $OwnerAlias = $TeamAlias
     }
-    else {
-        Write-Verbose 'Using $env:USERNAME for OwnerAlias.'
-        $OwnerAlias = $env:USERNAME
-    }
+
     if (!$OwnerAlias) {
         Write-Error "Unable to determine default value for -OwnerAlias."
     }
