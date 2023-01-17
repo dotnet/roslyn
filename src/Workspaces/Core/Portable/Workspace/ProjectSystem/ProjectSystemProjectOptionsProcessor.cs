@@ -3,19 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
-using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 {
-    internal class VisualStudioProjectOptionsProcessor : IDisposable
+    internal class ProjectSystemProjectOptionsProcessor : IDisposable
     {
         private readonly ProjectSystemProject _project;
         private readonly SolutionServices _workspaceServices;
@@ -47,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string? _explicitRuleSetFilePath;
         private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>>? _ruleSetFile = null;
 
-        public VisualStudioProjectOptionsProcessor(
+        public ProjectSystemProjectOptionsProcessor(
             ProjectSystemProject project,
             SolutionServices workspaceServices)
         {
@@ -174,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (effectiveRuleSetPath != null)
                 {
-                    _ruleSetFile = _workspaceServices.GetRequiredService<VisualStudioRuleSetManager>().GetOrCreateRuleSet(effectiveRuleSetPath);
+                    _ruleSetFile = _workspaceServices.GetRequiredService<IRuleSetManager>().GetOrCreateRuleSet(effectiveRuleSetPath);
                     _ruleSetFile.Target.Value.UpdatedOnDisk += RuleSetFile_UpdatedOnDisk;
                 }
             }
@@ -209,8 +204,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.ChecksumAlgorithm = _commandLineArgumentsForCommandLine.ChecksumAlgorithm;
         }
 
-        private void RuleSetFile_UpdatedOnDisk(object sender, EventArgs e)
+        private void RuleSetFile_UpdatedOnDisk(object? sender, EventArgs e)
         {
+            Contract.ThrowIfNull(sender);
+
             lock (_gate)
             {
                 // This event might have gotten fired "late" if the file change was already in flight. We can see if this is still our current file;

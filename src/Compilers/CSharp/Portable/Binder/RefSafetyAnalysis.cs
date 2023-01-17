@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // _localScopeDepth is incremented at each block in the method, including the
             // outermost. To ensure that locals in the outermost block are considered at
             // the same depth as parameters, _localScopeDepth is initialized to one less.
-            _localScopeDepth = Binder.CurrentMethodScope - 1;
+            _localScopeDepth = CurrentMethodScope - 1;
             _localEscapeScopes = localEscapeScopes;
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _analysis._localScopeDepth++;
                 foreach (var local in locals)
                 {
-                    _analysis.AddLocalScopes(local, refEscapeScope: _analysis._localScopeDepth, valEscapeScope: Binder.CallingMethodScope);
+                    _analysis.AddLocalScopes(local, refEscapeScope: _analysis._localScopeDepth, valEscapeScope: CallingMethodScope);
                 }
             }
 
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             base.Visit(value);
 
-            ValidateEscape(value, Binder.CallingMethodScope, isByRef: field.RefKind != RefKind.None, _diagnostics);
+            ValidateEscape(value, CallingMethodScope, isByRef: field.RefKind != RefKind.None, _diagnostics);
         }
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -399,10 +399,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 refEscapeScope = scopedModifier == ScopedKind.ScopedRef ?
                     _localScopeDepth :
-                    Binder.CurrentMethodScope;
+                    CurrentMethodScope;
                 valEscapeScope = scopedModifier == ScopedKind.ScopedValue ?
                     _localScopeDepth :
-                    Binder.CallingMethodScope;
+                    CallingMethodScope;
             }
 
             _localEscapeScopes ??= new Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>();
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitReturnStatement(node);
             if (node.ExpressionOpt is { Type: { } } expr)
             {
-                ValidateEscape(expr, Binder.ReturnOnlyScope, node.RefKind != RefKind.None, _diagnostics);
+                ValidateEscape(expr, ReturnOnlyScope, node.RefKind != RefKind.None, _diagnostics);
             }
             return null;
         }
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitYieldReturnStatement(node);
             if (node.Expression is { Type: { } } expr)
             {
-                ValidateEscape(expr, Binder.ReturnOnlyScope, isByRef: false, _diagnostics);
+                ValidateEscape(expr, ReturnOnlyScope, isByRef: false, _diagnostics);
             }
             return null;
         }
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
             {
-                return typeExpression.Type.IsRefLikeType ? valEscape : Binder.CallingMethodScope;
+                return typeExpression.Type.IsRefLikeType ? valEscape : CallingMethodScope;
             }
         }
 
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol is null
                     ? valEscape
-                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : Binder.CallingMethodScope;
+                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member is null) return valEscape;
                 valEscape = getMemberValEscape(member.Receiver, valEscape);
-                return member.Type.IsRefLikeType ? valEscape : Binder.CallingMethodScope;
+                return member.Type.IsRefLikeType ? valEscape : CallingMethodScope;
             }
         }
 
