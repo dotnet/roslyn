@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal static class ImmutableSegmentedListExtensions
     {
-        public static TResult? SelectLastOrDefault<TSource, TResult>(this ImmutableSegmentedList<TSource> source, Func<TSource, TResult?> selector)
+        public static TResult? SelectLastNonNullOrDefault<TSource, TResult>(this ImmutableSegmentedList<TSource> source, Func<TSource, TResult?> selector)
         {
             for (var i = source.Count - 1; i >= 0; i--)
             {
