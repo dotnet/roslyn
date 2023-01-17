@@ -73,7 +73,10 @@ public class C
             var testRefV2 = CreateCompilation("public class E : D { }", new MetadataReference[] { new CSharpCompilationReference(refV2), v1 }, assemblyName: "testRefV2");
 
             testRefV1.VerifyDiagnostics();
-            testRefV2.VerifyDiagnostics();
+            testRefV2.VerifyDiagnostics(
+                // error CS1705: Assembly 'refV2' with identity 'refV2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' uses 'C, Version=2.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' which has a higher version than referenced assembly 'C' with identity 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9'
+                Diagnostic(ErrorCode.ERR_AssemblyMatchBadVersion).WithArguments("refV2", "refV2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C, Version=2.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", "C", "C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9").WithLocation(1, 1)
+                );
         }
 
         [Fact]

@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         involvedAssemblies,
                         ImmutableArray<Location>.Empty);
 
-                        if (MergeUseSiteDiagnostics(ref result, info))
-                        {
-                            return true;
-                        }
+                    if (MergeUseSiteDiagnostics(ref result, info))
+                    {
+                        return true;
+                    }
                 }
             }
 

@@ -4419,6 +4419,12 @@ public class Source
                 parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
+                // (6,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
+                //         a.M(new());
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(6, 11),
+                // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
+                //         a.M(default);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(7, 11),
                 // (8,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
                 //         a.M(null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(8, 11)

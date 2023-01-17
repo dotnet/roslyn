@@ -3022,9 +3022,9 @@ class C3 : C2, I1
 
             // The unification warning shouldn't suppress the CS0535 error.
             comp3.VerifyDiagnostics(
-                // (10,16): error CS0535: 'C3' does not implement interface member 'I1.Method1()'
+                // (7,16): error CS0535: 'C3' does not implement interface member 'I1.Method1()'
                 //                I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.Method1()").WithLocation(10, 16)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.Method1()").WithLocation(7, 16)
                 );
         }
 
