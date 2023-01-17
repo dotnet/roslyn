@@ -969,7 +969,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "explicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
         }
 
-        [Fact]
+        [Fact, WorkItem(65833, "https://github.com/dotnet/roslyn/issues/65833")]
         public void TestConversionOperatorDeclaration()
         {
             var gcHandleType = _emptyCompilation.GetTypeByMetadataName(typeof(GCHandle).FullName);

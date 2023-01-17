@@ -1060,7 +1060,7 @@ End Operator")
 End Operator")
         End Sub
 
-        <Fact>
+        <Fact, WorkItem(65833, "https://github.com/dotnet/roslyn/issues/65833")>
         Public Sub TestConversionOperatorDeclaration()
             Dim gcHandleType = _emptyCompilation.GetTypeByMetadataName(GetType(GCHandle).FullName)
             Dim Conversion = gcHandleType.GetMembers().OfType(Of IMethodSymbol)().Single(
