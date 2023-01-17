@@ -12035,7 +12035,7 @@ tryAgain:
             if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
             {
 tryAgain:
-                if (IsPossibleCollectionCreationExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                if (IsPossibleCollectionElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     list.Add(this.ParseCollectionElement());
 
@@ -12046,7 +12046,7 @@ tryAgain:
                         {
                             break;
                         }
-                        else if (IsPossibleCollectionCreationExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                        else if (IsPossibleCollectionElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                         {
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
@@ -12055,7 +12055,7 @@ tryAgain:
                             {
                                 break;
                             }
-                            else if (!IsPossibleCollectionCreationExpression())
+                            else if (!IsPossibleCollectionElement())
                             {
                                 goto tryAgain;
                             }
@@ -12083,13 +12083,13 @@ tryAgain:
             PostSkipAction skipBadCollectionElementTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<CollectionElementSyntax> list, SyntaxKind expected)
             {
                 return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleCollectionCreationExpression(),
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleCollectionElement(),
                     p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
                     expected);
             }
         }
 
-        private bool IsPossibleCollectionCreationExpression()
+        private bool IsPossibleCollectionElement()
         {
             // Checking for ':' is for error recovery when someone has a dictionary element and is missing the key part.
             return this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.ColonToken;
