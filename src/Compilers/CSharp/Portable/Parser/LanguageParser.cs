@@ -933,8 +933,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind == SyntaxKind.MinusGreaterThanToken)
                     return true;
 
-                // `[A, B]?.`  The `?` is unnecessary (as a collection literal is always non-null).  But it is fine if
-                // the use wants to include it unnecessarily.  A linter could always advise they remove it.
+                // `[A, B]?.`  The `?` is unnecessary (as a collection literal is always non-null), but is still
+                // syntactically legal.
                 if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
                     this.PeekToken(1).Kind == SyntaxKind.DotToken)
                 {
