@@ -1,7 +1,10 @@
+Microsoft.CodeAnalysis.OperationKind.Attribute = 125 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IAttributeOperation
 Microsoft.CodeAnalysis.Operations.IAttributeOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation!
 Microsoft.CodeAnalysis.SymbolDisplayLocalOptions.IncludeModifiers = 4 -> Microsoft.CodeAnalysis.SymbolDisplayLocalOptions
 Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeModifiers = 2 -> Microsoft.CodeAnalysis.SymbolDisplayParameterOptions
 Microsoft.CodeAnalysis.SyntaxNode.ContainsDirective(int rawKind) -> bool
+static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IAttributeOperation! attribute, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph!
+static Microsoft.CodeAnalysis.Location.Create(string! filePath, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Text.LinePositionSpan lineSpan, string! mappedFilePath, Microsoft.CodeAnalysis.Text.LinePositionSpan mappedLineSpan) -> Microsoft.CodeAnalysis.Location!
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation, TArgument argument) -> TResult?
