@@ -255,23 +255,40 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a parameter declaration.
         /// </summary>
-        public abstract SyntaxNode ParameterDeclaration(
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public SyntaxNode ParameterDeclaration(
             string name,
             SyntaxNode? type = null,
             SyntaxNode? initializer = null,
-            RefKind refKind = RefKind.None);
+            RefKind refKind = RefKind.None)
+        {
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        private protected abstract SyntaxNode ParameterDeclaration(
+            string name,
+            SyntaxNode? type,
+            SyntaxNode? initializer,
+            RefKind refKind,
+            bool isExtension,
+            bool isParams);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
         /// </summary>
         public SyntaxNode ParameterDeclaration(IParameterSymbol symbol, SyntaxNode? initializer = null)
         {
-            return ParameterDeclaration(
+            var parameter = ParameterDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
                 initializer is not null ? initializer :
                 symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
-                symbol.RefKind);
+                symbol.RefKind,
+                isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
+                symbol.IsParams);
+
+            return parameter;
         }
 
         private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
