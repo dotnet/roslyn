@@ -550,7 +550,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 }
                             }
 
-
                             goto default;
 
                         default:
@@ -911,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var attributes = _pool.ToListAndFree(attributesBuilder);
 
             var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
-            if (inExpressionContext && this.CurrentToken.Kind == SyntaxKind.DotToken)
+            if (inExpressionContext && ParseAsCollectionLiteral())
             {
                 // we're in an expression and we've seen `[A, B].`  This is actually the start of a collection literal
                 // that someone is explicitly accessing a member off of.
@@ -920,6 +919,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return _syntaxFactory.AttributeList(openBracket, location, attributes, closeBracket);
+
+            bool ParseAsCollectionLiteral()
+            {
+                // `[A, B].` is a member access off of a collection literal. 
+                if (this.CurrentToken.Kind == SyntaxKind.DotToken)
+                    return true;
+
+                // `[A, B]->` is a member access off of a collection literal. Note: this will always be illegal
+                // semantically (as a collection literal has the natural type List<> which is not a pointer type).  But
+                // we leave that check to binding.
+                if (this.CurrentToken.Kind == SyntaxKind.MinusGreaterThanToken)
+                    return true;
+
+                // `[A, B]?.`  The `?` is unnecessary (as a collection literal is always non-null).  But it is fine if
+                // the use wants to include it unnecessarily.  A linter could always advise they remove it.
+                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
+                    this.PeekToken(1).Kind == SyntaxKind.DotToken)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private void ParseAttributes(SeparatedSyntaxListBuilder<AttributeSyntax> nodes)
@@ -7100,12 +7122,14 @@ done:;
                     case ParseTypeMode.AfterIs:
                     case ParseTypeMode.DefinitePattern:
                     case ParseTypeMode.AsExpression:
-                        // These contexts might be a type that is at the end of an expression.
-                        // In these contexts we only permit the nullable qualifier if it is followed
-                        // by a token that could not start an expression, because for backward
-                        // compatibility we want to consider a `?` token as part of the `?:`
-                        // operator if possible.
-                        return !CanStartExpression();
+                        // These contexts might be a type that is at the end of an expression. In these contexts we only
+                        // permit the nullable qualifier if it is followed by a token that could not start an
+                        // expression, because for backward compatibility we want to consider a `?` token as part of the
+                        // `?:` operator if possible.
+                        //
+                        // Similarly, if we have `T?[]` we do want to treat that as an array of nullables (following
+                        // existing parsing), not a conditional that returns a list.
+                        return !CanStartExpression() || this.CurrentToken.Kind is SyntaxKind.OpenBracketToken;
                     case ParseTypeMode.NewExpression:
                         // A nullable qualifier is permitted as part of the type in a `new` expression.
                         // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
@@ -10034,7 +10058,7 @@ tryAgain:
         /// </summary>
         private bool CanStartExpression()
         {
-            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false, allowAttributes: false);
+            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false);
         }
 
         /// <summary>
@@ -10042,10 +10066,10 @@ tryAgain:
         /// </summary>
         private bool IsPossibleExpression()
         {
-            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true, allowAttributes: true);
+            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true);
         }
 
-        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions, bool allowAttributes)
+        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions)
         {
             SyntaxKind tk = this.CurrentToken.Kind;
             switch (tk)
@@ -10273,6 +10297,7 @@ tryAgain:
                 case SyntaxKind.ArrayCreationExpression:
                 case SyntaxKind.BaseExpression:
                 case SyntaxKind.CharacterLiteralExpression:
+                case SyntaxKind.CollectionCreationExpression:
                 case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.DeclarationExpression:
                 case SyntaxKind.DefaultExpression:
@@ -11077,6 +11102,7 @@ tryAgain:
                 // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
                 using var _ = GetDisposableResetPoint(resetOnDispose: true);
 
+                this.EatToken();
                 var collectionExpression = this.ParseCollectionCreationExpression();
 
                 // PROTOTYPE: Def back compat concern here.  What if the user has `x ? y?[0] : z` this would be legal,
@@ -12008,7 +12034,7 @@ tryAgain:
             if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
             {
 tryAgain:
-                if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                if (IsPossibleCollectionCreationExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     list.Add(this.ParseCollectionElement());
 
@@ -12019,7 +12045,7 @@ tryAgain:
                         {
                             break;
                         }
-                        else if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                        else if (IsPossibleCollectionCreationExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                         {
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
@@ -12028,7 +12054,7 @@ tryAgain:
                             {
                                 break;
                             }
-                            else if (!this.IsPossibleExpression())
+                            else if (!IsPossibleCollectionCreationExpression())
                             {
                                 goto tryAgain;
                             }
@@ -12052,27 +12078,33 @@ tryAgain:
                 openBracket,
                 _pool.ToListAndFree(list),
                 this.EatToken(SyntaxKind.CloseBracketToken));
+
+            PostSkipAction SkipBadCollectionCreationExpressionTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<CollectionElementSyntax> list, SyntaxKind expected)
+            {
+                return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleCollectionCreationExpression(),
+                    p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
+                    expected);
+            }
         }
 
-        private PostSkipAction SkipBadCollectionCreationExpressionTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<CollectionElementSyntax> list, SyntaxKind expected)
+        private bool IsPossibleCollectionCreationExpression()
         {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
-                expected);
+            // Checking for ':' is for error recovery when someone has a dictionary element and is missing the key part.
+            return this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.ColonToken;
         }
 
         private CollectionElementSyntax ParseCollectionElement()
         {
             var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
 
-            var expression = this.ParseExpression();
+            var expression = this.ParseExpressionCore();
             if (dotDotToken != null)
                 return _syntaxFactory.SpreadElement(dotDotToken, expression);
 
             var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
             if (colonToken != null)
-                return _syntaxFactory.DictionaryElement(expression, colonToken, this.ParseExpression());
+                return _syntaxFactory.DictionaryElement(expression, colonToken, this.ParseExpressionCore());
 
             return _syntaxFactory.ExpressionElement(expression);
         }

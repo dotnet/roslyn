@@ -754,6 +754,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // may be used by SemanticModel for error cases.
                     return BadExpression(node);
 
+                case SyntaxKind.CollectionCreationExpression:
+                    // PROTOTYPE: Implement binding for this.
+                    return BadExpression(node);
+
                 case SyntaxKind.NullableType:
                     // Not reachable during method body binding, but
                     // may be used by SemanticModel for error cases.
