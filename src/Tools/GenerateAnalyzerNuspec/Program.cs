@@ -239,7 +239,7 @@ if (globalAnalyzerConfigsDir.Length > 0 && Directory.Exists(globalAnalyzerConfig
     {
         if (Path.GetExtension(globalconfig) == ".globalconfig")
         {
-            result.AppendLine(FileElement(Path.Combine(globalAnalyzerConfigsDir, globalconfig), $"buildtransitive\\config"));
+            result.AppendLine(FileElement(Path.Combine(globalAnalyzerConfigsDir, globalconfig), $"buildTransitive\\config"));
         }
         else
         {
