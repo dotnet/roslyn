@@ -4096,7 +4096,7 @@ parse_member_name:;
 
             var accMods = _pool.Allocate();
 
-            var accAttrs = this.ParseAttributeDeclarations(inExpressionContext: true);
+            var accAttrs = this.ParseAttributeDeclarations(inExpressionContext: false);
             this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
