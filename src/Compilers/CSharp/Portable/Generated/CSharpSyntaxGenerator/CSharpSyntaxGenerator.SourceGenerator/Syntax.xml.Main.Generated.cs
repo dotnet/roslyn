@@ -216,6 +216,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
         public virtual TResult? VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a CollectionCreationExpressionSyntax node.</summary>
+        public virtual TResult? VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a ExpressionElementSyntax node.</summary>
+        public virtual TResult? VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
+        public virtual TResult? VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a DictionaryElementSyntax node.</summary>
+        public virtual TResult? VisitDictionaryElement(DictionaryElementSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
         public virtual TResult? VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -933,6 +945,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
         public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a CollectionCreationExpressionSyntax node.</summary>
+        public virtual void VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a ExpressionElementSyntax node.</summary>
+        public virtual void VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
+        public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a DictionaryElementSyntax node.</summary>
+        public virtual void VisitDictionaryElement(DictionaryElementSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
         public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -1649,6 +1673,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
             => node.Update(VisitToken(node.StackAllocKeyword), VisitToken(node.OpenBracketToken), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
+
+        public override SyntaxNode? VisitCollectionCreationExpression(CollectionCreationExpressionSyntax node)
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Elements), VisitToken(node.CloseBracketToken));
+
+        public override SyntaxNode? VisitExpressionElement(ExpressionElementSyntax node)
+            => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+        public override SyntaxNode? VisitSpreadElement(SpreadElementSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+        public override SyntaxNode? VisitDictionaryElement(DictionaryElementSyntax node)
+            => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
 
         public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
             => node.Update((FromClauseSyntax?)Visit(node.FromClause) ?? throw new ArgumentNullException("fromClause"), (QueryBodySyntax?)Visit(node.Body) ?? throw new ArgumentNullException("body"));
@@ -3320,6 +3356,50 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new ImplicitStackAllocArrayCreationExpressionSyntax instance.</summary>
         public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(InitializerExpressionSyntax initializer)
             => SyntaxFactory.ImplicitStackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), SyntaxFactory.Token(SyntaxKind.OpenBracketToken), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), initializer);
+
+        /// <summary>Creates a new CollectionCreationExpressionSyntax instance.</summary>
+        public static CollectionCreationExpressionSyntax CollectionCreationExpression(SyntaxToken openBracketToken, SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
+            if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            return (CollectionCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionCreationExpression((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, elements.Node.ToGreenSeparatedList<Syntax.InternalSyntax.CollectionElementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new CollectionCreationExpressionSyntax instance.</summary>
+        public static CollectionCreationExpressionSyntax CollectionCreationExpression(SeparatedSyntaxList<CollectionElementSyntax> elements = default)
+            => SyntaxFactory.CollectionCreationExpression(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), elements, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+
+        /// <summary>Creates a new ExpressionElementSyntax instance.</summary>
+        public static ExpressionElementSyntax ExpressionElement(ExpressionSyntax expression)
+        {
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            return (ExpressionElementSyntax)Syntax.InternalSyntax.SyntaxFactory.ExpressionElement((Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new SpreadElementSyntax instance.</summary>
+        public static SpreadElementSyntax SpreadElement(SyntaxToken operatorToken, ExpressionSyntax expression)
+        {
+            if (operatorToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(operatorToken));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            return (SpreadElementSyntax)Syntax.InternalSyntax.SyntaxFactory.SpreadElement((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new SpreadElementSyntax instance.</summary>
+        public static SpreadElementSyntax SpreadElement(ExpressionSyntax expression)
+            => SyntaxFactory.SpreadElement(SyntaxFactory.Token(SyntaxKind.DotDotToken), expression);
+
+        /// <summary>Creates a new DictionaryElementSyntax instance.</summary>
+        public static DictionaryElementSyntax DictionaryElement(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
+        {
+            if (keyExpression == null) throw new ArgumentNullException(nameof(keyExpression));
+            if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            if (valueExpression == null) throw new ArgumentNullException(nameof(valueExpression));
+            return (DictionaryElementSyntax)Syntax.InternalSyntax.SyntaxFactory.DictionaryElement((Syntax.InternalSyntax.ExpressionSyntax)keyExpression.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)valueExpression.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new DictionaryElementSyntax instance.</summary>
+        public static DictionaryElementSyntax DictionaryElement(ExpressionSyntax keyExpression, ExpressionSyntax valueExpression)
+            => SyntaxFactory.DictionaryElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
 
         /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
         public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)
