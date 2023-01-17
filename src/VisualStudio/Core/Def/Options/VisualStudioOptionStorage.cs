@@ -239,7 +239,7 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning restore
         {"DocumentOutlineOptions_EnableDocumentOutline", new FeatureFlagStorage(@"Roslyn.DocumentOutline")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
-        {"dotnet_remove_unnecessary_suppression_exclusions", new RoamingProfileStorage("TextEditor..Specific.RemoveUnnecessarySuppressionExclusions")}, // Used to contain %LANGUAGE% but deosn't have per-language value, keeping the wrong name for compat.
+
         {"dotnet_separate_import_directive_groups", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
         {"dotnet_sort_system_directives_first", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")},
         {"dotnet_style_allow_multiple_blank_lines_experimental", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines")},
