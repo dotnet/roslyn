@@ -194,10 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);
             if (isExtension)
-                modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+                modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ThisKeyword));
 
             if (isParams)
-                modifiers.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
 
             return SyntaxFactory.Parameter(
                 default,
