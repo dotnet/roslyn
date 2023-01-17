@@ -365,7 +365,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EmitExpression(expression.ReferenceTypeReceiver, used);
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
-            _builder.AdjustStack(-1);
+
+            if (used)
+            {
+                _builder.AdjustStack(-1);
+            }
 
             _builder.MarkLabel(whenValueTypeLabel);
             EmitExpression(expression.ValueTypeReceiver, used);
@@ -412,7 +416,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                    ((TypeParameterSymbol)receiverType).EffectiveInterfacesNoUseSiteDiagnostics.IsEmpty) || // This could be a nullable value type, which must be copied in order to not mutate the original value
                                    LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
-                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
+                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
+                                   (notConstrained && IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker.Analyze(expression));
 
             // ===== RECEIVER
             if (nullCheckOnCopy)
@@ -561,6 +566,60 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (receiverTemp != null)
             {
                 FreeTemp(receiverTemp);
+            }
+        }
+
+        private sealed class IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private readonly BoundLoweredConditionalAccess _conditionalAccess;
+            private bool? _result;
+
+            private IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker(BoundLoweredConditionalAccess conditionalAccess)
+                : base()
+            {
+                _conditionalAccess = conditionalAccess;
+            }
+
+            public static bool Analyze(BoundLoweredConditionalAccess conditionalAccess)
+            {
+                var walker = new IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker(conditionalAccess);
+                walker.Visit(conditionalAccess.WhenNotNull);
+                Debug.Assert(walker._result.HasValue);
+                return walker._result.GetValueOrDefault();
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                if (_result.HasValue)
+                {
+                    return null;
+                }
+
+                return base.Visit(node);
+            }
+
+            public override BoundNode VisitCall(BoundCall node)
+            {
+                if (node.ReceiverOpt is BoundConditionalReceiver { Id: var id } && id == _conditionalAccess.Id)
+                {
+                    Debug.Assert(!_result.HasValue);
+                    _result = !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(node.Arguments);
+                    return null;
+                }
+
+                return base.VisitCall(node);
+            }
+
+            public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
+            {
+                if (node.Id == _conditionalAccess.Id)
+                {
+                    Debug.Assert(!_result.HasValue);
+                    _result = false;
+                    return null;
+                }
+
+                return base.VisitConditionalReceiver(node);
             }
         }
 
@@ -1809,7 +1868,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (receiver is
                     BoundLocal { LocalSymbol.IsKnownToReferToTempIfReferenceType: true } or
-                    BoundComplexConditionalReceiver)
+                    BoundComplexConditionalReceiver or
+                    BoundConditionalReceiver { Type: { IsReferenceType: false, IsValueType: false } })
             {
                 return true;
             }
