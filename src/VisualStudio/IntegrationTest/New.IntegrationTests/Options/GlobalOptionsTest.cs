@@ -64,7 +64,10 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
             foreach (var language in option.IsPerLanguage ? allLanguages : noLanguages)
             {
                 var key = new OptionKey2(option, language);
-                var currentValue = globalOptions.GetOption<object?>(key);
+
+                // validate that reading the option directly from the persister without falling back to default value works:
+                AssertEx.AreEqual(true, vsSettingsPersister.TryFetch(key, out var currentValue),
+                    message: $"Option '{option.Definition.ConfigName}' failed to load from VS settings.");
 
                 // do not attempt to update feature flags
                 if (storage is VisualStudioOptionStorage.FeatureFlagStorage)
