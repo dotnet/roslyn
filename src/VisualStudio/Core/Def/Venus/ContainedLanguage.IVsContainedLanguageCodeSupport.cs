@@ -11,11 +11,8 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using static Microsoft.VisualStudio.VSConstants;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
@@ -54,19 +51,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var targetDocument = thisDocument.Project.Solution.GetDocument(targetDocumentId);
             if (targetDocument == null)
             {
-                // The requested insertion itemid doesn't exist in this project. Check if the containing
-                //   document matches the requested itemid.
-                var containingDocumentItemid = GetContainingDocumentItemId();
-
-                if (containingDocumentItemid != itemidInsertionPoint)
-                {
-                    // Can't generate into this itemid
-                    pbstrUniqueMemberID = null;
-                    pbstrEventBody = null;
-                    return VSConstants.E_FAIL;
-                }
-
-                targetDocument = thisDocument;
+                // Can't generate into this itemid
+                pbstrUniqueMemberID = null;
+                pbstrEventBody = null;
+                return VSConstants.E_FAIL;
             }
 
             Tuple<string, string, TextSpan> idBodyAndInsertionPoint = null;
@@ -171,11 +159,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     {
                         succeeded = true;
                         itemId = this.ContainedDocument.FindItemIdOfDocument(targetDocument);
-                        if (itemId == (uint)VSITEMID.Nil)
-                        {
-                            // The FindItemIdOfDocument call can fail when the point maps directly into the containing document. In this case, return the containing document's itemid.
-                            itemId = GetContainingDocumentItemId();
-                        }
                     }
                 });
 
@@ -265,21 +248,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     current = IntPtr.Add(current, IntPtr.Size);
                 }
             }
-        }
-
-        private uint GetContainingDocumentItemId()
-        {
-            Marshal.ThrowExceptionForHR(BufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
-            var primaryBufferDocumentBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(primaryTextLines)!;
-
-            var textDocumentFactoryService = ComponentModel.GetService<ITextDocumentFactoryService>();
-            textDocumentFactoryService.TryGetTextDocument(primaryBufferDocumentBuffer, out var textDocument);
-            var documentPath = textDocument.FilePath;
-
-            var hierarchy = ((VisualStudioWorkspace)Workspace).GetHierarchy(Project.Id);
-            var itemId = hierarchy.TryGetItemId(documentPath);
-
-            return itemId;
         }
     }
 }

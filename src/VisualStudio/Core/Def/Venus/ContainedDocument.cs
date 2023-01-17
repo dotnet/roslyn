@@ -25,14 +25,15 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
+using static Microsoft.VisualStudio.VSConstants;
 using IVsContainedLanguageHost = Microsoft.VisualStudio.TextManager.Interop.IVsContainedLanguageHost;
 using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsTextBufferCoordinator;
 
@@ -184,6 +185,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
+            // The requested insertion itemid wasn't found. Check if the containing
+            //   document matches the requested itemid.
+            var containingDocumentItemid = GetContainingDocumentItemId(hierarchy);
+            if (containingDocumentItemid == itemidInsertionPoint)
+            {
+                var containingDocument = GetOpenTextContainer().CurrentText.GetOpenDocumentInCurrentContextWithChanges();
+
+                return containingDocument.Id;
+            }
+
             return null;
         }
 
@@ -191,7 +202,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
             var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
-            return hierarchy.TryGetItemId(_workspace.CurrentSolution.GetDocument(document.Id).FilePath);
+            var itemId = hierarchy.TryGetItemId(_workspace.CurrentSolution.GetDocument(document.Id).FilePath);
+
+            if (itemId == (uint)VSITEMID.Nil)
+            {
+                // The TryGetItemId call can fail when the point maps directly into the containing document.
+                // In this case, return the containing document's itemid.
+                itemId = GetContainingDocumentItemId(hierarchy);
+            }
+
+            return itemId;
         }
 
         public void UpdateText(SourceText newText)
@@ -202,6 +222,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes)
             => ApplyChanges(SubjectBuffer.CurrentSnapshot.AsText(), changes);
+
+        private uint GetContainingDocumentItemId(IVsHierarchy hierarchy)
+        {
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            Marshal.ThrowExceptionForHR(BufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
+
+            var primaryBufferDocumentBuffer = editorAdaptersFactoryService.GetDocumentBuffer(primaryTextLines)!;
+
+            var textDocumentFactoryService = _componentModel.GetService<ITextDocumentFactoryService>();
+            textDocumentFactoryService.TryGetTextDocument(primaryBufferDocumentBuffer, out var textDocument);
+            var documentPath = textDocument.FilePath;
+
+            var itemId = hierarchy.TryGetItemId(documentPath);
+
+            return itemId;
+        }
 
         private ITextSnapshot ApplyChanges(SourceText originalText, IEnumerable<TextChange> changes)
         {
