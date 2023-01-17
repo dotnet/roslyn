@@ -7576,6 +7576,8 @@ class Program
 ";
 
             var comp = CreateCompilation(source);
+
+            // PROTOTYPE: We should report diagnostic that this is an illegal assignment to an RVALUE.
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
