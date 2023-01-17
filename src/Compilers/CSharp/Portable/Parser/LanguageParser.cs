@@ -896,6 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return (AttributeListSyntax)this.EatNode();
             }
 
+            // May have to reset if we discover this is not an attribute but is instead a collection literal.
             using var resetPoint = GetDisposableResetPoint(resetOnDispose: false);
 
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
