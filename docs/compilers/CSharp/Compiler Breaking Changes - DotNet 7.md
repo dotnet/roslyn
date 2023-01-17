@@ -66,7 +66,7 @@ To workaround the overload resolution changes, use explicit types for the lambda
 
 ***Introduced in Visual Studio 2022 version 17.5***
 
-In .NET SDK XXX or earlier the following was erroneously allowed:
+In .NET SDK 7.0.100 or earlier the following was erroneously allowed:
 
 ```csharp
 var x = $"""
