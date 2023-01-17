@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -41,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
             Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
-            Assert.Equal(fixedExpectations, normalized)
+            AssertEx.Equal(fixedExpectations, normalized)
         End Sub
 
         Private Shared Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -1056,6 +1057,26 @@ End Operator")
             VerifySyntax(Of OperatorBlockSyntax)(
                 Generator.OperatorDeclaration(OperatorKind.ExplicitConversion, parameters, returnType),
 "Narrowing Operator CType(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+        End Sub
+
+        <Fact>
+        Public Sub TestConversionOperatorDeclaration()
+            Dim gcHandleType = _emptyCompilation.GetTypeByMetadataName(GetType(GCHandle).FullName)
+            Dim Conversion = gcHandleType.GetMembers().OfType(Of IMethodSymbol)().Single(
+                Function(m) m.Name = WellKnownMemberNames.ExplicitConversionName AndAlso m.Parameters(0).Type.Equals(gcHandleType))
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.Declaration(Conversion),
+"Public Shared Narrowing Operator CType(value As Global.System.Runtime.InteropServices.GCHandle) As Global.System.IntPtr
+End Operator")
+
+            Dim doubleType = _emptyCompilation.GetSpecialType(SpecialType.System_Decimal)
+            Conversion = doubleType.GetMembers().OfType(Of IMethodSymbol)().Single(
+                Function(m) m.Name = WellKnownMemberNames.ImplicitConversionName AndAlso m.Parameters(0).Type.Equals(_emptyCompilation.GetSpecialType(SpecialType.System_Byte)))
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.Declaration(Conversion),
+"Public Shared Widening Operator CType(value As System.Byte) As System.Decimal
 End Operator")
         End Sub
 
@@ -2089,7 +2110,7 @@ Dim y As x")
                         Generator.Attribute("a")),
                     Generator.Attribute("b")),
 "<a>
-<b>
+                                                                                                                                                            <b>
 Dim y As x")
 
             VerifySyntax(Of MethodStatementSyntax)(
@@ -2190,7 +2211,7 @@ End Namespace
                         Generator.Attribute("a")),
                     Generator.Attribute("b")),
 "<Assembly:a>
-<Assembly:b>
+                                                                                                                                                                                                                <Assembly:b>
 Namespace n
 End Namespace
 ")
@@ -3589,7 +3610,7 @@ End Class")
                 Generator.InsertAttributes(declC, 0, Generator.Attribute("A")),
 "' Comment
 <A>
-<X, Y, Z>
+                                                                                                                                                                                                                                                                                                                                                                                                                                <X, Y, Z>
 Public Class C
 End Class")
 
@@ -3597,8 +3618,8 @@ End Class")
                 Generator.InsertAttributes(declC, 1, Generator.Attribute("A")),
 "' Comment
 <X>
-<A>
-<Y, Z>
+                                                                                                                                                                                                                                                                                                                                                                                                                                        <A>
+                                                                                                                                                                                                                                                                                                                                                                                                                                            <Y, Z>
 Public Class C
 End Class")
 
@@ -3606,8 +3627,8 @@ End Class")
                 Generator.InsertAttributes(declC, 2, Generator.Attribute("A")),
 "' Comment
 <X, Y>
-<A>
-<Z>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    <A>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Z>
 Public Class C
 End Class")
 
@@ -3615,7 +3636,7 @@ End Class")
                 Generator.InsertAttributes(declC, 3, Generator.Attribute("A")),
 "' Comment
 <X, Y, Z>
-<A>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                <A>
 Public Class C
 End Class")
 

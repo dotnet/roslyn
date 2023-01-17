@@ -201,14 +201,12 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a method declaration matching an existing method symbol.
+        /// Creates a operator or conversion declaration matching an existing method symbol.
         /// </summary>
         public SyntaxNode OperatorDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode>? statements = null)
         {
-            if (method.MethodKind != MethodKind.UserDefinedOperator)
-            {
+            if (method.MethodKind is not (MethodKind.UserDefinedOperator or MethodKind.Conversion))
                 throw new ArgumentException("Method is not an operator.");
-            }
 
             var decl = OperatorDeclaration(
                 GetOperatorKind(method),
@@ -579,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Ordinary:
                             return MethodDeclaration(method);
 
-                        case MethodKind.UserDefinedOperator:
+                        case MethodKind.UserDefinedOperator or MethodKind.Conversion:
                             return OperatorDeclaration(method);
                     }
 
