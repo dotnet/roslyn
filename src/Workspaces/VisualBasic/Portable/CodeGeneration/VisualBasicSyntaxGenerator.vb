@@ -163,17 +163,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ExpressionGenerator.GenerateExpression(value)
         End Function
 
-        Private Protected Overrides Function WithKeywordIndicatingExtensionMethod(parameterDeclaration As SyntaxNode) As SyntaxNode
-            ' Unlike C#, VB doesn't have a concept of `this` parameter,
-            ' so we just return the original one without any modifications
-            Return parameterDeclaration
-        End Function
-
-        Private Protected Overrides Function WithKeywordIndicatingParameterList(parameterDeclaration As SyntaxNode) As SyntaxNode
-            Dim parameter = DirectCast(parameterDeclaration, ParameterSyntax)
-            Return parameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamArrayKeyword))
-        End Function
-
         Private Protected Overrides Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference)
         End Function
@@ -902,10 +891,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return If(parameters IsNot Nothing, SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast(Of ParameterSyntax)())), SyntaxFactory.ParameterList())
         End Function
 
-        Public Overrides Function ParameterDeclaration(name As String, Optional type As SyntaxNode = Nothing, Optional initializer As SyntaxNode = Nothing, Optional refKind As RefKind = Nothing) As SyntaxNode
+        Private Protected Overrides Function ParameterDeclaration(
+                name As String,
+                type As SyntaxNode,
+                initializer As SyntaxNode,
+                refKind As RefKind,
+                isExtension As Boolean,
+                isParams As Boolean) As SyntaxNode
+
+            Dim modifiers = GetParameterModifiers(refKind, initializer)
+            If isParams Then
+                modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.ParamArrayKeyword))
+            End If
+
+            ' isExtension not used in vb.  instead, an attribute is added at the method level.
+
             Return SyntaxFactory.Parameter(
                 attributeLists:=Nothing,
-                modifiers:=GetParameterModifiers(refKind, initializer),
+                modifiers:=modifiers,
                 identifier:=name.ToModifiedIdentifier(),
                 asClause:=If(type IsNot Nothing, SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)), Nothing),
                 [default]:=If(initializer IsNot Nothing, SyntaxFactory.EqualsValue(DirectCast(initializer, ExpressionSyntax)), Nothing))

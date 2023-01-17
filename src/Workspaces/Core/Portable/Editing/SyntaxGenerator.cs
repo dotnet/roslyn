@@ -257,11 +257,22 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a parameter declaration.
         /// </summary>
-        public abstract SyntaxNode ParameterDeclaration(
+        public SyntaxNode ParameterDeclaration(
             string name,
             SyntaxNode? type = null,
             SyntaxNode? initializer = null,
-            RefKind refKind = RefKind.None);
+            RefKind refKind = RefKind.None)
+        {
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
+        }
+
+        private protected abstract SyntaxNode ParameterDeclaration(
+            string name,
+            SyntaxNode? type,
+            SyntaxNode? initializer,
+            RefKind refKind,
+            bool isExtension,
+            bool isParams);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
@@ -273,25 +284,12 @@ namespace Microsoft.CodeAnalysis.Editing
                 TypeExpression(symbol.Type),
                 initializer is not null ? initializer :
                 symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
-                symbol.RefKind);
-
-            // If the given parameter is the first one of an extension method
-            // then add `this` modifier if neccessary. This is C#-specific,
-            // VB here changes nothing
-            if (symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } })
-            {
-                parameter = WithKeywordIndicatingExtensionMethod(parameter);
-            }
-
-            if (symbol.IsParams)
-                parameter = WithKeywordIndicatingParameterList(parameter);
+                symbol.RefKind,
+                isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
+                symbol.IsParams);
 
             return parameter;
         }
-
-        private protected abstract SyntaxNode WithKeywordIndicatingExtensionMethod(SyntaxNode parameterDeclaration);
-
-        private protected abstract SyntaxNode WithKeywordIndicatingParameterList(SyntaxNode parameterDeclaration);
 
         private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
 

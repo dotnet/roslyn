@@ -189,11 +189,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null))));
         }
 
-        public override SyntaxNode ParameterDeclaration(string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind)
+        private protected override SyntaxNode ParameterDeclaration(
+            string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams)
         {
+            var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);
+            if (isExtension)
+                modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+
+            if (isParams)
+                modifiers.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+
             return SyntaxFactory.Parameter(
                 default,
-                CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind),
+                modifiers,
                 (TypeSyntax?)type,
                 name.ToIdentifierToken(),
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
@@ -3328,18 +3336,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
             => ExpressionGenerator.GenerateExpression(value);
-
-        private protected override SyntaxNode WithKeywordIndicatingExtensionMethod(SyntaxNode parameterDeclaration)
-        {
-            var parameter = (ParameterSyntax)parameterDeclaration;
-            return parameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
-        }
-
-        private protected override SyntaxNode WithKeywordIndicatingParameterList(SyntaxNode parameterDeclaration)
-        {
-            var parameter = (ParameterSyntax)parameterDeclaration;
-            return parameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
-        }
 
         private protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
             => ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference);
