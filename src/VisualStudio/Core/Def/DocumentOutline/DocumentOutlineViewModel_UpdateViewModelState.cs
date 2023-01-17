@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -46,9 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             Assumes.NotNull(model); // This can only be null if no work was ever enqueued, we expect at least one item to always have been queued in the constructor
 
-            var searchText = viewModelStateData.SelectLastOrDefault(static x => x.SearchText);
-            var position = viewModelStateData.SelectLastOrDefault(static x => x.CaretPositionOfNodeToSelect);
-            var expansion = viewModelStateData.SelectLastOrDefault(static x => x.ExpansionOption);
+            var searchText = viewModelStateData.SelectLastNonNullOrDefault(static x => x.SearchText);
+            var position = viewModelStateData.SelectLastNonNullOrDefault(static x => x.CaretPositionOfNodeToSelect);
+            var expansion = viewModelStateData.SelectLastNonNullOrDefault(static x => x.ExpansionOption);
             var dataUpdated = viewModelStateData.Any(static x => x.DataUpdated);
 
             if (searchText is not null)
