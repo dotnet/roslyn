@@ -2273,6 +2273,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget:
+                case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
+                case ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion:
+                case ErrorCode.ERR_BadSpecialByRefUsing:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
@@ -2312,6 +2316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_QueryRangeVariableSameAsTypeParam:
                 case ErrorCode.ERR_DeprecatedCollectionInitAddStr:
                 case ErrorCode.ERR_DeprecatedSymbolStr:
+                case ErrorCode.ERR_MissingPredefinedMember:
                     return false;
                 default:
                     return true;

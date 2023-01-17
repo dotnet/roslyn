@@ -114,13 +114,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly Entry[] _log;
         private readonly string _id;
+        private readonly string _fileName;
         private readonly string? _logDirectory;
         private int _currentLine;
 
-        public TraceLog(int logSize, string id, string? logDirectory)
+        public TraceLog(int logSize, string id, string fileName, string? logDirectory)
         {
             _log = new Entry[logSize];
             _id = id;
+            _fileName = fileName;
             _logDirectory = logDirectory;
         }
 
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             try
             {
-                path = Path.Combine(_logDirectory, "Trace.log");
+                path = Path.Combine(_logDirectory, _fileName);
                 File.AppendAllLines(path, new[] { entry.GetDebuggerDisplay() });
             }
             catch (Exception e)
@@ -188,7 +190,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return directory;
         }
 
-        private string MakeSourceFileLogPath(Document document, string suffix, DebuggingSessionId sessionId, int generation)
+        private string MakeSourceFileLogPath(Document document, string suffix, UpdateId updateId, int? generation)
         {
             Debug.Assert(document.FilePath != null);
             Debug.Assert(document.Project.FilePath != null);
@@ -201,8 +203,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var relativeDir = PathUtilities.IsSameDirectoryOrChildOf(documentDir, projectDir) ? PathUtilities.GetRelativePath(projectDir, documentDir) : documentDir;
             relativeDir = relativeDir.Replace('\\', '_').Replace('/', '_');
 
-            var directory = CreateSessionDirectory(sessionId, Path.Combine(document.Project.Name, relativeDir));
-            return Path.Combine(directory, $"{fileName}.{generation}.{suffix}{extension}");
+            var directory = CreateSessionDirectory(updateId.SessionId, Path.Combine(document.Project.Name, relativeDir));
+            return Path.Combine(directory, $"{fileName}.{updateId.Ordinal}.{generation?.ToString() ?? "-"}.{suffix}{extension}");
         }
 
         public void WriteToFile(DebuggingSessionId sessionId, ImmutableArray<byte> bytes, string directory, string fileName)
@@ -234,14 +236,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async ValueTask WriteDocumentAsync(Document document, string fileNameSuffix, DebuggingSessionId sessionId, int generation, CancellationToken cancellationToken)
+        private async ValueTask WriteDocumentAsync(Document document, string fileNameSuffix, UpdateId updateId, int? generation, CancellationToken cancellationToken)
         {
             Debug.Assert(document.FilePath != null);
 
             string? path = null;
             try
             {
-                path = MakeSourceFileLogPath(document, fileNameSuffix, sessionId, generation);
+                path = MakeSourceFileLogPath(document, fileNameSuffix, updateId, generation);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write | FileShare.Delete);
                 using var writer = new StreamWriter(file, text.Encoding ?? Encoding.UTF8);
@@ -253,16 +255,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async ValueTask WriteDocumentChangeAsync(Document? oldDocument, Document? newDocument, DebuggingSessionId sessionId, int generation, CancellationToken cancellationToken)
+        public async ValueTask WriteDocumentChangeAsync(Document? oldDocument, Document? newDocument, UpdateId updateId, int? generation, CancellationToken cancellationToken)
         {
             if (oldDocument?.FilePath != null)
             {
-                await WriteDocumentAsync(oldDocument, fileNameSuffix: "old", sessionId, generation, cancellationToken).ConfigureAwait(false);
+                await WriteDocumentAsync(oldDocument, fileNameSuffix: "old", updateId, generation, cancellationToken).ConfigureAwait(false);
             }
 
             if (newDocument?.FilePath != null)
             {
-                await WriteDocumentAsync(newDocument, fileNameSuffix: "new", sessionId, generation, cancellationToken).ConfigureAwait(false);
+                await WriteDocumentAsync(newDocument, fileNameSuffix: "new", updateId, generation, cancellationToken).ConfigureAwait(false);
             }
         }
 

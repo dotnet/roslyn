@@ -8,10 +8,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal sealed class FormattingOptionsMetadata
     {
-        private const string FeatureName = "FormattingOptions";
-
         public static readonly PerLanguageOption2<bool> FormatOnPaste =
-            new(FeatureName, OptionGroup.Default, "FormatOnPaste", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.FormatOnPaste"));
+            new("FormattingOptions_FormatOnPaste", defaultValue: true);
     }
 }

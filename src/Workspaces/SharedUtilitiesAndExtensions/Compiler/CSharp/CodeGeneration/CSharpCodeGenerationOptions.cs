@@ -85,23 +85,23 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions, IEqua
 
 internal static class CSharpCodeGenerationOptionsProviders
 {
-    public static CSharpCodeGenerationOptions GetCSharpCodeGenerationOptions(this AnalyzerConfigOptions options, CSharpCodeGenerationOptions? fallbackOptions)
+    public static CSharpCodeGenerationOptions GetCSharpCodeGenerationOptions(this IOptionsReader options, CSharpCodeGenerationOptions? fallbackOptions)
     {
         fallbackOptions ??= CSharpCodeGenerationOptions.Default;
 
         return new()
         {
-            Common = options.GetCommonCodeGenerationOptions(fallbackOptions.Common),
-            PreferExpressionBodiedMethods = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, fallbackOptions.PreferExpressionBodiedMethods),
-            PreferExpressionBodiedAccessors = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, fallbackOptions.PreferExpressionBodiedAccessors),
-            PreferExpressionBodiedProperties = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, fallbackOptions.PreferExpressionBodiedProperties),
-            PreferExpressionBodiedIndexers = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, fallbackOptions.PreferExpressionBodiedIndexers),
-            PreferExpressionBodiedConstructors = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, fallbackOptions.PreferExpressionBodiedConstructors),
-            PreferExpressionBodiedOperators = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, fallbackOptions.PreferExpressionBodiedOperators),
-            PreferExpressionBodiedLocalFunctions = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, fallbackOptions.PreferExpressionBodiedLocalFunctions),
-            PreferExpressionBodiedLambdas = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, fallbackOptions.PreferExpressionBodiedLambdas),
-            PreferStaticLocalFunction = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction),
-            NamespaceDeclarations = options.GetEditorConfigOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations)
+            Common = options.GetCommonCodeGenerationOptions(LanguageNames.CSharp, fallbackOptions.Common),
+            PreferExpressionBodiedMethods = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, fallbackOptions.PreferExpressionBodiedMethods),
+            PreferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, fallbackOptions.PreferExpressionBodiedAccessors),
+            PreferExpressionBodiedProperties = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, fallbackOptions.PreferExpressionBodiedProperties),
+            PreferExpressionBodiedIndexers = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, fallbackOptions.PreferExpressionBodiedIndexers),
+            PreferExpressionBodiedConstructors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, fallbackOptions.PreferExpressionBodiedConstructors),
+            PreferExpressionBodiedOperators = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, fallbackOptions.PreferExpressionBodiedOperators),
+            PreferExpressionBodiedLocalFunctions = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, fallbackOptions.PreferExpressionBodiedLocalFunctions),
+            PreferExpressionBodiedLambdas = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, fallbackOptions.PreferExpressionBodiedLambdas),
+            PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction),
+            NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations)
         };
     }
 }

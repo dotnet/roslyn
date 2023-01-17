@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // int, both have to be bool, or both have to be string. Otherwise
             // we skip the easy out and go for the slow path.
 
-            if (left.ConstantValue == null && right.ConstantValue == null)
+            if (left.ConstantValueOpt == null && right.ConstantValueOpt == null)
             {
                 // Neither is constant. Go for the easy out.
                 return false;

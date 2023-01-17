@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
                 Return FixMultiLineLambdaExpression(DirectCast(node, MultiLineLambdaExpressionSyntax))
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
-                Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), knownTypes._taskType)
+                Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), knownTypes.TaskType)
             Else
                 Return FixFunctionBlock(
                     methodSymbolOpt, DirectCast(node, MethodBlockSyntax), knownTypes)
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
             If Not IsTaskLike(methodSymbol.ReturnType, knownTypes) Then
                 ' if the current return type is not already task-list, then wrap it in Task(of ...)
-                Dim returnType = knownTypes._taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
+                Dim returnType = knownTypes.TaskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
                 newFunctionStatement = newFunctionStatement.WithAsClause(
                 newFunctionStatement.AsClause.WithType(returnType))
             End If

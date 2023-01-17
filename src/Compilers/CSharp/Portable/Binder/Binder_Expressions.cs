@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = new BoundDefaultExpression(
                             defaultExpr.Syntax,
                             targetType: null,
-                            defaultExpr.ConstantValue,
+                            defaultExpr.ConstantValueOpt,
                             CreateErrorType(),
                             hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
                     }
@@ -804,9 +804,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal virtual BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, uint switchGoverningValEscape, BindingDiagnosticBag diagnostics)
+        internal virtual BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, BindingDiagnosticBag diagnostics)
         {
-            return this.NextRequired.BindSwitchExpressionArm(node, switchGoverningType, switchGoverningValEscape, diagnostics);
+            return this.NextRequired.BindSwitchExpressionArm(node, switchGoverningType, diagnostics);
         }
 #nullable disable
 
@@ -1350,14 +1350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // error: cannot take the `typeof` a nullable reference type.
                 diagnostics.Add(ErrorCode.ERR_BadNullableTypeof, node.Location);
-                hasError = true;
-            }
-            else if (this.InAttributeArgument && type.ContainsFunctionPointer())
-            {
-                // https://github.com/dotnet/roslyn/issues/48765 tracks removing this error and properly supporting function
-                // pointers in attribute types. Until then, we don't know how serialize them, so error instead of crashing
-                // during emit.
-                diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, node.Location);
                 hasError = true;
             }
 
@@ -2595,7 +2587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // It's possible for the S -> T conversion to produce a 'better' constant value.  If this 
                 // constant value is produced place it in the tree so that it gets emitted.  This maintains 
                 // parity with the native compiler which also evaluated the conversion at compile time. 
-                if (underlyingExpr.ConstantValue != null &&
+                if (underlyingExpr.ConstantValueOpt != null &&
                     !underlyingExpr.HasErrors && !bag.HasAnyErrors())
                 {
                     underlyingExpr.WasCompilerGenerated = true;
@@ -2879,7 +2871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
-                if (localSymbol.Scope == DeclarationScope.ValueScoped && !declType.Type.IsErrorTypeOrRefLikeType())
+                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrRefLikeType())
                 {
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                 }
@@ -2933,18 +2925,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if a bad special by ref local was found.
+        /// Reports an error when a bad special by-ref local was found.
         /// </summary>
-        internal static bool CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax, bool forUsingExpression = false)
         {
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
                 && type.IsRestrictedType())
             {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
-                return true;
+                Error(diagnostics, forUsingExpression ? ErrorCode.ERR_BadSpecialByRefUsing : ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
             }
-            return false;
         }
 
         internal GlobalExpressionVariable LookupDeclaredField(SingleVariableDesignationSyntax variableDesignator)
@@ -3089,7 +3079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
-                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, arguments, parameters, ref result, arg, receiver, methodResult.LeastOverriddenMember.RequiresInstanceReceiver(), diagnostics);
+                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, arguments, parameters, ref result, arg, receiver, diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
@@ -3920,7 +3910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var constantValue = expression.ConstantValue;
+            var constantValue = expression.ConstantValueOpt;
 
             if (constantValue == null || constantValue.IsBad || expression.Type.SpecialType != SpecialType.System_Int32)
             {
@@ -3939,7 +3929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var constantValue = expression.ConstantValue;
+            var constantValue = expression.ConstantValueOpt;
             if (constantValue == null || constantValue.IsBad)
             {
                 return false;
@@ -4192,19 +4182,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-                    if (!hasErrors)
-                    {
-                        hasErrors = !CheckInvocationArgMixing(
-                            nonNullSyntax,
-                            resultMember,
-                            receiver,
-                            resultMember.Parameters,
-                            arguments,
-                            refKinds,
-                            argsToParamsOpt,
-                            this.LocalScopeDepth,
-                            diagnostics);
-                    }
 
                     if (resultMember.HasSetsRequiredMembers && !constructor.HasSetsRequiredMembers)
                     {
@@ -4780,10 +4757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: diagnostics);
 
                     // Bind member initializer assignment expression
-                    // We don't verify escape safety of initializers against the instance because the initializers
-                    // get factored in when determining the safe-to-escape of the instance (the initializers contribute
-                    // like constructor arguments).
-                    return BindAssignment(initializer, boundLeft, boundRight, isRef, verifyEscapeSafety: false, diagnostics);
+                    return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
                 }
             }
 
@@ -5618,20 +5592,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-
-                if (!hasError)
-                {
-                    hasError = !CheckInvocationArgMixing(
-                        node,
-                        method,
-                        null,
-                        method.Parameters,
-                        arguments,
-                        refKinds,
-                        argToParams,
-                        this.LocalScopeDepth,
-                        diagnostics);
-                }
 
                 boundInitializerOpt = makeBoundInitializerOpt();
                 var creation = new BoundObjectCreationExpression(
@@ -6675,7 +6635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void WarnOnAccessOfOffDefault(SyntaxNode node, BoundExpression boundLeft, BindingDiagnosticBag diagnostics)
         {
-            if ((boundLeft is BoundDefaultLiteral || boundLeft is BoundDefaultExpression) && boundLeft.ConstantValue == ConstantValue.Null &&
+            if ((boundLeft is BoundDefaultLiteral || boundLeft is BoundDefaultExpression) && boundLeft.ConstantValueOpt == ConstantValue.Null &&
                 Compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, boundLeft.Type);
@@ -7415,7 +7375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: true,
                         explicitCastInCode: false,
                         conversionGroupOpt: null,
-                        constantValueOpt: expr.ConstantValue,
+                        constantValueOpt: expr.ConstantValueOpt,
                         type: underlyingType);
                 }
             }
@@ -7858,7 +7818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Answer: Because multidimensional arrays can have nonzero lower bounds in the CLR.
                 if (rank == 1 && !index.HasAnyErrors)
                 {
-                    ConstantValue constant = index.ConstantValue;
+                    ConstantValue constant = index.ConstantValueOpt;
                     if (constant != null && constant.IsNegativeNumeric)
                     {
                         Error(diagnostics, ErrorCode.WRN_NegativeArrayIndex, index.Syntax);
@@ -7875,7 +7835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(convertedArguments.Length == 1);
 
                 var int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, GetValEscape(expr, LocalScopeDepth), isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr.Type) { WasCompilerGenerated = true };
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr.Type) { WasCompilerGenerated = true };
                 var argumentPlaceholders = ImmutableArray.Create(new BoundImplicitIndexerValuePlaceholder(convertedArguments[0].Syntax, int32) { WasCompilerGenerated = true });
 
                 return new BoundImplicitIndexerAccess(
@@ -8342,20 +8302,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
 
-                if (!gotError)
-                {
-                    gotError = !CheckInvocationArgMixing(
-                        syntax,
-                        property,
-                        receiver,
-                        property.Parameters,
-                        arguments,
-                        argumentRefKinds,
-                        argsToParams,
-                        this.LocalScopeDepth,
-                        diagnostics);
-                }
-
                 // Note that we do not bind default arguments here, because at this point we do not know whether
                 // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
                 propertyAccess = new BoundIndexerAccess(
@@ -8411,8 +8357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool argIsIndex = argIsIndexNotRange.Value();
-            var receiverValEscape = GetValEscape(receiver, LocalScopeDepth);
-            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiverValEscape, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
+            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
             if (!TryBindIndexOrRangeImplicitIndexerParts(syntax, receiverPlaceholder, argIsIndex: argIsIndex,
                     out var lengthOrCountAccess, out var indexerOrSliceAccess, out var argumentPlaceholders, diagnostics))
             {
@@ -9042,7 +8987,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
             SyntaxNode syntax,
             MethodSymbol methodSymbol,
-            ImmutableArray<DeclarationScope>? parameterScopesOverride = null,
+            ImmutableArray<ScopedKind>? parameterScopesOverride = null,
+            ImmutableArray<bool>? parameterHasUnscopedRefAttributesOverride = null,
             RefKind? returnRefKindOverride = null,
             TypeWithAnnotations? returnTypeOverride = null)
         {
@@ -9052,9 +8998,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = returnTypeOverride ?? methodSymbol.ReturnTypeWithAnnotations;
             var returnRefKind = returnRefKindOverride ?? methodSymbol.RefKind;
             var parameterScopes = parameterScopesOverride ??
-                (parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
-                parameters.SelectAsArray(p => p.EffectiveScope) :
-                default);
+                (parameters.Any(p => p.EffectiveScope != ScopedKind.None) ? parameters.SelectAsArray(p => p.EffectiveScope) : default);
+            var parameterHasUnscopedRefAttributes = parameterHasUnscopedRefAttributesOverride ??
+                (parameters.Any(p => p.HasUnscopedRefAttribute) ? parameters.SelectAsArray(p => p.HasUnscopedRefAttribute) : default);
             var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
@@ -9086,7 +9032,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnRefKind == RefKind.None &&
                 parameterDefaultValues.IsDefault &&
                 (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)) &&
-                (parameterScopes.IsDefault || parameterScopes.All(scope => scope == DeclarationScope.Unscoped)))
+                (parameterScopes.IsDefault || parameterScopes.All(scope => scope == ScopedKind.None)) &&
+                (parameterHasUnscopedRefAttributes.IsDefault || parameterHasUnscopedRefAttributes.All(p => !p)))
             {
                 var wkDelegateType = returnsVoid ?
                     WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length) :
@@ -9119,12 +9066,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         location,
                         parameterTypes[i],
                         parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i],
-                        parameterScopes.IsDefault ? DeclarationScope.Unscoped : parameterScopes[i],
+                        parameterScopes.IsDefault ? ScopedKind.None : parameterScopes[i],
                         parameterDefaultValues.IsDefault ? null : parameterDefaultValues[i],
-                        isParams: hasParamsArray && i == parameterTypes.Length - 1)
-                    );
+                        isParams: hasParamsArray && i == parameterTypes.Length - 1,
+                        hasUnscopedRefAttribute: parameterHasUnscopedRefAttributes.IsDefault ? false : parameterHasUnscopedRefAttributes[i]));
             }
-            fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, DeclarationScope.Unscoped));
+            fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, ScopedKind.None));
 
             var typeDescr = new AnonymousTypeDescriptor(fieldsBuilder.ToImmutableAndFree(), location);
             return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr);

@@ -840,6 +840,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial, statements: new[] { Generator.IdentifierName("y") }),
                 "partial void m()\r\n{\r\n    y;\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                   Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial | DeclarationModifiers.Async, statements: null),
+                "partial void m();");
         }
 
         [Fact]
@@ -2147,6 +2151,34 @@ public class C { } // end").Members[0];
 }");
         }
 
+        [Fact]
+        public void TestEnumWithUnderlyingTypeFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+@"public enum SecurityRuleSet : byte
+{
+    None = 0,
+    Level1 = 1,
+    Level2 = 2
+}");
+        }
+
+        [Fact, WorkItem(66381, "https://github.com/dotnet/roslyn/issues/66381")]
+        public void TestDelegateDeclarationFromSymbol()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public delegate void D();
+                """));
+
+            var type = compilation.GetTypeByMetadataName("D");
+
+            VerifySyntax<DelegateDeclarationSyntax>(Generator.Declaration(type), """
+                public delegate void D();
+                """);
+        }
+
         [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
         public void TestMethodDeclarationFromSymbol1()
         {
@@ -2189,20 +2221,6 @@ public class C { } // end").Members[0];
                 {
                 }
                 """);
-        }
-
-        [Fact]
-        public void TestEnumWithUnderlyingTypeFromSymbol()
-        {
-            VerifySyntax<EnumDeclarationSyntax>(
-                    Generator.Declaration(
-                        _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
-@"public enum SecurityRuleSet : byte
-{
-    None = 0,
-    Level1 = 1,
-    Level2 = 2
-}");
         }
 
         #endregion
@@ -2712,6 +2730,16 @@ public class C
             var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public required int P { get; }");
             var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsVirtual(true));
             VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
+        }
+
+        [Theory, WorkItem(66295, "https://github.com/dotnet/roslyn/issues/66295")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        public void TestCompoundAccessibilityModifierKeywordsOrder(string modifier)
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration($$"""{{modifier}} int P { get; }""");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsRequired(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, $$"""{{modifier}} required int P { get; }""");
         }
 
         [Fact]
@@ -4024,13 +4052,24 @@ public class C : IDisposable
         }
 
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
-        public void TestMethodModifiers1()
+        public void TestMethodModifiers()
         {
             TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
                 @"
 class C
 {
     [|public sealed override void M() { }|]
+}");
+        }
+
+        [Fact, WorkItem(66170, "https://github.com/dotnet/roslyn/issues/66170")]
+        public void TestMethodModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly,
+                @"
+struct S
+{
+    [|public readonly void M() { }|]
 }");
         }
 
@@ -4099,6 +4138,16 @@ class C
 class C
 {
     public virtual event System.Action [|X|];
+}");
+        }
+
+        [Fact, WorkItem(65834, "https://github.com/dotnet/roslyn/issues/65834")]
+        public void TestStructModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
+                @"
+public readonly struct [|S|]
+{
 }");
         }
 

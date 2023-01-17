@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A synthesized local variable.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal class SynthesizedLocal : LocalSymbol
+    internal sealed class SynthesizedLocal : LocalSymbol
     {
         private readonly MethodSymbol _containingMethodOpt;
         private readonly TypeWithAnnotations _type;
@@ -170,19 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable();
-
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal sealed override uint RefEscapeScope => throw ExceptionUtilities.Unreachable();
-
-        internal sealed override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal sealed override ScopedKind Scope => ScopedKind.None;
 
         internal sealed override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {
