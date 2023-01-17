@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
-
     /// <summary>
     /// Language client responsible for handling C# / VB / F# LSP requests in any scenario (both local and codespaces).
     /// This powers "LSP only" features (e.g. cntrl+Q code search) that do not use traditional editor APIs.
