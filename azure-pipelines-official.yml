@@ -118,12 +118,14 @@ stages:
           MainValidationBuild
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
-    - task: PowerShell@2
-      displayName: Merge main-vs-deps into source branch
-      inputs:
-        filePath: 'scripts\merge-vs-deps.ps1'
-        arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
+    # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back.
+    #
+    # - task: PowerShell@2
+    #  displayName: Merge main-vs-deps into source branch
+    #  inputs:
+    #    filePath: 'scripts\merge-vs-deps.ps1'
+    #    arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
+    #  condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
