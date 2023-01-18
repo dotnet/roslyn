@@ -10030,6 +10030,9 @@ public class C
 
             var expectedDiagnostics = new[]
             {
+                // (7,26): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         var b = a with { [0] = 20 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(7, 26),
                 // (7,26): error CS0747: Invalid initializer member declarator
                 //         var b = a with { [0] = 20 };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 20").WithLocation(7, 26)

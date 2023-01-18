@@ -755,8 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BadExpression(node);
 
                 case SyntaxKind.CollectionCreationExpression:
-                    // PROTOTYPE: Implement binding for this.
-                    return BadExpression(node);
+                    return BindCollectionCreationExpression((CollectionCreationExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.NullableType:
                     // Not reachable during method body binding, but
@@ -4338,6 +4337,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+                }
+            }
+        }
+
+        private BoundExpression BindCollectionCreationExpression(CollectionCreationExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureCollectionLiterals.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
+
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(syntax.Elements.Count);
+            foreach (var element in syntax.Elements)
+            {
+                builder.Add(bindElement(element, diagnostics));
+            }
+            return new BoundUnconvertedCollectionLiteralExpression(syntax, builder.ToImmutableAndFree(), this);
+
+            BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            {
+                switch (syntax)
+                {
+                    case ExpressionElementSyntax expressionElementSyntax:
+                        return BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue);
+
+                    case DictionaryElementSyntax dictionaryElementSyntax:
+                        _ = BindValue(dictionaryElementSyntax.KeyExpression, diagnostics, BindValueKind.RValue);
+                        _ = BindValue(dictionaryElementSyntax.ValueExpression, diagnostics, BindValueKind.RValue);
+                        // PROTOTYPE: Temporary error until feature is implemented.
+                        Error(diagnostics, ErrorCode.ERR_InvalidExprTerm, syntax, syntax);
+                        return BadExpression(syntax);
+
+                    case SpreadElementSyntax spreadElementSyntax:
+                        _ = BindValue(spreadElementSyntax.Expression, diagnostics, BindValueKind.RValue);
+                        // PROTOTYPE: Temporary error until feature is implemented.
+                        Error(diagnostics, ErrorCode.ERR_InvalidExprTerm, syntax, syntax);
+                        return BadExpression(syntax);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                 }
             }
         }

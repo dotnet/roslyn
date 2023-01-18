@@ -230,6 +230,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, conversion, isCast, destination, conversionGroupOpt, wasCompilerGenerated, diagnostics);
                 }
 
+                if (conversion.IsCollectionLiteral)
+                {
+                    return ConvertCollectionLiteralExpression(
+                        (BoundUnconvertedCollectionLiteralExpression)source,
+                        conversion,
+                        isCast,
+                        destination,
+                        conversionGroupOpt,
+                        wasCompilerGenerated,
+                        diagnostics);
+                }
+
                 if (source.Kind == BoundKind.UnconvertedConditionalOperator)
                 {
                     Debug.Assert(source.Type is null);
@@ -401,6 +413,160 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case var v:
                         throw ExceptionUtilities.UnexpectedValue(v);
                 }
+            }
+        }
+
+        private BoundExpression ConvertCollectionLiteralExpression(
+            BoundUnconvertedCollectionLiteralExpression node,
+            Conversion conversion,
+            bool isCast,
+            TypeSymbol targetType,
+            ConversionGroup? conversionGroupOpt,
+            bool wasCompilerGenerated,
+            BindingDiagnosticBag diagnostics)
+        {
+            var syntax = (CSharpSyntaxNode)node.Syntax;
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+            BoundExpression? collectionCreation = null;
+            MethodSymbol? spanConstructor = null;
+            ImmutableArray<BoundExpression> elements;
+            TypeSymbol? elementType;
+
+            if (targetType is ArrayTypeSymbol arrayType)
+            {
+                if (!arrayType.IsSZArray)
+                {
+                    Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                }
+                elements = convertArrayElements(node.Initializers, arrayType.ElementType, diagnostics);
+            }
+            else if (isSpanType(targetType, WellKnownType.System_Span_T, out elementType))
+            {
+                spanConstructor = getSpanConstructor(syntax, targetType, WellKnownMember.System_Span_T__ctor_Array, diagnostics);
+                elements = convertArrayElements(node.Initializers, elementType, diagnostics);
+            }
+            else if (isSpanType(targetType, WellKnownType.System_ReadOnlySpan_T, out elementType))
+            {
+                spanConstructor = getSpanConstructor(syntax, targetType, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics);
+                elements = convertArrayElements(node.Initializers, elementType, diagnostics);
+            }
+            else
+            {
+                if (targetType is NamedTypeSymbol namedType)
+                {
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
+                    collectionCreation = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
+                    collectionCreation.WasCompilerGenerated = true;
+                    analyzedArguments.Free();
+                }
+
+                bool hasEnumerableInitializerType = collectionTypeImplementsIEnumerable(targetType, syntax, diagnostics);
+                if (!hasEnumerableInitializerType
+                    && !syntax.HasErrors
+                    && !targetType.IsErrorType()
+                    && collectionCreation?.HasErrors != true)
+                {
+                    Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                }
+
+                var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Initializers.Length);
+                foreach (var element in node.Initializers)
+                {
+                    var result = BindCollectionInitializerElementAddMethod(
+                        (ExpressionSyntax)element.Syntax,
+                        ImmutableArray.Create(element),
+                        hasEnumerableInitializerType,
+                        collectionInitializerAddMethodBinder,
+                        diagnostics,
+                        implicitReceiver);
+                    result.WasCompilerGenerated = true;
+                    builder.Add(result);
+                }
+                elements = builder.ToImmutableAndFree();
+            }
+
+            var expr = new BoundCollectionLiteralExpression(
+                syntax,
+                collectionCreation,
+                spanConstructor,
+                implicitReceiver,
+                elements,
+                targetType)
+            { WasCompilerGenerated = wasCompilerGenerated };
+
+            return new BoundConversion(
+                syntax,
+                expr,
+                conversion,
+                node.Binder.CheckOverflowAtRuntime,
+                explicitCastInCode: isCast && !wasCompilerGenerated,
+                conversionGroupOpt,
+                expr.ConstantValueOpt,
+                targetType);
+
+            bool isSpanType(TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            {
+                if (targetType is NamedTypeSymbol { TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArgument] } namedType
+                    && TypeSymbol.Equals(namedType.OriginalDefinition, Compilation.GetWellKnownType(spanType), TypeCompareKind.AllIgnoreOptions))
+                {
+                    elementType = typeArgument.Type;
+                    return true;
+                }
+                elementType = default;
+                return false;
+            }
+
+            MethodSymbol? getSpanConstructor(CSharpSyntaxNode syntax, TypeSymbol spanType, WellKnownMember spanMember, BindingDiagnosticBag diagnostics)
+            {
+                return (MethodSymbol?)GetWellKnownTypeMember(spanMember, diagnostics, syntax: syntax)?.SymbolAsMember((NamedTypeSymbol)spanType);
+            }
+
+            bool collectionTypeImplementsIEnumerable(TypeSymbol targetType, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            {
+                // This implementation differs from CollectionInitializerTypeImplementsIEnumerable().
+                // That method checks for an implicit conversion from IEnumerable to the collection type,
+                // but that would allow: Nullable<StructCollection> s = [];
+                var ienumerableType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, syntax); // PROTOTYPE: Test missing type.
+                var allInterfaces = targetType is TypeParameterSymbol typeParameter
+                    ? typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics
+                    : targetType.AllInterfacesNoUseSiteDiagnostics;
+                return allInterfaces.Any(t => ienumerableType.Equals(t, TypeCompareKind.AllIgnoreOptions));
+            }
+
+            ImmutableArray<BoundExpression> convertArrayElements(ImmutableArray<BoundExpression> elements, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+            {
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    builder.Add(convertArrayElement(element, elementType, diagnostics));
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            BoundExpression convertArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+            {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = Conversions.ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo);
+                diagnostics.Add(element.Syntax, useSiteInfo);
+                bool hasErrors = !conversion.IsValid;
+                if (hasErrors)
+                {
+                    GenerateImplicitConversionError(diagnostics, element.Syntax, conversion, element, elementType);
+                }
+                var result = CreateConversion(
+                    element.Syntax,
+                    element,
+                    conversion,
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    wasCompilerGenerated: true,
+                    destination: elementType,
+                    diagnostics: diagnostics,
+                    hasErrors: hasErrors);
+                result.WasCompilerGenerated = true;
+                return result;
             }
         }
 

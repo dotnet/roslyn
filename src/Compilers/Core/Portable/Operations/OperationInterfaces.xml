@@ -3366,4 +3366,25 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="ICollectionLiteralOperation" Base="IOperation" ChildrenOrder="CollectionCreation,ElementValues" HasType="true" HasConstantValue="false">
+    <Comments>
+      <summary>
+        Represents a collection literal.
+        <para>
+          Current usage:
+          (1) C# collection literal.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="CollectionCreation" Type="IOperation">
+      <Comments>
+        <summary>Collection creation.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ElementValues" Type="ImmutableArray&lt;IOperation&gt;">
+      <Comments>
+        <summary>Values to initialize collection literal elements.</summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

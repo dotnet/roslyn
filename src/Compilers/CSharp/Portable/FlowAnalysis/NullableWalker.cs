@@ -3426,6 +3426,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        {
+            // PROTOTYPE: Do we need to call inferInitialObjectState() to set the initial state of the instance?
+            int containerSlot = GetOrCreatePlaceholderSlot(node);
+            bool delayCompletionForType = false; // PROTOTYPE: Should be true if the collection literal is target typed.
+
+            // PROTOTYPE: Test nullability of elements when the collection literal is target typed
+            // and the inferred target type has distinct element type nullability.
+            foreach (var initializer in node.Initializers)
+            {
+                switch (initializer)
+                {
+                    case BoundCollectionElementInitializer element:
+                        var completion = VisitCollectionElementInitializer(element, node.Type, delayCompletionForType);
+                        if (completion is { })
+                        {
+                            // PROTOTYPE: Complete the analysis later.
+                            completion(containerSlot, node.Type);
+                        }
+                        break;
+                    default:
+                        VisitRvalue(initializer);
+                        break;
+                }
+            }
+
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
+        public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
+        {
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
         {
             Debug.Assert(!IsConditionalState);
@@ -8022,6 +8058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ObjectCreation:
+                case ConversionKind.CollectionLiteral:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
                     resultState = getConversionResultState(operandType);

@@ -519,9 +519,14 @@ class C
 ";
 
             string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: '[0]')
-  Children(0)";
-            var expectedDiagnostics = new DiagnosticDescription[] { };
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '[0]')
+";
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (6,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
+                //         var a = /*<bind>*/[0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "a = /*<bind>*/[0]").WithArguments("collection literals").WithLocation(6, 13)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<CollectionCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

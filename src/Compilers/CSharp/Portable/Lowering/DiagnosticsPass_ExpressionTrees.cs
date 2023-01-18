@@ -981,5 +981,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitFunctionPointerInvocation(node);
         }
+
+        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, node);
+            }
+
+            return base.VisitCollectionLiteralExpression(node);
+        }
     }
 }

@@ -6777,6 +6777,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
+  <data name="IDS_FeatureCollectionLiterals" xml:space="preserve">
+    <value>collection literals</value>
+  </data>
+  <data name="ERR_CollectionLiteralTargetTypeNotConstructible" xml:space="preserve">
+    <value>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsCollectionLiteral" xml:space="preserve">
+    <value>An expression tree may not contain a collection literal.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>

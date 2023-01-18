@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionLiteral.get -> bool
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax.AddElements(params Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax.CloseBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken

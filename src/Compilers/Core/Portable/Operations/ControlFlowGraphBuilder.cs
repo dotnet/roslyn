@@ -6340,6 +6340,23 @@ oneMoreTime:
             }
         }
 
+        // PROTOTYPE: Add tests.
+        public override IOperation? VisitCollectionLiteral(ICollectionLiteralOperation operation, int? argument)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            var rewrittenCollectionCreation = Visit(operation.CollectionCreation);
+            Debug.Assert(rewrittenCollectionCreation is { });
+
+            var previousInstance = _currentImplicitInstance;
+            _currentImplicitInstance = new ImplicitInstanceInfo(rewrittenCollectionCreation);
+            ImmutableArray<IOperation> rewrittenElementValues = VisitArray(operation.ElementValues);
+            _currentImplicitInstance = previousInstance;
+
+            var rewrittenCollectionLiteral = new CollectionLiteralOperation(rewrittenCollectionCreation, rewrittenElementValues, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
+            PopStackFrame(frame);
+            return rewrittenCollectionLiteral;
+        }
+
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
             switch (operation.ReferenceKind)
