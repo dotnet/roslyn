@@ -3075,6 +3075,7 @@ unsafe class C
                 //     void M(System.TypedReference* r) { }
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "r").WithArguments("System.TypedReference").WithLocation(4, 35)
                 );
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]

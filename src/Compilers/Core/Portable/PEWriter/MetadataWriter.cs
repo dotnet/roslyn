@@ -3724,6 +3724,7 @@ namespace Microsoft.Cci
         {
             while (true)
             {
+                // TODO2
                 // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
                 Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
 
