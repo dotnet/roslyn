@@ -177,22 +177,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
             var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
 
+            var containingDocumentItemid = GetContainingDocumentItemId(hierarchy);
+            if (containingDocumentItemid == itemidInsertionPoint)
+            {
+                // No need to walk project documents if requesting containing document's id
+                return this.Id;
+            }
+
             foreach (var document in _workspace.CurrentSolution.GetProject(_project.Id).Documents)
             {
                 if (document.FilePath != null && hierarchy.TryGetItemId(document.FilePath) == itemidInsertionPoint)
                 {
                     return document.Id;
                 }
-            }
-
-            // The requested insertion itemid wasn't found. Check if the containing
-            //   document matches the requested itemid.
-            var containingDocumentItemid = GetContainingDocumentItemId(hierarchy);
-            if (containingDocumentItemid == itemidInsertionPoint)
-            {
-                var containingDocument = GetOpenTextContainer().CurrentText.GetOpenDocumentInCurrentContextWithChanges();
-
-                return containingDocument.Id;
             }
 
             return null;
@@ -202,16 +199,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
             var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
-            var itemId = hierarchy.TryGetItemId(_workspace.CurrentSolution.GetDocument(document.Id).FilePath);
 
-            if (itemId == (uint)VSITEMID.Nil)
+            if (document.Id == this.Id)
             {
-                // The TryGetItemId call can fail when the point maps directly into the containing document.
-                // In this case, return the containing document's itemid.
-                itemId = GetContainingDocumentItemId(hierarchy);
+                return GetContainingDocumentItemId(hierarchy);
             }
 
-            return itemId;
+            return hierarchy.TryGetItemId(_workspace.CurrentSolution.GetDocument(document.Id).FilePath);
         }
 
         public void UpdateText(SourceText newText)
