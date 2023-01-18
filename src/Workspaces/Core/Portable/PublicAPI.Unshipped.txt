@@ -11,50 +11,17 @@ Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.D
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentExtensions.set -> void
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentKinds.get -> string[]
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentKinds.set -> void
-Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsFile.get -> bool
-Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-*REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
-Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.SolutionServices services) -> void
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Host.HostLanguageServices.LanguageServices.get -> Microsoft.CodeAnalysis.Host.LanguageServices
-Microsoft.CodeAnalysis.Host.LanguageServices
-Microsoft.CodeAnalysis.Host.LanguageServices.GetRequiredService<TLanguageService>() -> TLanguageService
-Microsoft.CodeAnalysis.Host.LanguageServices.GetService<TLanguageService>() -> TLanguageService
-Microsoft.CodeAnalysis.Host.LanguageServices.Language.get -> string
-Microsoft.CodeAnalysis.Host.LanguageServices.SolutionServices.get -> Microsoft.CodeAnalysis.Host.SolutionServices
-Microsoft.CodeAnalysis.Host.SolutionServices
-Microsoft.CodeAnalysis.Host.SolutionServices.GetLanguageServices(string languageName) -> Microsoft.CodeAnalysis.Host.LanguageServices
-Microsoft.CodeAnalysis.Host.SolutionServices.GetRequiredLanguageService<TLanguageService>(string language) -> TLanguageService
-Microsoft.CodeAnalysis.Host.SolutionServices.GetRequiredService<TWorkspaceService>() -> TWorkspaceService
-Microsoft.CodeAnalysis.Host.SolutionServices.GetService<TWorkspaceService>() -> TWorkspaceService
-Microsoft.CodeAnalysis.Host.SolutionServices.IsSupported(string languageName) -> bool
-Microsoft.CodeAnalysis.Host.SolutionServices.SupportedLanguages.get -> System.Collections.Generic.IEnumerable<string>
-Microsoft.CodeAnalysis.ISupportedChangesService
-Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyChange(Microsoft.CodeAnalysis.ApplyChangesKind kind) -> bool
-Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyCompilationOptionChange(Microsoft.CodeAnalysis.CompilationOptions oldOptions, Microsoft.CodeAnalysis.CompilationOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
-Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyParseOptionChange(Microsoft.CodeAnalysis.ParseOptions oldOptions, Microsoft.CodeAnalysis.ParseOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
-Microsoft.CodeAnalysis.Project.Services.get -> Microsoft.CodeAnalysis.Host.LanguageServices
-Microsoft.CodeAnalysis.Solution.Services.get -> Microsoft.CodeAnalysis.Host.SolutionServices
-Microsoft.CodeAnalysis.TextDocumentEventArgs
-Microsoft.CodeAnalysis.TextDocumentEventArgs.Document.get -> Microsoft.CodeAnalysis.TextDocument
-Microsoft.CodeAnalysis.TextDocumentEventArgs.TextDocumentEventArgs(Microsoft.CodeAnalysis.TextDocument document) -> void
-Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentClosedEventAsync(Microsoft.CodeAnalysis.TextDocument document) -> System.Threading.Tasks.Task
-Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentOpenedEventAsync(Microsoft.CodeAnalysis.TextDocument document) -> System.Threading.Tasks.Task
-Microsoft.CodeAnalysis.Workspace.TextDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
-Microsoft.CodeAnalysis.Workspace.TextDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
-static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.File.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.LoadTextOptions
 Microsoft.CodeAnalysis.LoadTextOptions.ChecksumAlgorithm.get -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
 Microsoft.CodeAnalysis.LoadTextOptions.Equals(Microsoft.CodeAnalysis.LoadTextOptions other) -> bool
 Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions() -> void
 Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions(Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm) -> void
+override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.LoadTextOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.LoadTextOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.LoadTextOptions.ToString() -> string
 static Microsoft.CodeAnalysis.LoadTextOptions.operator !=(Microsoft.CodeAnalysis.LoadTextOptions left, Microsoft.CodeAnalysis.LoadTextOptions right) -> bool
 static Microsoft.CodeAnalysis.LoadTextOptions.operator ==(Microsoft.CodeAnalysis.LoadTextOptions left, Microsoft.CodeAnalysis.LoadTextOptions right) -> bool
-override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
-*REMOVED*abstract Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 virtual Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 virtual Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
