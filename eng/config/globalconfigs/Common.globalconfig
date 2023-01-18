@@ -59,8 +59,8 @@ dotnet_diagnostic.RS0046.severity = suggestion
 # RS0047: (Suppressor) The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'
 dotnet_diagnostic.RS0047.severity = none
 
-# RS1035: Do not use APIs banned for analyzers
-dotnet_diagnostic.RS1035.severity = none
+# RS1014 - Re-enable when we have a fix from https://github.com/dotnet/roslyn-analyzers/pull/6442
+dotnet_diagnostic.RS1014.severity = none
 
 # allow skipped tests, with a code fix to unskip them
 dotnet_diagnostic.xUnit1004.severity = refactoring

@@ -2501,9 +2501,7 @@ namespace Microsoft.CodeAnalysis
             // Therefore we need to add these in a separate pass after documents for syntax trees were added.
             foreach (var tree in CommonSyntaxTrees)
             {
-#pragma warning disable RS1014 // https://github.com/dotnet/roslyn-analyzers/pull/6442 - remove suppression when we consume analyzers with the fix.
                 AddDebugSourceDocumentsForChecksumDirectives(documentsBuilder, tree, diagnostics);
-#pragma warning restore RS1014
             }
 
             return true;

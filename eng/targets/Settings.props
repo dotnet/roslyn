@@ -49,7 +49,7 @@
 
     <!-- VS does not require Windows PDBs to be published anymore. -->
     <PublishWindowsPdb>false</PublishWindowsPdb>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
   <!--
