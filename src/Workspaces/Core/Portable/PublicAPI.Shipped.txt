@@ -102,7 +102,6 @@ abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.IsTypeExpression(Microso
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LambdaParameter(string identifier, Microsoft.CodeAnalysis.SyntaxNode type = null) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LessThanExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LessThanOrEqualExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LocalDeclarationStatement(Microsoft.CodeAnalysis.SyntaxNode type, string identifier, Microsoft.CodeAnalysis.SyntaxNode initializer = null, bool isConst = false) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LockStatement(Microsoft.CodeAnalysis.SyntaxNode expression, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LogicalAndExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -173,7 +172,6 @@ abstract Microsoft.CodeAnalysis.Host.HostWorkspaceServices.HostServices.get -> M
 abstract Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Workspace.get -> Microsoft.CodeAnalysis.Workspace
 abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 abstract Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.GetDescription(System.Globalization.CultureInfo culture = null) -> string
-abstract Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 abstract Microsoft.CodeAnalysis.XmlDocumentationProvider.GetSourceStream(System.Threading.CancellationToken cancellationToken) -> System.IO.Stream
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ClassName = "class name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Comment = "comment" -> string
