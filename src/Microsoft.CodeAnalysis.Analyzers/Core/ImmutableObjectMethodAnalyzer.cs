@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public static void AnalyzeInvocationForIgnoredReturnValue(OperationAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
         {
             var invocation = (IInvocationOperation)context.Operation;
-            if (invocation.Parent is not IExpressionStatementOperation)
+            // Returns void happens for the internal AddDebugSourceDocumentsForChecksumDirectives in the compiler itself.
+            if (invocation.Parent is not IExpressionStatementOperation || invocation.TargetMethod.ReturnsVoid)
             {
                 return;
             }
