@@ -1133,6 +1133,7 @@ oneMoreTime:
                 (expression.Type.IsValidV6SwitchGoverningType() || expression.Type.IsSpanOrReadOnlySpanChar()));
             Debug.Assert(switchCaseLabels.Length > 0);
 
+            Debug.Assert(switchCaseLabels != null || lengthBasedSwitchStringJumpTableOpt != null);
             LocalDefinition temp = null;
             LocalOrParameter key;
             BoundSequence sequence = null;
@@ -1499,7 +1500,7 @@ oneMoreTime:
         }
 
 #nullable enable
-        private Microsoft.Cci.IMethodReference? GetLengthMethodRef(SyntaxNode syntaxNode, TypeSymbol keyType, bool isReadOnlySpan, bool isSpanOrReadOnlySpan)
+        private Cci.IMethodReference? GetLengthMethodRef(SyntaxNode syntaxNode, TypeSymbol keyType, bool isReadOnlySpan, bool isSpanOrReadOnlySpan)
         {
             if (isSpanOrReadOnlySpan)
             {
@@ -1509,7 +1510,7 @@ oneMoreTime:
 
                 Debug.Assert(spanTLengthMethod != null && !spanTLengthMethod.HasUseSiteError);
                 var spanCharLengthMethod = spanTLengthMethod.AsMember((NamedTypeSymbol)keyType);
-                return _module.Translate(spanCharLengthMethod, null, _diagnostics.DiagnosticBag);
+                return _module.Translate(spanCharLengthMethod, syntaxNode, _diagnostics.DiagnosticBag);
             }
             else
             {

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public LengthJumpTable(LabelSymbol? nullCaseLabel, ImmutableArray<(ConstantValue value, LabelSymbol label)> lengthCaseLabels)
             {
-                Debug.Assert(lengthCaseLabels.All(c => c.value.IsIntegral));
+                Debug.Assert(lengthCaseLabels.All(c => c.value.IsIntegral) && lengthCaseLabels.Length > 0);
 
                 this.nullCaseLabel = nullCaseLabel;
                 this.lengthCaseLabels = lengthCaseLabels;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal CharJumpTable(LabelSymbol label, int selectedCharPosition, ImmutableArray<(ConstantValue value, LabelSymbol label)> charCaseLabels)
             {
-                Debug.Assert(charCaseLabels.All(c => c.value.IsChar));
+                Debug.Assert(charCaseLabels.All(c => c.value.IsChar) && charCaseLabels.Length > 0);
 
                 this.label = label;
                 this.selectedCharPosition = selectedCharPosition;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var group in casesWithGivenLength.GroupBy(c => c.value.StringValue![bestCharacterPosition]))
             {
                 char character = group.Key;
-                var label = CreateAndRegisterStringJumpTable(group.Select(c => c).ToImmutableArray(), stringJumpTables);
+                var label = CreateAndRegisterStringJumpTable(group.ToImmutableArray(), stringJumpTables);
                 charCaseLabels.Add((ConstantValue.Create(character), label));
             }
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var currentChar = caseLabel.value.StringValue[position];
                     if (countPerChar.TryGetValue(currentChar, out var currentCount))
                     {
-                        countPerChar[currentChar]++;
+                        countPerChar[currentChar] = currentCount + 1;
                     }
                     else
                     {

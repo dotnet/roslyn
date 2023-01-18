@@ -1708,8 +1708,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_DisableLengthBasedSwitch">
-        <source>disable-length-based switch</source>
-        <target state="new">disable-length-based switch</target>
+        <source>disable-length-based-switch</source>
+        <target state="new">disable-length-based-switch</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
