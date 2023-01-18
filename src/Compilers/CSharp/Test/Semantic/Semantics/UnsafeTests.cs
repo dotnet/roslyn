@@ -3112,6 +3112,29 @@ unsafe class D
         }
 
         [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_InArray()
+        {
+            var src = @"
+public class C
+{
+    public static System.TypedReference[] M(System.TypedReference[] r)
+    {
+        return r;
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): error CS0611: Array elements cannot be of type 'TypedReference'
+                //     public static System.TypedReference[] M(System.TypedReference[] r)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 19),
+                // (4,45): error CS0611: Array elements cannot be of type 'TypedReference'
+                //     public static System.TypedReference[] M(System.TypedReference[] r)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 45)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
         public void TypedReference_ByValue()
         {
             var libSrc = @"
