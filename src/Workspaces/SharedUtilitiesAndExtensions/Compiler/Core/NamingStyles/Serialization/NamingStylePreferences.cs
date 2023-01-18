@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             _lazyRules = new Lazy<NamingStyleRules>(CreateRules, isThreadSafe: true);
         }
 
-        public static NamingStylePreferences Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
-        public static NamingStylePreferences Empty => new(ImmutableArray<SymbolSpecification>.Empty, ImmutableArray<NamingStyle>.Empty, ImmutableArray<SerializableNamingRule>.Empty);
+        public static NamingStylePreferences Default { get; } = FromXElement(XElement.Parse(DefaultNamingPreferencesString));
+        public static NamingStylePreferences Empty { get; } = new(ImmutableArray<SymbolSpecification>.Empty, ImmutableArray<NamingStyle>.Empty, ImmutableArray<SerializableNamingRule>.Empty);
 
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
