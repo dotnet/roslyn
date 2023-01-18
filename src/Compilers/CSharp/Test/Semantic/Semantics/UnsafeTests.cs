@@ -3062,20 +3062,151 @@ class C { }
         [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
         public void IsManagedType_TypedReference()
         {
-            var src = @"
-unsafe class C
+            var libSrc = @"
+public unsafe class C
 {
-    void M(System.TypedReference* r) { }
+    public static System.TypedReference* M(System.TypedReference* r)
+    {
+        return r;
+    }
 }
 ";
-            var compilation = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
-            Assert.True(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
-            compilation.VerifyDiagnostics(
-                // (4,35): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
-                //     void M(System.TypedReference* r) { }
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "r").WithArguments("System.TypedReference").WithLocation(4, 35)
+            var libComp = CreateCompilation(libSrc, options: TestOptions.UnsafeDebugDll);
+            Assert.True(libComp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            libComp.VerifyEmitDiagnostics(
+                // (4,42): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     public static System.TypedReference* M(System.TypedReference* r)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("System.TypedReference").WithLocation(4, 42),
+                // (4,67): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     public static System.TypedReference* M(System.TypedReference* r)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "r").WithArguments("System.TypedReference").WithLocation(4, 67)
                 );
-            compilation.VerifyEmitDiagnostics();
+
+            var src = """
+unsafe class D
+{
+    System.TypedReference* M(System.TypedReference* r)
+    {
+        return C.M(r);
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (3,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     System.TypedReference* M(System.TypedReference* r)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("System.TypedReference").WithLocation(3, 28),
+                // (3,53): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     System.TypedReference* M(System.TypedReference* r)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "r").WithArguments("System.TypedReference").WithLocation(3, 53)
+                );
+
+            var method = comp.GetMember<MethodSymbol>("C.M");
+            var returnType = method.ReturnType;
+            Assert.True(returnType.IsPointerType());
+            Assert.Equal(SpecialType.System_TypedReference, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);
+
+            var parameterType = method.GetParameterType(0);
+            Assert.True(parameterType.IsPointerType());
+            Assert.Equal(SpecialType.System_TypedReference, ((PointerTypeSymbol)parameterType).PointedAtType.SpecialType);
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_ByValue()
+        {
+            var libSrc = @"
+public class C
+{
+    public static System.TypedReference M(System.TypedReference r)
+    {
+        return r;
+    }
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     public static System.TypedReference M(System.TypedReference r)
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 19)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_ByRef()
+        {
+            var libSrc = @"
+public class C
+{
+    public static ref System.TypedReference M(ref System.TypedReference r)
+    {
+        return ref r;
+    }
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     public static ref System.TypedReference M(ref System.TypedReference r)
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 19),
+                // (4,47): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     public static ref System.TypedReference M(ref System.TypedReference r)
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.TypedReference r").WithArguments("System.TypedReference").WithLocation(4, 47)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_AsTypeArgument()
+        {
+            var libSrc = @"
+public class C<T>
+{
+    public static void M(C<System.TypedReference> c) { }
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (4,51): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //     public static void M(C<System.TypedReference> c) { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "c").WithArguments("System.TypedReference").WithLocation(4, 51)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_Field()
+        {
+            var libSrc = @"
+public class C
+{
+    public System.TypedReference field;
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     public System.TypedReference field;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 12)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_AsGenericConstraint()
+        {
+            var libSrc = @"
+public class C<T> where T : System.TypedReference
+{
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (2,29): error CS0701: 'TypedReference' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // public class C<T> where T : System.TypedReference
+                Diagnostic(ErrorCode.ERR_BadBoundType, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(2, 29)
+                );
         }
 
         [Fact]
