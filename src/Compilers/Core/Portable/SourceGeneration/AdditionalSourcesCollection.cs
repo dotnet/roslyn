@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly StringComparer s_hintNameComparer = StringComparer.OrdinalIgnoreCase;
 
-        // Matches relative path segments ("../", "./", "//"), "/" at the beginning,
+        // Matches "/" at the beginning, relative path segments ("../", "./", "//"),
         // and " /" (directories ending with space cause problems).
         private static readonly Regex s_invalidSegmentPattern = new Regex(@"(\.{1,2}|/|^| )/", RegexOptions.Compiled);
 
