@@ -163,7 +163,36 @@ class Class
 
         <WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestPreprocessingSymbolMultipleProjects2(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestPreprocessingSymbolMultipleProjects2HoverCSharp(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+#define [|PREPROCESSING_SYMBOL|]
+
+#if [|PREPROCESSING_SYM$$BOL|]
+#undef [|PREPROCESSING_SYMBOL|]
+#endif
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+#Const [|PREPROCESSING_SYMBOL|] = True
+        </Document>
+        <Document>
+#If DEBUG Then
+' Some code
+#ElseIf NOT_PREPROCESSING_SYMBOL = [|PREPROCESSING_SYMBOL|] Then
+#End If
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestPreprocessingSymbolMultipleProjects2HoverVB(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

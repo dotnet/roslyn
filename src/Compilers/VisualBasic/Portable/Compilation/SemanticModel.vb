@@ -2924,7 +2924,7 @@ _Default:
             Dim parent = DirectCast(token.Parent, VisualBasicSyntaxNode)
             CheckSyntaxNode(parent)
 
-            If parent.Kind() = SyntaxKind.ConstKeyword Then
+            If parent.Kind() = SyntaxKind.ConstDirectiveTrivia Then
                 Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = token.SyntaxTree.GetPreprocessingSymbolInfo(token)
 
                 Return RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo, token)
