@@ -40,15 +40,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 return true;
             }
 
-            if (ReferenceEquals(obj, null))
+            if (obj is not IPreprocessingSymbol other)
             {
                 return false;
             }
 
-            PreprocessingSymbol? other = obj as PreprocessingSymbol;
+            if (obj is PreprocessingSymbol csharpPreprocessingSymbol)
+            {
+                return _name == csharpPreprocessingSymbol._name;
+            }
 
-            return (object?)other != null &&
-                this._name.Equals(other._name);
+            // If we do not encounter a C# preprocessing symbol, we still
+            // compare against the symbol's name directly.
+            return _name == other.Name;
         }
 
         bool IEquatable<ISymbol?>.Equals(ISymbol? other)

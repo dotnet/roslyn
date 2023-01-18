@@ -105,6 +105,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return documents.ToImmutable();
         }
 
+        protected static async Task<ImmutableArray<Document>> FindAllSolutionDocumentsAsync<T>(
+            Solution solution,
+            Func<Document, T, CancellationToken, ValueTask<bool>> predicateAsync,
+            T value,
+            CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<Document>.GetInstance(out var documents);
+
+            foreach (var project in solution.Projects)
+            {
+                foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (await predicateAsync(document, value, cancellationToken).ConfigureAwait(false))
+                        documents.Add(document);
+                }
+            }
+
+            return documents.ToImmutable();
+        }
+
         /// <summary>
         /// Finds all the documents in the provided project that contain the requested string
         /// values

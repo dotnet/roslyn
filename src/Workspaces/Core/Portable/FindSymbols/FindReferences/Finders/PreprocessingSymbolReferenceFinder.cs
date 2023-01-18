@@ -60,17 +60,12 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        // NOTE: We intentionally search for multiple documents and consider multiple preprocessing
-        //       symbols with the same name to be the same preprocessing symbol. This is because
-        //       the symbols could either be defined in the compilation options, the project file
-        //       or the document itself that includes the #define directive. In all of the above cases
-        //       the preprocessing symbol is evaluated by name, and thus it's considered to be a global
-        //       symbol that can be used based on whether it's currently defined in the given document
-        //       and line.
-        //       After all, writing any name for a preprocessing symbol, defined or not, is valid and will
-        //       be computed during preprocessing evaluation of the tree
+        // NOTE: We intentionally search for all documents in the entire solution. This is because
+        //       the symbols are validly bound by their requested name, despite their current definition
+        //       state. Therefore, the same symbol name could be shared across multiple projects and
+        //       configured in the project configuration with the same shared identifier.
 
-        return await FindDocumentsAsync(project, documents, HasDirectiveProbablyContainsIdentifier, symbol, cancellationToken)
+        return await FindAllSolutionDocumentsAsync(project.Solution, HasDirectiveProbablyContainsIdentifier, symbol, cancellationToken)
             .ConfigureAwait(false);
 
         static async ValueTask<bool> HasDirectiveProbablyContainsIdentifier(Document document, IPreprocessingSymbol symbol, CancellationToken ct)

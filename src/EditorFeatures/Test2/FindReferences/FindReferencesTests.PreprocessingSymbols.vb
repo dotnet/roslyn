@@ -180,8 +180,9 @@ class Class
 #Const [|PREPROCESSING_SYMBOL|] = True
         </Document>
         <Document>
-#If DEBUG
-#Else If NOT_PREPROCESSING_SYMBOL Or [|$$PREPROCESSING_SYMBOL|]
+#If DEBUG Then
+' Some code
+#ElseIf NOT_PREPROCESSING_SYMBOL = [|$$PREPROCESSING_SYMBOL|] Then
 #End If
         </Document>
     </Project>

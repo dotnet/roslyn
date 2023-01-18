@@ -130,7 +130,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Dim other As PreprocessingSymbol = TryCast(obj, PreprocessingSymbol)
+            ' If we're comparing against a C# preprocessing symbol, we still refer to the same
+            ' symbol name. If there exists a different C# preprocessing symbol with a different
+            ' capitalization variance, we also bind to that one. This is not a concern, as our
+            ' VB preprocessing symbols only apply within the same project, and we only support
+            ' this operation for finding all references of the given preprocessing symbol name.
+            Dim other As IPreprocessingSymbol = TryCast(obj, IPreprocessingSymbol)
 
             Return other IsNot Nothing AndAlso
                 IdentifierComparison.Equals(Me.Name, other.Name)
