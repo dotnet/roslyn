@@ -59,3 +59,12 @@ RS0049 | RoslynDiagnosticsReliability | Warning | TemporaryArrayAsRefAnalyzer
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0101 | RoslynDiagnosticsMaintainability | Warning | AbstractBlankLinesDiagnosticAnalyzer
+
+## Release 3.3.4
+
+### Removed Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+RS0005 | RoslyDiagnosticsPerformance | Warning | CodeActionCreateAnalyzer
+
