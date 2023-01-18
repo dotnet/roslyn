@@ -207,14 +207,28 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return references;
         }
 
-        public async Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
+        public Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
+            => AddProjectAsync(projectName, projectTemplate, projectTemplateAdditionalParameters: string.Empty, languageName, cancellationToken);
+
+        public async Task AddProjectAsync(string projectName, string projectTemplate, string projectTemplateAdditionalParameters, string languageName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken), projectName);
             var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName), cancellationToken);
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
+
+            if (string.IsNullOrEmpty(projectTemplateAdditionalParameters))
+            {
+                var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
+                ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
+            }
+            else
+            {
+                projectTemplatePath += "|" + projectTemplateAdditionalParameters;
+                var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+                var solution = (EnvDTE80.Solution2)dte.Solution;
+                solution.AddFromTemplate(projectTemplatePath, projectPath, projectName);
+            }
         }
 
         public async Task AddCustomProjectAsync(string projectName, string projectFileExtension, string projectFileContent, CancellationToken cancellationToken)
