@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Emit
             uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out bool added);
             if (added)
             {
-                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
+                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode?.GetReference(), diagnostics, metadataOnly: false, includePrivateMembers: true));
             }
             return token;
         }
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Emit
             uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out bool added);
             if (added)
             {
-                ReferenceDependencyWalker.VisitSignature(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
+                ReferenceDependencyWalker.VisitSignature(symbol, new EmitContext(this, syntaxNode?.GetReference(), diagnostics, metadataOnly: false, includePrivateMembers: true));
             }
             return token;
         }
@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
-            var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
+            var emitContext = new EmitContext(this, syntaxNode?.GetReference(), diagnostics, metadataOnly: false, includePrivateMembers: true);
 
             // map a field to the block (that makes it addressable via a token)
             return privateImpl.CreateArrayCachingField(data, arrayType, emitContext);
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     throw ExceptionUtilities.UnexpectedValue(platformType);
 
                 default:
-                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
+                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxReference?.GetSyntax(), context.Diagnostics);
             }
         }
     }

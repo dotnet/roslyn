@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             {
                 var typeRef = moduleBeingBuilt.Translate(
                     @interface,
-                    (CSharpSyntaxNode)context.SyntaxNode,
+                    (CSharpSyntaxNode)context.SyntaxReference?.GetSyntax(),
                     context.Diagnostics);
 
                 var type = TypeWithAnnotations.Create(@interface);

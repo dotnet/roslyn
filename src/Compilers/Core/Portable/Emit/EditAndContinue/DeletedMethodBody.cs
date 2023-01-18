@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
             var builder = new ILBuilder((ITokenDeferral)context.Module, null, OptimizationLevel.Debug, false);
             builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Newobj, 4);
-            builder.EmitToken(missingMethodExceptionStringStringConstructor.GetCciAdapter(), context.SyntaxNode!, context.Diagnostics);
+            builder.EmitToken(missingMethodExceptionStringStringConstructor.GetCciAdapter(), context.SyntaxReference?.GetSyntax(), context.Diagnostics);
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
 
