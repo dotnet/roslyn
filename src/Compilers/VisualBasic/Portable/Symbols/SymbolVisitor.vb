@@ -76,5 +76,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Sub VisitTypeParameter(symbol As TypeParameterSymbol)
             DefaultVisit(symbol)
         End Sub
+
+        Public Overridable Sub VisitPreprocessing(symbol As PreprocessingSymbol)
+            DefaultVisit(symbol)
+        End Sub
     End Class
 End Namespace

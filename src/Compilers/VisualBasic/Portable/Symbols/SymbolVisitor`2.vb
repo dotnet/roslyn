@@ -95,5 +95,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DefaultVisit(symbol, arg)
         End Function
 
+        Public Overridable Function VisitPreprocessing(symbol As PreprocessingSymbol, arg As TArgument) As TResult
+            Return DefaultVisit(symbol, arg)
+        End Function
     End Class
 End Namespace

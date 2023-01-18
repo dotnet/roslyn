@@ -71,17 +71,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         void ISymbol.Accept(SymbolVisitor visitor)
         {
-            visitor.DefaultVisit(this);
+            visitor.VisitPreprocessing(this);
         }
 
         TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
-            return visitor.DefaultVisit(this)!;
+            return visitor.VisitPreprocessing(this)!;
         }
 
         TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.DefaultVisit(this, argument);
+            return visitor.VisitPreprocessing(this, argument);
         }
 
         string? ISymbol.GetDocumentationCommentId() => null;

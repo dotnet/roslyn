@@ -308,6 +308,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                        name).GetPublicSymbol();
         }
 
+        protected override IPreprocessingSymbol CommonCreatePreprocessingSymbol(string name)
+        {
+            return new Symbols.PublicModel.PreprocessingSymbol(name, CommonAssembly, CommonSourceModule);
+        }
+
         #region Constructors and Factories
 
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);

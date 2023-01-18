@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis
             Reference = '#',
             Null = '!',
             TypeParameterOrdinal = '@',
+            Preprocessing = '*',
         }
 
         private class SymbolKeyWriter : SymbolVisitor, IDisposable
@@ -473,7 +474,7 @@ namespace Microsoft.CodeAnalysis
             public override void VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
             {
                 // If it's a reference to a method type parameter, and we're currently writing
-                // out a signture, then only write out the ordinal of type parameter.  This 
+                // out a signature, then only write out the ordinal of type parameter.  This 
                 // helps prevent recursion problems in cases like "Goo<T>(T t).
                 if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
                 {
@@ -485,6 +486,12 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.TypeParameter);
                     TypeParameterSymbolKey.Instance.Create(typeParameterSymbol, this);
                 }
+            }
+
+            public override void VisitPreprocessing(IPreprocessingSymbol preprocessingSymbol)
+            {
+                WriteType(SymbolKeyType.Preprocessing);
+                PreprocessingSymbolKey.Instance.Create(preprocessingSymbol, this);
             }
 
             public bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)

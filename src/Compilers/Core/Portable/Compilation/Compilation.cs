@@ -367,6 +367,21 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract INamespaceSymbol CommonCreateErrorNamespaceSymbol(INamespaceSymbol container, string name);
 
+        /// <summary>
+        /// Returns a new IPreprocessingSymbol representing a preprocessing symbol with the given name.
+        /// </summary>
+        public IPreprocessingSymbol CreatePreprocessingSymbol(string name)
+        {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return CommonCreatePreprocessingSymbol(name);
+        }
+
+        protected abstract IPreprocessingSymbol CommonCreatePreprocessingSymbol(string name);
+
         #region Name
 
         internal const string UnspecifiedModuleAssemblyName = "?";

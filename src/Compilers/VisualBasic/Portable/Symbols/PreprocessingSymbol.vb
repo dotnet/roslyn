@@ -141,27 +141,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Overrides Sub Accept(visitor As SymbolVisitor)
-            visitor.DefaultVisit(Me)
+            visitor.VisitPreprocessing(Me)
         End Sub
 
         Public Overloads Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
-            visitor.DefaultVisit(Me)
+            visitor.VisitPreprocessing(Me)
         End Sub
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
-            Return visitor.DefaultVisit(Me)
+            Return visitor.VisitPreprocessing(Me)
         End Function
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.DefaultVisit(Me, argument)
+            Return visitor.VisitPreprocessing(Me, argument)
         End Function
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
-            Return visitor.DefaultVisit(Me)
+            Return visitor.VisitPreprocessing(Me)
         End Function
 
         Friend Overloads Overrides Function Accept(Of TArgument, TResult)(visitor As VisualBasicSymbolVisitor(Of TArgument, TResult), arg As TArgument) As TResult
-            Return visitor.DefaultVisit(Me, arg)
+            Return visitor.VisitPreprocessing(Me, arg)
         End Function
     End Class
 

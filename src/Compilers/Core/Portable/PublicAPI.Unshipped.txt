@@ -3,6 +3,7 @@
 abstract Microsoft.CodeAnalysis.SemanticModel.GetPreprocessingSymbolInfoCore(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.PreprocessingSymbolInfo
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! leftType, Microsoft.CodeAnalysis.ITypeSymbol! rightType) -> Microsoft.CodeAnalysis.IMethodSymbol!
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! operandType) -> Microsoft.CodeAnalysis.IMethodSymbol!
+Microsoft.CodeAnalysis.Compilation.CreatePreprocessingSymbol(string! name) -> Microsoft.CodeAnalysis.IPreprocessingSymbol!
 Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.IsGeneratedCode.get -> bool
@@ -36,3 +37,6 @@ Microsoft.CodeAnalysis.Operations.IAttributeOperation.Operation.get -> Microsoft
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IAttributeOperation! attribute, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph!
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.SymbolVisitor.VisitPreprocessing(Microsoft.CodeAnalysis.IPreprocessingSymbol! symbol) -> void
+virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitPreprocessing(Microsoft.CodeAnalysis.IPreprocessingSymbol! symbol, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.SymbolVisitor<TResult>.VisitPreprocessing(Microsoft.CodeAnalysis.IPreprocessingSymbol! symbol) -> TResult?
