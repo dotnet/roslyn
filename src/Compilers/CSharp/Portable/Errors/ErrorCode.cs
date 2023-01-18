@@ -2162,6 +2162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
         ERR_BadSpecialByRefUsing = 9104,
+        ERR_CollectionLiteralTargetTypeNotConstructible = 9105,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

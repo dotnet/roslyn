@@ -230,6 +230,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, conversion, isCast, destination, conversionGroupOpt, wasCompilerGenerated, diagnostics);
                 }
 
+                if (conversion.IsCollectionLiteral)
+                {
+                    return ConvertCollectionLiteralExpression(
+                        (CollectionCreationExpressionSyntax)syntax,
+                        (BoundUnconvertedCollectionLiteralExpression)source,
+                        conversion,
+                        isCast,
+                        destination,
+                        conversionGroupOpt,
+                        wasCompilerGenerated,
+                        diagnostics);
+                }
+
                 if (source.Kind == BoundKind.UnconvertedConditionalOperator)
                 {
                     Debug.Assert(source.Type is null);
@@ -402,6 +415,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(v);
                 }
             }
+        }
+
+        private BoundExpression ConvertCollectionLiteralExpression(
+            CollectionCreationExpressionSyntax syntax,
+            BoundUnconvertedCollectionLiteralExpression node,
+            Conversion conversion,
+            bool isCast,
+            TypeSymbol destination,
+            ConversionGroup? conversionGroupOpt,
+            bool wasCompilerGenerated,
+            BindingDiagnosticBag diagnostics)
+        {
+            var expr = BindCollectionLiteralExpression(syntax, destination, diagnostics);
+            if (wasCompilerGenerated)
+            {
+                expr.MakeCompilerGenerated();
+            }
+            return new BoundConversion(
+                syntax,
+                expr,
+                expr is BoundBadExpression ? Conversion.NoConversion : conversion, // PROTOTYPE: Test
+                node.Binder.CheckOverflowAtRuntime, // PROTOTYPE: Test
+                explicitCastInCode: isCast && !wasCompilerGenerated, // PROTOTYPE: Test
+                conversionGroupOpt,
+                expr.ConstantValueOpt,
+                destination);
         }
 
         /// <summary>

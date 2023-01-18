@@ -134,7 +134,7 @@
   </Node>
 
   <!--
-  This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method
+  This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method.
   It does not survive past initial binding.
   -->
   <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
@@ -1799,7 +1799,7 @@
   </Node>
 
   <!--
-  This node is used to represent a target-typed object creation expression
+  This node is used to represent a target-typed object creation expression.
   It does not survive past initial binding.
   -->
   <Node Name="BoundUnconvertedObjectCreationExpression" Base="BoundExpression">
@@ -1839,6 +1839,20 @@
     <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
   
+  <!--
+  A target-typed collection creation expression.
+  It does not survive past initial binding.
+  -->
+  <Node Name="BoundUnconvertedCollectionLiteralExpression" Base="BoundExpression">
+    <!-- Type is not significant for this node type; always null -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundCollectionLiteralExpression" Base="BoundExpression">
+    <Field Name="Constructor" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" Null="allow"/>
+  </Node>
 
   <!-- 
   Tuple literals can exist in two forms - literal and converted literal.

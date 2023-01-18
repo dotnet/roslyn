@@ -754,6 +754,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // may be used by SemanticModel for error cases.
                     return BadExpression(node);
 
+                case SyntaxKind.CollectionCreationExpression:
+                    return BindCollectionCreationExpression((CollectionCreationExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.NullableType:
                     // Not reachable during method body binding, but
                     // may be used by SemanticModel for error cases.
@@ -4338,6 +4341,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpression BindCollectionCreationExpression(CollectionCreationExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            if (MessageID.IDS_FeatureCollectionLiterals.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)syntax.SyntaxTree.Options) is { } diagnosticInfo)
+            {
+                diagnostics.Add(diagnosticInfo, syntax.OpenBracketToken.GetLocation());
+            }
+            return new BoundUnconvertedCollectionLiteralExpression(syntax, this);
+        }
+
         private BoundExpression BindDelegateCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BindingDiagnosticBag diagnostics)
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
@@ -5853,6 +5865,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return MakeBadExpressionForObjectCreation(node, typeParameter, analyzedArguments, initializerOpt, typeSyntax, diagnostics);
+        }
+
+        private BoundExpression BindCollectionLiteralExpression(CollectionCreationExpressionSyntax syntax, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        {
+            // Follows approach from BindCollectionInitializerExpression.
+
+            // PROTOTYPE: Test types other than NamedTypeSymbols such as arrays and type parameters.
+            // PROTOTYPE: Test constructor with all optional parameters; with params parameter.
+            var constructor = ((NamedTypeSymbol)targetType).Constructors.SingleOrDefault(c => c.ParameterCount == 0);
+            if (constructor is null)
+            {
+                // PROTOTYPE: Report error.
+                return BadExpression(syntax);
+            }
+
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+
+            bool hasEnumerableInitializerType = CollectionInitializerTypeImplementsIEnumerable(targetType, syntax, diagnostics);
+            if (!hasEnumerableInitializerType && !syntax.HasErrors && !targetType.IsErrorType())
+            {
+                Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+            }
+
+            var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+
+            var initializerBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            foreach (var elementInitializer in syntax.Elements)
+            {
+                // PROTOTYPE: Bind elements other than ExpressionElementSyntax.
+                BoundExpression boundElementInitializer = BindCollectionInitializerElement(((ExpressionElementSyntax)elementInitializer).Expression, targetType,
+                    hasEnumerableInitializerType, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver);
+                initializerBuilder.Add(boundElementInitializer);
+            }
+
+            return new BoundCollectionLiteralExpression(
+                syntax,
+                constructor,
+                new BoundCollectionInitializerExpression(syntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), targetType),
+                targetType);
         }
 
         /// <summary>

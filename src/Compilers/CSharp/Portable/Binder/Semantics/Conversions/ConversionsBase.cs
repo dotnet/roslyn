@@ -1094,6 +1094,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.UnconvertedObjectCreationExpression:
                     return Conversion.ObjectCreation;
+
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    return Conversion.CollectionLiteral;
             }
 
             return Conversion.NoConversion;
