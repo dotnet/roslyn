@@ -4,8 +4,6 @@
 
 #nullable disable
 
-#pragma warning disable RS1037 // Add "CompilationEnd" custom tag to compilation end diagnostic descriptor - we don't care for tests.
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
