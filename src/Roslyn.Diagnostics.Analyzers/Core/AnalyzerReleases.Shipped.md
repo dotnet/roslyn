@@ -67,4 +67,3 @@ RS0101 | RoslynDiagnosticsMaintainability | Warning | AbstractBlankLinesDiagnost
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0005 | RoslyDiagnosticsPerformance | Warning | CodeActionCreateAnalyzer
-
