@@ -3,20 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.MakePropertyRequired;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeFieldOrPropertyRequired;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakePropertyRequired
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeFieldOrPropertyRequired
 {
     using VerifyCS = CSharpCodeFixVerifier<
         EmptyDiagnosticAnalyzer,
-        CSharpMakePropertyRequiredCodeFixProvider>;
+        CSharpMakeFieldOrPropertyRequiredCodeFixProvider>;
 
-    [Trait(Traits.Feature, Traits.Features.CodeActionsMakePropertyRequired)]
-    public sealed class MakePropertyRequiredTests
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldOrPropertyRequired)]
+    public sealed class MakeFieldOrPropertyRequiredTests
     {
         [Fact]
         public async Task SimpleSetProperty()

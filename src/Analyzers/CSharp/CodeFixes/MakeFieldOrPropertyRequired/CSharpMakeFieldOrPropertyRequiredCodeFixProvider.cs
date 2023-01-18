@@ -18,16 +18,16 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakePropertyRequired;
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeFieldOrPropertyRequired;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakePropertyRequired), Shared]
-internal sealed class CSharpMakePropertyRequiredCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeFieldOrPropertyRequired), Shared]
+internal sealed class CSharpMakeFieldOrPropertyRequiredCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS8618 = nameof(CS8618); // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpMakePropertyRequiredCodeFixProvider()
+    public CSharpMakeFieldOrPropertyRequiredCodeFixProvider()
     {
     }
 
