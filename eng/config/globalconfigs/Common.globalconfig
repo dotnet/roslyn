@@ -59,6 +59,9 @@ dotnet_diagnostic.RS0046.severity = suggestion
 # RS0047: (Suppressor) The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'
 dotnet_diagnostic.RS0047.severity = none
 
+# RS1035: Do not use APIs banned for analyzers
+dotnet_diagnostic.RS1035.severity = none
+
 # allow skipped tests, with a code fix to unskip them
 dotnet_diagnostic.xUnit1004.severity = refactoring
 # xUnit2006: "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now
