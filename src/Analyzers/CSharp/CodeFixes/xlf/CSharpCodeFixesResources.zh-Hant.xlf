@@ -67,6 +67,11 @@
         <target state="translated">隱藏基底成員</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_field_required">
+        <source>Make field required</source>
+        <target state="new">Make field required</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_property_required">
         <source>Make property required</source>
         <target state="new">Make property required</target>
