@@ -24,37 +24,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
          : CSharpTestBase
     {
         [Theory]
-        [InlineData("abc")] // abc.cs
-        [InlineData("abc.cs")] //abc.cs
-        [InlineData("abc+nested.cs")] //abc+nested.cs
-        [InlineData("abc`1.cs")] //abc`1.cs
-        [InlineData("abc.vb")] // abc.vb.cs
+        [InlineData("abc", "abc.cs")]
+        [InlineData("abc.cs")]
+        [InlineData("abc+nested.cs")]
+        [InlineData("abc`1.cs")]
+        [InlineData("abc.vb", "abc.vb.cs")]
         [InlineData("abc.generated.cs")]
-        [InlineData("abc_-_")]
+        [InlineData("abc_-_", "abc_-_.cs")]
         [InlineData("abc - generated.cs")]
-        [InlineData("abc\u0064.cs")] //acbd.cs
+        [InlineData("abc\u0064.cs", "abcd.cs")]
         [InlineData("abc(1).cs")]
         [InlineData("abc[1].cs")]
         [InlineData("abc{1}.cs")]
-        [InlineData("..")]
-        [InlineData(".")]
-        [InlineData("abc/")]
-        [InlineData("abc/ ")]
-        [InlineData("a/b/c")]
-        [InlineData(" abc ")]
+        [InlineData("..", "...cs")]
+        [InlineData(".", "..cs")]
+        [InlineData("abc/", "abc/.cs")]
+        [InlineData("abc/ ", "abc/ .cs")]
+        [InlineData("a/b/c", "a/b/c.cs")]
+        [InlineData("a\\b/c", "a/b/c.cs")]
+        [InlineData(" abc ", " abc .cs")]
         [InlineData(" abc/generated.cs")]
         [InlineData(" a/ b/ generated.cs")]
         [WorkItem(58476, "https://github.com/dotnet/roslyn/issues/58476")]
-        public void HintName_ValidValues(string hintName)
+        public void HintName_ValidValues(string hintName, string? expectedName = null)
         {
+            expectedName ??= hintName;
+
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8));
-            Assert.True(asc.Contains(hintName));
+            Assert.True(asc.Contains(expectedName));
 
             var sources = asc.ToImmutableAndFree();
-            Assert.Single(sources);
-            Assert.True(sources[0].HintName.EndsWith(".cs"));
-
+            var source = Assert.Single(sources);
+            Assert.True(source.HintName.EndsWith(".cs"));
+            Assert.True(source.HintName.EndsWith(expectedName));
         }
 
         [Theory]
