@@ -84,8 +84,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(string.Format(CodeAnalysisResources.SourceTextRequiresEncoding, hintName), nameof(source));
             }
 
-            Debug.Assert(Path.GetFullPath(hintName).StartsWith(Environment.CurrentDirectory, _hintNameComparison),
-                "Resolved hintName is expected to stay inside the current working directory.");
+            if (Path.IsPathRooted(hintName) || !Path.GetFullPath(hintName).StartsWith(Environment.CurrentDirectory, _hintNameComparison))
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.SourceTextRequiresEncoding, hintName), nameof(hintName));
+            }
 
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }

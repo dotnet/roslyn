@@ -747,4 +747,7 @@
     <value>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</value>
     <comment>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</comment>
   </data>
+  <data name="HintNameNotRelative" xml:space="preserve">
+    <value>The hintName '{0}' is not relative.</value>
+  </data>
 </root>
