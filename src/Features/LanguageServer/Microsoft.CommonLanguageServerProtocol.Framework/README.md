@@ -2,6 +2,10 @@
 
 CLaSP was created to ease the creation and maintenance of [Language Server](https://microsoft.github.io/language-server-protocol/) implementations by sharing our hard-won knowledge, while leaving you the flexiblity to create the server you need.
 
+## A note on support
+
+Currently, CLaSP is not recommended or supported for use outside of specific teams/projects. We hope to make it more broadly available in the future.
+
 ## Getting Started with CLaSP
 
 You can find a [simple example implementation of a CLaSP-based LanguageServer here](https://github.com/dotnet/roslyn/tree/main/src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.Example).
