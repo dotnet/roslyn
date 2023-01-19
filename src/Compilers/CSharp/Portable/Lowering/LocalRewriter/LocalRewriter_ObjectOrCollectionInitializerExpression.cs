@@ -96,16 +96,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We don't lower them if they contain errors, so it's safe to assume an element initializer.
 
                 BoundExpression? rewrittenInitializer;
-                if (initializer.Kind == BoundKind.CollectionElementInitializer)
+                switch (initializer)
                 {
-                    rewrittenInitializer = MakeCollectionInitializer(rewrittenReceiver, (BoundCollectionElementInitializer)initializer);
-                }
-                else
-                {
-                    Debug.Assert(!_inExpressionLambda);
-                    Debug.Assert(initializer.Kind == BoundKind.DynamicCollectionElementInitializer);
-
-                    rewrittenInitializer = MakeDynamicCollectionInitializer(rewrittenReceiver!, (BoundDynamicCollectionElementInitializer)initializer);
+                    case BoundCollectionElementInitializer collectionElementInitializer:
+                        rewrittenInitializer = MakeCollectionInitializer(rewrittenReceiver, collectionElementInitializer);
+                        break;
+                    case BoundDynamicCollectionElementInitializer dynamicInitializer:
+                        Debug.Assert(!_inExpressionLambda);
+                        rewrittenInitializer = MakeDynamicCollectionInitializer(rewrittenReceiver, dynamicInitializer);
+                        break;
+                    case BoundDictionaryElementInitializer dictionaryElementInitializer:
+                        rewrittenInitializer = MakeDictionaryElementInitializer(rewrittenReceiver, dictionaryElementInitializer);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
                 }
 
                 // the call to Add may be omitted
@@ -203,6 +207,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
+        }
+
+        private BoundExpression MakeDictionaryElementInitializer(BoundExpression? rewrittenReceiver, BoundDictionaryElementInitializer initializer)
+        {
+            Debug.Assert(rewrittenReceiver != null || _inExpressionLambda); // PROTOTYPE: Test in expression tree. Is rewrittenReceiver null in that case?
+
+            var syntax = initializer.Syntax;
+            var indexer = initializer.Indexer;
+
+            var rewrittenKey = VisitExpression(initializer.Key);
+            var rewrittenValue = VisitExpression(initializer.Value);
+
+            var rewrittenLeft = MakeIndexerAccess(
+                syntax,
+                rewrittenReceiver,
+                indexer,
+                ImmutableArray.Create(rewrittenKey),
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                expanded: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                type: indexer.Type,
+                oldNodeOpt: null,
+                isLeftOfAssignment: true);
+
+            return MakeAssignmentOperator(
+                syntax,
+                rewrittenLeft,
+                rewrittenValue,
+                type: _factory.SpecialType(SpecialType.System_Void),
+                used: false,
+                isChecked: false,
+                isCompoundAssignment: false);
         }
 
         private BoundExpression VisitObjectInitializerMember(BoundObjectInitializerMember node, ref BoundExpression rewrittenReceiver, ArrayBuilder<BoundExpression> sideEffects, ref ArrayBuilder<LocalSymbol>? temps)

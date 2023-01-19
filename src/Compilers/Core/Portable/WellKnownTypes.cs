@@ -329,6 +329,8 @@ namespace Microsoft.CodeAnalysis
         System_MissingMethodException,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
 
+        System_Collections_Generic_KeyValuePair_KV,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -647,6 +649,7 @@ namespace Microsoft.CodeAnalysis
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
             "System.MissingMethodException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
+            "System.Collections.Generic.KeyValuePair`2",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

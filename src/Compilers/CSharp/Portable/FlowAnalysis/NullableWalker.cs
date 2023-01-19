@@ -3438,6 +3438,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
+        {
+            VisitRvalue(node.Key);
+            VisitRvalue(node.Value);
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
         {
             Debug.Assert(!IsConditionalState);

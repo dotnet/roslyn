@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        // PROTOTYPE: Test with type that implements IEnumerable, not IEnumerable<T>.
         // PROTOTYPE: Test with different collection types: class, struct, array, string, etc.
         // PROTOTYPE: Test with types that are not constructible: non-collection type, static type, interface, abstract type, type parameter, etc.
         // PROTOTYPE: Test with type parameter T where T : new(), IEnumerable<U>, and with struct, class, or neither constraint.
@@ -116,6 +117,132 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
         }
+
+        [Fact]
+        public void DictionaryElements_01()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<object, object> d = Create();
+                        Console.WriteLine((d.Count, d[1]));
+                    }
+                    static Dictionary<object, object> Create() => [1:2];
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2)");
+            verifier.VerifyIL("Program.Create", """
+                {
+                  // Code size       24 (0x18)
+                  .maxstack  4
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<object, object>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldc.i4.1
+                  IL_0007:  box        "int"
+                  IL_000c:  ldc.i4.2
+                  IL_000d:  box        "int"
+                  IL_0012:  callvirt   "void System.Collections.Generic.Dictionary<object, object>.this[object].set"
+                  IL_0017:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void DictionaryElements_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static Dictionary<string, int> Create(object k, object v) => [k:v];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Conversion errors should highlight k or v not k:v.
+            comp.VerifyEmitDiagnostics(
+                // (4,67): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //     static Dictionary<string, int> Create(object k, object v) => [k:v];
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "k:v").WithArguments("object", "string").WithLocation(4, 67),
+                // (4,67): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //     static Dictionary<string, int> Create(object k, object v) => [k:v];
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "k:v").WithArguments("object", "int").WithLocation(4, 67));
+        }
+
+        [Fact]
+        public void DictionaryElements_03()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<int, object> d = Create();
+                        Console.WriteLine((d.Count, d[1], d[2]));
+                    }
+                    static Dictionary<int, object> Create() => [1:1, 2:null, new KeyValuePair<int, object>(2, "3"), 1:4];
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(2, 4, 3)");
+            verifier.VerifyIL("Program.Create", """
+                {
+                  // Code size       84 (0x54)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.KeyValuePair<int, object> V_0)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<int, object>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldc.i4.1
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  box        "int"
+                  IL_000d:  callvirt   "void System.Collections.Generic.Dictionary<int, object>.this[int].set"
+                  IL_0012:  dup
+                  IL_0013:  ldc.i4.2
+                  IL_0014:  ldnull
+                  IL_0015:  callvirt   "void System.Collections.Generic.Dictionary<int, object>.this[int].set"
+                  IL_001a:  dup
+                  IL_001b:  ldc.i4.2
+                  IL_001c:  ldstr      "3"
+                  IL_0021:  newobj     "System.Collections.Generic.KeyValuePair<int, object>..ctor(int, object)"
+                  IL_0026:  stloc.0
+                  IL_0027:  ldloca.s   V_0
+                  IL_0029:  call       "int System.Collections.Generic.KeyValuePair<int, object>.Key.get"
+                  IL_002e:  ldc.i4.2
+                  IL_002f:  ldstr      "3"
+                  IL_0034:  newobj     "System.Collections.Generic.KeyValuePair<int, object>..ctor(int, object)"
+                  IL_0039:  stloc.0
+                  IL_003a:  ldloca.s   V_0
+                  IL_003c:  call       "object System.Collections.Generic.KeyValuePair<int, object>.Value.get"
+                  IL_0041:  callvirt   "void System.Collections.Generic.Dictionary<int, object>.this[int].set"
+                  IL_0046:  dup
+                  IL_0047:  ldc.i4.1
+                  IL_0048:  ldc.i4.4
+                  IL_0049:  box        "int"
+                  IL_004e:  callvirt   "void System.Collections.Generic.Dictionary<int, object>.this[int].set"
+                  IL_0053:  ret
+                }
+                """);
+        }
+
+        // PROTOTYPE: Test type with TValue this[TKey] indexer but no Add(KeyValuePair<TKey, TValue>) method, and without a definition for KeyValuePair<TKey, TValue>. It should compile without errors.
+        // PROTOTYPE: Test type with TValue this[TKey] indexer and Add(KeyValuePair<TKey, TValue>) method, and without a definition for KeyValuePair<TKey, TValue>. It should bind to Add() but report a use-site error.
+        // PROTOTYPE: Test type with Add(KeyValuePair<TKey, TValue>) method with or without corresponding TValue this[TKey] indexer. Test adding k:v and e.
+        // PROTOTYPE: Test type with neither Add(KeyValuePair<TKey, TValue>) or TValue this[TKey] indexer. Test adding k:v and e.
+        // PROTOTYPE: Test type with multiple Add(KeyValuePair<TKey, TValue>) overloads, with different generic type arguments.
+        // PROTOTYPE: Test type with multiple TValue this[TKey] indexer overloads, with different generic type arguments.
+        // PROTOTYPE: Test all the many variations when the collection target type is dynamic - see BindCollectionInitializerElementAddMethod.
+        // PROTOTYPE: Test with 'in' and 'ref' key parameter.
+        // PROTOTYPE: Test with readonly indexer.
+        // PROTOTYPE: Test with ref returning indexer.
+        // PROTOTYPE: Test collection literal construction in expression trees.
+        // PROTOTYPE: Test nullable analysis for k:v, e, and ..e.
+        // PROTOTYPE: Test ref safety analysis for k:v, e, and ..e.
+
+        // PROTOTYPE: Determine natural type from mix of expression, dictionary, and spread elements.
 
         [Fact]
         public void NotConstructibleType_Empty()

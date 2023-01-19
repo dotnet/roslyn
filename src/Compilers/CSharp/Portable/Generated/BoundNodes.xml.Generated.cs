@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionInitializerExpression,
         CollectionElementInitializer,
         DynamicCollectionElementInitializer,
+        DictionaryElementInitializer,
         ImplicitReceiver,
         AnonymousObjectCreationExpression,
         AnonymousPropertyDeclaration,
@@ -6609,6 +6610,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDictionaryElementInitializer : BoundExpression
+    {
+        public BoundDictionaryElementInitializer(SyntaxNode syntax, PropertySymbol indexer, BoundExpression key, BoundExpression value, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DictionaryElementInitializer, syntax, type, hasErrors || key.HasErrors() || value.HasErrors())
+        {
+
+            RoslynDebug.Assert(indexer is object, "Field 'indexer' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(key is object, "Field 'key' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Indexer = indexer;
+            this.Key = key;
+            this.Value = value;
+            this.ResultKind = resultKind;
+        }
+
+        public new TypeSymbol Type => base.Type!;
+        public PropertySymbol Indexer { get; }
+        public BoundExpression Key { get; }
+        public BoundExpression Value { get; }
+        public override LookupResultKind ResultKind { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDictionaryElementInitializer(this);
+
+        public BoundDictionaryElementInitializer Update(PropertySymbol indexer, BoundExpression key, BoundExpression value, LookupResultKind resultKind, TypeSymbol type)
+        {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(indexer, this.Indexer) || key != this.Key || value != this.Value || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundDictionaryElementInitializer(this.Syntax, indexer, key, value, resultKind, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundImplicitReceiver : BoundExpression
     {
         public BoundImplicitReceiver(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
@@ -8792,6 +8831,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCollectionElementInitializer((BoundCollectionElementInitializer)node, arg);
                 case BoundKind.DynamicCollectionElementInitializer:
                     return VisitDynamicCollectionElementInitializer((BoundDynamicCollectionElementInitializer)node, arg);
+                case BoundKind.DictionaryElementInitializer:
+                    return VisitDictionaryElementInitializer((BoundDictionaryElementInitializer)node, arg);
                 case BoundKind.ImplicitReceiver:
                     return VisitImplicitReceiver((BoundImplicitReceiver)node, arg);
                 case BoundKind.AnonymousObjectCreationExpression:
@@ -9073,6 +9114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionElementInitializer(BoundCollectionElementInitializer node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitImplicitReceiver(BoundImplicitReceiver node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node, A arg) => this.DefaultVisit(node, arg);
@@ -9300,6 +9342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionElementInitializer(BoundCollectionElementInitializer node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitImplicitReceiver(BoundImplicitReceiver node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node) => this.DefaultVisit(node);
@@ -10109,6 +10152,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             this.VisitList(node.Arguments);
+            return null;
+        }
+        public override BoundNode? VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
+        {
+            this.Visit(node.Key);
+            this.Visit(node.Value);
             return null;
         }
         public override BoundNode? VisitImplicitReceiver(BoundImplicitReceiver node) => null;
@@ -11368,6 +11417,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.ApplicableMethods, expression, arguments, type);
+        }
+        public override BoundNode? VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
+        {
+            BoundExpression key = (BoundExpression)this.Visit(node.Key);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(node.Indexer, key, value, node.ResultKind, type);
         }
         public override BoundNode? VisitImplicitReceiver(BoundImplicitReceiver node)
         {
@@ -13654,6 +13710,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
+        {
+            PropertySymbol indexer = GetUpdatedSymbol(node, node.Indexer);
+            BoundExpression key = (BoundExpression)this.Visit(node.Key);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundDictionaryElementInitializer updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(indexer, key, value, node.ResultKind, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(indexer, key, value, node.ResultKind, node.Type);
+            }
+            return updatedNode;
+        }
+
         public override BoundNode? VisitImplicitReceiver(BoundImplicitReceiver node)
         {
             if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
@@ -15916,6 +15991,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("applicableMethods", node.ApplicableMethods, null),
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node, object? arg) => new TreeDumperNode("dictionaryElementInitializer", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("indexer", node.Indexer, null),
+            new TreeDumperNode("key", null, new TreeDumperNode[] { Visit(node.Key, null) }),
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+            new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

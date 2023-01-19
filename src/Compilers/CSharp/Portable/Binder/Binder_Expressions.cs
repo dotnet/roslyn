@@ -5880,23 +5880,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(syntax);
             }
 
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-
             bool hasEnumerableInitializerType = CollectionInitializerTypeImplementsIEnumerable(targetType, syntax, diagnostics);
             if (!hasEnumerableInitializerType && !syntax.HasErrors && !targetType.IsErrorType())
             {
                 Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
             }
 
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
             var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
 
             var initializerBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             foreach (var elementInitializer in syntax.Elements)
             {
-                // PROTOTYPE: Bind elements other than ExpressionElementSyntax.
-                BoundExpression boundElementInitializer = BindCollectionInitializerElement(((ExpressionElementSyntax)elementInitializer).Expression, targetType,
-                    hasEnumerableInitializerType, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver);
-                initializerBuilder.Add(boundElementInitializer);
+                initializerBuilder.Add(
+                    BindCollectionLiteralElement(elementInitializer, hasEnumerableInitializerType, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver));
             }
 
             return new BoundCollectionLiteralExpression(
@@ -5904,6 +5901,122 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructor,
                 new BoundCollectionInitializerExpression(syntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), targetType),
                 targetType);
+        }
+
+        private BoundExpression BindCollectionLiteralElement(
+            CollectionElementSyntax syntax,
+            bool hasEnumerableInitializerType,
+            Binder collectionInitializerAddMethodBinder,
+            BindingDiagnosticBag diagnostics,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
+        {
+            switch (syntax)
+            {
+                case ExpressionElementSyntax expressionElementSyntax:
+                    {
+                        var elementSyntax = expressionElementSyntax.Expression;
+                        var element = BindValue(elementSyntax, diagnostics, BindValueKind.RValue);
+
+                        var elementType = element.Type;
+                        if (elementType.IsKeyValuePair())
+                        {
+                            // PROTOTYPE: Create the BoundPropertyAccess expressions for key and value in lowering.
+                            var key = getPropertyValue(expressionElementSyntax, element, "Key", diagnostics);
+                            var value = getPropertyValue(expressionElementSyntax, element, "Value", diagnostics);
+                            return bindDictionaryElementInitializer(syntax, implicitReceiver, key, value, diagnostics);
+                        }
+                        else
+                        {
+                            BoundExpression result = BindCollectionInitializerElementAddMethod(
+                                elementSyntax,
+                                ImmutableArray.Create(element),
+                                hasEnumerableInitializerType,
+                                collectionInitializerAddMethodBinder,
+                                diagnostics,
+                                implicitReceiver);
+                            result.WasCompilerGenerated = true;
+                            return result;
+                        }
+                    }
+
+                case DictionaryElementSyntax dictionaryElementSyntax:
+                    {
+                        var key = BindValue(dictionaryElementSyntax.KeyExpression, diagnostics, BindValueKind.RValue);
+                        var value = BindValue(dictionaryElementSyntax.ValueExpression, diagnostics, BindValueKind.RValue);
+                        return bindDictionaryElementInitializer(syntax, implicitReceiver, key, value, diagnostics);
+                    }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+            }
+
+            BoundExpression getPropertyValue(
+                ExpressionElementSyntax expressionElementSyntax,
+                BoundExpression receiver,
+                string propertyName,
+                BindingDiagnosticBag diagnostics)
+            {
+                LookupResult lookupResult = LookupResult.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                this.LookupMembersWithFallback(lookupResult, receiver.Type, propertyName, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.Default);
+                diagnostics.Add(expressionElementSyntax, useSiteInfo);
+
+                var property = lookupResult.SingleSymbolOrDefault as PropertySymbol;
+                lookupResult.Free();
+
+                if (property is null)
+                {
+                    // PROTOTYPE: Report error.
+                    return BadExpression(expressionElementSyntax);
+                }
+
+                // PROTOTYPE: Handle static property, inaccessible property, ref returning property, wrong number of args, etc.
+                return new BoundPropertyAccess(expressionElementSyntax, receiver, property, lookupResult.Kind, property.Type) { WasCompilerGenerated = true };
+            }
+
+            BoundExpression bindDictionaryElementInitializer(
+                CollectionElementSyntax syntax,
+                BoundExpression receiver,
+                BoundExpression key,
+                BoundExpression value,
+                BindingDiagnosticBag diagnostics)
+            {
+                LookupResult lookupResult = LookupResult.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                this.LookupMembersWithFallback(lookupResult, receiver.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.Default);
+                diagnostics.Add(syntax, useSiteInfo);
+
+                var indexer = lookupResult.SingleSymbolOrDefault as PropertySymbol;
+                var resultKind = lookupResult.Kind;
+                lookupResult.Free();
+
+                if (indexer is null)
+                {
+                    // PROTOTYPE: Report error.
+                    return BadExpression(syntax);
+                }
+
+                // PROTOTYPE: Handle static property, inaccessible property, ref returning property, wrong number of args, etc.
+                key = createConversion(key, indexer.Parameters[0].Type, diagnostics);
+                value = createConversion(value, indexer.Type, diagnostics);
+                return new BoundDictionaryElementInitializer(syntax, indexer, key, value, resultKind, indexer.Type) { WasCompilerGenerated = true };
+            }
+
+            BoundExpression createConversion(
+                BoundExpression source,
+                TypeSymbol destinationType,
+                BindingDiagnosticBag diagnostics)
+            {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = Conversions.ClassifyConversionFromExpression(source, destinationType, isChecked: false, ref useSiteInfo);
+                diagnostics.Add(source.Syntax, useSiteInfo);
+                bool hasErrors = !conversion.Exists || !conversion.IsImplicit;
+                if (hasErrors)
+                {
+                    GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destinationType);
+                }
+                return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, wasCompilerGenerated: true, destination: destinationType, diagnostics: diagnostics, hasErrors: hasErrors);
+            }
         }
 
         /// <summary>

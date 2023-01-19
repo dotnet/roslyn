@@ -1271,6 +1271,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        private static readonly string[] s_systemCollectionsGenericNamespaceName = new[] { "Generic", "Collections", "System", "" };
+
+        internal static bool IsKeyValuePair(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol { MetadataName: "KeyValuePair`2", Arity: 2 } &&
+                IsNamespaceName(type.ContainingSymbol, s_systemCollectionsGenericNamespaceName);
+        }
+
+        // PROTOTYPE: These three extension methods should check type is not a nested type.
         internal static bool IsSpanChar(this TypeSymbol type)
         {
             return type is NamedTypeSymbol
