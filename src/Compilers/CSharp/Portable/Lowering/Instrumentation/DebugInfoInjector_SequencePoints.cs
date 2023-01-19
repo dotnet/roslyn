@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundStatement AddSequencePoint(VariableDeclaratorSyntax declaratorSyntax, BoundStatement rewrittenStatement)
         {
-            TextSpan? part;
-            GetBreakpointSpan(declaratorSyntax, out _, out part);
+            GetBreakpointSpan(declaratorSyntax, out _, out TextSpan? part);
             var result = BoundSequencePoint.Create(declaratorSyntax, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;
@@ -58,8 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constructorSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
+                Debug.Assert(constructorSyntax.Body != null);
+
                 // [SomeAttribute] static MyCtorName(...) [|{|] ... }
-                var start = constructorSyntax.Body!.OpenBraceToken.SpanStart;
+                var start = constructorSyntax.Body.OpenBraceToken.SpanStart;
                 var end = constructorSyntax.Body.OpenBraceToken.Span.End;
                 return TextSpan.FromBounds(start, end);
             }
@@ -104,7 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void GetBreakpointSpan(VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
-            var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent!;
+            Debug.Assert(declaratorSyntax.Parent != null);
+
+            var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
 
             if (declarationSyntax.Variables.First() == declaratorSyntax)
             {
@@ -157,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void GetFirstLocalOrFieldBreakpointSpan(SyntaxToken? firstToken, VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
+            Debug.Assert(declaratorSyntax.Parent != null);
+
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent!;
 
             // The first token may be a modifier (like public) or using or await

@@ -615,6 +615,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static TextSpan SkipAttributes(SyntaxNode syntax, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax? type)
         {
+            Debug.Assert(keyword.Node != null || type != null);
+
             var originalSpan = syntax.Span;
             if (attributes.Count > 0)
             {
