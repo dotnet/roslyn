@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declaratorSyntax.Parent != null);
 
-            var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent!;
+            var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
 
             // The first token may be a modifier (like public) or using or await
             int start = firstToken?.SpanStart ?? declarationSyntax.SpanStart;
@@ -170,9 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             int end;
             if (declarationSyntax.Variables.Count == 1)
             {
+                Debug.Assert(declarationSyntax.Parent != null);
+
                 // [|int x = 1;|]
                 // [|public static int x = 1;|]
-                end = declarationSyntax.Parent!.Span.End;
+                end = declarationSyntax.Parent.Span.End;
             }
             else
             {
