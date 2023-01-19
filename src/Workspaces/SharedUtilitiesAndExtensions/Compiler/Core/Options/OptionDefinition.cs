@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Options
         // Editorconfig name prefixes used for C#/VB specific options:
         public const string CSharpConfigNamePrefix = "csharp_";
         public const string VisualBasicConfigNamePrefix = "visual_basic_";
+        public const string FSharpConfigNamePrefix = "fsharp_";
 
         /// <summary>
         /// Optional group/sub-feature for this option.
@@ -48,6 +49,15 @@ namespace Microsoft.CodeAnalysis.Options
             IsEditorConfigOption = isEditorConfigOption;
             DefaultValue = defaultValue;
         }
+
+        public static string? GetConfigNameLanguagePrefix(string languageName)
+            => languageName switch
+            {
+                LanguageNames.CSharp => CSharpConfigNamePrefix,
+                LanguageNames.VisualBasic => VisualBasicConfigNamePrefix,
+                LanguageNames.FSharp => FSharpConfigNamePrefix,
+                _ => null
+            };
 
         /// <summary>
         /// The type of the option value.
