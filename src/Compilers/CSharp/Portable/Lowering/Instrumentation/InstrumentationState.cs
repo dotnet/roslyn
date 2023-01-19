@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 internal sealed class InstrumentationState
 {
     /// <summary>
-    /// Used to temporary suspend instrumentation, for example when lowering expression tree.
+    /// Used to temporarily suspend instrumentation, for example when lowering expression tree.
     /// </summary>
     public bool IsSuppressed { get; set; }
 

@@ -24,7 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public Instrumenter Previous { get; }
 
-        public abstract CompoundInstrumenter WithPrevious(Instrumenter previous);
+        /// <summary>
+        /// Returns <see cref="CompoundInstrumenter"/> with <see cref="Previous"/> instrumenter set to <paramref name="previous"/>.
+        /// </summary>
+        public CompoundInstrumenter WithPrevious(Instrumenter previous)
+            => ReferenceEquals(previous, Previous) ? this : WithPreviousImpl(previous);
+
+        protected abstract CompoundInstrumenter WithPreviousImpl(Instrumenter previous);
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
         {

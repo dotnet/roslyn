@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodBodyFactory.CurrentFunction = oldMethod;
         }
 
-        public override CompoundInstrumenter WithPrevious(Instrumenter previous)
+        protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
             => throw ExceptionUtilities.Unreachable(); // we don't currently need this
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)

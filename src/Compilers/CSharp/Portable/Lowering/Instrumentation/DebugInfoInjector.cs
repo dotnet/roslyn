@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DebugInfoInjector Create(Instrumenter previous)
             => (previous == NoOp) ? s_singleton : new DebugInfoInjector(previous);
 
-        public override CompoundInstrumenter WithPrevious(Instrumenter previous)
+        protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
             => Create(previous);
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
