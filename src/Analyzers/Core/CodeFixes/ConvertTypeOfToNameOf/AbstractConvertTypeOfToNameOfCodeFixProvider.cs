@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
@@ -19,20 +20,17 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId);
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                GetCodeFixTitle(),
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            var title = GetCodeFixTitle();
+            RegisterCodeFix(context, title, title);
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
@@ -52,16 +50,8 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }
 
-        protected abstract SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
 
         protected abstract string GetCodeFixTitle();
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
     }
 }

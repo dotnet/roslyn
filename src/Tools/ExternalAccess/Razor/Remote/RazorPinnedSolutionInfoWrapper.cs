@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     internal readonly struct RazorPinnedSolutionInfoWrapper
     {
         [DataMember(Order = 0)]
-        internal readonly PinnedSolutionInfo UnderlyingObject;
+        internal readonly Checksum UnderlyingObject;
 
-        public RazorPinnedSolutionInfoWrapper(PinnedSolutionInfo underlyingObject)
+        public RazorPinnedSolutionInfoWrapper(Checksum underlyingObject)
             => UnderlyingObject = underlyingObject;
 
-        public static implicit operator RazorPinnedSolutionInfoWrapper(PinnedSolutionInfo info)
+        public static implicit operator RazorPinnedSolutionInfoWrapper(Checksum info)
             => new(info);
     }
 }

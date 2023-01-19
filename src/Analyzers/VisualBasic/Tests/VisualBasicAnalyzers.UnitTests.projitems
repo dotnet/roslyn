@@ -10,13 +10,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests_FixAllTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AddObsoleteAttributeTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertGetTypeToNameOf\ConvertGetTypeToNameOfTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Iterator\IteratorTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\MakeTypeAbstractTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\MakeTypePartialTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\RemoveUnnecessaryByValTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessarySuppressionsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyTests.vb" />
@@ -42,8 +51,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\VisualBasicSimplifyLinqExpressionTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyObjectCreation\SimplifyObjectCreationTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForIfNullStatementCheckTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTernaryConditionalCheckTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundAssignmentTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForAssignmentTests.vb" />

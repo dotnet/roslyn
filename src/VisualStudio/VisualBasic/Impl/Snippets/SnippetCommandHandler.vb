@@ -49,8 +49,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
             serviceProvider As SVsServiceProvider,
             <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, globalOptions, serviceProvider)
+            editorOptionsService As EditorOptionsService)
+            MyBase.New(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsService, serviceProvider)
             _argumentProviders = argumentProviders.ToImmutableArray()
         End Sub
 
@@ -63,7 +63,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Function
 
         Protected Overrides Function GetSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
-            Return SnippetExpansionClient.GetSnippetExpansionClient(ThreadingContext, textView, subjectBuffer, SignatureHelpControllerProvider, EditorCommandHandlerServiceFactory, EditorAdaptersFactoryService, _argumentProviders, GlobalOptions)
+            Return SnippetExpansionClient.GetSnippetExpansionClient(ThreadingContext,
+                                                                    textView,
+                                                                    subjectBuffer,
+                                                                    SignatureHelpControllerProvider,
+                                                                    EditorCommandHandlerServiceFactory,
+                                                                    EditorAdaptersFactoryService,
+                                                                    _argumentProviders,
+                                                                    EditorOptionsService)
         End Function
 
         Protected Overrides Function TryInvokeInsertionUI(textView As ITextView, subjectBuffer As ITextBuffer, Optional surroundWith As Boolean = False) As Boolean
@@ -106,14 +113,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Return False
         End Function
 
-        Private Sub DeleteQuestionMark(subjectBuffer As ITextBuffer, caretPosition As Integer)
+        Private Shared Sub DeleteQuestionMark(subjectBuffer As ITextBuffer, caretPosition As Integer)
             Dim currentSnapshot = subjectBuffer.CurrentSnapshot
             Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
             If document IsNot Nothing Then
-                Dim editorWorkspace = document.Project.Solution.Workspace
-                Dim text = currentSnapshot.AsText()
-                Dim change = New TextChange(Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(caretPosition - 1, caretPosition), String.Empty)
-                editorWorkspace.ApplyTextChanges(document.Id, change, CancellationToken.None)
+                subjectBuffer.ApplyChange(New TextChange(Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(caretPosition - 1, caretPosition), String.Empty))
             End If
         End Sub
     End Class

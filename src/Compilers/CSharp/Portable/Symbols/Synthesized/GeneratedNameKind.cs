@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ReusableHoistedLocalField = '7',
         LambdaCacheField = '9',
         FixedBufferField = 'e',
+        FileType = 'F',
         AnonymousType = 'f',
         TransparentIdentifier = 'h',
         AnonymousTypeField = 'i',
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         IteratorFinallyMethod = 'm',
         BaseMethodWrapper = 'n',
         AsyncBuilderField = 't',
+        DelegateCacheContainerType = 'O',
         DynamicCallSiteContainerType = 'o',
         DynamicCallSiteField = 'p',
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
@@ -62,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class GeneratedNameKindExtensions
     {
         internal static bool IsTypeName(this GeneratedNameKind kind)
-            => kind is GeneratedNameKind.LambdaDisplayClass or GeneratedNameKind.StateMachineType or GeneratedNameKind.DynamicCallSiteContainerType;
+            => kind is GeneratedNameKind.LambdaDisplayClass
+                    or GeneratedNameKind.StateMachineType
+                    or GeneratedNameKind.DynamicCallSiteContainerType
+                    or GeneratedNameKind.DelegateCacheContainerType
+                    ;
     }
 }

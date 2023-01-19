@@ -8,12 +8,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
 {
     public class GetTextDocumentWithContextHandlerTests : AbstractLanguageServerProtocolTests
     {
+        public GetTextDocumentWithContextHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task SingleDocumentReturnsSingleContext()
         {
@@ -24,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
             var documentUri = testLspServer.GetLocations("caret").Single().Uri;
             var result = await RunGetProjectContext(testLspServer, documentUri);
 
@@ -50,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
             var documentUri = testLspServer.GetLocations("caret").Single().Uri;
             var result = await RunGetProjectContext(testLspServer, documentUri);
 
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
 
             // Ensure the documents are open so we can change contexts
             foreach (var document in testLspServer.TestWorkspace.Documents)
@@ -97,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
         internal static async Task<LSP.VSProjectContextList?> RunGetProjectContext(TestLspServer testLspServer, Uri uri)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.VSGetProjectContextsParams, LSP.VSProjectContextList?>(LSP.VSMethods.GetProjectContextsName,
-                           CreateGetProjectContextParams(uri), new LSP.ClientCapabilities(), clientName: null, cancellationToken: CancellationToken.None);
+                           CreateGetProjectContextParams(uri), cancellationToken: CancellationToken.None);
         }
 
         private static LSP.VSGetProjectContextsParams CreateGetProjectContextParams(Uri uri)

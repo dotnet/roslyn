@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewritten.Kind == BoundKind.Block)
             {
                 var block = (BoundBlock)rewritten;
-                return block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
+                return block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
             }
 
             return InstrumentFieldOrPropertyInitializer(rewritten, syntax);
@@ -201,11 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 whileSyntax.CloseParenToken.Span.End);
 
             return new BoundSequencePointWithSpan(whileSyntax, base.InstrumentWhileStatementConditionalGotoStartOrBreak(original, ifConditionGotoStart), conditionSequencePointSpan);
-        }
-
-        private static BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement, SyntheticBoundNodeFactory factory)
-        {
-            return AddConditionSequencePoint(condition, containingStatement.Syntax, factory);
         }
 
         /// <summary>

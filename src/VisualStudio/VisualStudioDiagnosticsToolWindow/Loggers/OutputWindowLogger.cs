@@ -23,23 +23,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         private readonly Func<FunctionId, bool> _isEnabledPredicate;
 
-        public OutputWindowLogger()
-            : this((Func<FunctionId, bool>)null)
-        {
-        }
-
-        public OutputWindowLogger(IGlobalOptionService optionService)
-            : this(Logger.GetLoggingChecker(optionService))
-        {
-        }
-
         public OutputWindowLogger(Func<FunctionId, bool> isEnabledPredicate)
         {
             _isEnabledPredicate = isEnabledPredicate;
         }
 
         public bool IsEnabled(FunctionId functionId)
-            => _isEnabledPredicate == null || _isEnabledPredicate(functionId);
+            => _isEnabledPredicate(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf SyntaxFacts.IsPunctuation(token.Kind) Then
                 Return ClassifyPunctuation(token)
             ElseIf token.Kind = SyntaxKind.IdentifierToken Then
-                Return ClassifyIdentifierSyntax(token)
+                Return GetSyntacticClassificationForIdentifier(token)
             ElseIf token.IsNumericLiteral() Then
                 Return ClassificationTypeNames.NumericLiteral
             ElseIf token.Kind = SyntaxKind.XmlNameToken Then
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                throw ExceptionUtilities.UnexpectedValue(token.Kind())
+                Throw ExceptionUtilities.UnexpectedValue(token.Kind())
             End If
         End Function
 
@@ -107,6 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 SyntaxKind.EndIfKeyword,
                 SyntaxKind.GosubKeyword,
                 SyntaxKind.YieldKeyword,
+                SyntaxKind.ThrowKeyword,
                 SyntaxKind.ToKeyword
                     Return True
                 Case Else
@@ -184,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Function
 
-        Private Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As String
+        Public Function GetSyntacticClassificationForIdentifier(identifier As SyntaxToken) As String
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
@@ -313,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Case SyntaxKind.StructureStatement
                     Return ClassificationTypeNames.StructName
                 Case Else
-                    throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
             End Select
         End Function
 

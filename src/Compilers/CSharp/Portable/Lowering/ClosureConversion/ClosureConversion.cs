@@ -242,10 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loweredBody,
                 method,
                 methodOrdinal,
-                substitutedSourceMethod,
                 slotAllocatorOpt,
                 compilationState,
-                closureDebugInfoBuilder,
                 diagnostics.DiagnosticBag);
 
             CheckLocalsDefined(loweredBody);
@@ -552,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Assignment(
                                 F.Field(null, frame.SingletonCache),
                                 F.New(frame.Constructor)),
-                            new BoundReturnStatement(syntax, RefKind.None, null));
+                            new BoundReturnStatement(syntax, RefKind.None, null, @checked: false));
 
                     AddSynthesizedMethod(frame.StaticConstructor, body);
                 }
@@ -1148,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // TODO: we may not need to update if there was nothing to rewrite.
-            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, newStatements.ToImmutableAndFree());
+            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, node.HasUnsafeModifier, newStatements.ToImmutableAndFree());
         }
 
         public override BoundNode VisitScope(BoundScope node)
@@ -1309,6 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method,
                     node.IsExtensionMethod,
+                    node.WasTargetTyped,
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
@@ -1606,6 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 referencedMethod,
                 isExtensionMethod: false,
+                wasTargetTyped: false,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,
@@ -1730,7 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             // these nodes have been handled in the context of the enclosing anonymous method conversion.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         #endregion

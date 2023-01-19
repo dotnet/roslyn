@@ -182,43 +182,6 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference SystemThreading { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemThreading).GetReference(display: "System.Threading.dll (net451)", filePath: "System.Threading.dll");
             public static PortableExecutableReference SystemThreadingTasks { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemThreadingTasks).GetReference(display: "System.Threading.Tasks.dll (net451)", filePath: "System.Threading.Tasks.dll");
         }
-        public static class ResourcesNet461
-        {
-            private static byte[] _mscorlib;
-            public static byte[] mscorlib => ResourceLoader.GetOrCreateResource(ref _mscorlib, "net461.mscorlib.dll");
-            private static byte[] _System;
-            public static byte[] System => ResourceLoader.GetOrCreateResource(ref _System, "net461.System.dll");
-            private static byte[] _SystemCore;
-            public static byte[] SystemCore => ResourceLoader.GetOrCreateResource(ref _SystemCore, "net461.System.Core.dll");
-            private static byte[] _SystemRuntime;
-            public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref _SystemRuntime, "net461.System.Runtime.dll");
-            private static byte[] _SystemThreadingTasks;
-            public static byte[] SystemThreadingTasks => ResourceLoader.GetOrCreateResource(ref _SystemThreadingTasks, "net461.System.Threading.Tasks.dll");
-            private static byte[] _MicrosoftCSharp;
-            public static byte[] MicrosoftCSharp => ResourceLoader.GetOrCreateResource(ref _MicrosoftCSharp, "net461.Microsoft.CSharp.dll");
-            private static byte[] _MicrosoftVisualBasic;
-            public static byte[] MicrosoftVisualBasic => ResourceLoader.GetOrCreateResource(ref _MicrosoftVisualBasic, "net461.Microsoft.VisualBasic.dll");
-            public static ReferenceInfo[] All => new[]
-            {
-                new ReferenceInfo("mscorlib.dll", mscorlib),
-                new ReferenceInfo("System.dll", System),
-                new ReferenceInfo("System.Core.dll", SystemCore),
-                new ReferenceInfo("System.Runtime.dll", SystemRuntime),
-                new ReferenceInfo("System.Threading.Tasks.dll", SystemThreadingTasks),
-                new ReferenceInfo("Microsoft.CSharp.dll", MicrosoftCSharp),
-                new ReferenceInfo("Microsoft.VisualBasic.dll", MicrosoftVisualBasic),
-            };
-        }
-        public static class Net461
-        {
-            public static PortableExecutableReference mscorlib { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.mscorlib).GetReference(display: "mscorlib.dll (net461)", filePath: "mscorlib.dll");
-            public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.System).GetReference(display: "System.dll (net461)", filePath: "System.dll");
-            public static PortableExecutableReference SystemCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemCore).GetReference(display: "System.Core.dll (net461)", filePath: "System.Core.dll");
-            public static PortableExecutableReference SystemRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemRuntime).GetReference(display: "System.Runtime.dll (net461)", filePath: "System.Runtime.dll");
-            public static PortableExecutableReference SystemThreadingTasks { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemThreadingTasks).GetReference(display: "System.Threading.Tasks.dll (net461)", filePath: "System.Threading.Tasks.dll");
-            public static PortableExecutableReference MicrosoftCSharp { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.dll (net461)", filePath: "Microsoft.CSharp.dll");
-            public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (net461)", filePath: "Microsoft.VisualBasic.dll");
-        }
         public static class ResourcesMicrosoftCSharp
         {
             private static byte[] _Netstandard10;

@@ -35,19 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseTupleSwapDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_tuple_to_swap_values, nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
                 FixOne(editor, diagnostic, cancellationToken);
@@ -58,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
         private static void FixOne(
             SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var localDeclarationStatement = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+            var localDeclarationStatement = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
             // `expr_a = expr_b`;
-            var firstAssignmentStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
-            var secondAssignmentStatment = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[2].FindNode(cancellationToken);
+            var firstAssignmentStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var secondAssignmentStatment = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
             editor.RemoveNode(firstAssignmentStatement);
             editor.RemoveNode(secondAssignmentStatment);
@@ -76,14 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
                 TupleExpression(SeparatedList(new[] { Argument(exprA), Argument(exprB) }))));
 
             editor.ReplaceNode(localDeclarationStatement, tupleAssignmentStatement.WithTriviaFrom(localDeclarationStatement));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_tuple_to_swap_values, createChangedDocument, nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values))
-            {
-            }
         }
     }
 }

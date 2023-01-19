@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies()
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void SetNoPiaResolutionAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()
@@ -161,16 +161,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes)
+#nullable enable
+
+        internal override NamedTypeSymbol LookupDeclaredOrForwardedTopLevelMetadataType(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
-            var result = this.moduleSymbol.LookupTopLevelMetadataType(ref emittedName);
-            Debug.Assert(result is MissingMetadataTypeSymbol);
-            return result;
+            return new MissingMetadataTypeSymbol.TopLevel(this.moduleSymbol, ref emittedName);
         }
+
+        internal override NamedTypeSymbol? LookupDeclaredTopLevelMetadataType(ref MetadataTypeName emittedName)
+        {
+            return null;
+        }
+
+#nullable disable
 
         internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol other)

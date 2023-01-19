@@ -49,8 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             Assert.Null(VisualBasicScript.EvaluateAsync(source).Result)
         End Sub
 
-        <WorkItem(10856, "DevDiv_Projects/Roslyn")>
-        <Fact>
+        <Fact, WorkItem(10856, "DevDiv_Projects/Roslyn")>
         Public Sub IfStatement()
             Dim source = "
 Dim x As Integer

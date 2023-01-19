@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         MemberAccess,
         ArrayTypeExpression,
         GenericTypeIdentifier,
+        GeneratedIdentifier,
+        LocalMethodIdentifier,
         TypeArgument,
         TypeIdentifier,
         Parameter,
@@ -43,6 +45,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         IdentifierToken,
         PathToken,
         NumberToken,
+        DollarToken,
+        PipeToken,
+        GeneratedNameSeparatorToken, // {character}__{identifier}
+        GeneratedNameSuffixToken, // {numeric}_{numeric}
 
         // Trivia
         WhitespaceTrivia,

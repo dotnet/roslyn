@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     {
         private static async Task<int> Main(string[] args)
         {
-            FatalError.Handler = FailFast.OnFatalException;
+            FatalError.Handler = FailFast.Handler;
 
             // Disables Windows Error Reporting for the process, so that the process fails fast.
             SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);

@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected readonly SemanticDocument SemanticDocument;
         protected readonly TextSpan OriginalSpan;
-        protected readonly OptionSet Options;
+        protected readonly ExtractMethodOptions Options;
 
         protected SelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            OptionSet options)
+            ExtractMethodOptions options)
         {
             Contract.ThrowIfNull(document);
 

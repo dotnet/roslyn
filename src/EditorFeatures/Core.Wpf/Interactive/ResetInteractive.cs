@@ -5,23 +5,21 @@
 #nullable disable
 
 extern alias InteractiveHost;
-
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Interactive;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.InteractiveWindow;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using System.Collections.Generic;
-using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     /// <summary>
     /// ResetInteractive class that implements base functionality for reset interactive command.
@@ -33,13 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         private readonly Func<string, string> _createImport;
 
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         internal event EventHandler ExecutionCompleted;
 
-        internal ResetInteractive(IEditorOptionsFactoryService editorOptionsFactoryService, Func<string, string> createReference, Func<string, string> createImport)
+        internal ResetInteractive(EditorOptionsService editorOptionsService, Func<string, string> createReference, Func<string, string> createImport)
         {
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _createReference = createReference;
             _createImport = createImport;
         }
@@ -113,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // Now send the reference paths we've collected to the repl.
             await evaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
 
-            var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
+            var editorOptions = _editorOptionsService.Factory.GetOptions(interactiveWindow.CurrentLanguageBuffer);
             var importReferencesCommand = referencePaths.Select(_createReference);
             await interactiveWindow.SubmitAsync(importReferencesCommand).ConfigureAwait(true);
 

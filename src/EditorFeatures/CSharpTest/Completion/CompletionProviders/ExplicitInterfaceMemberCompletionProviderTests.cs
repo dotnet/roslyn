@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -13,12 +11,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(ExplicitInterfaceMemberCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitInterfaceMember_01()
         {
             var markup = @"
@@ -45,7 +44,7 @@ class Bar : IGoo
             await VerifyItemExistsAsync(markup, "With_Underscore", displayTextSuffix: "()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitInterfaceMember_02()
         {
             var markup = @"
@@ -66,7 +65,7 @@ interface IBar : IGoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitInterfaceMember_03()
         {
             var markup = @"
@@ -87,7 +86,7 @@ class Bar : IGoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitInterfaceMember_04()
         {
             var markup = @"
@@ -108,8 +107,7 @@ interface IBar : IGoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
         public async Task CommitOnNotParen()
         {
             var markup = @"
@@ -137,8 +135,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
         }
 
-        [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
         public async Task CommitOnParen()
         {
             var markup = @"
@@ -166,8 +163,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Goo()", expected, '(');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(19947, "https://github.com/dotnet/roslyn/issues/19947")]
+        [Fact, WorkItem(19947, "https://github.com/dotnet/roslyn/issues/19947")]
         public async Task ExplicitInterfaceMemberCompletionContainsOnlyValidValues()
         {
             var markup = @"
@@ -197,8 +193,7 @@ class Bar : I2
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
+        [Fact, WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
         public async Task ExplicitInterfaceMemberCompletionDoesNotContainAccessors()
         {
             var markup = @"
@@ -224,7 +219,7 @@ class Bar : I1
             await VerifyItemExistsAsync(markup, "TestEvent");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotStaticMember_01()
         {
             var markup = @"
@@ -243,7 +238,7 @@ class Bar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotStaticMember_02()
         {
             var markup = @"
@@ -262,7 +257,7 @@ interface IBar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotSealedMember_01()
         {
             var markup = @"
@@ -281,7 +276,7 @@ class Bar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotSealedMember_02()
         {
             var markup = @"
@@ -300,7 +295,7 @@ interface IBar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotNestedType_01()
         {
             var markup = @"
@@ -319,7 +314,7 @@ class Bar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Goo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotNestedType_02()
         {
             var markup = @"
@@ -338,8 +333,7 @@ interface IBar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Goo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
+        [Fact, WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
         public async Task NotInaccessibleMember_01()
         {
             var markup =
@@ -374,8 +368,7 @@ public interface IGoo
             await VerifyItemExistsAsync(markup, "Prop2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
+        [Fact, WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
         public async Task NotInaccessibleMember_02()
         {
             var markup =
@@ -410,7 +403,7 @@ public interface IGoo
             await VerifyItemExistsAsync(markup, "Prop2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Generic_Tab()
         {
             var markup = @"
@@ -438,7 +431,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Generic_OpenBrace()
         {
             var markup = @"
@@ -466,7 +459,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '<');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Method_Tab()
         {
             var markup = @"
@@ -494,7 +487,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Method_OpenBrace()
         {
             var markup = @"
@@ -522,7 +515,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '(');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Indexer_Tab()
         {
             var markup = @"
@@ -550,7 +543,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Indexer_OpenBrace()
         {
             var markup = @"
@@ -576,6 +569,417 @@ class Bar : IGoo
 }";
 
             await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
+        }
+
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("in")]
+        [InlineData("out")]
+        public async Task TestWithRefKind(string refKind)
+        {
+            var markup = $@"
+interface I
+{{
+    void M({refKind} string s);
+}}
+
+class C : I
+{{
+    void I.$$
+}}
+";
+
+            var expected = $@"
+interface I
+{{
+    void M({refKind} string s);
+}}
+
+class C : I
+{{
+    void I.M({refKind} string s)
+}}
+";
+
+            await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
+        }
+
+        [Fact, WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember()
+        {
+            var markup = @"
+interface I2<T> where T : I2<T>
+{
+    abstract static implicit operator int(T x);
+}
+
+class Test2 : I2<Test2>
+{
+    static implicit I2<Test2>.$$
+}
+";
+
+            var expected = @"
+interface I2<T> where T : I2<T>
+{
+    abstract static implicit operator int(T x);
+}
+
+class Test2 : I2<Test2>
+{
+    static implicit I2<Test2>.operator int(Test2 x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator int(Test2 x)", expected, '\t');
+        }
+
+        [Fact, WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_TrueOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static bool operator true(T x);
+    abstract static bool operator false(T x);
+}
+
+class C : I<C>
+{
+    static bool I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static bool operator true(T x);
+    abstract static bool operator false(T x);
+}
+
+class C : I<C>
+{
+    static bool I<C>.operator true(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
+        }
+
+        [Fact, WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_UnaryPlusOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.operator +(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
+        }
+
+        [Fact, WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_BinaryPlusOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x, T y);
+}
+
+class C : I<C>
+{
+    static C I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x, T y);
+}
+
+class C : I<C>
+{
+    static C I<C>.operator +(C x, C y)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator +(C x, C y)", expected, '\t');
+        }
+
+        [Fact]
+        public async Task TestWithParamsParameter()
+        {
+            var markup = @"
+interface I
+{
+    void M(params string[] args);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(params string[] args);
+}
+
+class C : I
+{
+    void I.M(params string[] args)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
+        }
+
+        [Fact]
+        public async Task TestWithNullable()
+        {
+            var markup = @"
+#nullable enable
+
+interface I
+{
+    void M<T>(T? x);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+#nullable enable
+
+interface I
+{
+    void M<T>(T? x);
+}
+
+class C : I
+{
+    void I.M<T>(T? x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M<T>(T? x)", expected, '\t');
+        }
+
+        [Fact]
+        public async Task TestEscapeIdentifier()
+        {
+            var markup = @"
+interface I
+{
+    void M(string @class);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(string @class);
+}
+
+class C : I
+{
+    void I.M(string @class)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M(string @class)", expected, '\t');
+        }
+
+        [Fact]
+        public async Task TestEscapeIdentifier2()
+        {
+            var markup = @"
+interface I
+{
+    void M<@class>();
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M<@class>();
+}
+
+class C : I
+{
+    void I.M<@class>()
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M<@class>()", expected, '\t');
+        }
+
+        [Fact]
+        public async Task TestParameterWithDefaultValue()
+        {
+            var markup = @"
+interface I
+{
+    void M(int x = 10);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(int x = 10);
+}
+
+class C : I
+{
+    void I.M(int x)
+}
+";
+            // TODO: Consider adding the default value too.
+            await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
+        }
+
+        [Fact, WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        public async Task TestStaticAbstractCheckedUnaryOperator()
+        {
+            var markup = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked -(T x);
+
+    abstract static T operator -(T x);
+}
+
+class C : I1<C>
+{
+    static C I1<C>.$$
+}
+";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked -(T x);
+
+    abstract static T operator -(T x);
+}
+
+class C : I1<C>
+{
+    static C I1<C>.operator checked -(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator checked -(C x)", expected, '\t');
+        }
+
+        [Fact, WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        public async Task TestStaticAbstractCheckedBinaryOperator()
+        {
+            var markup = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked +(T x, T y);
+
+    abstract static T operator +(T x, T y);
+}
+
+class C : I1<C>
+{
+    static C I1<C>.$$
+}
+";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked +(T x, T y);
+
+    abstract static T operator +(T x, T y);
+}
+
+class C : I1<C>
+{
+    static C I1<C>.operator checked +(C x, C y)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator checked +(C x, C y)", expected, '\t');
+        }
+
+        [Fact, WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        public async Task TestStaticAbstractCheckedCastOperator()
+        {
+            var markup = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string(T x);
+    abstract static explicit operator string(T x);
+}
+
+
+class C3 : I1<C3>
+{
+    static C3 I1<C3>.$$
+}
+";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string(T x);
+    abstract static explicit operator string(T x);
+}
+
+
+class C3 : I1<C3>
+{
+    static C3 I1<C3>.operator checked string(C3 x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator checked string(C3 x)", expected, '\t');
         }
     }
 }

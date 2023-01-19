@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -34,9 +35,9 @@ public class C
                 File.Move(GetPdbPath(path), pdbFilePath);
 
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath);
-                var service = new PdbFileLocatorService(sourceLinkService);
+                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.NotNull(result);
             });
@@ -55,16 +56,18 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                // Ideally we don't want to pass in true for windowsPdb here, and this is supposed to test that the service ignores non-portable PDBs when the debugger
+                // tells us they're not portable, but the debugger has a bug at the moment.
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true);
 
                 // Move the PDB to a path that only our fake debugger service knows about
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");
                 File.Move(GetPdbPath(path), pdbFilePath);
 
-                var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath, isPortablePdb: false);
-                var service = new PdbFileLocatorService(sourceLinkService);
+                var sourceLinkService = new TestSourceLinkService(pdbFilePath);
+                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });
@@ -90,9 +93,9 @@ public class C
                 File.Move(GetPdbPath(path), pdbFilePath);
 
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: null);
-                var service = new PdbFileLocatorService(sourceLinkService);
+                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });

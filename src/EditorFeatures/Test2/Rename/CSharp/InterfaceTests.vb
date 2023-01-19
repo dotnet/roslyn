@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Rename)>
     Public Class InterfaceTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -13,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             _outputHelper = outputHelper
         End Sub
 
+        <Theory, CombinatorialData>
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExplicitlyImplementedInterfaceMemberFromDefinition(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -36,8 +37,8 @@ class C : I
             End Using
         End Sub
 
+        <Theory, CombinatorialData>
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExplicitlyImplementedInterfaceMemberFromImplementation(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -59,8 +60,8 @@ class C : I
             End Using
         End Sub
 
+        <Theory, CombinatorialData>
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -85,7 +86,7 @@ class C : N.I
             End Using
         End Sub
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData>
         Public Sub RenameInterfaceForExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>

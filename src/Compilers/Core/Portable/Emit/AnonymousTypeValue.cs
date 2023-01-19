@@ -10,7 +10,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.Emit
 {
     [DebuggerDisplay("{Name, nq}")]
-    internal struct AnonymousTypeValue
+    internal readonly struct AnonymousTypeValue
     {
         public readonly string Name;
         public readonly int UniqueIndex;

@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Debugger.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct TypeAndCustomInfo
+    internal readonly struct TypeAndCustomInfo
     {
         public readonly DkmClrType ClrType;
         public readonly DkmClrCustomTypeInfo Info;

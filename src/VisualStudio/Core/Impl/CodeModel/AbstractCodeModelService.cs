@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -18,7 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected readonly ISyntaxFactsService SyntaxFactsService;
 
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly AbstractNodeNameGenerator _nodeNameGenerator;
         private readonly AbstractNodeLocator _nodeLocator;
         private readonly AbstractCodeModelEventCollector _eventCollector;
@@ -55,18 +56,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             AbstractFormattingRule lineAdjustmentFormattingRule,
             AbstractFormattingRule endRegionFormattingRule,
             IThreadingContext threadingContext)
         {
             RoslynDebug.AssertNotNull(languageServiceProvider);
-            RoslynDebug.AssertNotNull(editorOptionsFactoryService);
+            RoslynDebug.AssertNotNull(editorOptionsService);
 
             this.SyntaxFactsService = languageServiceProvider.GetRequiredService<ISyntaxFactsService>();
 
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _lineAdjustmentFormattingRule = lineAdjustmentFormattingRule;
             _endRegionFormattingRule = endRegionFormattingRule;
             _threadingContext = threadingContext;
@@ -77,7 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         protected string GetNewLineCharacter(SourceText text)
-            => _editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
+        {
+            var textBuffer = text.Container.TryGetTextBuffer();
+            var editorOptions = (textBuffer != null) ? _editorOptionsService.Factory.GetOptions(textBuffer) : _editorOptionsService.Factory.GlobalOptions;
+            return editorOptions.GetNewLineCharacter();
+        }
 
         protected SyntaxToken GetTokenWithoutAnnotation(SyntaxToken current, Func<SyntaxToken, SyntaxToken> nextTokenGetter)
         {
@@ -473,7 +478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract EnvDTE.CodeElement CreateUnknownCodeElement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node);
         public abstract EnvDTE.CodeElement CreateUnknownRootNamespaceCodeElement(CodeModelState state, FileCodeModel fileCodeModel);
 
-        [return: NotNullIfNotNull("name")]
+        [return: NotNullIfNotNull(nameof(name))]
         public abstract string? GetUnescapedName(string? name);
 
         public abstract string GetName(SyntaxNode node);
@@ -494,7 +499,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // RenameSymbolAsync may be implemented using OOP, which has known cases for requiring the UI thread to do work. Use JTF
             // to keep the rename action from deadlocking.
-            var newSolution = _threadingContext.JoinableTaskFactory.Run(() => Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options));
+            var newSolution = _threadingContext.JoinableTaskFactory.Run(() => Renamer.RenameSymbolAsync(oldSolution, symbol, new SymbolRenameOptions(), newName));
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
@@ -519,10 +524,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract string GetExternalSymbolName(ISymbol symbol);
         public abstract string GetExternalSymbolFullName(ISymbol symbol);
 
-        public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetStartPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
             => _nodeLocator.GetStartPoint(node, options, part);
 
-        public VirtualTreePoint? GetEndPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetEndPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
             => _nodeLocator.GetEndPoint(node, options, part);
 
         public abstract EnvDTE.vsCMAccess GetAccess(ISymbol symbol);
@@ -1001,16 +1006,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        private int GetAttributeArgumentInsertionIndex(int insertionIndex)
+        private static int GetAttributeArgumentInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetAttributeInsertionIndex(int insertionIndex)
+        private static int GetAttributeInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetImportInsertionIndex(int insertionIndex)
+        private static int GetImportInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetParameterInsertionIndex(int insertionIndex)
+        private static int GetParameterInsertionIndex(int insertionIndex)
             => insertionIndex;
 
         protected abstract bool IsCodeModelNode(SyntaxNode node);
@@ -1033,15 +1038,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var formattingRules = Formatter.GetDefaultFormattingRules(document);
             if (additionalRules != null)
             {
-                formattingRules = additionalRules.Concat(formattingRules);
+                formattingRules = additionalRules.Concat(formattingRules).ToImmutableArray();
             }
 
-            return _threadingContext.JoinableTaskFactory.Run(() => Formatter.FormatAsync(
-                document,
-                new TextSpan[] { formattingSpan },
-                options: null,
-                rules: formattingRules,
-                cancellationToken: cancellationToken));
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var options = await document.GetSyntaxFormattingOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+
+                return await Formatter.FormatAsync(
+                    document,
+                    new TextSpan[] { formattingSpan },
+                    options,
+                    formattingRules,
+                    cancellationToken).ConfigureAwait(false);
+            });
         }
 
         private SyntaxNode InsertNode(
@@ -1070,17 +1080,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             var newContainerNode = insertNodeIntoContainer(insertionIndex, node, containerNode);
             var newRoot = root.ReplaceNode(containerNode, newContainerNode);
+
+            Contract.ThrowIfTrue(object.ReferenceEquals(root, newRoot), $"We failed to insert the node into the tree; this might be if {nameof(containerNode)} came from a different snapshot.");
+
             document = document.WithSyntaxRoot(newRoot);
 
             if (!batchMode)
             {
-                document = _threadingContext.JoinableTaskFactory.Run(() =>
-                    Simplifier.ReduceAsync(
-                        document,
-                        annotation,
-                        optionSet: null,
-                        cancellationToken: cancellationToken)
-                );
+                document = _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var simplifierOptions = await document.GetSimplifierOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+                    return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
+                });
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);

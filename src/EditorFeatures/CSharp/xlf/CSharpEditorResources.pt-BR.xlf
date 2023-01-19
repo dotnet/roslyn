@@ -37,6 +37,11 @@
         <target state="translated">Corrigir cadeia de caracteres verbatim interpolada</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="translated">Corrigindo literal de cadeia de caracteres após colar</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">Foram encontrados '{0}' assemblies para '{1}':</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Gerar Assinatura de Evento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="translated">Aumentar cadeia de caracteres bruta</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
@@ -95,6 +105,11 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">Recuo Inteligente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="translated">Dividir cadeia de caracteres bruta</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

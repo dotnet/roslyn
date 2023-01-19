@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             public SymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                HostWorkspaceServices workspaceServices,
+                SolutionServices services,
                 IStructuralTypeDisplayService structuralTypeDisplayService,
                 SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
-                : base(semanticModel, position, workspaceServices, structuralTypeDisplayService, options, cancellationToken)
+                : base(semanticModel, position, services, structuralTypeDisplayService, options, cancellationToken)
             {
             }
 
@@ -212,12 +212,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                         AddCaptures(syntax);
                     }
                 }
-            }
-
-            protected override void InlineAllDelegateAnonymousTypes(SemanticModel semanticModel, int position, IStructuralTypeDisplayService structuralTypeDisplayService, Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> groupMap)
-            {
-                // In C#, anonymous delegates are typically represented with System.Action<> or System.Func<>,
-                // and we prefer to display those types rather than a structural delegate type.
             }
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;

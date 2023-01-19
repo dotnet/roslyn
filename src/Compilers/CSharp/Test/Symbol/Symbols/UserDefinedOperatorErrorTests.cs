@@ -184,6 +184,7 @@ partial class C
     public public public static int operator & (C c1, C c2) { return 0; }
     extern static public int operator ^ (C c1, C c2) { return 1; }
     static public int operator + (C c1);
+    new public static int operator >>> (C c1, int c2) { return 0; }
 }
 ";
 
@@ -241,7 +242,10 @@ partial class C
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "^").WithArguments("C.operator ^(C, C)").WithLocation(13, 39),
                 // (14,32): error CS0501: 'C.operator +(C)' must declare a body because it is not marked abstract, extern, or partial
                 //     static public int operator + (C c1);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C.operator +(C)").WithLocation(14, 32)
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C.operator +(C)").WithLocation(14, 32),
+                // (15,36): error CS0106: The modifier 'new' is not valid for this item
+                //     new public static int operator >>> (C c1, int c2) { return 0; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, ">>>").WithArguments("new").WithLocation(15, 36)
                 );
         }
 

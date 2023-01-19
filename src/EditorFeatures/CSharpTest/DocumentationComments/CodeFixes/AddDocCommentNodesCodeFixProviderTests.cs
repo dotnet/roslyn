@@ -787,8 +787,8 @@ class Program3
             await TestAsync(initial, expected);
         }
 
-        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
+        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
         public async Task AddsParamTag_Record()
         {
             var initial = @"

@@ -4,8 +4,10 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
@@ -16,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             EventHookupSessionManager.CancelAndDismissExistingSessions();
             return false;
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             return CommandState.Unspecified;
         }
     }

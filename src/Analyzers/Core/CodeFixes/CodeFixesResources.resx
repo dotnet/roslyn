@@ -120,8 +120,8 @@
   <data name="Add_file_header" xml:space="preserve">
     <value>Add file header</value>
   </data>
-  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
-    <value>Fix Name Violation: {0}</value>
+  <data name="Fix_name_violation_colon_0" xml:space="preserve">
+    <value>Fix name violation: {0}</value>
   </data>
   <data name="Add_both" xml:space="preserve">
     <value>Add both</value>
@@ -141,8 +141,8 @@
   <data name="Update_suppression_format" xml:space="preserve">
     <value>Update suppression format</value>
   </data>
-  <data name="Suppress_or_Configure_issues" xml:space="preserve">
-    <value>Suppress or Configure issues</value>
+  <data name="Suppress_or_configure_issues" xml:space="preserve">
+    <value>Suppress or configure issues</value>
   </data>
   <data name="Fix_all_occurrences_in" xml:space="preserve">
     <value>Fix all occurrences in</value>
@@ -152,5 +152,23 @@
   </data>
   <data name="Add_blank_line_after_block" xml:space="preserve">
     <value>Add blank line after block</value>
+  </data>
+  <data name="Make_class_abstract" xml:space="preserve">
+    <value>Make class 'abstract'</value>
+  </data>
+  <data name="Make_member_static" xml:space="preserve">
+    <value>Make static</value>
+  </data>
+  <data name="Add_explicit_cast" xml:space="preserve">
+    <value>Add explicit cast</value>
+  </data>
+  <data name="Alias_ambiguous_type_0" xml:space="preserve">
+    <value>Alias ambiguous type '{0}'</value>
+  </data>
+  <data name="Convert_type_to_0" xml:space="preserve">
+    <value>Convert type to '{0}'</value>
+  </data>
+  <data name="Make_type_partial" xml:space="preserve">
+    <value>Make type partial</value>
   </data>
 </root>

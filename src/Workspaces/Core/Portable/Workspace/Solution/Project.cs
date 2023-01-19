@@ -94,12 +94,21 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <see langword="false"/> then <see cref="GetCompilationAsync(CancellationToken)"/> method will return <see langword="null"/> instead.
         /// </summary>
-        public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
+        public bool SupportsCompilation => this.Services.GetService<ICompilationFactoryService>() != null;
 
         /// <summary>
         /// The language services from the host environment associated with this project's language.
         /// </summary>
+        [Obsolete($"Use {nameof(Services)} instead.")]
         public HostLanguageServices LanguageServices => _projectState.LanguageServices;
+
+        /// <summary>
+        /// Immutable snapshot of language services from the host environment associated with this project's language.
+        /// Use this over <see cref="LanguageServices"/> when possible.
+        /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete. Use Services instead. - This is the implementation of Services.
+        public LanguageServices Services => LanguageServices.LanguageServices;
+#pragma warning restore CS0618 // Type or member is obsolete. Use Services instead. - This is the implementation of Services.
 
         /// <summary>
         /// The language associated with the project.
@@ -336,6 +345,11 @@ namespace Microsoft.CodeAnalysis
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
         }
 
+        internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
+        {
+            return _solution.State.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
+        }
+
         internal Task<bool> ContainsSymbolsWithNameAsync(
             string name, CancellationToken cancellationToken)
         {
@@ -356,7 +370,7 @@ namespace Microsoft.CodeAnalysis
         internal Task<bool> ContainsSymbolsWithNameAsync(
             Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return ContainsSymbolsAsync(
+            return ContainsDeclarationAsync(
                 (index, cancellationToken) =>
                 {
                     foreach (var info in index.DeclaredSymbolInfos)
@@ -400,19 +414,32 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private async Task<bool> ContainsSymbolsAsync(
+        private Task<bool> ContainsSymbolsAsync(
             Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
         {
-            if (!this.SupportsCompilation)
-                return false;
-
-            var tasks = this.Documents.Select(async d =>
+            return ContainsAsync(async d =>
             {
                 var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
                 return predicate(index, cancellationToken);
             });
+        }
 
-            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+        private Task<bool> ContainsDeclarationAsync(
+            Func<TopLevelSyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+        {
+            return ContainsAsync(async d =>
+            {
+                var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return predicate(index, cancellationToken);
+            });
+        }
+
+        private async Task<bool> ContainsAsync(Func<Document, Task<bool>> predicateAsync)
+        {
+            if (!this.SupportsCompilation)
+                return false;
+
+            var results = await Task.WhenAll(this.Documents.Select(predicateAsync)).ConfigureAwait(false);
             return results.Any(b => b);
         }
 
@@ -756,7 +783,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
+        internal AnalyzerConfigData? GetAnalyzerConfigOptions()
             => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Emit
             out int awaiterSlotCount);
 
         protected abstract ImmutableArray<EncLocalInfo> GetLocalSlotMapFromMetadata(StandaloneSignatureHandle handle, EditAndContinueMethodDebugInformation debugInfo);
-        protected abstract ITypeSymbolInternal? TryGetStateMachineType(EntityHandle methodHandle);
+        protected abstract ITypeSymbolInternal? TryGetStateMachineType(MethodDefinitionHandle methodHandle);
 
         internal VariableSlotAllocator? TryCreateVariableSlotAllocator(EmitBaseline baseline, Compilation compilation, IMethodSymbolInternal method, IMethodSymbolInternal topLevelMethod, DiagnosticBag diagnostics)
         {
@@ -167,6 +167,9 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap = null;
             IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? lambdaMap = null;
             IReadOnlyDictionary<int, DebugId>? closureMap = null;
+            IReadOnlyDictionary<int, StateMachineState>? stateMachineStateMap = null;
+            StateMachineState? firstUnusedIncreasingStateMachineState = null;
+            StateMachineState? firstUnusedDecreasingStateMachineState = null;
 
             int hoistedLocalSlotCount = 0;
             int awaiterSlotCount = 0;
@@ -182,6 +185,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 methodId = addedOrChangedMethod.MethodId;
 
                 MakeLambdaAndClosureMaps(addedOrChangedMethod.LambdaDebugInfo, addedOrChangedMethod.ClosureDebugInfo, out lambdaMap, out closureMap);
+                MakeStateMachineStateMap(addedOrChangedMethod.StateMachineStates.States, out stateMachineStateMap);
+
+                firstUnusedIncreasingStateMachineState = addedOrChangedMethod.StateMachineStates.FirstUnusedIncreasingStateMachineState;
+                firstUnusedDecreasingStateMachineState = addedOrChangedMethod.StateMachineStates.FirstUnusedDecreasingStateMachineState;
 
                 if (addedOrChangedMethod.StateMachineTypeName != null)
                 {
@@ -241,10 +248,20 @@ namespace Microsoft.CodeAnalysis.Emit
                     MakeLambdaAndClosureMaps(debugInfo.Lambdas, debugInfo.Closures, out lambdaMap, out closureMap);
                 }
 
+                MakeStateMachineStateMap(debugInfo.StateMachineStates, out stateMachineStateMap);
+
+                if (!debugInfo.StateMachineStates.IsDefaultOrEmpty)
+                {
+                    firstUnusedIncreasingStateMachineState = debugInfo.StateMachineStates.Max(s => s.StateNumber) + 1;
+                    firstUnusedDecreasingStateMachineState = debugInfo.StateMachineStates.Min(s => s.StateNumber) - 1;
+                }
+
                 ITypeSymbolInternal? stateMachineType = TryGetStateMachineType(previousHandle);
                 if (stateMachineType != null)
                 {
-                    // method is async/iterator kickoff method
+                    // Method is async/iterator kickoff method.
+
+                    // Use local slots stored in CDI (encLocalSlotMap) to calculate map of local variables hoisted to fields of the state machine.
                     var localSlotDebugInfo = debugInfo.LocalSlots.NullToEmpty();
                     GetStateMachineFieldMapFromMetadata(stateMachineType, localSlotDebugInfo, out hoistedLocalMap, out awaiterMap, out awaiterSlotCount);
                     hoistedLocalSlotCount = localSlotDebugInfo.Length;
@@ -282,6 +299,8 @@ namespace Microsoft.CodeAnalysis.Emit
                         }
                     }
 
+                    // Calculate local slot mapping for the current method (might be the MoveNext method of a state machine).
+
                     try
                     {
                         previousLocals = localSignature.IsNil ? ImmutableArray<EncLocalInfo>.Empty :
@@ -317,6 +336,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 hoistedLocalMap,
                 awaiterSlotCount,
                 awaiterMap,
+                stateMachineStateMap,
+                firstUnusedIncreasingStateMachineState,
+                firstUnusedDecreasingStateMachineState,
                 GetLambdaSyntaxFacts());
         }
 
@@ -354,6 +376,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
             lambdaMap = lambdas;
             closureMap = closures;
+        }
+
+        private static void MakeStateMachineStateMap(
+            ImmutableArray<StateMachineStateDebugInfo> debugInfos,
+            out IReadOnlyDictionary<int, StateMachineState>? map)
+        {
+            map = debugInfos.IsDefault ?
+                null :
+                debugInfos.ToDictionary(entry => entry.SyntaxOffset, entry => entry.StateNumber);
         }
 
         private static void GetStateMachineFieldMapFromPreviousCompilation(

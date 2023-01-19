@@ -6,11 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
-        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
+        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind, CSharpSimplifierOptions>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
             ImmutableArray.Create(
@@ -34,15 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
             // callbacks when they include attributes, but analysis of the node at this level would block more efficient
             // analysis of descendant members.
-            return codeBlock.IsKind(
-                SyntaxKind.CompilationUnit,
-                SyntaxKind.ClassDeclaration,
-                SyntaxKind.RecordDeclaration,
-                SyntaxKind.StructDeclaration,
-                SyntaxKind.RecordStructDeclaration,
-                SyntaxKind.InterfaceDeclaration,
-                SyntaxKind.DelegateDeclaration,
-                SyntaxKind.EnumDeclaration);
+            return codeBlock.Kind() is
+                SyntaxKind.CompilationUnit or
+                SyntaxKind.ClassDeclaration or
+                SyntaxKind.RecordDeclaration or
+                SyntaxKind.StructDeclaration or
+                SyntaxKind.RecordStructDeclaration or
+                SyntaxKind.InterfaceDeclaration or
+                SyntaxKind.DelegateDeclaration or
+                SyntaxKind.EnumDeclaration;
         }
 
         protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context)
@@ -50,9 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxTree = semanticModel.SyntaxTree;
-            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: null, cancellationToken);
+            var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
             simplifier.Visit(context.CodeBlock);
             return simplifier.Diagnostics;
         }
@@ -62,11 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxTree = semanticModel.SyntaxTree;
-            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
-            var root = syntaxTree.GetRoot(cancellationToken);
+            var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: codeBlockIntervalTree, cancellationToken);
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: codeBlockIntervalTree, cancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             => node != null && s_kindsOfInterest.Contains(node.Kind());
 
         internal override bool CanSimplifyTypeNameExpression(
-            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            SemanticModel model, SyntaxNode node, CSharpSimplifierOptions options,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken)
         {
@@ -96,16 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             SyntaxNode replacementSyntax;
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax? crefSyntax))
+            if (node is QualifiedCrefSyntax crefSyntax)
             {
-                if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, optionSet, out var replacement, out issueSpan, cancellationToken))
+                if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, options, out var replacement, out issueSpan, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;
             }
             else
             {
-                if (!ExpressionSimplifier.Instance.TrySimplify((ExpressionSyntax)node, model, optionSet, out var replacement, out issueSpan, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify((ExpressionSyntax)node, model, options, out var replacement, out issueSpan, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;
@@ -129,8 +129,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             return true;
         }
-
-        protected override string GetLanguageName()
-            => LanguageNames.CSharp;
     }
 }

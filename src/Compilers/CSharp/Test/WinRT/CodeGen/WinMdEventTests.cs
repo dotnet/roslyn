@@ -277,7 +277,7 @@ class D
     }
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -370,7 +370,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("C.InstanceAssign", @"
 {

@@ -18,8 +18,14 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal interface IRemoteSemanticClassificationService
     {
-        ValueTask<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, ClassificationOptions options, bool isFullyLoaded, CancellationToken cancellationToken);
+        ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
+            Checksum solutionChecksum,
+            DocumentId documentId,
+            TextSpan span,
+            ClassificationType type,
+            ClassificationOptions options,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref
@@ -27,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </summary>
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
-        ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
+        ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
             DocumentKey documentKey,
             TextSpan textSpan,
+            ClassificationType type,
             Checksum checksum,
-            StorageDatabase database,
             CancellationToken cancellationToken);
     }
 

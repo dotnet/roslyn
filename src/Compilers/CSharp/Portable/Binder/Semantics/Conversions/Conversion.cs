@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Summarizes whether a conversion is allowed, and if so, which kind of conversion (and in some cases, the
     /// associated symbol).
     /// </summary>
-    public struct Conversion : IEquatable<Conversion>, IConvertibleConversion
+    public readonly struct Conversion : IEquatable<Conversion>, IConvertibleConversion
     {
         private readonly ConversionKind _kind;
         private readonly UncommonData? _uncommonData;
@@ -491,7 +491,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-
                 var nestedConversionsOpt = _uncommonData?._nestedConversionsOpt;
                 if (nestedConversionsOpt != null)
                 {
@@ -624,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if the conversion is an implicit object creation expression conversion.
         /// </summary>
-        internal bool IsObjectCreation
+        public bool IsObjectCreation
         {
             get
             {
@@ -917,6 +916,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="MethodSymbol" />, if any.
+        /// Null if <see cref="MethodSymbol" /> is resolved statically, or is null.
+        /// </summary>
+        public ITypeSymbol? ConstrainedToType
+        {
+            get
+            {
+                return this.ConstrainedToTypeOpt.GetPublicSymbol();
+            }
+        }
+
+        /// <summary>
         /// Gives an indication of how successful the conversion was.
         /// Viable - found a best built-in or user-defined conversion.
         /// Empty - found no applicable built-in or user-defined conversions.
@@ -1034,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a <seealso cref="CommonConversion"/> from this C# conversion.
+        /// Creates a <see cref="CommonConversion"/> from this C# conversion.
         /// </summary>
         /// <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
         /// <remarks>
@@ -1044,8 +1055,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public CommonConversion ToCommonConversion()
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
-            var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol);
+            var (methodSymbol, constrainedToType) = IsUserDefined ? (MethodSymbol, ConstrainedToType) : (null, null);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol, constrainedToType);
         }
 
         /// <summary>
@@ -1142,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Stores all the information from binding for calling a Deconstruct method.</summary>
-    internal struct DeconstructMethodInfo
+    internal readonly struct DeconstructMethodInfo
     {
         internal DeconstructMethodInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
             ImmutableArray<BoundDeconstructValuePlaceholder> outputPlaceholders)

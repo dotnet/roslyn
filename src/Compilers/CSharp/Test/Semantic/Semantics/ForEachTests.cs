@@ -2245,6 +2245,16 @@ namespace System
     public struct Void { }
     public struct Nullable<T> { }
     public struct Boolean { }
+    public struct Int32 { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 
 namespace System.Collections.Generic
@@ -2271,34 +2281,24 @@ class C
 ";
             var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
-                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (38,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(38, 55)
                 );
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Byte' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
-                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
-                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
-                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
-                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                // (38,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(38, 55),
 
                 // The following error is unexpected - https://github.com/dotnet/roslyn/issues/39948
 
-                // (30,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+                // (40,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
                 //         foreach (var c in e) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "foreach (var c in e) { }").WithArguments("System.IDisposable", "Dispose").WithLocation(30, 9)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "foreach (var c in e) { }").WithArguments("System.IDisposable", "Dispose").WithLocation(40, 9)
                 );
         }
 
@@ -3021,6 +3021,14 @@ class Program
     {
         protected Attribute() { }
     }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 
 namespace System.Runtime.CompilerServices
@@ -3073,7 +3081,7 @@ namespace System.Collections
 }";
 
             var comp = CreateEmptyCompilation(text, new[] { reference1 });
-            CompileAndVerify(comp, verify: Verification.Fails).
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).
             VerifyIL("C.M", @"
 {
   // Code size       28 (0x1c)
@@ -3183,10 +3191,15 @@ ref struct DisposableEnumerator
     public void Dispose() {  }
 }";
 
-            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3,
+                // (6,27): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         foreach (var x in new Enumerable1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new Enumerable1()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 27)
+                );
             var enumeratorInfo = boundNode.EnumeratorInfoOpt;
 
-            Assert.Null(enumeratorInfo.PatternDisposeInfo);
+            Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.PatternDisposeInfo.Method.ToTestDisplayString());
+            Assert.Empty(enumeratorInfo.PatternDisposeInfo.Arguments);
         }
 
         [Fact]
@@ -3564,7 +3577,6 @@ class C
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
         }
 
-
         [Fact]
         [WorkItem(30016, "https://github.com/dotnet/roslyn/issues/30016")]
         public void ForEachIteratorWithCurrentRefKind_DontPassFieldByValue()
@@ -3675,6 +3687,77 @@ class C
                 // (43,29): error CS1579: foreach statement cannot operate on variables of type '(Nonsense, int)' because '(Nonsense, int)' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach(var item in nonsenseTuple) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "nonsenseTuple").WithArguments("(Nonsense, int)", "GetEnumerator").WithLocation(43, 29));
+        }
+
+        [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
+        public void ForEachIterator_RefAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+Span<C2> items = new Span<C2>(new C2[1]);
+foreach (ref C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 21)
+            );
+        }
+
+        [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
+        public void ForEachIterator_RefReadonlyAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+Span<C2> items = new Span<C2>(new C2[1]);
+foreach (ref readonly C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 30)
+            );
+        }
+
+        [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
+        public void ForEachIterator_ReadonlySpan_RefReadonlyAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+ReadOnlySpan<C2> items = new ReadOnlySpan<C2>(new C2[1]);
+foreach (ref readonly C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,30): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref readonly C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 30)
+            );
+        }
+
+        [Fact]
+        public void ForEachIterator_ReadonlySpan_RefAssignmentWithoutReadonly()
+        {
+            string source = @"
+using System;
+ReadOnlySpan<C2> items = new ReadOnlySpan<C2>(new C2[1]);
+foreach (ref C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8331: Cannot assign to method 'Current.get' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "items").WithArguments("method", "Current.get").WithLocation(4, 21)
+            );
         }
     }
 }

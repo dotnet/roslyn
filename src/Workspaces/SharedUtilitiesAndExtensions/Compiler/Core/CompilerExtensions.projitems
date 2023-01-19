@@ -14,12 +14,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="InternalUtilities\NonCopyableAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NonDefaultableAttribute.cs" Link="InternalUtilities\NonDefaultableAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="InternalUtilities\NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="InternalUtilities\IsExternalInit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerFeatureRequiredAttribute.cs" Link="InternalUtilities\CompilerFeatureRequiredAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RequiredMemberAttribute.cs" Link="InternalUtilities\RequiredMemberAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SetsRequiredMembersAttribute.cs" Link="InternalUtilities\SetsRequiredMembersAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs" Link="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="InternalUtilities\RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
@@ -45,6 +50,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Syntax\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\BitVector.cs" Link="Collections\BitVector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\TemporaryArrayExtensions.cs" Link="Collections\TemporaryArrayExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="InternalUtilities\Hash.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs" Link="InternalUtilities\GeneratedCodeUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\IObjectWritable.cs" Link="Serialization\IObjectWritable.cs" />
@@ -52,6 +59,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderSnapshot.cs" Link="Serialization\ObjectBinderSnapshot.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs" Link="Serialization\ObjectReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs" Link="Serialization\ObjectWriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\TextEncodingKind.cs" Link="Serialization\TextEncodingKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\SerializationThreadPool.cs" Link="Serialization\SerializationThreadPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SpecialTypeExtensions.cs" Link="Extensions\Compiler\SpecialTypeExtensions.cs" />
@@ -176,21 +184,27 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeActionRequestPriority.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CleanCodeGenerationOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AccessibilityModifiersRequired.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AddImportPlacement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleOption2`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\FadingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\EditorConfigSeverityStrings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ExpressionBodyPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ForEachExplicitCastInSourcePreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\IdeCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NamespaceDeclarationPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArrayExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IdeAnalyzerOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
@@ -218,6 +232,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxTrivia.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\AbstractVirtualCharService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\AbstractVirtualCharService.ITextInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualChar.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.Chunks.cs" />
@@ -228,7 +243,24 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectWriterExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\FeatureFlagStorageLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\AutoFormattingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions2.IndentStyle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\LineFormattingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\SyntaxFormattingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\RemoveUnnecessaryImportsHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentation.Indenter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\ISmartTokenFormatter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\InternalOptionStorageMapping.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IPublicOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\PublicOptionFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\AbstractBlockFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\IHeaderFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />
@@ -252,7 +284,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LinkedListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LocationExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\CustomDataFlowAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\DataFlowAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\FlowCaptureKind.cs" />
@@ -265,7 +296,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.OperationTreeAnalysisData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.Walker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\AbstractSyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\AbstractSyntaxFormatting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ContextIntervalTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Context\FormattingContext.AnchorData.cs" />
@@ -302,7 +333,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\IFormattingResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormatting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\AbstractFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\BaseIndentationFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\CompatAbstractFormattingRule.cs" />
@@ -336,7 +367,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\AbstractUnnecessaryImportsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\EmptyLogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\FunctionId.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\FunctionIdOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogLevel.cs" />
@@ -359,24 +389,18 @@
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocationExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocation`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\IEditorConfigStorageLocation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\IEditorConfigStorageLocation2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigValueSerializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigValueSerializer`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IEditorConfigValueSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOption2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionWithGroup.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\LocalUserProfileStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionStorageLocation2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\Option2`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\Option2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\PerLanguageOption2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\AbstractSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ForEachSymbols.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ISemanticFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\AbstractDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\AbstractFileBannerFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\AbstractHeaderFacts.cs" />
@@ -390,11 +414,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxKinds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractSimplification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\AliasAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAllowVarAnnotation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\ISimplification.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SymbolAnnotation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.BuiltinOperatorSymbolKey.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AbstractSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AliasSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AnonymousTypeSymbolKey.cs" />
@@ -431,6 +460,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\Utf16Utility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IExpeditableDelaySource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\TaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
@@ -446,6 +476,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CommonFormattingHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ComparerWithState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.InterpolatedStringHandlers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ISpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />
@@ -502,15 +534,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringBreaker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WordSimilarityChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringEscapeEncoder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringSlice.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxPath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TaskFactoryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TopologicalSorter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\ConstantValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\ValueSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedRecoverableValueSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEventHandler.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -556,6 +584,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticAnalyzerCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IBuiltInAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DictionaryAnalyzerConfigOptions.cs">
+      <Link>Diagnostics\DictionaryAnalyzerConfigOptions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />

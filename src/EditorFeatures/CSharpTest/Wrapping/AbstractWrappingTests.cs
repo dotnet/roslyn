@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
@@ -18,25 +20,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        private protected OptionsCollection GetIndentionColumn(int column)
-            => new OptionsCollection(GetLanguage())
-               {
-                   { FormattingBehaviorOptions.PreferredWrappingColumn, column }
-               };
+        private protected TestParameters GetIndentionColumn(int column)
+            => new(globalOptions: Option(CodeActionOptionsStorage.WrappingColumn, column));
 
         protected Task TestAllWrappingCasesAsync(
             string input,
             params string[] outputs)
         {
-            return TestAllWrappingCasesAsync(input, options: null, outputs);
+            return TestAllWrappingCasesAsync(input, parameters: null, outputs);
         }
 
         private protected Task TestAllWrappingCasesAsync(
             string input,
-            OptionsCollection options,
+            TestParameters parameters,
             params string[] outputs)
         {
-            var parameters = new TestParameters(options: options);
             return TestAllInRegularAndScriptAsync(input, parameters, outputs);
         }
     }

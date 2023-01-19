@@ -29,83 +29,38 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<TaggedText> nameDisplayParts,
                 ImmutableArray<TaggedText> originationParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
-                ImmutableDictionary<string, string> properties,
-                ImmutableDictionary<string, string> displayableProperties,
+                ImmutableDictionary<string, string>? properties,
+                ImmutableDictionary<string, string>? displayableProperties,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, nameDisplayParts, originationParts,
                        sourceSpans, properties, displayableProperties, displayIfNoReferences)
             {
             }
 
-            [Obsolete("Override CanNavigateToAsync instead", error: false)]
-            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
-
-            [Obsolete("Override TryNavigateToAsync instead", error: false)]
-            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
-
-            public sealed override async Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+            public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
-                    return false;
+                    return null;
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                    return CanNavigateToMetadataSymbol(workspace, symbolKey);
-
-                return await this.SourceSpans[0].CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            public sealed override async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-            {
-                if (Properties.ContainsKey(NonNavigable))
-                    return false;
-
-                if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                    return TryNavigateToMetadataSymbol(workspace, symbolKey);
-
-                return await this.SourceSpans[0].TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
-            }
-
-            public DetachedDefinitionItem Detach()
-                => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans, Properties, DisplayableProperties, DisplayIfNoReferences);
-
-            private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
-                => TryNavigateToMetadataSymbol(workspace, symbolKey, action: (symbol, project, service) => true);
-
-            private bool TryNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
-            {
-                return TryNavigateToMetadataSymbol(
-                    workspace, symbolKey,
-                    action: (symbol, project, service) =>
+                {
+                    var (project, symbol) = await TryResolveSymbolAsync(workspace.CurrentSolution, symbolKey, cancellationToken).ConfigureAwait(false);
+                    if (symbol is { Kind: not SymbolKind.Namespace })
                     {
-                        return service.TryNavigateToSymbol(
-                            symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
-                    });
-            }
+                        Contract.ThrowIfNull(project);
 
-            private bool TryNavigateToMetadataSymbol(
-                Workspace workspace, string symbolKey, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
-            {
-                var projectAndSymbol = TryResolveSymbolInCurrentSolution(workspace, symbolKey);
+                        var navigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
+                        return await navigationService.GetNavigableLocationAsync(
+                            symbol, project, cancellationToken).ConfigureAwait(false);
+                    }
 
-                var project = projectAndSymbol.project;
-                var symbol = projectAndSymbol.symbol;
-                if (symbol == null || project == null)
-                {
-                    return false;
+                    return null;
                 }
 
-                if (symbol.Kind == SymbolKind.Namespace)
-                {
-                    return false;
-                }
-
-                var navigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
-                return action(symbol, project, navigationService);
+                return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            private (Project? project, ISymbol? symbol) TryResolveSymbolInCurrentSolution(Workspace workspace, string symbolKey)
+            private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolAsync(Solution solution, string symbolKey, CancellationToken cancellationToken)
             {
                 if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
                     !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
@@ -113,14 +68,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return default;
                 }
 
-                var project = workspace.CurrentSolution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
+                var project = solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
                 if (project == null)
                     return default;
 
-                var compilation = project.GetRequiredCompilationAsync(CancellationToken.None)
-                                         .WaitAndGetResult(CancellationToken.None);
-
-                var symbol = SymbolKey.ResolveString(symbolKey, compilation).Symbol;
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var symbol = SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).Symbol;
                 return (project, symbol);
             }
         }

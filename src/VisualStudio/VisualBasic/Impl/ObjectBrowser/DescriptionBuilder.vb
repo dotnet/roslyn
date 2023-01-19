@@ -500,7 +500,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             AddName("}")
         End Sub
 
-        Private Function CountConstraints(typeParameter As ITypeParameterSymbol) As Integer
+        Private Shared Function CountConstraints(typeParameter As ITypeParameterSymbol) As Integer
             Dim result = typeParameter.ConstraintTypes.Length
 
             If typeParameter.HasReferenceTypeConstraint Then

@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 get
                 {
-                    if (_lazyVisitedObjects == null)
-                    {
-                        _lazyVisitedObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
-                    }
+                    _lazyVisitedObjects ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
 
                     return _lazyVisitedObjects;
                 }
@@ -604,10 +601,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     }
                     finally
                     {
-                        if (disposable != null)
-                        {
-                            disposable.Dispose();
-                        }
+                        disposable?.Dispose();
                     }
                 }
                 catch (Exception e)

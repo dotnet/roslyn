@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValidateFormatString
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23583",
-            Constraint = nameof(AnalyzerHelper.GetOption) + " is expensive and should be avoided if a syntax-based fast path exists.")]
+            Constraint = "Reading editorconfig options is expensive and should be avoided if a syntax-based fast path exists.")]
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol formatProviderType)
         {
             var syntaxFacts = GetSyntaxFacts();
@@ -96,10 +96,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
-            var option = context.GetOption(
-                    ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
-                    context.SemanticModel.Language);
-            if (option == false)
+            if (!context.GetIdeAnalyzerOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
             {
                 return;
             }

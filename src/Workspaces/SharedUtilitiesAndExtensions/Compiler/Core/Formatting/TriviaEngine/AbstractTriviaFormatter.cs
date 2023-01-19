@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// return line column rule for the given two trivia
         /// </summary>
-        protected abstract LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2);
+        protected abstract LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2, CancellationToken cancellationToken);
 
         /// <summary>
         /// format the given trivia at the line column position and put result to the changes list
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             get { return this.Context.TreeData; }
         }
 
-        protected AnalyzerConfigOptions Options
+        protected SyntaxFormattingOptions Options
         {
             get { return this.Context.Options; }
         }
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var lineColumnAfterTrivia1 = trivia1.RawKind == 0 ?
                     lineColumnBeforeTrivia1 : lineColumnBeforeTrivia1.With(format(lineColumnBeforeTrivia1, trivia1, changes, cancellationToken));
 
-            var rule = GetOverallLineColumnRuleBetween(trivia1, existingWhitespaceBetween, implicitLineBreak, trivia2);
+            var rule = GetOverallLineColumnRuleBetween(trivia1, existingWhitespaceBetween, implicitLineBreak, trivia2, cancellationToken);
             var whitespaceDelta = Apply(lineColumnBeforeTrivia1, trivia1, lineColumnAfterTrivia1, existingWhitespaceBetween, trivia2, rule);
 
             var span = GetTextSpan(trivia1, trivia2);
@@ -394,9 +394,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// get line column rule between two trivia
         /// </summary>
-        private LineColumnRule GetOverallLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2)
+        private LineColumnRule GetOverallLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2, CancellationToken cancellationToken)
         {
-            var defaultRule = GetLineColumnRuleBetween(trivia1, existingWhitespaceBetween, implicitLineBreak, trivia2);
+            var defaultRule = GetLineColumnRuleBetween(trivia1, existingWhitespaceBetween, implicitLineBreak, trivia2, cancellationToken);
             GetTokensAtEdgeOfStructureTrivia(trivia1, trivia2, out var token1, out var token2);
 
             // if there are tokens, try formatting rules to see whether there is a user supplied one
@@ -608,8 +608,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return this.Spaces;
             }
 
-            var position = lastText.ConvertTabToSpace(this.Options.GetOption(FormattingOptions2.TabSize), initialColumn, index);
-            var tokenPosition = lastText.ConvertTabToSpace(this.Options.GetOption(FormattingOptions2.TabSize), initialColumn, lastText.Length);
+            var position = lastText.ConvertTabToSpace(Options.TabSize, initialColumn, index);
+            var tokenPosition = lastText.ConvertTabToSpace(Options.TabSize, initialColumn, lastText.Length);
 
             return this.Spaces - (tokenPosition - position);
         }
@@ -782,13 +782,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var useTabs = this.Options.GetOption(FormattingOptions2.UseTabs);
-            var tabSize = this.Options.GetOption(FormattingOptions2.TabSize);
-
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
             {
-                changes.Add(CreateWhitespace(delta.Spaces.CreateIndentationString(useTabs, tabSize)));
+                changes.Add(CreateWhitespace(delta.Spaces.CreateIndentationString(Options.UseTabs, Options.TabSize)));
                 return;
             }
 
@@ -800,7 +797,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var sb = StringBuilderPool.Allocate();
 
-            var newLine = this.Options.GetOption(FormattingOptions2.NewLine);
+            var newLine = Options.NewLine;
             for (var i = 0; i < delta.Lines; i++)
             {
                 sb.Append(newLine);
@@ -811,13 +808,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return StringBuilderPool.ReturnAndFree(sb);
             }
 
-            var useTabs = this.Options.GetOption(FormattingOptions2.UseTabs);
-            var tabSize = this.Options.GetOption(FormattingOptions2.TabSize);
-
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
             {
-                sb.AppendIndentationString(delta.Spaces, useTabs, tabSize);
+                sb.AppendIndentationString(delta.Spaces, Options.UseTabs, Options.TabSize);
                 return StringBuilderPool.ReturnAndFree(sb);
             }
 
@@ -893,7 +887,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var text = trivia2.ToFullString();
             return new LineColumnDelta(
                 lines: 0,
-                spaces: text.ConvertTabToSpace(this.Options.GetOption(FormattingOptions2.TabSize), lineColumn.With(whitespaceBetween).Column, text.Length),
+                spaces: text.ConvertTabToSpace(Options.TabSize, lineColumn.With(whitespaceBetween).Column, text.Length),
                 whitespaceOnly: true,
                 forceUpdate: false);
         }
@@ -929,20 +923,20 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 return new LineColumnDelta(
                     lines: text.GetNumberOfLineBreaks(),
-                    spaces: lineText.GetColumnFromLineOffset(lineText.Length, this.Options.GetOption(FormattingOptions2.TabSize)),
+                    spaces: lineText.GetColumnFromLineOffset(lineText.Length, Options.TabSize),
                     whitespaceOnly: IsNullOrWhitespace(lineText));
             }
 
             return new LineColumnDelta(
                 lines: 0,
-                spaces: text.ConvertTabToSpace(this.Options.GetOption(FormattingOptions2.TabSize), initialColumn, text.Length),
+                spaces: text.ConvertTabToSpace(Options.TabSize, initialColumn, text.Length),
                 whitespaceOnly: IsNullOrWhitespace(lineText));
         }
 
         protected int GetExistingIndentation(SyntaxTrivia trivia)
         {
             var offset = trivia.FullSpan.Start - this.StartPosition;
-            var originalText = this.OriginalString.Substring(0, offset);
+            var originalText = this.OriginalString[..offset];
             var delta = GetLineColumnDelta(this.InitialLineColumn.Column, originalText);
 
             return this.InitialLineColumn.With(delta).Column;

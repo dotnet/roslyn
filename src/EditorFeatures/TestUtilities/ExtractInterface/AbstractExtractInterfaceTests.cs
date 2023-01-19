@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             using var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions,
                 options: new OptionsCollection(languageName)
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Silent }
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never, NotificationOption2.Silent }
                 });
 
             var result = await testState.ExtractViaCommandAsync();

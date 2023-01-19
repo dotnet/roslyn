@@ -5,9 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Classification.Classifiers
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -30,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
-                           services As HostWorkspaceServices,
+                           services As SolutionServices,
                            structuralTypeDisplayService As IStructuralTypeDisplayService,
                            options As SymbolDescriptionOptions,
                            cancellationToken As CancellationToken)
@@ -175,36 +174,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
             End Sub
 
-            Protected Overrides Sub InlineAllDelegateAnonymousTypes(semanticModel As SemanticModel, position As Integer, structuralTypeDisplayService As IStructuralTypeDisplayService, groupMap As Dictionary(Of SymbolDescriptionGroups, IList(Of SymbolDisplayPart)))
-Restart:
-                For Each pair In groupMap
-                    Dim group = pair.Key
-                    Dim parts = pair.Value
-                    Dim updatedParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(parts, semanticModel, position)
-                    If parts IsNot updatedParts Then
-                        groupMap(group) = updatedParts
-                        GoTo Restart
-                    End If
-                Next
-            End Sub
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat = s_minimallyQualifiedFormat
 
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormat
-                End Get
-            End Property
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstants
 
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormatWithConstants
-                End Get
-            End Property
-
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormatWithConstantsAndModifiers
-                End Get
-            End Property
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstantsAndModifiers
         End Class
     End Class
 End Namespace

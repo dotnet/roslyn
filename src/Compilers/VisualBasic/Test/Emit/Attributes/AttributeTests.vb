@@ -204,7 +204,6 @@ Imports System.Runtime.CompilerServices
     </file>
 </compilation>
 
-
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim assembly = m.ContainingSymbol
                                          Dim compilerServicesNS = GetSystemRuntimeCompilerServicesNamespace(m)
@@ -452,7 +451,6 @@ End Class
                         Assert.Equal(1, set_P.Parameters(0).GetAttributes().Length)
                         Assert.Equal(1, set_P.Parameters(1).GetAttributes().Length)
                     End Sub
-
 
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator(True), symbolValidator:=attributeValidator(False))
         End Sub
@@ -2217,6 +2215,228 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Attr
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = Nothing)
+    End Sub
+End Class
+
+Class C
+    <Attr()>'BIND:""Attr""
+    Sub M0()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim m0 = semanticModel.GetDeclaredSymbol(root.DescendantNodes().OfType(Of MethodStatementSyntax)().Last())
+            Dim attrs = m0.GetAttributes()
+            Assert.Equal("M0", attrs.Single().ConstructorArguments.Single().Value)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = Nothing])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            VerifyOperationTreeForTest(Of AttributeSyntax)(comp, fileName:="", expectedTree)
+
+            Dim operation = semanticModel.GetOperation(attrSyntax)
+            Dim operationTreeFromSemanticModel = OperationTreeVerifier.GetOperationTree(comp, operation)
+            OperationTreeVerifier.Verify(expectedTree, operationTreeFromSemanticModel)
+        End Sub
+
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel_Method_Speculative()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Attr 
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = Nothing)
+    End Sub
+End Class
+
+Class C
+    <Attr(""a"")>
+    Sub M0()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseArgumentList("()")))
+            Dim newAttrSyntax = newRoot.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim speculativeModel As SemanticModel = Nothing
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, speculativeModel))
+            Dim speculativeOperation = speculativeModel.GetOperation(newAttrSyntax)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = Nothing])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            Dim speculativeOperationTree = OperationTreeVerifier.GetOperationTree(comp, speculativeOperation)
+            OperationTreeVerifier.Verify(expectedTree, speculativeOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel_Parameter_Speculative()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Attr
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = Nothing)
+    End Sub
+End Class
+
+Class C
+    Sub M0(<Attr(""a"")> x As Integer)
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseArgumentList("()")))
+            Dim newAttrSyntax = newRoot.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim speculativeModel As SemanticModel = Nothing
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, speculativeModel))
+            Dim speculativeOperation = speculativeModel.GetOperation(newAttrSyntax)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = Nothing])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            Dim speculativeOperationTree = OperationTreeVerifier.GetOperationTree(comp, speculativeOperation)
+            OperationTreeVerifier.Verify(expectedTree, speculativeOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel_Class_Speculative()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Attr
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = Nothing)
+    End Sub
+End Class
+
+<Attr(""a"")>
+Class C
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseArgumentList("()")))
+            Dim newAttrSyntax = newRoot.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim speculativeModel As SemanticModel = Nothing
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, speculativeModel))
+            Dim speculativeOperation = speculativeModel.GetOperation(newAttrSyntax)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = Nothing])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            Dim speculativeOperationTree = OperationTreeVerifier.GetOperationTree(comp, speculativeOperation)
+            OperationTreeVerifier.Verify(expectedTree, speculativeOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel_Speculative_AssemblyTarget()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<Assembly: Attr(""a"")>
+
+Class Attr
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = ""default_value"")
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().First()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseArgumentList("()")))
+            Dim newAttrSyntax = newRoot.DescendantNodes().OfType(Of AttributeSyntax)().First()
+            Dim speculativeModel As SemanticModel = Nothing
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.Position, newAttrSyntax, speculativeModel))
+            Dim speculativeOperation = speculativeModel.GetOperation(newAttrSyntax)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Assembly: Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = ""default_value""])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Assembly: Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""default_value"", IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            Dim speculativeOperationTree = OperationTreeVerifier.GetOperationTree(comp, speculativeOperation)
+            OperationTreeVerifier.Verify(expectedTree, speculativeOperationTree)
+        End Sub
+
 #End Region
 
 #Region "Error Tests"
@@ -3813,7 +4033,6 @@ End Structure
 } // end of class Library1.Goo
 ]]>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation>
     <file name="a.vb">
@@ -4298,7 +4517,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
             CompileAndVerify(compilation2, symbolValidator:=validator)
 
@@ -4318,7 +4536,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(source3, {New VisualBasicCompilationReference(compilation1)})
             CompileAndVerify(compilation3, symbolValidator:=validator)
@@ -4653,6 +4870,29 @@ End Namespace
             CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadAttributeConstructor1, "Command").WithArguments("a.Class1.CommandAttribute.FxCommand").WithLocation(20, 10),
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "AddressOf UserInfo").WithLocation(20, 18))
+        End Sub
+
+        <Fact>
+        Public Sub AttributeWithOptionalNullableParameter_NullIsPassed()
+            Dim code = "
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+    Public Sub New(Optional x As Integer? = 0)
+    End Sub
+End Class
+
+<My(Nothing)>
+Class C
+End Class
+"
+            CreateCompilation(code).AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30045: Attribute constructor has a parameter of type 'Integer?', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My(Nothing)>
+ ~~
+]]></expected>)
         End Sub
     End Class
 End Namespace

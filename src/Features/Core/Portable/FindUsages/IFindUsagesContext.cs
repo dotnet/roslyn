@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         IStreamingProgressTracker ProgressTracker { get; }
 
         /// <summary>
+        /// Get <see cref="FindUsagesOptions"/> for specified language.
+        /// </summary>
+        ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Report a failure message to be displayed to the user.  This will be reported if the find operation returns
         /// no results.
         /// </summary>

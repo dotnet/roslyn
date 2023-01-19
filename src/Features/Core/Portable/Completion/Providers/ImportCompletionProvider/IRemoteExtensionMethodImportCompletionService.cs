@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal interface IRemoteExtensionMethodImportCompletionService
     {
         ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             int position,
             string receiverTypeSymbolKeyData,
             ImmutableArray<string> namespaceInScope,
             ImmutableArray<string> targetTypesSymbolKeyData,
-            bool forceIndexCreation,
+            bool forceCacheCreation,
             bool hideAdvancedMembers,
             CancellationToken cancellationToken);
 
-        ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
+        ValueTask WarmUpCacheAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
     }
 }

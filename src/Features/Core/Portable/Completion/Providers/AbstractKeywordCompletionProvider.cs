@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -36,15 +36,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 context.AddItems(await context.Document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     s_comparer,
-                    d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken)).ConfigureAwait(false));
+                    d => RecommendCompletionItemsAsync(d, context, cancellationToken)).ConfigureAwait(false));
             }
         }
 
-        private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, CompletionContext context, CancellationToken cancellationToken)
         {
-            var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (TContext)syntaxContextService.CreateContext(document, semanticModel, position, cancellationToken);
+            var position = context.Position;
+            var syntaxContext = (TContext)await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords.SelectAsArray(k => CreateItem(k, syntaxContext, cancellationToken));
         }

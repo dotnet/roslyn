@@ -9,14 +9,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
-using static Microsoft.CodeAnalysis.ProjectState;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 {
@@ -29,14 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         protected readonly string FileName;
         protected readonly TOptionsUpdater SettingsUpdater;
         protected readonly Workspace Workspace;
+        public readonly IGlobalOptionService GlobalOptions;
 
-        protected abstract void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions);
+        protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope);
 
-        protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace)
+        protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
         {
             FileName = fileName;
             SettingsUpdater = settingsUpdater;
             Workspace = workspace;
+            GlobalOptions = globalOptions;
         }
 
         protected void Update()
@@ -51,11 +55,17 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 return;
             }
 
-            var configOptionsProvider = new WorkspaceAnalyzerConfigOptionsProvider(project.State);
-            var workspaceOptions = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
-            var result = project.GetAnalyzerConfigOptions();
-            var options = new CombinedAnalyzerConfigOptions(workspaceOptions, result);
-            UpdateOptions(options, Workspace.Options);
+            var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
+            var projectDirectoryOptions = project.GetAnalyzerConfigOptions();
+
+            // TODO: Support for multiple languages https://github.com/dotnet/roslyn/issues/65859
+            var options = new TieredAnalyzerConfigOptions(
+                new CombinedAnalyzerConfigOptions(configFileDirectoryOptions, projectDirectoryOptions),
+                GlobalOptions,
+                language: LanguageNames.CSharp,
+                editorConfigFileName: FileName);
+
+            UpdateOptions(options, projects);
         }
 
         public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)
@@ -90,31 +100,42 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         public void RegisterViewModel(ISettingsEditorViewModel viewModel)
             => _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
 
-        private sealed class CombinedAnalyzerConfigOptions : AnalyzerConfigOptions
+        private sealed class CombinedAnalyzerConfigOptions : StructuredAnalyzerConfigOptions
         {
-            private readonly AnalyzerConfigOptions _workspaceOptions;
-            private readonly AnalyzerConfigOptionsResult? _result;
+            private readonly AnalyzerConfigData _fileDirectoryConfigData;
+            private readonly AnalyzerConfigData? _projectDirectoryConfigData;
 
-            public CombinedAnalyzerConfigOptions(AnalyzerConfigOptions workspaceOptions, AnalyzerConfigOptionsResult? result)
+            public CombinedAnalyzerConfigOptions(AnalyzerConfigData fileDirectoryConfigData, AnalyzerConfigData? projectDirectoryConfigData)
             {
-                _workspaceOptions = workspaceOptions;
-                _result = result;
+                _fileDirectoryConfigData = fileDirectoryConfigData;
+                _projectDirectoryConfigData = projectDirectoryConfigData;
+            }
+
+            public override NamingStylePreferences GetNamingStylePreferences()
+            {
+                var preferences = _fileDirectoryConfigData.ConfigOptions.GetNamingStylePreferences();
+                if (preferences.IsEmpty && _projectDirectoryConfigData.HasValue)
+                {
+                    preferences = _projectDirectoryConfigData.Value.ConfigOptions.GetNamingStylePreferences();
+                }
+
+                return preferences;
             }
 
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
-                if (_workspaceOptions.TryGetValue(key, out value))
+                if (_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out value))
                 {
                     return true;
                 }
 
-                if (!_result.HasValue)
+                if (!_projectDirectoryConfigData.HasValue)
                 {
                     value = null;
                     return false;
                 }
 
-                if (_result.Value.AnalyzerOptions.TryGetValue(key, out value))
+                if (_projectDirectoryConfigData.Value.AnalyzerOptions.TryGetValue(key, out value))
                 {
                     return true;
                 }
@@ -122,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 var diagnosticKey = "dotnet_diagnostic.(?<key>.*).severity";
                 var match = Regex.Match(key, diagnosticKey);
                 if (match.Success && match.Groups["key"].Value is string isolatedKey &&
-                    _result.Value.TreeOptions.TryGetValue(isolatedKey, out var severity))
+                    _projectDirectoryConfigData.Value.TreeOptions.TryGetValue(isolatedKey, out var severity))
                 {
                     value = severity.ToEditorConfigString();
                     return true;
@@ -130,6 +151,34 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 
                 value = null;
                 return false;
+            }
+
+            public override IEnumerable<string> Keys
+            {
+                get
+                {
+                    foreach (var key in _fileDirectoryConfigData.ConfigOptions.Keys)
+                        yield return key;
+
+                    if (!_projectDirectoryConfigData.HasValue)
+                        yield break;
+
+                    foreach (var key in _projectDirectoryConfigData.Value.AnalyzerOptions.Keys)
+                    {
+                        if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out _))
+                            yield return key;
+                    }
+
+                    foreach (var (key, severity) in _projectDirectoryConfigData.Value.TreeOptions)
+                    {
+                        var diagnosticKey = "dotnet_diagnostic." + key + ".severity";
+                        if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(diagnosticKey, out _) &&
+                            !_projectDirectoryConfigData.Value.AnalyzerOptions.TryGetKey(diagnosticKey, out _))
+                        {
+                            yield return diagnosticKey;
+                        }
+                    }
+                }
             }
         }
     }

@@ -193,7 +193,7 @@ namespace Roslyn.Test.Utilities
             return list.Count > 0;
         }
 
-        public static bool AppendEventAttributes(StringBuilder sb, EventAttributes attributes, bool all = true)
+        public static bool AppendEventAttributes(StringBuilder sb, EventAttributes attributes)
         {
             List<string> list = new List<string>();
 

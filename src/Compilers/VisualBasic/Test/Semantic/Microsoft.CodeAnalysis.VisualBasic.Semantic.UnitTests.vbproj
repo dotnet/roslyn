@@ -3,14 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
-
-    <!--
-      Disable running the tests on .NET Core while we investigate the core dump issue
-      https://github.com/dotnet/roslyn/issues/29660
-    -->
-    <SkipTests Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(OS)' != 'Windows_NT'">true</SkipTests>
 
     <!--
       Skipped because we appear to be missing things necessary to compile vb.net.
@@ -26,9 +20,10 @@
     <ProjectReference Include="..\..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="$(BasicReferenceAssembliesNet60Version)" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'net6.0'" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'net7.0'" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

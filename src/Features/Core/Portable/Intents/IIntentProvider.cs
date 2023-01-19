@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Features.Intents
             Document priorDocument,
             TextSpan priorSelection,
             Document currentDocument,
-            string? serializedIntentData,
+            IntentDataProvider intentDataProvider,
             CancellationToken cancellationToken);
     }
 }

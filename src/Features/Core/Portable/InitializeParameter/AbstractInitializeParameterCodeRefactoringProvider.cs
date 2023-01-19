@@ -9,13 +9,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
@@ -29,13 +31,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        private readonly Func<SyntaxNode, bool> _isFunctionDeclarationFunc;
-
-        protected AbstractInitializeParameterCodeRefactoringProvider()
-        {
-            _isFunctionDeclarationFunc = IsFunctionDeclaration;
-        }
-
         protected abstract bool IsFunctionDeclaration(SyntaxNode node);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
 
@@ -48,6 +43,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes,
             TextSpan parameterSpan,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -57,6 +53,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
             IBlockOperation? blockStatementOpt,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract void InsertStatement(
@@ -65,22 +62,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
 
             // TODO: One could try to retrieve TParameterList and then filter out parameters that intersect with
             // textSpan and use that as `parameterNodes`, where `selectedParameter` would be the first one.
 
             var selectedParameter = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
             if (selectedParameter == null)
-            {
                 return;
-            }
 
-            var functionDeclaration = selectedParameter.FirstAncestorOrSelf(_isFunctionDeclarationFunc);
+            var functionDeclaration = selectedParameter.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
             if (functionDeclaration is null)
-            {
                 return;
-            }
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var parameterNodes = generator.GetParameters(functionDeclaration);
@@ -90,9 +83,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
             // so first we have to get the parameter symbol and then its containing method symbol
             if (!TryGetParameterSymbol(selectedParameter, semanticModel, out var parameter, cancellationToken))
-            {
                 return;
-            }
 
             var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
             if (methodSymbol.IsAbstract ||
@@ -107,16 +98,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // as we use it later on in our computations.
             var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
             if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
-            {
                 return;
-            }
 
             if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
                 var refactorings = await GetRefactoringsForSingleParameterAsync(
-                    document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                    document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, context.Options, cancellationToken).ConfigureAwait(false);
                 context.RegisterRefactorings(refactorings, context.Span);
             }
 
@@ -137,7 +126,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // actually determine if there are any viable refactorings here.
                 var refactorings = await GetRefactoringsForAllParametersAsync(
                     document, functionDeclaration, methodSymbol, blockStatementOpt,
-                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false);
+                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, context.Options, cancellationToken).ConfigureAwait(false);
                 context.RegisterRefactorings(refactorings, context.Span);
             }
 
@@ -198,13 +187,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-        => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
+        => operation.UnwrapImplicitConversion() is IParameterReferenceOperation parameterReference &&
            parameter.Equals(parameterReference.Parameter);
-
-        protected static IOperation UnwrapImplicitConversion(IOperation operation)
-            => operation is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : operation;
 
         protected static bool ContainsParameterReference(
             SemanticModel semanticModel,
@@ -262,14 +246,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             fieldOrProperty = null;
             return false;
-        }
-
-        protected class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

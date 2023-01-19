@@ -28,6 +28,7 @@
     <!-- BEGIN External Access -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
     <!-- END External Access -->
     <!-- BEGIN MONODEVELOP
@@ -56,6 +57,7 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxBindingUtilities.cs" Link="InternalUtilities\SyntaxBindingUtilities.cs" />
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>

@@ -4,9 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Tagging;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -24,16 +24,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask ComputeCompilationAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var project = solution.GetRequiredProject(projectId);
 
-                await CompilationAvailableTaggerEventSource.ComputeCompilationInCurrentProcessAsync(project, cancellationToken).ConfigureAwait(false);
+                await CompilationAvailableHelpers.ComputeCompilationInCurrentProcessAsync(project, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

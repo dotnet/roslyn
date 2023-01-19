@@ -43,7 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
                     .WithAdditionalAnnotations(Simplifier.Annotation)
             End If
 
-            Return Nothing
+            ' Corresponding analyzer VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer validated the above syntax
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
         Public Sub New(document As SemanticDocument,
                        textSpan As TextSpan,
-                       options As OptionSet)
+                       options As ExtractMethodOptions)
             MyBase.New(document, textSpan, options)
         End Sub
 

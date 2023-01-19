@@ -287,11 +287,11 @@ namespace BuildBoss
             {
                 switch (targetFramework)
                 {
-                    case "net20":
                     case "net472":
                     case "netcoreapp3.1":
                     case "net6.0":
                     case "net6.0-windows":
+                    case "net7.0":
                         continue;
                 }
 

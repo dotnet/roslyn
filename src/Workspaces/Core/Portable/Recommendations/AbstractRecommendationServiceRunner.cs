@@ -11,15 +11,15 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Recommendations
+namespace Microsoft.CodeAnalysis.Recommendations;
+
+internal abstract partial class AbstractRecommendationService<TSyntaxContext>
 {
-    internal abstract class AbstractRecommendationServiceRunner<TSyntaxContext>
-        where TSyntaxContext : SyntaxContext
+    protected abstract class AbstractRecommendationServiceRunner
     {
         protected readonly TSyntaxContext _context;
         protected readonly bool _filterOutOfScopeLocals;
@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.Recommendations
         // This code is to help give intellisense in the following case: 
         // query.Include(a => a.SomeProperty).ThenInclude(a => a.
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
-        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility, bool unwrapNullable)
+        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility, bool unwrapNullable, bool isForDereference)
         {
-            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position);
+            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position, isForDereference);
             return symbols.IsDefault
-                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility, unwrapNullable)
+                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility, unwrapNullable, isForDereference)
                 : symbols;
         }
 
-        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(IParameterSymbol parameter, int position)
+        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(IParameterSymbol parameter, int position, bool isForDereference)
         {
             // Use normal lookup path for this/base parameters.
             if (parameter.IsThis)
@@ -110,13 +110,13 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
             return parameterTypeSymbols
                 .Concat(parameter.Type)
-                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable: false))
+                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable: false, isForDereference))
                 .ToImmutableArray();
         }
 
         private ImmutableArray<ITypeSymbol> SubstituteTypeParameters(ImmutableArray<ITypeSymbol> parameterTypeSymbols, SyntaxNode invocationExpression)
         {
-            if (!parameterTypeSymbols.Any(t => t.IsKind(SymbolKind.TypeParameter)))
+            if (!parameterTypeSymbols.Any(static t => t.IsKind(SymbolKind.TypeParameter)))
             {
                 return parameterTypeSymbols;
             }
@@ -288,8 +288,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
             //
             return recommendationSymbol.IsNamespace() &&
                    recommendationSymbol.Locations.Any(
-                       candidateLocation => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
-                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
+                       static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
+                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), declarationSyntax);
         }
 
         protected ImmutableArray<ISymbol> GetMemberSymbols(
@@ -297,12 +297,18 @@ namespace Microsoft.CodeAnalysis.Recommendations
             int position,
             bool excludeInstance,
             bool useBaseReferenceAccessibility,
-            bool unwrapNullable)
+            bool unwrapNullable,
+            bool isForDereference)
         {
             // For a normal parameter, we have a specialized codepath we use to ensure we properly get lambda parameter
             // information that the compiler may fail to give.
             if (container is IParameterSymbol parameter)
-                return GetMemberSymbolsForParameter(parameter, position, useBaseReferenceAccessibility, unwrapNullable);
+                return GetMemberSymbolsForParameter(parameter, position, useBaseReferenceAccessibility, unwrapNullable, isForDereference);
+
+            if (isForDereference && container is IPointerTypeSymbol pointerType)
+            {
+                container = pointerType.PointedAtType;
+            }
 
             if (container is not INamespaceOrTypeSymbol namespaceOrType)
                 return ImmutableArray<ISymbol>.Empty;
@@ -320,31 +326,111 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected ImmutableArray<ISymbol> LookupSymbolsInContainer(
             INamespaceOrTypeSymbol container, int position, bool excludeInstance)
         {
-            return excludeInstance
-                ? _context.SemanticModel.LookupStaticMembers(position, container)
-                : SuppressDefaultTupleElements(
-                    container,
-                    _context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true));
+            if (excludeInstance)
+                return _context.SemanticModel.LookupStaticMembers(position, container);
+
+            var containerMembers = SuppressDefaultTupleElements(
+                container,
+                _context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true));
+
+            if (container is not ITypeSymbol containerType)
+                return containerMembers;
+
+            // Compiler will return reduced extension methods in the case it can't determine if constraints match.
+            // Attempt to filter out cases we have strong confidence will never succeed.
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(containerMembers.Length, out var result);
+
+            foreach (var member in containerMembers)
+            {
+                if (member.IsReducedExtension())
+                {
+                    // Get the original extension method and see if it extends a type parameter that itself has any
+                    // base-type or base-interface constraints. If so, confirm that the type we're on derives from or
+                    // implements that constraint types.  Note that we do this looking at the uninstantiated forms as
+                    // there's no way to tell if the instantiations match as the signature may not have enough
+                    // information provided to answer that question accurately.
+                    var originalMember = member.GetOriginalUnreducedDefinition();
+                    if (originalMember is IMethodSymbol { Parameters: [{ Type: ITypeParameterSymbol parameterType }, ..] })
+                    {
+                        if (!MatchesConstraints(containerType.OriginalDefinition, parameterType.ConstraintTypes))
+                            continue;
+                    }
+                }
+
+                result.Add(member);
+            }
+
+            return result.ToImmutable();
+
+            static bool MatchesConstraints(ITypeSymbol originalContainerType, ImmutableArray<ITypeSymbol> constraintTypes)
+            {
+                // If there are no constraint types, then this type parameter was unconstrained, so could match anything.
+                if (constraintTypes.IsEmpty)
+                    return true;
+
+                // Now check that the type we're calling on matched at least one of the constraints that were specified.
+                foreach (var constraintType in constraintTypes)
+                {
+                    if (MatchesConstraint(originalContainerType, constraintType.OriginalDefinition))
+                        return true;
+                }
+
+                return false;
+            }
+
+            static bool MatchesConstraint(ITypeSymbol originalContainerType, ITypeSymbol originalConstraintType)
+            {
+                // If the type we're dotting off of *is* the constraint type, then this is def a match and we can proceed.
+                if (SymbolEqualityComparer.Default.Equals(originalContainerType, originalConstraintType))
+                    return true;
+
+                if (originalConstraintType.TypeKind == TypeKind.TypeParameter)
+                {
+                    // If it's a type parameter constrained on another type parameter, then just assume for now that
+                    // it's a match.  We could attempt to walk through these in the future, but for now this is complex
+                    // enough that we'll just allow it.
+                    return true;
+                }
+                else if (originalConstraintType.TypeKind == TypeKind.Interface)
+                {
+                    // If the constraint is an interface then see if that interface appears in the interface inheritance
+                    // hierarchy of the type we're dotting off of.
+                    foreach (var interfaceType in originalContainerType.AllInterfaces)
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(interfaceType.OriginalDefinition, originalConstraintType))
+                            return true;
+                    }
+                }
+                else if (originalConstraintType.TypeKind == TypeKind.Class)
+                {
+                    // If the constraint is an interface then see if that interface appears in the base type inheritance
+                    // hierarchy of the type we're dotting off of.
+                    for (var current = originalContainerType.BaseType; current != null; current = current.BaseType)
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, originalConstraintType))
+                            return true;
+                    }
+                }
+                else
+                {
+                    // If we somehow have a constraint that isn't a type parameter, or class, or interface, then we
+                    // really don't know what's going on.  Just presume that this constraint would match and show the
+                    // completion item.  We can revisit this choice if this turns out to be an issue.
+                    return true;
+                }
+
+                // For anything else, we don't consider this a match.  This can be adjusted in the future if need be.
+                return false;
+            }
         }
 
         /// <summary>
-        /// If container is a tuple type, any of its tuple element which has a friendly name will cause
-        /// the suppression of the corresponding default name (ItemN).
-        /// In that case, Rest is also removed.
+        /// If container is a tuple type, any of its tuple element which has a friendly name will cause the suppression
+        /// of the corresponding default name (ItemN). In that case, Rest is also removed.
         /// </summary>
-        protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(
-            INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
-        {
-            var namedType = container as INamedTypeSymbol;
-            if (namedType?.IsTupleType != true)
-            {
-                // container is not a tuple
-                return symbols;
-            }
-
-            //return tuple elements followed by other members that are not fields
-            return ImmutableArray<ISymbol>.CastUp(namedType.TupleElements).
-                Concat(symbols.WhereAsArray(s => s.Kind != SymbolKind.Field));
-        }
+        protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
+            => container is not INamedTypeSymbol { IsTupleType: true } namedType
+                ? symbols
+                : symbols.Where(s => s is not IFieldSymbol).Concat(namedType.TupleElements).ToImmutableArray();
     }
 }

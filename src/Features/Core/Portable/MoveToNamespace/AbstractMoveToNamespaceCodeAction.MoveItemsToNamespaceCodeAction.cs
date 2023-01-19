@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeCleanup;
+
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal abstract partial class AbstractMoveToNamespaceCodeAction
@@ -10,8 +13,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             public override string Title => FeaturesResources.Move_contents_to_namespace;
 
-            public MoveItemsToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
-                : base(changeNamespaceService, analysisResult)
+            public MoveItemsToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
+                : base(changeNamespaceService, analysisResult, cleanupOptions)
             {
             }
         }

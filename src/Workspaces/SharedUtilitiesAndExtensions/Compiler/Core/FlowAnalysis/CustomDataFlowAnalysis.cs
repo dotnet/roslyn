@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             continue;
                         }
 
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     fromRegion = enclosing;

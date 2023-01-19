@@ -48,10 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 syntaxContext As VisualBasicSyntaxContext,
                 position As Integer,
                 options As CompletionOptions,
-                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndSelectionInfo))
 
             Dim symbols = Await GetSymbolsAsync(syntaxContext, position, cancellationToken).ConfigureAwait(False)
-            Return symbols.SelectAsArray(Function(s) (s, preselect:=False))
+            Return symbols.SelectAsArray(Function(s) New SymbolAndSelectionInfo(Symbol:=s, Preselect:=False))
         End Function
 
         Private Overloads Function GetSymbolsAsync(
@@ -302,14 +302,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText As String,
                 displayTextSuffix As String,
                 insertionText As String,
-                symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)),
+                symbols As ImmutableArray(Of SymbolAndSelectionInfo),
                 context As VisualBasicSyntaxContext,
                 supportedPlatformData As SupportedPlatformData) As CompletionItem
 
-            Dim item = MyBase.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData)
+            Dim item = CreateItemDefault(displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData)
 
-            If IsGenericType(symbols(0).symbol) Then
-                Dim text = symbols(0).symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
+            If IsGenericType(symbols(0).Symbol) Then
+                Dim text = symbols(0).Symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
                 item = item.AddProperty(InsertionTextOnOpenParen, text)
             End If
 

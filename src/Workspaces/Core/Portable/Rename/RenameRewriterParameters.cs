@@ -14,14 +14,15 @@ namespace Microsoft.CodeAnalysis.Rename
     internal class RenameRewriterParameters
     {
         internal readonly CancellationToken CancellationToken;
-        internal readonly ISet<TextSpan> ConflictLocationSpans;
-        internal readonly RenameOptionSet OptionSet;
+        internal readonly ImmutableHashSet<TextSpan> ConflictLocationSpans;
+        internal readonly bool IsRenamingInStrings;
+        internal readonly bool IsRenamingInComments;
         internal readonly Solution OriginalSolution;
         internal readonly SyntaxTree OriginalSyntaxTree;
         internal readonly string OriginalText;
-        internal readonly ICollection<string> PossibleNameConflicts;
+        internal readonly ImmutableArray<string> PossibleNameConflicts;
         internal readonly RenameAnnotation RenamedSymbolDeclarationAnnotation;
-        internal readonly Dictionary<TextSpan, RenameLocation> RenameLocations;
+        internal readonly ImmutableDictionary<TextSpan, RenameLocation> RenameLocations;
         internal readonly RenamedSpansTracker RenameSpansTracker;
         internal readonly ISymbol RenameSymbol;
         internal readonly string ReplacementText;
@@ -39,36 +40,38 @@ namespace Microsoft.CodeAnalysis.Rename
             SyntaxNode syntaxRoot,
             string replacementText,
             string originalText,
-            ICollection<string> possibleNameConflicts,
-            Dictionary<TextSpan, RenameLocation> renameLocations,
+            ImmutableArray<string> possibleNameConflicts,
+            ImmutableDictionary<TextSpan, RenameLocation> renameLocations,
             ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> stringAndCommentTextSpans,
-            ISet<TextSpan> conflictLocationSpans,
+            ImmutableHashSet<TextSpan> conflictLocationSpans,
             Solution originalSolution,
             ISymbol renameSymbol,
             bool replacementTextValid,
             RenamedSpansTracker renameSpansTracker,
-            RenameOptionSet optionSet,
+            bool isRenamingInStrings,
+            bool isRenamingInComments,
             AnnotationTable<RenameAnnotation> renameAnnotations,
             CancellationToken cancellationToken)
         {
-            this.RenamedSymbolDeclarationAnnotation = renamedSymbolDeclarationAnnotation;
-            this.Document = document;
-            this.SemanticModel = semanticModel;
-            this.SyntaxRoot = syntaxRoot;
-            this.OriginalSyntaxTree = semanticModel.SyntaxTree;
-            this.ReplacementText = replacementText;
-            this.OriginalText = originalText;
-            this.PossibleNameConflicts = possibleNameConflicts;
-            this.RenameLocations = renameLocations;
-            this.StringAndCommentTextSpans = stringAndCommentTextSpans;
-            this.ConflictLocationSpans = conflictLocationSpans;
-            this.OriginalSolution = originalSolution;
-            this.RenameSymbol = renameSymbol;
-            this.ReplacementTextValid = replacementTextValid;
-            this.CancellationToken = cancellationToken;
-            this.RenameSpansTracker = renameSpansTracker;
-            this.OptionSet = optionSet;
-            this.RenameAnnotations = renameAnnotations;
+            RenamedSymbolDeclarationAnnotation = renamedSymbolDeclarationAnnotation;
+            Document = document;
+            SemanticModel = semanticModel;
+            SyntaxRoot = syntaxRoot;
+            OriginalSyntaxTree = semanticModel.SyntaxTree;
+            ReplacementText = replacementText;
+            OriginalText = originalText;
+            PossibleNameConflicts = possibleNameConflicts;
+            RenameLocations = renameLocations;
+            StringAndCommentTextSpans = stringAndCommentTextSpans;
+            ConflictLocationSpans = conflictLocationSpans;
+            OriginalSolution = originalSolution;
+            RenameSymbol = renameSymbol;
+            ReplacementTextValid = replacementTextValid;
+            CancellationToken = cancellationToken;
+            RenameSpansTracker = renameSpansTracker;
+            IsRenamingInStrings = isRenamingInStrings;
+            IsRenamingInComments = isRenamingInComments;
+            RenameAnnotations = renameAnnotations;
         }
     }
 }

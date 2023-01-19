@@ -201,9 +201,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var expectedParameterCount = CodeGenerationOperatorSymbol.GetParameterCount(operatorKind);
             if (parameters.Length != expectedParameterCount)
             {
-                var message = expectedParameterCount == 1 ?
-                    WorkspacesResources.Invalid_number_of_parameters_for_unary_operator :
-                    WorkspacesResources.Invalid_number_of_parameters_for_binary_operator;
+                var message = expectedParameterCount == 1
+                    ? WorkspacesResources.Invalid_number_of_parameters_for_unary_operator
+                    : WorkspacesResources.Invalid_number_of_parameters_for_binary_operator;
                 throw new ArgumentException(message, nameof(parameters));
             }
 
@@ -579,6 +579,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 name ?? @event.Name,
                 addMethod,
                 removeMethod);
+        }
+
+        internal static IFieldSymbol CreateFieldSymbol(
+            IFieldSymbol field,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility? accessibility = null,
+            DeclarationModifiers? modifiers = null,
+            string? name = null)
+        {
+            return CreateFieldSymbol(
+                attributes,
+                accessibility ?? field.DeclaredAccessibility,
+                modifiers ?? field.GetSymbolModifiers(),
+                field.Type,
+                name ?? field.Name);
         }
     }
 }

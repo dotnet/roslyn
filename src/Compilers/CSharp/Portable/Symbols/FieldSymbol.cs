@@ -4,11 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.RuntimeMembers;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -60,6 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetFieldType(ConsList<FieldSymbol>.Empty);
             }
         }
+
+        public abstract RefKind RefKind { get; }
+
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
@@ -325,6 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return newOwner.IsDefinition ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
+        /// <summary>
+        /// Returns true if this field is required to be set in an object initializer on object creation.
+        /// </summary>
+        internal abstract bool IsRequired { get; }
+
         #region Use-Site Diagnostics
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
@@ -342,7 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile))
+            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, RefKind == RefKind.None ? AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile : AllowedRequiredModifierType.None) ||
+                DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.None))
             {
                 return true;
             }
@@ -366,22 +378,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Returns true if the error code is highest priority while calculating use site error for this symbol. 
         /// </summary>
-        protected override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BindToBogus;
-            }
-        }
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BindToBogus;
 
         public sealed override bool HasUnsupportedMetadata
         {
             get
             {
                 DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
+                return (object)info != null && info.Code is (int)ErrorCode.ERR_BindToBogus or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 
@@ -464,15 +470,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // wrapped tuple fields already have this information and override this property
-                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
-
-                var map = ContainingType.TupleFieldDefinitionsToIndexMap;
-                if (map is object && map.TryGetValue(this.OriginalDefinition, out int index))
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol or Retargeting.RetargetingFieldSymbol));
+                if (!ContainingType.IsTupleType)
                 {
-                    return index;
+                    return -1;
                 }
 
-                return -1;
+                if (!ContainingType.IsDefinition)
+                {
+                    return this.OriginalDefinition.TupleElementIndex;
+                }
+
+                var tupleElementPosition = NamedTypeSymbol.MatchesCanonicalTupleElementName(Name);
+                int arity = ContainingType.Arity;
+                if (tupleElementPosition <= 0 || tupleElementPosition > arity)
+                {
+                    // ex: no "Item2" in 'ValueTuple<T1>'
+                    return -1;
+                }
+                Debug.Assert(tupleElementPosition < NamedTypeSymbol.ValueTupleRestPosition);
+
+                WellKnownMember wellKnownMember = NamedTypeSymbol.GetTupleTypeMember(arity, tupleElementPosition);
+                MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
+                Symbol found = CSharpCompilation.GetRuntimeMember(ImmutableArray.Create<Symbol>(this), descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
+                    accessWithinOpt: null); // force lookup of public members only
+
+                return found is not null
+                    ? tupleElementPosition - 1
+                    : -1;
             }
         }
 

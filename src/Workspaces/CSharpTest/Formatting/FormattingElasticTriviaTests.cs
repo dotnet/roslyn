@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -14,10 +16,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingEngineElasticTriviaTests : CSharpFormattingTestBase
     {
         [Fact(Skip = "530167")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatElasticTrivia()
         {
             var expected = @"extern alias A1;
@@ -88,13 +90,12 @@ class B
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
-        [WorkItem(1947, "https://github.com/dotnet/roslyn/issues/1947")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, WorkItem(1947, "https://github.com/dotnet/roslyn/issues/1947")]
         public void ElasticLineBreaksBetweenMembers()
         {
             var text = @"
@@ -109,12 +110,13 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var ws = new AdhocWorkspace();
-            var generator = SyntaxGenerator.GetGenerator(ws, LanguageNames.CSharp);
+            var workspace = new AdhocWorkspace();
+            var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
             var root = SyntaxFactory.ParseCompilationUnit(text);
             var decl = generator.GetDeclaration(root.DescendantNodes().OfType<VariableDeclaratorSyntax>().First(vd => vd.Identifier.Text == "f2"));
             var newDecl = generator.AddAttributes(decl, generator.Attribute("Some")).WithAdditionalAnnotations(Formatter.Annotation);
             var newRoot = root.ReplaceNode(decl, newDecl);
+            var options = CSharpSyntaxFormattingOptions.Default;
 
             var expected = @"
 public class C
@@ -129,19 +131,17 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var formatted = Formatter.Format(newRoot, ws).ToFullString();
+            var formatted = Formatter.Format(newRoot, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, formatted);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, ws).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
 
-            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, ws).ToFullString();
+            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, annotationFormatted);
         }
 
-        [WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
         public void FormatElasticTriviaBetweenPropertiesWithoutAccessors()
         {
             var expected = @"class PropertyTest
@@ -191,7 +191,8 @@ public class SomeAttribute : System.Attribute { }
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
     }

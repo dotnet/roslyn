@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -36,14 +35,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             where TTag : class, ITag
         {
             using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
-            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+
+            var firstDocument = workspace.Documents.First();
+            var textBuffer = firstDocument.GetTextBuffer();
+            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(textBuffer);
 
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
 
             var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = textBuffer.CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
             return (analyzerDiagnostics, spans);

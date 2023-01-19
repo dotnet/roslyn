@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Top-level Code
 
-        [Fact]
-        [WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        [Fact, WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
         public void TopLevelCode_LineChange()
         {
             var src1 = @"
@@ -39,8 +38,7 @@ Console.ReadLine(1);
                 new[] { new SourceLineUpdate(1, 2) });
         }
 
-        [Fact]
-        [WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        [Fact, WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
         public void TopLevelCode_LocalFunction_LineChange()
         {
             var src1 = @"
@@ -100,7 +98,7 @@ class C
                 new[]
                 {
                     new SourceLineUpdate(4, 9),
-                    AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(7),
+                    new SourceLineUpdate(7, 7),
                     new SourceLineUpdate(9, 4)
                 });
         }
@@ -151,9 +149,9 @@ class Program
                 new[]
                 {
                     new SourceLineUpdate(4, 9),
-                    AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(8),
+                    new SourceLineUpdate(8, 8),
                     new SourceLineUpdate(10, 4),
-                    AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(13),
+                    new SourceLineUpdate(13, 13),
                 });
         }
 
@@ -318,7 +316,7 @@ class C
                 new[]
                 {
                     new SourceLineUpdate(3, 4),
-                    AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(4)
+                    new SourceLineUpdate(4, 4)
                 });
         }
 
@@ -598,7 +596,7 @@ class C
                 new[]
                 {
                     new SourceLineUpdate(4, 8),
-                    AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(6),
+                    new SourceLineUpdate(6, 6),
                     new SourceLineUpdate(8, 4)
                 });
         }
@@ -1103,7 +1101,8 @@ class C
                 semanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))
-                });
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1294,7 +1293,8 @@ class C<T>
                 semanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))
-                });
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         #endregion
@@ -1793,7 +1793,7 @@ class C
                 new[]
                 {
                     new SourceLineUpdate(3, 9),
-                    AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),
+                    new SourceLineUpdate(5, 5),
                     new SourceLineUpdate(9, 3)
                 });
         }
@@ -1885,10 +1885,10 @@ class D
             edits.VerifyLineEdits(
                 new SequencePointUpdates[]
                 {
-                    new("a", ImmutableArray.Create<SourceLineUpdate>(
-                        new(2, 12), // x, y, F1, F2
-                        AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(6), // lines between F2 and D ctor
-                        new(9, 19))) // D ctor
+                    new("a", ImmutableArray.Create(
+                        new SourceLineUpdate(2, 12), // x, y, F1, F2
+                        new SourceLineUpdate(6, 6), // lines between F2 and D ctor
+                        new SourceLineUpdate(9, 19))) // D ctor
                 },
                 semanticEdits: new[]
                 {

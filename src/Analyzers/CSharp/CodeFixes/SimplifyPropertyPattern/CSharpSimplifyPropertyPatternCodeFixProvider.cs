@@ -34,20 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyPropertyPatternDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_property_pattern, nameof(CSharpAnalyzersResources.Simplify_property_pattern));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Process subpatterns in reverse order so we rewrite from inside-to-outside with nested
             // patterns.
@@ -121,14 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
             // otherwise, attempt to decompose the inner expression, joining that with the outer until we get
             // the result.
             return Merge(Merge(outerExpression, innerMemberAccess.Expression), innerMemberAccess.Name);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Simplify_property_pattern, createChangedDocument, nameof(CSharpAnalyzersResources.Simplify_property_pattern))
-            {
-            }
         }
     }
 }

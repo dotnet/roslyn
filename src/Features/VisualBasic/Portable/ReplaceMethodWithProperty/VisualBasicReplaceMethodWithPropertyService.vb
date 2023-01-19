@@ -10,7 +10,8 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
+Imports Microsoft.CodeAnalysis.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceGetMethodWithProperty(
-            documentOptions As DocumentOptionSet,
+            options As CodeGenerationOptions,
             parseOptions As ParseOptions,
             editor As SyntaxEditor,
             semanticModel As SemanticModel,

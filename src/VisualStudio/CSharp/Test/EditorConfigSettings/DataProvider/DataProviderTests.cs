@@ -13,11 +13,13 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.DataProvider
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
     public partial class DataProviderTests
     {
         private static Workspace GetWorkspace(string? projectFilePath = null)
@@ -61,33 +63,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             return settingsProvider;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingAnalyzerSettingsProvider()
         {
             TestGettingSettingsProviderFromWorkspace<AnalyzerSetting>();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingCodeStyleSettingsProvider()
         {
             TestGettingSettingsProviderFromWorkspace<CodeStyleSetting>();
             TestGettingSettingsProviderFromLanguageService<CodeStyleSetting>();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingWhitespaceSettingsProvider()
         {
-            TestGettingSettingsProviderFromWorkspace<WhitespaceSetting>();
-            TestGettingSettingsProviderFromLanguageService<WhitespaceSetting>();
+            TestGettingSettingsProviderFromWorkspace<Setting>();
+            TestGettingSettingsProviderFromLanguageService<Setting>();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingNamingStyleSettingsProvider()
         {
             TestGettingSettingsProviderFromWorkspace<NamingStyleSetting>();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingAnalyzerSettingsProviderWorkspaceServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<AnalyzerSetting>();
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             Assert.True(result.IsEnabled);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingCodeStyleSettingProviderWorkspaceServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<CodeStyleSetting>();
@@ -111,14 +113,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            // CodeStyleOptions2.OperatorPlacementWhenWrapping is included in whitespace options so we need to substract one
-            // We do not yet support the following options as they are strings and we need to build a UI to show arbitrary strings:
-            // CodeStyleOptions2.FileHeaderTemplate
-            var optionsCount = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 2;
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+
+            // We need to substract for string options that are not yet supported.
+            // https://github.com/dotnet/roslyn/issues/62937
+            var optionsWithUI = CodeStyleOptions2.AllOptions
+                .Remove(CodeStyleOptions2.OperatorPlacementWhenWrapping)
+                .Remove(CodeStyleOptions2.FileHeaderTemplate)
+                .Remove(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions)
+                .Remove(CodeStyleOptions2.ForEachExplicitCastInSource);
+
+            AssertEx.Equal(
+                optionsWithUI.OrderBy(o => o.Definition.ConfigName),
+                dataSnapShot.Select(setting => setting.Key.Option).OrderBy(o => o.Definition.ConfigName));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingNamingStyleSettingProviderWorkspaceServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<NamingStyleSetting>();
@@ -147,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingCodeStyleSettingsProviderLanguageServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<CodeStyleSetting>(LanguageNames.CSharp);
@@ -155,41 +164,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            // We don't support PreferredModifierOrder yet so we subtract by one
-            var optionsCount = CSharpCodeStyleOptions.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 1;
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+
+            // We don't support PreferredModifierOrder yet:
+            var optionsWithUI = CSharpCodeStyleOptions.AllOptions
+                .Remove(CSharpCodeStyleOptions.PreferredModifierOrder);
+
+            AssertEx.SetEqual(optionsWithUI, dataSnapShot.Select(setting => setting.Key.Option));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingWhitespaceSettingProviderWorkspaceServiceAsync()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<WhitespaceSetting>();
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<Setting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            var optionsCount = FormattingOptions2.Options.Length;
-            // we also include CodeStyleOptions2.OperatorPlacementWhenWrapping so we need to add one
-            optionsCount += 1;
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+
+            var expectedOptions = new IOption2[]
+            {
+                FormattingOptions2.IndentationSize,
+                FormattingOptions2.InsertFinalNewLine,
+                FormattingOptions2.NewLine,
+                FormattingOptions2.TabSize,
+                FormattingOptions2.UseTabs,
+                CodeStyleOptions2.OperatorPlacementWhenWrapping
+            };
+
+            AssertEx.Equal(
+                expectedOptions.Select(option => option.Definition.ConfigName).OrderBy(n => n),
+                dataSnapShot.Select(item => item.Key.Option.Definition.ConfigName).OrderBy(n => n));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingWhitespaceSettingProviderLanguageServiceAsync()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<WhitespaceSetting>(LanguageNames.CSharp);
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<Setting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            var optionsCount = CSharpFormattingOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count();
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+            var dataSnapshot = settingsProvider.GetCurrentDataSnapshot();
+
+            // multiple settings may share the same option (e.g. settings representing flags of an enum):
+            var optionsForSettings = dataSnapshot.GroupBy(s => s.Key.Option).Select(g => g.Key).ToArray();
+            AssertEx.SetEqual(CSharpFormattingOptions2.AllOptions, optionsForSettings);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingSettingProviderWithNullProjectPath1()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageServiceWithNullProjectPath<WhitespaceSetting>(LanguageNames.CSharp);
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageServiceWithNullProjectPath<Setting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
@@ -197,10 +221,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             Assert.Empty(dataSnapShot);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingSettingProviderWithNullProjectPath2()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<WhitespaceSetting>();
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<Setting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
@@ -208,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             Assert.Empty(dataSnapShot);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingSettingProviderWithNullProjectPath3()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageServiceWithNullProjectPath<CodeStyleSetting>(LanguageNames.CSharp);
@@ -219,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             Assert.Empty(dataSnapShot);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingSettingProviderWithNullProjectPath4()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<CodeStyleSetting>();
@@ -230,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             Assert.Empty(dataSnapShot);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingSettingProviderWithNullProjectPath5()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<AnalyzerSetting>();
@@ -241,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             Assert.Empty(dataSnapShot);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingSettingProviderWithNullProjectPath6()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<NamingStyleSetting>();

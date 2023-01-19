@@ -13,10 +13,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
@@ -36,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Name("CSharp Snippets")]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     [Order(After = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
+    [Order(Before = nameof(CompleteStatementCommandHandler))]
     [Order(Before = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.AutomaticLineEnder)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
@@ -53,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             SVsServiceProvider serviceProvider,
             [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, globalOptions, serviceProvider)
+            EditorOptionsService editorOptionsService)
+            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsService, serviceProvider)
         {
             _argumentProviders = argumentProviders.ToImmutableArray();
         }
@@ -80,12 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
-            {
-                return CommandState.Unspecified;
-            }
-
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return CommandState.Unspecified;
             }
@@ -129,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     EditorCommandHandlerServiceFactory,
                     EditorAdaptersFactoryService,
                     _argumentProviders,
-                    GlobalOptions);
+                    EditorOptionsService);
 
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }

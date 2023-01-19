@@ -3136,6 +3136,7 @@ class C
             TestOperatorKinds(GenerateTest(ArithmeticTemplate, "%", "Remainder"));
             TestOperatorKinds(GenerateTest(ShiftTemplate, "<<", "LeftShift"));
             TestOperatorKinds(GenerateTest(ShiftTemplate, ">>", "RightShift"));
+            TestOperatorKinds(GenerateTest(ShiftTemplate, ">>>", "UnsignedRightShift"));
             TestOperatorKinds(GenerateTest(ArithmeticTemplate, "==", "Equal"));
             TestOperatorKinds(GenerateTest(ArithmeticTemplate, "!=", "NotEqual"));
             TestOperatorKinds(GenerateTest(EqualityTemplate, "!=", "NotEqual"));
@@ -4607,6 +4608,7 @@ o1 OPERATOR d2, //-ObjectKIND
 o1 OPERATOR s2, //-ObjectKIND
 o1 OPERATOR o2  //-ObjectKIND" + Postfix;
 
+        /*
         private const string PostfixIncrementTemplate = Prefix + @"
 e   OPERATOR, //-EnumKIND
 chr OPERATOR, //-CharKIND
@@ -4635,6 +4637,7 @@ nr32 OPERATOR, //-LiftedFloatKIND
 nr64 OPERATOR, //-LiftedDoubleKIND
 ndec OPERATOR  //-LiftedDecimalKIND
 " + Postfix;
+        */
 
         private const string PrefixIncrementTemplate = Prefix + @"
 OPERATOR e   , //-EnumKIND
@@ -4690,7 +4693,6 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
 + nr64, //-LiftedDoubleUnaryPlus
 + ndec  //-LiftedDecimalUnaryPlus" + Postfix;
 
-
         private const string UnaryMinus = Prefix + @"
 - chr, //-IntUnaryMinus
 - i08, //-IntUnaryMinus
@@ -4718,7 +4720,6 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
         private const string LogicalNegation = Prefix + @"
 ! bln, //-BoolLogicalNegation
 ! nbln //-LiftedBoolLogicalNegation" + Postfix;
-
 
         private const string BitwiseComplement = Prefix + @"
 ~ e,   //-EnumBitwiseComplement
@@ -4766,7 +4767,7 @@ unsafe struct A
             // add better verification once this is implemented
         }
 
-        [Fact]
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_Dynamic()
         {
             var source = @"
@@ -4824,6 +4825,188 @@ public class C
 }
 ";
             var compilation = CreateCompilation(source).VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableIntAndDynamic()
+        {
+            var source = @"
+int? i = 42;
+dynamic d = new object();
+System.Console.Write(i ?? d);
+";
+            var compilation = CreateCompilation(source, references: new[] { CSharpRef });
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      136 (0x88)
+  .maxstack  9
+  .locals init (int? V_0, //i
+                object V_1, //d
+                int? V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.s   42
+  IL_0004:  call       ""int?..ctor(int)""
+  IL_0009:  newobj     ""object..ctor()""
+  IL_000e:  stloc.1
+  IL_000f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Program.<>o__0.<>p__0""
+  IL_0014:  brtrue.s   IL_0055
+  IL_0016:  ldc.i4     0x100
+  IL_001b:  ldstr      ""Write""
+  IL_0020:  ldnull
+  IL_0021:  ldtoken    ""Program""
+  IL_0026:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_002b:  ldc.i4.2
+  IL_002c:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldc.i4.s   33
+  IL_0035:  ldnull
+  IL_0036:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_003b:  stelem.ref
+  IL_003c:  dup
+  IL_003d:  ldc.i4.1
+  IL_003e:  ldc.i4.0
+  IL_003f:  ldnull
+  IL_0040:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0045:  stelem.ref
+  IL_0046:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_004b:  call       ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0050:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Program.<>o__0.<>p__0""
+  IL_0055:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Program.<>o__0.<>p__0""
+  IL_005a:  ldfld      ""System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target""
+  IL_005f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Program.<>o__0.<>p__0""
+  IL_0064:  ldtoken    ""System.Console""
+  IL_0069:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_006e:  ldloc.0
+  IL_006f:  stloc.2
+  IL_0070:  ldloca.s   V_2
+  IL_0072:  call       ""bool int?.HasValue.get""
+  IL_0077:  brtrue.s   IL_007c
+  IL_0079:  ldloc.1
+  IL_007a:  br.s       IL_0082
+  IL_007c:  ldloc.2
+  IL_007d:  box        ""int?""
+  IL_0082:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
+  IL_0087:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableIntAndObject()
+        {
+            var source = @"
+int? i = 42;
+object d = new object();
+System.Console.Write(i ?? d);
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (object V_0, //d
+                int? V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  newobj     ""int?..ctor(int)""
+  IL_0007:  newobj     ""object..ctor()""
+  IL_000c:  stloc.0
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  call       ""bool int?.HasValue.get""
+  IL_0015:  brtrue.s   IL_001a
+  IL_0017:  ldloc.0
+  IL_0018:  br.s       IL_0026
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  call       ""int int?.GetValueOrDefault()""
+  IL_0021:  box        ""int""
+  IL_0026:  call       ""void System.Console.Write(object)""
+  IL_002b:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableLongAndInt()
+        {
+            var source = @"
+long? l = 42;
+int i = 43;
+System.Console.Write(l ?? i);
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (int V_0, //i
+                long? V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  conv.i8
+  IL_0003:  newobj     ""long?..ctor(long)""
+  IL_0008:  ldc.i4.s   43
+  IL_000a:  stloc.0
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""bool long?.HasValue.get""
+  IL_0013:  brtrue.s   IL_0019
+  IL_0015:  ldloc.0
+  IL_0016:  conv.i8
+  IL_0017:  br.s       IL_0020
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  call       ""long long?.GetValueOrDefault()""
+  IL_0020:  call       ""void System.Console.Write(long)""
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableIntAndLong()
+        {
+            var source = @"
+int? i = 42;
+long l = 43;
+System.Console.Write(i ?? l);
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (long V_0, //l
+                int? V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  newobj     ""int?..ctor(int)""
+  IL_0007:  ldc.i4.s   43
+  IL_0009:  conv.i8
+  IL_000a:  stloc.0
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""bool int?.HasValue.get""
+  IL_0013:  brtrue.s   IL_0018
+  IL_0015:  ldloc.0
+  IL_0016:  br.s       IL_0020
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""int int?.GetValueOrDefault()""
+  IL_001f:  conv.i8
+  IL_0020:  call       ""void System.Console.Write(long)""
+  IL_0025:  ret
+}
+");
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
@@ -5096,7 +5279,6 @@ public class X
 }";
             comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
-
 
             // "default(dynamic)" has type dynamic
             source = @"
@@ -6574,7 +6756,7 @@ class op_RightShift
 }
 class op_UnsignedRightShift
 {
-		
+	public static long operator >>>  (op_UnsignedRightShift c, int i) { return 0; }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
@@ -6622,7 +6804,11 @@ class op_UnsignedRightShift
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "<<").WithArguments("op_LeftShift"),
                 // (60,30): error CS0542: 'op_RightShift': member names cannot be the same as their enclosing type
                 // 	public static long operator >>  (op_RightShift c, int i) { return 0; }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, ">>").WithArguments("op_RightShift"));
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, ">>").WithArguments("op_RightShift"),
+                // (64,30): error CS0542: 'op_UnsignedRightShift': member names cannot be the same as their enclosing type
+                // 	public static long operator >>>  (op_UnsignedRightShift c, int i) { return 0; }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, ">>>").WithArguments("op_UnsignedRightShift").WithLocation(64, 30)
+                );
         }
 
         [Fact]
@@ -7167,6 +7353,7 @@ public class RubyTime
                 BinaryOperatorKind.Or,
                 BinaryOperatorKind.And,
                 BinaryOperatorKind.Xor,
+                BinaryOperatorKind.UnsignedRightShift,
             };
 
             foreach (var op in operators)
@@ -7175,14 +7362,16 @@ public class RubyTime
                 {
                     foreach (var right in exprs)
                     {
-                        var signature1 = getBinaryOperator(binder, op, left, right, useEasyOut: true);
-                        var signature2 = getBinaryOperator(binder, op, left, right, useEasyOut: false);
+                        var signature1 = getBinaryOperator(binder, op, isChecked: false, left, right, useEasyOut: true);
+                        var signature2 = getBinaryOperator(binder, op, isChecked: false, left, right, useEasyOut: false);
+                        var signature3 = getBinaryOperator(binder, op, isChecked: true, left, right, useEasyOut: false);
                         Assert.Equal(signature1, signature2);
+                        Assert.Equal(signature1, signature3);
                     }
                 }
             }
 
-            static BinaryOperatorKind getBinaryOperator(Binder binder, BinaryOperatorKind kind, BoundExpression left, BoundExpression right, bool useEasyOut)
+            static BinaryOperatorKind getBinaryOperator(Binder binder, BinaryOperatorKind kind, bool isChecked, BoundExpression left, BoundExpression right, bool useEasyOut)
             {
                 var overloadResolution = new OverloadResolution(binder);
                 var result = BinaryOperatorOverloadResolutionResult.GetInstance();
@@ -7193,7 +7382,7 @@ public class RubyTime
                 else
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref discardedUseSiteInfo);
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, isChecked, left, right, result, ref discardedUseSiteInfo);
                 }
                 var signature = result.Best.Signature.Kind;
                 result.Free();
@@ -7425,14 +7614,12 @@ public class RubyTime
                 returnName = containerName;
             }
 
-            Assert.Equal(String.Format("{2} {0}.{1}({0} value)",
-                                       containerName,
-                                       OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
-                                       returnName),
-                         symbol1.ToTestDisplayString());
-
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind);
             Assert.True(symbol1.IsImplicitlyDeclared);
+
+            var synthesizedMethod = compilation.CreateBuiltinOperator(
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters[0].Type);
+            Assert.Equal(synthesizedMethod, symbol1);
 
             bool expectChecked = false;
 
@@ -7450,13 +7637,14 @@ public class RubyTime
                                      symbol1.ContainingType.EnumUnderlyingTypeOrSelf().SpecialType.IsIntegralType() ||
                                      symbol1.ContainingType.SpecialType == SpecialType.System_Char);
                     break;
-
-                default:
-                    expectChecked = type.IsDynamic();
-                    break;
             }
 
             Assert.Equal(expectChecked, symbol1.IsCheckedBuiltin);
+            Assert.Equal(String.Format("{2} {0}.{1}({0} value)",
+                                       containerName,
+                                       OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: expectChecked),
+                                       returnName),
+                         symbol1.ToTestDisplayString());
 
             Assert.False(symbol1.IsGenericMethod);
             Assert.False(symbol1.IsExtensionMethod);
@@ -7561,7 +7749,8 @@ class Module1
                         BinaryOperatorKind.Or,
                         BinaryOperatorKind.And,
                         BinaryOperatorKind.LogicalOr,
-                        BinaryOperatorKind.LogicalAnd
+                        BinaryOperatorKind.LogicalAnd,
+                        BinaryOperatorKind.UnsignedRightShift,
                         };
 
             string[] opTokens = {
@@ -7582,7 +7771,8 @@ class Module1
                                  "|",
                                  "&",
                                  "||",
-                                 "&&"};
+                                 "&&",
+                                 ">>>"};
 
             string[] typeNames =
                             {
@@ -7727,7 +7917,8 @@ class Module1
                         BinaryOperatorKind.RightShift,
                         BinaryOperatorKind.Xor,
                         BinaryOperatorKind.Or,
-                        BinaryOperatorKind.And
+                        BinaryOperatorKind.And,
+                        BinaryOperatorKind.UnsignedRightShift
                         };
 
             string[] opTokens = {
@@ -7740,7 +7931,8 @@ class Module1
                                  ">>=",
                                  "^=",
                                  "|=",
-                                 "&="};
+                                 "&=",
+                                 ">>>="};
 
             string[] typeNames =
                             {
@@ -7945,10 +8137,13 @@ class Module1
                 Assert.NotEqual(symbol1.Parameters[0], symbol5.Parameters[1]);
             }
 
+            bool isDynamic = (leftType.IsDynamic() || rightType.IsDynamic());
+
             switch (op)
             {
                 case BinaryOperatorKind.LogicalAnd:
                 case BinaryOperatorKind.LogicalOr:
+                case BinaryOperatorKind.UnsignedRightShift when isDynamic:
                     Assert.Null(symbol1);
                     Assert.Null(symbol2);
                     Assert.Null(symbol3);
@@ -7956,10 +8151,8 @@ class Module1
                     return;
             }
 
-
             BinaryOperatorKind result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType);
             BinaryOperatorSignature signature;
-            bool isDynamic = (leftType.IsDynamic() || rightType.IsDynamic());
 
             if (result == BinaryOperatorKind.Error)
             {
@@ -8197,21 +8390,14 @@ class Module1
 
             Assert.Equal(isDynamic, signature.ReturnType.IsDynamic());
 
-            string expectedSymbol = String.Format("{4} {0}.{2}({1} left, {3} right)",
-                                       containerName,
-                                       leftName,
-                                       OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
-                                       rightName,
-                                       returnName);
-            string actualSymbol = symbol1.ToTestDisplayString();
-
-            Assert.Equal(expectedSymbol, actualSymbol);
-
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind);
             Assert.True(symbol1.IsImplicitlyDeclared);
 
-            bool isChecked;
+            var synthesizedMethod = compilation.CreateBuiltinOperator(
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters[0].Type, symbol1.Parameters[1].Type);
+            Assert.Equal(synthesizedMethod, symbol1);
 
+            bool isChecked = false;
             switch (op)
             {
                 case BinaryOperatorKind.Multiplication:
@@ -8220,11 +8406,17 @@ class Module1
                 case BinaryOperatorKind.Division:
                     isChecked = isDynamic || symbol1.ContainingSymbol.Kind == SymbolKind.PointerType || symbol1.ContainingType.EnumUnderlyingTypeOrSelf().SpecialType.IsIntegralType();
                     break;
-
-                default:
-                    isChecked = isDynamic;
-                    break;
             }
+
+            string expectedSymbol = String.Format("{4} {0}.{2}({1} left, {3} right)",
+                                       containerName,
+                                       leftName,
+                                       OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked),
+                                       rightName,
+                                       returnName);
+            string actualSymbol = symbol1.ToTestDisplayString();
+
+            Assert.Equal(expectedSymbol, actualSymbol);
 
             Assert.Equal(isChecked, symbol1.IsCheckedBuiltin);
 
@@ -8440,6 +8632,56 @@ class Module1
             var nodes = (from node in tree.GetRoot().DescendantNodes()
                          select node as BinaryExpressionSyntax).
                          Where(node => (object)node != null).ToArray();
+
+            Assert.Equal(2, nodes.Length);
+
+            var symbols1 = (from node1 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
+            foreach (var symbol1 in symbols1)
+            {
+                Assert.False(symbol1.IsCheckedBuiltin);
+                Assert.True(((ITypeSymbol)symbol1.ContainingSymbol).IsDynamic());
+                Assert.Null(symbol1.ContainingType);
+            }
+
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
+            semanticModel = compilation.GetSemanticModel(tree);
+
+            var symbols2 = (from node2 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
+            foreach (var symbol2 in symbols2)
+            {
+                Assert.False(symbol2.IsCheckedBuiltin);
+                Assert.True(((ITypeSymbol)symbol2.ContainingSymbol).IsDynamic());
+                Assert.Null(symbol2.ContainingType);
+            }
+
+            for (int i = 0; i < symbols1.Length; i++)
+            {
+                Assert.Equal(symbols1[i], symbols2[i]);
+            }
+        }
+
+        [Fact]
+        public void DynamicBinaryIntrinsicSymbols2()
+        {
+            var source =
+@"
+class Module1
+{
+    void Test(dynamic x)
+    {
+        var z1 = x + 0;
+        var z2 = 0 + x;
+    }
+}";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         select node as BinaryExpressionSyntax).
+                         Where(node => node is not null).ToArray();
 
             Assert.Equal(2, nodes.Length);
 
@@ -11189,7 +11431,7 @@ class M
             {
                 numChildren++;
                 Assert.NotNull(iop);
-                foreach (var child in iop.Children)
+                foreach (var child in iop.ChildOperations)
                 {
                     enumerateChildren(child);
                 }

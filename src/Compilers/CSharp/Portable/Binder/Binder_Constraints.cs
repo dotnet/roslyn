@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind and return a single type parameter constraint clause along with syntax nodes corresponding to type constraints.
         /// </summary>
-        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, BindingDiagnosticBag diagnostics)
+        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(
+            TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, BindingDiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             ArrayBuilder<TypeWithAnnotations>? constraintTypes = null;
@@ -157,11 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
                             {
-                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
-                                    AreNullableAnnotationsEnabled(questionToken),
-                                    IsGeneratedCode(questionToken),
-                                    questionToken.GetLocation(),
-                                    diagnosticBag);
+                                LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, type: null, diagnosticBag);
                             }
                         }
                         else if (isForOverride || AreNullableAnnotationsEnabled(constraintSyntax.ClassOrStructKeyword))
@@ -216,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constraints |= TypeParameterConstraintKind.Constructor;
                         continue;
                     case SyntaxKind.DefaultConstraint:
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureDefaultTypeParameterConstraint, diagnostics);
+
                         if (!isForOverride)
                         {
                             diagnostics.Add(ErrorCode.ERR_DefaultConstraintOverrideOnly, syntax.GetLocation());
@@ -414,6 +413,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
+
+            if (constraintType.Type.HasFileLocalTypes())
+            {
+                // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file-local type.
+                var possibleFileType = containingSymbol switch
+                {
+                    TypeSymbol typeSymbol => typeSymbol,
+                    LocalFunctionSymbol => null,
+                    MethodSymbol method => (TypeSymbol)method.ContainingSymbol,
+                    _ => throw ExceptionUtilities.UnexpectedValue(containingSymbol)
+                };
+                Debug.Assert(possibleFileType?.IsDefinition != false);
+                if (possibleFileType?.HasFileLocalTypes() == false)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
+                }
+            }
+
             diagnostics.Add(location, useSiteInfo);
         }
 

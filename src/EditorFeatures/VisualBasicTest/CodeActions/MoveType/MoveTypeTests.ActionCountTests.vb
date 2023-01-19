@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
     Partial Public Class MoveTypeTests
         Inherits BasicMoveTypeTestsBase
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_ActionCounts_RenameOnly() As Task
             Dim code =
 <File>
@@ -18,7 +19,7 @@ End Class
             Await TestActionCountAsync(code, count:=2)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_WithDefinitionSelected() As Task
             Dim code =
 <File>
@@ -30,7 +31,7 @@ End Class
             Await TestActionCountAsync(code, count:=2)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_WithDefinitionAndAttributeSelected() As Task
             Dim code =
 "[|<Obsolete>
@@ -42,7 +43,7 @@ End Class"
             Await TestActionCountAsync(code, count:=2)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_WithDefinitionAndCommentSelected() As Task
             Dim code =
 "[|''' <summary>
@@ -56,7 +57,7 @@ End Class"
             Await TestActionCountAsync(code, count:=2)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_WithDefinitionAndAttributeAndCommentSelected() As Task
             Dim code =
 "[|''' <summary>
@@ -71,7 +72,7 @@ End Class"
             Await TestActionCountAsync(code, count:=2)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_InsideClassSelected() As Task
             Dim code =
 <File>
@@ -85,7 +86,7 @@ End Class
             Await TestActionCountAsync(code, count:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_WithAttributeSelected() As Task
             Dim code =
 "[|<Obsolete>|]
@@ -95,7 +96,7 @@ End Class"
             Await TestActionCountAsync(code, count:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_WithCommentSelected() As Task
             Dim code =
 "[|''' <summary>
@@ -107,7 +108,7 @@ End Class"
             Await TestActionCountAsync(code, count:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_WithAttributeAndCommentSelected() As Task
             Dim code =
 "[|''' <summary>
@@ -120,7 +121,7 @@ End Class"
             Await TestActionCountAsync(code, count:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_ActionCounts_MoveOnly() As Task
             Dim code =
 <File>
@@ -135,7 +136,7 @@ End Class
             Await TestActionCountAsync(code, count:=1)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_ActionCounts_RenameAndMove() As Task
             Dim code =
 <File>
@@ -150,7 +151,7 @@ End Class
             Await TestActionCountAsync(code, count:=3)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WpfFact>
         Public Async Function MoveType_ActionCounts_All() As Task
             Dim code =
 <File>

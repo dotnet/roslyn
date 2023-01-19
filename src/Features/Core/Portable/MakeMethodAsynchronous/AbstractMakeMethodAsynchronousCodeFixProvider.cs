@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes);
 
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
-            bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            KnownTypes knownTypes);
+            bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes, CancellationToken cancellationToken);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // if our member is already Task-Like, and that functionality recognizes
             // ValueTask if it is available, but does not care if it is not.
             var knownTypes = new KnownTypes(compilation);
-            if (knownTypes._taskType == null || knownTypes._taskOfTType == null)
+            if (knownTypes.TaskType == null || knownTypes.TaskOfTType == null)
             {
                 return;
             }
@@ -60,18 +59,24 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name, context.Document);
 
             // Offer to convert to a Task return type.
+            var taskTitle = GetMakeAsyncTaskFunctionResource();
             context.RegisterCodeFix(
-                new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                    context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
+                CodeAction.Create(
+                    taskTitle,
+                    c => FixNodeAsync(context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c),
+                    taskTitle),
                 context.Diagnostics);
 
             // If it's a void returning method (and not an entry point), also offer to keep the void return type
             var isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
             if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
             {
+                var asyncVoidTitle = GetMakeAsyncVoidFunctionResource();
                 context.RegisterCodeFix(
-                    new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
+                    CodeAction.Create(
+                        asyncVoidTitle,
+                        c => FixNodeAsync(context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c),
+                        asyncVoidTitle),
                     context.Diagnostics);
             }
         }
@@ -168,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var syntaxPath = new SyntaxPath(node);
 
             // Rename the method to add the 'Async' suffix, then add the 'async' keyword.
-            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, new SymbolRenameOptions(), newName, cancellationToken).ConfigureAwait(false);
 
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -190,7 +195,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, knownTypes);
+            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, knownTypes, cancellationToken);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);
@@ -201,22 +206,22 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
         protected static bool IsTaskLike(ITypeSymbol returnType, KnownTypes knownTypes)
         {
-            if (returnType.Equals(knownTypes._taskType))
+            if (returnType.Equals(knownTypes.TaskType))
             {
                 return true;
             }
 
-            if (returnType.Equals(knownTypes._valueTaskType))
+            if (returnType.Equals(knownTypes.ValueTaskType))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
+            if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(knownTypes._valueTaskOfTTypeOpt))
+            if (returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTTypeOpt))
             {
                 return true;
             }
@@ -228,14 +233,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, equivalenceKey: title)
-            {
-            }
         }
     }
 }

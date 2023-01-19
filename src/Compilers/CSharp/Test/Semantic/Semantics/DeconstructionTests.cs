@@ -181,7 +181,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("c", "C.Deconstruct(out int, out int, out int)").WithLocation(7, 28),
                 // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
@@ -551,7 +551,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
+                // CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "C.Deconstruct(out int, out string, __arglist)").WithLocation(9, 28),
                 // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
@@ -3294,10 +3294,10 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) 
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
                 // CS1003: Syntax error, ',' expected
                 //         var(int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",").WithLocation(6, 17),
                 // CS1003: Syntax error, ',' expected
                 //         var(var x3, x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(7, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",").WithLocation(7, 17),
                 // CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         var(int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(int x1, x2)").WithLocation(6, 9),
@@ -4120,9 +4120,9 @@ unsafe class C
                 // (9,10): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(9, 10),
-                // (9,10): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                // (9,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('var')
                 //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
                 // (9,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'var*[]'. An explicit conversion exists (are you missing a cast?)
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "var*[] x4").WithArguments("dynamic", "var*[]").WithLocation(9, 10),
@@ -4269,11 +4269,15 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+            Assert.Equal(TypeKind.Struct, typeInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Error, ((INamedTypeSymbol)typeInfo.Type).TypeArguments[0].TypeKind);
+            Assert.Equal(TypeKind.Error, ((INamedTypeSymbol)typeInfo.Type).TypeArguments[1].TypeKind);
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("(var a, var b)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -4400,11 +4404,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("(var a, var b)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -4524,11 +4528,15 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var, var)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+            Assert.Equal(TypeKind.Struct, typeInfo.Type.TypeKind);
+            Assert.Equal(TypeKind.Error, ((INamedTypeSymbol)typeInfo.Type).TypeArguments[0].TypeKind);
+            Assert.Equal(TypeKind.Error, ((INamedTypeSymbol)typeInfo.Type).TypeArguments[1].TypeKind);
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("(var, var)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -4670,11 +4678,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[0].Type).ToTestDisplayString());
@@ -4764,11 +4772,11 @@ using var = System.Int32;
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[0].Type).ToTestDisplayString());
@@ -4842,11 +4850,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[0].Type).ToTestDisplayString());
@@ -5210,11 +5218,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("(var a, var b)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -5263,7 +5271,6 @@ class C
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-
 
             Assert.Equal("(var (a,b), var c)", tuples[1].ToString());
             typeInfo = model.GetTypeInfo(tuples[1]);
@@ -5355,11 +5362,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("(var a, var b)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -5492,11 +5499,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var, var)", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("(var, var)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -5679,11 +5686,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("((var a, var b), var c)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -5789,11 +5796,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("((var a, var b), var c)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -5892,11 +5899,11 @@ class C
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             typeInfo = model.GetTypeInfo(declarations[0].Type);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var, var), var)", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("((var, var), var)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(model.GetAliasInfo(declarations[0].Type));
@@ -6444,6 +6451,114 @@ class C2
                 // (i, c) = new C2();
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(i, c) = new C2()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 1)
                 );
+        }
+
+        [Fact, WorkItem(58472, "https://github.com/dotnet/roslyn/issues/58472")]
+        public void DeconstructionIntoImplicitIndexers()
+        {
+            var source = @"
+var x = new int[1];
+C.M(x);
+
+var y = new int[1];
+C.M2(y);
+
+System.Console.Write((x[^1], y[^1]));
+
+class C
+{
+    public static void M<T>(T[] a)
+    {
+        (a[0], a[^1]) = (default, default);
+    }
+
+    public static void M2(int[] a)
+    {
+        (a[0], a[^1]) = (default, default);
+    }
+}
+";
+
+            var comp = CreateCompilationWithIndex(source);
+            // No IndexOutOfRangeException thrown
+            var verifier = CompileAndVerify(comp, expectedOutput: "(0, 0)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M<T>(T[])", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  initobj    ""T""
+  IL_0012:  ldloc.2
+  IL_0013:  stelem     ""T""
+  IL_0018:  ldloc.0
+  IL_0019:  ldloc.1
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  initobj    ""T""
+  IL_0022:  ldloc.2
+  IL_0023:  stelem     ""T""
+  IL_0028:  ret
+}
+");
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.0
+  IL_0009:  dup
+  IL_000a:  ldlen
+  IL_000b:  conv.i4
+  IL_000c:  ldc.i4.1
+  IL_000d:  sub
+  IL_000e:  ldelema    ""int""
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  stind.i4
+  IL_0016:  ldc.i4.0
+  IL_0017:  stind.i4
+  IL_0018:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(61332, "https://github.com/dotnet/roslyn/issues/61332")]
+        public void NestedNullableConversions()
+        {
+            var code = """
+            float? _startScrollPosition, _endScrollPosition;
+            (_startScrollPosition, _endScrollPosition) = GetScrollPositions();
+
+            (float, float) GetScrollPositions() => (0, 0);
+            """;
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+            var deconstructionInfo = model.GetDeconstructionInfo(assignment);
+            var nestedConversions = deconstructionInfo.Nested;
+            Assert.Equal(2, nestedConversions.Length);
+            Assert.All(nestedConversions, n => Assert.Empty(n.Nested));
         }
     }
 }

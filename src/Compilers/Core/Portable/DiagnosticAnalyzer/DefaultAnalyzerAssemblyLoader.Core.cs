@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 #if NETCOREAPP
 
 using System;
@@ -54,6 +53,7 @@ namespace Microsoft.CodeAnalysis
                "System.Runtime.CompilerServices.Unsafe",
                "System.Runtime.Extensions",
                "System.Runtime.InteropServices",
+               "System.Runtime.InteropServices.RuntimeInformation",
                "System.Runtime.Loader",
                "System.Runtime.Numerics",
                "System.Runtime.Serialization.Primitives",

@@ -43,5 +43,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         ModuleInitializers,
         FunctionPointers,
         RecordStructs,
+        RequiredMembers,
     }
 }

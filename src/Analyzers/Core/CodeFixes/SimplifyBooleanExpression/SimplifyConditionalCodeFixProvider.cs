@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
@@ -32,30 +32,42 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.CodeQuality;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, AnalyzersResources.Simplify_conditional_expression, nameof(AnalyzersResources.Simplify_conditional_expression));
             return Task.CompletedTask;
         }
 
         protected sealed override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
+            CodeActionOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var diagnostic in diagnostics)
+            // Walk the diagnostics in descending position order so that we process innermost conditionals before
+            // outermost ones. Also, use ApplyExpressionLevelSemanticEditsAsync so that we can appropriately understand
+            // the semantics of conditional nodes if we changed what was inside of them.
+
+            await editor.ApplyExpressionLevelSemanticEditsAsync(
+                document,
+                diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start).ToImmutableArray(),
+                d => d.Location.FindNode(getInnermostNodeForTie: true, cancellationToken),
+                canReplace: (_, _, _) => true,
+                (semanticModel, root, diagnostic, current) => root.ReplaceNode(current, SimplifyConditional(semanticModel, diagnostic, current)),
+                cancellationToken).ConfigureAwait(false);
+
+            return;
+
+            SyntaxNode SimplifyConditional(SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode expr)
             {
-                var expr = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                if (!syntaxFacts.IsConditionalExpression(expr))
+                    return expr;
+
                 syntaxFacts.GetPartsOfConditionalExpression(expr, out var condition, out var whenTrue, out var whenFalse);
 
                 if (diagnostic.Properties.ContainsKey(Negate))
@@ -73,16 +85,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
                     replacement = generator.LogicalAndExpression(condition, right);
                 }
 
-                editor.ReplaceNode(
-                    expr, generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr)));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Simplify_conditional_expression, createChangedDocument, AnalyzersResources.Simplify_conditional_expression)
-            {
+                return generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr));
             }
         }
     }

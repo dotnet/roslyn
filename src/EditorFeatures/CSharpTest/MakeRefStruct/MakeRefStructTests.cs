@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
     public class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private static readonly CSharpParseOptions s_parseOptions =
@@ -43,7 +44,7 @@ namespace System
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new MakeRefStructCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task FieldInNotRefStruct()
         {
             var text = CreateTestSource(@"
@@ -61,7 +62,7 @@ ref struct S
             await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task FieldInRecordStruct()
         {
             var text = CreateTestSource(@"
@@ -73,7 +74,7 @@ record struct S
             await TestMissingInRegularAndScriptAsync(text, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task FieldInNestedClassInsideNotRefStruct()
         {
             var text = CreateTestSource(@"
@@ -88,7 +89,7 @@ struct S
             await TestMissingInRegularAndScriptAsync(text, new TestParameters(s_parseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task FieldStaticInRefStruct()
         {
             // Note: does not compile
@@ -101,7 +102,7 @@ ref struct S
             await TestMissingInRegularAndScriptAsync(text, new TestParameters(s_parseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task FieldStaticInNotRefStruct()
         {
             var text = CreateTestSource(@"
@@ -120,7 +121,7 @@ ref struct S
             await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task PropInNotRefStruct()
         {
             var text = CreateTestSource(@"
@@ -138,7 +139,7 @@ ref struct S
             await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task PropInNestedClassInsideNotRefStruct()
         {
             // Note: does not compile
@@ -154,7 +155,7 @@ struct S
             await TestMissingInRegularAndScriptAsync(text, new TestParameters(s_parseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task PropStaticInRefStruct()
         {
             // Note: does not compile
@@ -167,7 +168,7 @@ ref struct S
             await TestMissingInRegularAndScriptAsync(text, new TestParameters(s_parseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task PropStaticInNotRefStruct()
         {
             var text = CreateTestSource(@"
@@ -186,7 +187,7 @@ ref struct S
             await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task PartialByRefStruct()
         {
             var text = CreateTestSource(@"
@@ -202,7 +203,7 @@ struct S
             await TestMissingInRegularAndScriptAsync(text, new TestParameters(s_parseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task PartialStruct()
         {
             var text = CreateTestSource(@"
@@ -228,7 +229,7 @@ ref partial struct S
             await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [Fact]
         public async Task ReadonlyPartialStruct()
         {
             var text = CreateTestSource(@"

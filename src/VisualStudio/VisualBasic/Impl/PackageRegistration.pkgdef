@@ -57,7 +57,7 @@
 // The option page configuration is duplicated on VisualBasicPackage type definition.
 //
 // VB option pages tree
-//   Basic
+//   Visual Basic
 //     General (from editor)
 //     Scroll Bars (from editor)
 //     Tabs (from editor)
@@ -65,6 +65,8 @@
 //     Code Style (category)
 //       General
 //       Naming
+//     IntelliSense
+
 
 [$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\IntelliSense]
 @="#112"
@@ -167,7 +169,7 @@
 [$RootKey$\Languages\Language Services\Basic]
 @="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
 "Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-"LangResID"=dword:00000000
+"LangResID"=dword:00000065
 
 "DefaultToInsertSpaces"=dword:00000001
 "EnableAdvancedMembersOption"=dword:00000001

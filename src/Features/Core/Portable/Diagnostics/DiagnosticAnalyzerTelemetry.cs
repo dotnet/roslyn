@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     else
                     {
                         // annonymize analyzer and exception names:
-                        m["Analyzer.NameHashCode"] = ComputeSha256Hash(analyzerName);
+                        m["Analyzer.NameHashCode"] = AnalyzerNameForTelemetry.ComputeSha256Hash(analyzerName);
                     }
 
                     m["Analyzer.CodeBlock"] = analyzerInfo.CodeBlockActionsCount;
@@ -129,12 +129,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     m["Analyzer.Suppression"] = analyzerInfo.SuppressionActionsCount;
                 }));
             }
-        }
-
-        private static string ComputeSha256Hash(string name)
-        {
-            using var sha256 = SHA256.Create();
-            return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(name)));
         }
     }
 }

@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     internal static class ICocoaDifferenceViewerExtensions
     {
-        private class SizeToFitHelper : ForegroundThreadAffinitizedObject
+        private class SizeToFitHelper
         {
+            private readonly IThreadingContext _threadingContext;
             private readonly ICocoaDifferenceViewer _diffViewer;
 
             private readonly double _minWidth;
@@ -28,15 +29,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             private double _height;
 
             public SizeToFitHelper(IThreadingContext threadingContext, ICocoaDifferenceViewer diffViewer, double minWidth)
-                : base(threadingContext)
             {
+                _threadingContext = threadingContext;
                 _diffViewer = diffViewer;
                 _minWidth = minWidth;
             }
 
             public async Task SizeToFitAsync(CancellationToken cancellationToken)
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 await CalculateSizeAsync(cancellationToken).ConfigureAwait(true);
 
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             private async Task CalculateSizeAsync(CancellationToken cancellationToken)
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 ICocoaTextView textView;
                 ITextSnapshot snapshot;

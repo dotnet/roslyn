@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
         public bool HasMetadataCompilationOptions => TryGetMetadataCompilationOptions(out _);
 
         private MetadataCompilationOptions? _metadataCompilationOptions;
-        private byte[]? _sourceLinkUTF8;
+        private byte[]? _sourceLinkUtf8;
 
         public CompilationOptionsReader(ILogger logger, MetadataReader pdbReader, PEReader peReader)
         {
@@ -122,13 +122,13 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return encoding;
         }
 
-        public byte[]? GetSourceLinkUTF8()
+        public byte[]? GetSourceLinkUtf8()
         {
-            if (_sourceLinkUTF8 is null && TryGetCustomDebugInformationBlobReader(SourceLinkGuid, out var optionsBlob))
+            if (_sourceLinkUtf8 is null && TryGetCustomDebugInformationBlobReader(SourceLinkGuid, out var optionsBlob))
             {
-                _sourceLinkUTF8 = optionsBlob.ReadBytes(optionsBlob.Length);
+                _sourceLinkUtf8 = optionsBlob.ReadBytes(optionsBlob.Length);
             }
-            return _sourceLinkUTF8;
+            return _sourceLinkUtf8;
         }
 
         public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return false;
         }
 
-        public bool HasEmbeddedPdb => PeReader.ReadDebugDirectory().Any(entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+        public bool HasEmbeddedPdb => PeReader.ReadDebugDirectory().Any(static entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
 
         private static ImmutableArray<(string, string)> ParseCompilationOptions(BlobReader blobReader)
         {

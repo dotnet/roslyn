@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAnonymousTypeMemberName
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
     public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AddAnonymousTypeMemberNameTests(ITestOutputHelper logger)
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAnonymousTypeMemberN
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddAnonymousTypeMemberNameCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
+        [Fact]
         public async Task Test1()
         {
             await TestInRegularAndScript1Async(
@@ -47,7 +48,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
+        [Fact]
         public async Task TestExistingName()
         {
             await TestInRegularAndScript1Async(
@@ -69,7 +70,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
@@ -86,12 +87,12 @@ class C
 {
     void M()
     {
-        var v = new { P = new { Type = this.GetType(), V = this.ToString() } };
+        var v = new { Value = new { Type = this.GetType(), V = this.ToString() } };
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScript1Async(
@@ -108,12 +109,12 @@ class C
 {
     void M()
     {
-        var v = new { P = new { Type = this.GetType(), V = this.ToString() } };
+        var v = new { Value = new { Type = this.GetType(), V = this.ToString() } };
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await TestInRegularAndScript1Async(
@@ -130,7 +131,7 @@ class C
 {
     void M()
     {
-        var v = new { P = new { Type = this.GetType(), Type1 = this.GetType() } };
+        var v = new { Value = new { Type = this.GetType(), Type1 = this.GetType() } };
     }
 }");
         }

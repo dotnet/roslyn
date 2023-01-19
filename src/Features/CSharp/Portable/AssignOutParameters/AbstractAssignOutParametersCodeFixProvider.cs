@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0177);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var unassignedParameters = await GetUnassignedParametersAsync(
                 document, diagnostics, cancellationToken).ConfigureAwait(false);
@@ -166,14 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             }
 
             return result.ToImmutableAndFree();
-        }
-
-        protected class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

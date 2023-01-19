@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
-  <Import Project="VisualStudio.targets"/>
+  <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <!--
@@ -56,7 +56,7 @@
           Otherwise, default to 'true'.
   -->
   <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' == ''">
-    <RunAnalyzersDuringBuild Condition="'$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND !('$(RoslynEnforceCodeStyle)' == 'true' OR '$(RunCodeAnalysis)' == 'true')">false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringBuild Condition="'$(RoslynEnforceCodeStyle)' != 'true' AND '$(RunCodeAnalysis)' != 'true'">false</RunAnalyzersDuringBuild>
     <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">true</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
@@ -64,25 +64,6 @@
     <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
   
-  <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
-    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
-  </ItemGroup>
-
-  <!--
-    If the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFramework.ReferenceAssemblies nuget package.
-    Use the latest Framework toolset to build, but set msbuild properties below
-    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
-  -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <NoStdLib>true</NoStdLib>
-    <ResGenExecuteAsTool>false</ResGenExecuteAsTool>
-    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
-
-    <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
-    <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
-  </PropertyGroup>
-
   <!-- 
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
   -->
@@ -109,6 +90,11 @@
     <!-- Include NonShipping.globalconfig for non-shipping projects -->
     <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
   </ItemGroup>
+
+  <!-- Check that all shipping assemblies are packaged -->
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(IsShippingAssembly)' == 'true' and '$(IsPackable)' != 'true'">
+    <Error Text="Project output assembly is shipping (IsShipping == $(IsShipping), IsShippingAssembly == '$(IsShippingAssembly)', IsShippingPackage == '$(IsShippingPackage)') but is not packaged (IsPackable == '$(IsPackable)')" />
+  </Target>
 
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
@@ -194,8 +180,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Include BannedSymbols covering all projects -->
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
+    <!-- Include BannedSymbols covering all product projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" Condition="'$(IsTestProject)' == 'false'" />
   </ItemGroup>
 
   <ItemGroup>
@@ -368,4 +354,15 @@
       <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
     </ItemGroup>
   </Target>
+
+  <!-- Workaround for https://github.com/dotnet/msbuild/issues/7161 -->
+  <Target Name="WorkaroundDotnetMsbuild7161"
+          AfterTargets="_CopyFilesMarkedCopyLocal"
+          Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '@(ReferenceCopyLocalPaths)' != ''">
+    <Touch Files="@(CopyUpToDateMarker)"
+           AlwaysCreate="true"
+           Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
+  </Target>
+
+  <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
 </Project>

@@ -19,15 +19,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicBlockStructureService(languageServices.WorkspaceServices.Workspace)
+            Return New VisualBasicBlockStructureService(languageServices.LanguageServices.SolutionServices)
         End Function
     End Class
 
     Friend Class VisualBasicBlockStructureService
         Inherits BlockStructureServiceWithProviders
 
-        Friend Sub New(workspace As Workspace)
-            MyBase.New(workspace)
+        Friend Sub New(services As SolutionServices)
+            MyBase.New(services)
         End Sub
 
         Public Overrides ReadOnly Property Language As String

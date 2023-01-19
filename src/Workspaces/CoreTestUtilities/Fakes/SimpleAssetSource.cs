@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         }
 
         public ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
-            int serviceId, ISet<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
+            Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
         {
             var results = new List<(Checksum, object)>();
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 if (_map.TryGetValue(checksum, out var data))
                 {
                     using var stream = new MemoryStream();
-                    using var context = SolutionReplicationContext.Create();
+                    using var context = new SolutionReplicationContext();
 
                     using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
                     {

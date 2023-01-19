@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 {
@@ -34,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
                 EnforceOnBuildValues.UsePatternCombinators,
                 CSharpCodeStyleOptions.PreferPatternMatching,
-                LanguageNames.CSharp,
                 s_safePatternTitle,
                 s_safePatternTitle)
         {
@@ -61,16 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return;
 
             var syntaxTree = expression.SyntaxTree;
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp9)
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
                 return;
 
             var cancellationToken = context.CancellationToken;
-            var styleOption = context.Options.GetOption(CSharpCodeStyleOptions.PreferPatternMatching, syntaxTree, cancellationToken);
+            var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatching;
             if (!styleOption.Value)
                 return;
 
             var semanticModel = context.SemanticModel;
-            var expressionType = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+            var expressionType = semanticModel.Compilation.ExpressionOfTType();
             if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
                 return;
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             // if the target (the common expression in the pattern) is a method call,
             // then we can't guarantee that the rewritting won't have side-effects,
             // so we should warn the user
-            var isSafe = UnwrapImplicitConversion(pattern.Target) is not Operations.IInvocationOperation;
+            var isSafe = pattern.Target.UnwrapImplicitConversion() is not Operations.IInvocationOperation;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 descriptor: isSafe ? this.Descriptor : s_unsafeDescriptor,
@@ -103,11 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 additionalLocations: null,
                 properties: isSafe ? s_safeProperties : null));
         }
-
-        private static IOperation UnwrapImplicitConversion(IOperation operation)
-            => operation is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : operation;
 
         private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true, bool isTopLevel = false)
         {

@@ -5,7 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public OperationStatus Status { get; }
         public TextSpan OriginalSpan { get; }
         public TextSpan FinalSpan { get; }
-        public OptionSet Options { get; }
+        public ExtractMethodOptions Options { get; }
         public bool SelectionInExpression { get; }
         public SemanticDocument SemanticDocument { get; private set; }
         public SyntaxAnnotation FirstTokenAnnotation { get; }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 //
                 // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
                 // which extract method is applied to
-                if (SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>().IsAwaitKeyword(currentToken)
+                if (SemanticDocument.Project.Services.GetService<ISyntaxFactsService>().IsAwaitKeyword(currentToken)
                     && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
                 {
                     return true;
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         private bool IsConfigureAwaitFalse(SyntaxNode node)
         {
-            var syntaxFacts = SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
             if (!syntaxFacts.IsInvocationExpression(node))
             {
                 return false;
@@ -192,14 +192,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var argument = arguments[0];
             var expression = syntaxFacts.GetExpressionOfArgument(argument);
             return syntaxFacts.IsFalseLiteralExpression(expression);
-        }
-
-        public bool DontPutOutOrRefOnStruct
-        {
-            get
-            {
-                return Options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, SemanticDocument.Project.Language);
-            }
         }
     }
 }

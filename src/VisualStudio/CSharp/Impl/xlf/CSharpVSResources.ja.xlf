@@ -7,9 +7,19 @@
         <target state="translated">貼り付け時に欠落している using ディレクティブを追加する</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">コンストラクター初期化子のコロンの後に空白行を許可する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">矢印式句でトークンの後に空白行を許可します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">条件式でトークンの後に空白行を許可します</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -57,6 +67,11 @@
         <target state="translated">C# 書式ルール</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="translated">ファイルを開くときに usings を折りたたむ</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
         <target state="translated">入力候補</target>
@@ -97,6 +112,16 @@
         <target state="translated">// コメントの記述時に // を新しい行の先頭に挿入する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">呼び出されたメソッド名と始めかっこの間にスペースを挿入します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">メソッド名と始めかっこの間にスペースを挿入する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">namespace 内</target>
@@ -124,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Prefer_extended_property_pattern">
         <source>Prefer extended property pattern</source>
-        <target state="new">Prefer extended property pattern</target>
+        <target state="translated">拡張プロパティ パターンを優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
@@ -175,6 +200,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
         <target state="translated">インポートされていない名前空間の項目を表示する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">新しいスニペット エクスペリエンスの表示 (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -392,19 +422,9 @@
         <target state="translated">空の引数リストのかっこ内にスペースを挿入する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">メソッド名と始めかっこの間にスペースを挿入する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">空のパラメーター リストのかっこ内にスペースを挿入する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">メソッド名と始めかっこの間にスペースを挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

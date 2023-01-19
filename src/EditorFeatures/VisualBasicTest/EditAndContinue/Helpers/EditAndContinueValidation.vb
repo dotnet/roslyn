@@ -14,66 +14,85 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
     Friend Module EditAndContinueValidation
         <Extension>
-        Friend Sub VerifyRudeDiagnostics(editScript As EditScript(Of SyntaxNode),
-                                         ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VerifyRudeDiagnostics(editScript, ActiveStatementsDescription.Empty, expectedDiagnostics)
-        End Sub
+        Friend Sub VerifyLineEdits(
+            editScript As EditScript(Of SyntaxNode),
+            lineEdits As SourceLineUpdate(),
+            Optional semanticEdits As SemanticEditDescription() = Nothing,
+            Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
+            Optional capabilities As EditAndContinueCapabilities? = Nothing)
 
-        <Extension>
-        Friend Sub VerifyRudeDiagnostics(editScript As EditScript(Of SyntaxNode),
-                                         description As ActiveStatementsDescription,
-                                         ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VerifySemantics(editScript, description, diagnostics:=expectedDiagnostics)
-        End Sub
-
-        <Extension>
-        Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
-                                   lineEdits As SourceLineUpdate(),
-                                   Optional semanticEdits As SemanticEditDescription() = Nothing,
-                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing)
             Assert.NotEmpty(lineEdits)
 
             VerifyLineEdits(
                 editScript,
                 {New SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, lineEdits.ToImmutableArray())},
                 semanticEdits,
-                diagnostics)
+                diagnostics,
+                capabilities)
         End Sub
 
         <Extension>
-        Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
-                                   lineEdits As SequencePointUpdates(),
-                                   Optional semanticEdits As SemanticEditDescription() = Nothing,
-                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing)
+        Friend Sub VerifyLineEdits(
+            editScript As EditScript(Of SyntaxNode),
+            lineEdits As SequencePointUpdates(),
+            Optional semanticEdits As SemanticEditDescription() = Nothing,
+            Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
+            Optional capabilities As EditAndContinueCapabilities? = Nothing)
+
             Dim validator = New VisualBasicEditAndContinueTestHelpers()
-            validator.VerifyLineEdits(editScript, lineEdits, semanticEdits, diagnostics)
+            validator.VerifyLineEdits(editScript, lineEdits, semanticEdits, diagnostics, capabilities)
         End Sub
 
         <Extension>
-        Friend Sub VerifySemanticDiagnostics(editScript As EditScript(Of SyntaxNode),
-                                             ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
+        Friend Sub VerifySemanticDiagnostics(
+            editScript As EditScript(Of SyntaxNode),
+            ParamArray diagnostics As RudeEditDiagnosticDescription())
+
+            VerifySemanticDiagnostics(editScript, activeStatements:=Nothing, targetFrameworks:=Nothing, capabilities:=Nothing, diagnostics)
+        End Sub
+
+        <Extension>
+        Friend Sub VerifySemanticDiagnostics(
+            editScript As EditScript(Of SyntaxNode),
+            activeStatements As ActiveStatementsDescription,
+            ParamArray diagnostics As RudeEditDiagnosticDescription())
+
+            VerifySemanticDiagnostics(editScript, activeStatements, targetFrameworks:=Nothing, capabilities:=Nothing, diagnostics)
+        End Sub
+
+        <Extension>
+        Friend Sub VerifySemanticDiagnostics(
+            editScript As EditScript(Of SyntaxNode),
+            diagnostics As RudeEditDiagnosticDescription(),
+            capabilities As EditAndContinueCapabilities?)
+
+            VerifySemanticDiagnostics(editScript, activeStatements:=Nothing, targetFrameworks:=Nothing, capabilities, diagnostics)
+        End Sub
+
+        <Extension>
+        Friend Sub VerifySemanticDiagnostics(
+            editScript As EditScript(Of SyntaxNode),
+            Optional activeStatements As ActiveStatementsDescription = Nothing,
+            Optional targetFrameworks As TargetFramework() = Nothing,
+            Optional capabilities As EditAndContinueCapabilities? = Nothing,
+            Optional diagnostics As RudeEditDiagnosticDescription() = Nothing)
+
             VerifySemantics(
                 {editScript},
-                {New DocumentAnalysisResultsDescription(diagnostics:=expectedDiagnostics)})
+                {New DocumentAnalysisResultsDescription(activeStatements:=activeStatements, diagnostics:=If(diagnostics, Array.Empty(Of RudeEditDiagnosticDescription)))},
+                targetFrameworks,
+                capabilities)
         End Sub
 
         <Extension>
-        Friend Sub VerifySemanticDiagnostics(editScript As EditScript(Of SyntaxNode),
-                                             targetFrameworks As TargetFramework(),
-                                             ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VerifySemantics(
-                {editScript},
-                {New DocumentAnalysisResultsDescription(diagnostics:=expectedDiagnostics)},
-                targetFrameworks:=targetFrameworks)
-        End Sub
+        Friend Sub VerifySemantics(
+            editScript As EditScript(Of SyntaxNode),
+            Optional activeStatements As ActiveStatementsDescription = Nothing,
+            Optional semanticEdits As SemanticEditDescription() = Nothing,
+            Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
+            Optional targetFrameworks As TargetFramework() = Nothing,
+            Optional capabilities As EditAndContinueCapabilities? = Nothing)
 
-        <Extension>
-        Friend Sub VerifySemantics(editScript As EditScript(Of SyntaxNode),
-                                   Optional activeStatements As ActiveStatementsDescription = Nothing,
-                                   Optional semanticEdits As SemanticEditDescription() = Nothing,
-                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
-                                   Optional targetFrameworks As TargetFramework() = Nothing,
-                                   Optional capabilities As EditAndContinueCapabilities? = Nothing)
             VerifySemantics(
                 {editScript},
                 {New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, lineEdits:=Nothing, diagnostics)},
@@ -82,10 +101,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 
         <Extension>
-        Friend Sub VerifySemantics(editScripts As EditScript(Of SyntaxNode)(),
-                                   expected As DocumentAnalysisResultsDescription(),
-                                   Optional targetFrameworks As TargetFramework() = Nothing,
-                                   Optional capabilities As EditAndContinueCapabilities? = Nothing)
+        Friend Sub VerifySemantics(
+            editScripts As EditScript(Of SyntaxNode)(),
+            expected As DocumentAnalysisResultsDescription(),
+            Optional targetFrameworks As TargetFramework() = Nothing,
+            Optional capabilities As EditAndContinueCapabilities? = Nothing)
+
             For Each framework In If(targetFrameworks, {TargetFramework.NetStandard20, TargetFramework.NetCoreApp})
                 Dim validator = New VisualBasicEditAndContinueTestHelpers()
                 validator.VerifySemantics(editScripts, framework, expected, capabilities)

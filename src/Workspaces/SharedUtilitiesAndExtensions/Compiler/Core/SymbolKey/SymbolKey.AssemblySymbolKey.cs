@@ -8,16 +8,19 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class AssemblySymbolKey
+        private sealed class AssemblySymbolKey : AbstractSymbolKey<IAssemblySymbol>
         {
-            public static void Create(IAssemblySymbol symbol, SymbolKeyWriter visitor)
+            public static readonly AssemblySymbolKey Instance = new();
+
+            public sealed override void Create(IAssemblySymbol symbol, SymbolKeyWriter visitor)
             {
                 // If the format of this ever changed, then it's necessary to fixup the
                 // SymbolKeyComparer.RemoveAssemblyKeys function.
                 visitor.WriteString(symbol.Identity.Name);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IAssemblySymbol? contextualSymbol, out string? failureReason)
             {
                 var assemblyName = reader.ReadString();
                 var compilation = reader.Compilation;

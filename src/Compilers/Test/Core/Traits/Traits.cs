@@ -74,14 +74,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertLocalFunctionToMethod = "CodeActions.ConvertLocalFunctionToMethod";
             public const string CodeActionsConvertNumericLiteral = "CodeActions.ConvertNumericLiteral";
             public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
+            public const string CodeActionsConvertRegularToRawString = "CodeActions.CodeActionsConvertRegularToRawString";
             public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
+            public const string CodeActionsConvertToRecord = "CodeActions.ConvertToRecord";
             public const string CodeActionsConvertTupleToStruct = "CodeActions.ConvertTupleToStruct";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
             public const string CodeActionsDeclareAsNullable = "CodeActions.DeclareAsNullable";
+            public const string CodeActionsDetectJsonString = "CodeActions.DetectJsonString";
             public const string CodeActionsExtractInterface = "CodeActions.ExtractInterface";
             public const string CodeActionsExtractLocalFunction = "CodeActions.ExtractLocalFunction";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
@@ -118,7 +121,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
             public const string CodeActionsInvertLogical = "CodeActions.InvertLogical";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
-            public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
+            public const string CodeActionsRemoveUnnecessaryLambdaExpression = "CodeActions.RemoveUnnecessaryLambdaExpression";
+            public const string CodeActionsMakeTypePartial = "CodeActions.MakeTypePartial";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
@@ -126,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMakeRefStruct = "CodeActions.MakeRefStruct";
             public const string CodeActionsMakeStatementAsynchronous = "CodeActions.MakeStatementAsynchronous";
             public const string CodeActionsMakeStructFieldsWritable = "CodeActions.MakeStructFieldsWritable";
+            public const string CodeActionsMakeStructReadOnly = "CodeActions.MakeStructReadOnly";
             public const string CodeActionsMakeTypeAbstract = "CodeActions.MakeTypeAbstract";
             public const string CodeActionsMergeConsecutiveIfStatements = "CodeActions.MergeConsecutiveIfStatements";
             public const string CodeActionsMergeNestedIfStatements = "CodeActions.MergeNestedIfStatements";
@@ -147,6 +152,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryDiscardDesignation = "CodeActions.RemoveUnnecessaryDiscardDesignation";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
+            public const string CodeActionsRemoveUnnecessaryNullableDirective = "CodeActions.RemoveUnnecessaryNullableDirective";
             public const string CodeActionsRemoveUnnecessaryParentheses = "CodeActions.RemoveUnnecessaryParentheses";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";
             public const string CodeActionsRemoveUnusedLocalFunction = "CodeActions.RemoveUnusedLocalFunction";
@@ -198,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseNotPattern = "CodeActions.UseNotPattern";
             public const string CodeActionsUsePatternCombinators = "CodeActions.UsePatternCombinators";
+            public const string CodeActionsUsePatternMatchingForAsAndMemberAccess = "CodeActions.UsePatternMatchingForAsAndMemberAccess";
             public const string CodeActionsUseRecursivePatterns = "CodeActions.UseRecursivePatterns";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
@@ -205,6 +212,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
             public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
+            public const string CodeActionsUseUtf8StringLiteral = "CodeActions.CodeActionsUseUtf8StringLiteral";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);
             public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
@@ -232,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string DisposeAnalysis = nameof(DisposeAnalysis);
             public const string DocCommentFormatting = nameof(DocCommentFormatting);
             public const string DocumentationComments = nameof(DocumentationComments);
+            public const string DocumentOutline = nameof(DocumentOutline);
             public const string EditorConfig = nameof(EditorConfig);
             public const string EditorConfigUI = nameof(EditorConfigUI);
             public const string EncapsulateField = nameof(EncapsulateField);
@@ -287,6 +296,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string RemoveUnnecessaryLineContinuation = nameof(RemoveUnnecessaryLineContinuation);
             public const string Rename = nameof(Rename);
             public const string RenameTracking = nameof(RenameTracking);
+            public const string RoslynLSPSnippetConverter = nameof(RoslynLSPSnippetConverter);
             public const string SignatureHelp = nameof(SignatureHelp);
             public const string Simplification = nameof(Simplification);
             public const string SmartIndent = nameof(SmartIndent);
@@ -295,16 +305,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SourceGenerators = nameof(SourceGenerators);
             public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
+            public const string StringIndentation = nameof(StringIndentation);
             public const string SuggestionTags = nameof(SuggestionTags);
             public const string SyncNamespaces = nameof(SyncNamespaces);
+            public const string Tagging = nameof(Tagging);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
-            public const string TodoComments = nameof(TodoComments);
+            public const string TaskList = nameof(TaskList);
             public const string ToggleBlockComment = nameof(ToggleBlockComment);
             public const string ToggleLineComment = nameof(ToggleLineComment);
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string UnusedReferences = nameof(UnusedReferences);
             public const string ValidateFormatString = nameof(ValidateFormatString);
+            public const string ValidateJsonString = nameof(ValidateJsonString);
             public const string ValidateRegexString = nameof(ValidateRegexString);
             public const string Venus = nameof(Venus);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);

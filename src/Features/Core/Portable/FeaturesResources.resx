@@ -252,9 +252,6 @@
   <data name="Generate_nested_0_1" xml:space="preserve">
     <value>Generate nested {0} '{1}'</value>
   </data>
-  <data name="Global_Namespace" xml:space="preserve">
-    <value>Global Namespace</value>
-  </data>
   <data name="Implement_all_members_explicitly" xml:space="preserve">
     <value>Implement all members explicitly</value>
   </data>
@@ -558,10 +555,6 @@
     <value>Modifying {0} which contains the stackalloc operator requires restarting the application.</value>
     <comment>{Locked="stackalloc"} "stackalloc" is C# keyword and should not be localized.</comment>
   </data>
-  <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application" xml:space="preserve">
-    <value>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</value>
-    <comment>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</comment>
-  </data>
   <data name="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_requires_restarting_the_application" xml:space="preserve">
     <value>Modifying {0} which contains an Aggregate, Group By, or Join query clauses requires restarting the application.</value>
     <comment>{Locked="Aggregate"}{Locked="Group By"}{Locked="Join"} are VB keywords and should not be localized.</comment>
@@ -584,9 +577,6 @@
   <data name="Unexpected_interface_member_kind_colon_0" xml:space="preserve">
     <value>Unexpected interface member kind: {0}</value>
   </data>
-  <data name="Unknown_symbol_kind" xml:space="preserve">
-    <value>Unknown symbol kind</value>
-  </data>
   <data name="Generate_abstract_property_0" xml:space="preserve">
     <value>Generate abstract property '{0}'</value>
   </data>
@@ -595,9 +585,6 @@
   </data>
   <data name="Generate_method_0" xml:space="preserve">
     <value>Generate method '{0}'</value>
-  </data>
-  <data name="Requested_assembly_already_loaded_from_0" xml:space="preserve">
-    <value>Requested assembly already loaded from '{0}'.</value>
   </data>
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>
@@ -637,12 +624,6 @@ Do you want to continue?</value>
   <data name="Analyzer_0_threw_the_following_exception_colon_1" xml:space="preserve">
     <value>Analyzer '{0}' threw the following exception:
 '{1}'.</value>
-  </data>
-  <data name="Simplify_Names" xml:space="preserve">
-    <value>Simplify Names</value>
-  </data>
-  <data name="Simplify_Member_Access" xml:space="preserve">
-    <value>Simplify Member Access</value>
   </data>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
@@ -710,18 +691,6 @@ Do you want to continue?</value>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
   </data>
-  <data name="Re_triage_0_currently_1" xml:space="preserve">
-    <value>Re-triage {0}(currently '{1}')</value>
-  </data>
-  <data name="Argument_cannot_have_a_null_element" xml:space="preserve">
-    <value>Argument cannot have a null element.</value>
-  </data>
-  <data name="Argument_cannot_be_empty" xml:space="preserve">
-    <value>Argument cannot be empty.</value>
-  </data>
-  <data name="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer" xml:space="preserve">
-    <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
-  </data>
   <data name="Computing_fix_all_occurrences_code_fix" xml:space="preserve">
     <value>Computing fix all occurrences code fix...</value>
   </data>
@@ -736,6 +705,12 @@ Do you want to continue?</value>
   </data>
   <data name="Solution" xml:space="preserve">
     <value>Solution</value>
+  </data>
+  <data name="Containing_Member" xml:space="preserve">
+    <value>Containing Member</value>
+  </data>
+  <data name="Containing_Type" xml:space="preserve">
+    <value>Containing Type</value>
   </data>
   <data name="TODO_colon_dispose_managed_state_managed_objects" xml:space="preserve">
     <value>TODO: dispose managed state (managed objects)</value>
@@ -908,9 +883,6 @@ This version used in: {2}</value>
   <data name="Interfaces" xml:space="preserve">
     <value>Interfaces</value>
   </data>
-  <data name="Locals" xml:space="preserve">
-    <value>Locals</value>
-  </data>
   <data name="Methods" xml:space="preserve">
     <value>Methods</value>
   </data>
@@ -987,9 +959,6 @@ This version used in: {2}</value>
   <data name="project_0" xml:space="preserve">
     <value>project {0}</value>
   </data>
-  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
-    <value>Use interpolated verbatim string</value>
-  </data>
   <data name="Fix_typo_0" xml:space="preserve">
     <value>Fix typo '{0}'</value>
   </data>
@@ -1004,18 +973,6 @@ This version used in: {2}</value>
   </data>
   <data name="Snippets" xml:space="preserve">
     <value>Snippets</value>
-  </data>
-  <data name="All_lowercase" xml:space="preserve">
-    <value>All lowercase</value>
-  </data>
-  <data name="All_uppercase" xml:space="preserve">
-    <value>All uppercase</value>
-  </data>
-  <data name="First_word_capitalized" xml:space="preserve">
-    <value>First word capitalized</value>
-  </data>
-  <data name="Pascal_Case" xml:space="preserve">
-    <value>Pascal Case</value>
   </data>
   <data name="Remove_document_0" xml:space="preserve">
     <value>Remove document '{0}'</value>
@@ -1131,9 +1088,6 @@ This version used in: {2}</value>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
   </data>
-  <data name="Add_accessibility_modifiers" xml:space="preserve">
-    <value>Add accessibility modifiers</value>
-  </data>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
   </data>
@@ -1158,17 +1112,11 @@ This version used in: {2}</value>
   <data name="indexer_" xml:space="preserve">
     <value>indexer</value>
   </data>
-  <data name="Alias_ambiguous_type_0" xml:space="preserve">
-    <value>Alias ambiguous type '{0}'</value>
-  </data>
   <data name="Warning_colon_Collection_was_modified_during_iteration" xml:space="preserve">
     <value>Warning: Collection was modified during iteration.</value>
   </data>
   <data name="Warning_colon_Iteration_variable_crossed_function_boundary" xml:space="preserve">
     <value>Warning: Iteration variable crossed function boundary.</value>
-  </data>
-  <data name="Warning_colon_Collection_may_be_modified_during_iteration" xml:space="preserve">
-    <value>Warning: Collection may be modified during iteration.</value>
   </data>
   <data name="Convert_to_linq" xml:space="preserve">
     <value>Convert to LINQ</value>
@@ -1196,12 +1144,6 @@ This version used in: {2}</value>
   </data>
   <data name="Add_member_name" xml:space="preserve">
     <value>Add member name</value>
-  </data>
-  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use block body for lambda expressions</value>
-  </data>
-  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use expression body for lambda expressions</value>
   </data>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
@@ -1310,9 +1252,6 @@ This version used in: {2}</value>
   <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
     <value>Failed to analyze data-flow for: {0}</value>
   </data>
-  <data name="Fix_formatting" xml:space="preserve">
-    <value>Fix formatting</value>
-  </data>
   <data name="Split_into_nested_0_statements" xml:space="preserve">
     <value>Split into nested '{0}' statements</value>
   </data>
@@ -1391,9 +1330,6 @@ This version used in: {2}</value>
   <data name="RudeEdit" xml:space="preserve">
     <value>Rude edit</value>
   </data>
-  <data name="EditAndContinueDisallowedByModule" xml:space="preserve">
-    <value>Edit and Continue disallowed by module</value>
-  </data>
   <data name="CannotApplyChangesUnexpectedError" xml:space="preserve">
     <value>Cannot apply changes -- unexpected error: '{0}'</value>
   </data>
@@ -1402,9 +1338,6 @@ This version used in: {2}</value>
   </data>
   <data name="EditAndContinueDisallowedByProject" xml:space="preserve">
     <value>Changes made in project '{0}' require restarting the application: {1}</value>
-  </data>
-  <data name="ChangesNotAppliedWhileRunning" xml:space="preserve">
-    <value>Changes made in project '{0}' will not be applied while the application is running</value>
   </data>
   <data name="DocumentIsOutOfSyncWithDebuggee" xml:space="preserve">
     <value>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</value>
@@ -1438,9 +1371,6 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_0_explicitly" xml:space="preserve">
     <value>Implement '{0}' explicitly</value>
-  </data>
-  <data name="Make_member_static" xml:space="preserve">
-    <value>Make static</value>
   </data>
   <data name="ChangeSignature_NewParameterIntroduceTODOVariable" xml:space="preserve">
     <value>TODO</value>
@@ -1952,9 +1882,6 @@ If the "H" format specifier is used without other custom format specifiers, it's
   <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
     <value>Create and assign remaining as properties</value>
   </data>
-  <data name="Add_explicit_cast" xml:space="preserve">
-    <value>Add explicit cast</value>
-  </data>
   <data name="Example" xml:space="preserve">
     <value>Example:</value>
     <comment>Singular form when we want to show an example, but only have one to show.</comment>
@@ -2309,9 +2236,6 @@ Two or more character ranges can be concatenated. For example, to specify the ra
     <value>A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</value>
-  </data>
-  <data name="Regex_negative_character_range_short" xml:space="preserve">
-    <value>negative character range</value>
   </data>
   <data name="Regex_negative_unicode_category_long" xml:space="preserve">
     <value>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</value>
@@ -2757,9 +2681,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="ChangeSignature_NewParameterInferValue" xml:space="preserve">
     <value>&lt;infer&gt;</value>
   </data>
-  <data name="Convert_type_to_0" xml:space="preserve">
-    <value>Convert type to '{0}'</value>
-  </data>
   <data name="from_metadata" xml:space="preserve">
     <value>from metadata</value>
   </data>
@@ -2778,9 +2699,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Property_reference_cannot_be_updated" xml:space="preserve">
     <value>Property reference cannot be updated</value>
   </data>
-  <data name="Make_class_abstract" xml:space="preserve">
-    <value>Make class 'abstract'</value>
-  </data>
   <data name="Inline_0" xml:space="preserve">
     <value>Inline '{0}'</value>
   </data>
@@ -2793,14 +2711,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Inline_and_keep_0" xml:space="preserve">
     <value>Inline and keep '{0}'</value>
   </data>
-  <data name="Pull_members_up_to_new_base_class" xml:space="preserve">
-    <value>Pull member(s) up to new base class...</value>
-  </data>
   <data name="Operators" xml:space="preserve">
     <value>Operators</value>
   </data>
   <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="The_assembly_0_references_compiler_version_1_newer_than_2" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
   </data>
   <data name="Apply_file_header_preferences" xml:space="preserve">
     <value>Apply file header preferences</value>
@@ -2816,9 +2734,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Sort_accessibility_modifiers" xml:space="preserve">
     <value>Sort accessibility modifiers</value>
-  </data>
-  <data name="Format_document" xml:space="preserve">
-    <value>Format document</value>
   </data>
   <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
     <value>Error creating instance of CodeFixProvider</value>
@@ -2854,9 +2769,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
   </data>
-  <data name="Introduce_parameter" xml:space="preserve">
-    <value>Introduce parameter</value>
-  </data>
   <data name="Introduce_parameter_for_0" xml:space="preserve">
     <value>Introduce parameter for '{0}'</value>
   </data>
@@ -2890,11 +2802,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</value>
   </data>
-  <data name="Making_a_method_an_iterator_requires_restarting_the_application" xml:space="preserve">
-    <value>Making a method an iterator requires restarting the application.</value>
+  <data name="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Making a method an iterator requires restarting the application because is not supported by the runtime.</value>
   </data>
-  <data name="Making_a_method_asynchronous_requires_restarting_the_application" xml:space="preserve">
-    <value>Making a method asynchronous requires restarting the application.</value>
+  <data name="Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Making a method asynchronous requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</value>
@@ -2936,16 +2848,359 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
     <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
   </data>
+  <data name="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application" xml:space="preserve">
+    <value>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</value>
+  </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>
   </data>
-  <data name="Explicitly_inherit_documentation" xml:space="preserve">
-    <value>Explicitly inherit documentation</value>
-  </data>
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>
+  </data>
+  <data name="console_writeline" xml:space="preserve">
+    <value>Console.WriteLine</value>
+  </data>
+  <data name="embedded" xml:space="preserve">
+    <value>embedded</value>
+    <comment>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</comment>
+  </data>
+  <data name="external" xml:space="preserve">
+    <value>external</value>
+    <comment>External means "external source", meaning source files that are not part of the current solution</comment>
+  </data>
+  <data name="Could_not_find_PDB_on_disk_or_embedded" xml:space="preserve">
+    <value>Could not find portable PDB on disk or embedded.</value>
+  </data>
+  <data name="Error_reading_PDB_0" xml:space="preserve">
+    <value>Error reading PDB: '{0}'</value>
+  </data>
+  <data name="Found_embedded_PDB_file" xml:space="preserve">
+    <value>Found embedded PDB file.</value>
+  </data>
+  <data name="Found_PDB_file_at_0" xml:space="preserve">
+    <value>Found PDB file at '{0}'</value>
+  </data>
+  <data name="Found_PDB_on_symbol_server" xml:space="preserve">
+    <value>Found PDB on symbol server.</value>
+  </data>
+  <data name="Found_PDB_on_symbol_server_but_could_not_read_file" xml:space="preserve">
+    <value>Found PDB on symbol server but could not read file.</value>
+  </data>
+  <data name="Navigating_to_symbol_0_from_1" xml:space="preserve">
+    <value>Navigating to symbol '{0}' from '{1}'.</value>
+  </data>
+  <data name="No_source_document_info_found_in_PDB" xml:space="preserve">
+    <value>No source document info found in PDB.</value>
+  </data>
+  <data name="Source_code_language_information_was_not_found_in_PDB" xml:space="preserve">
+    <value>Source code language information was not found in PDB.</value>
+  </data>
+  <data name="Source_is_a_reference_assembly" xml:space="preserve">
+    <value>Source is a reference assembly, not enough information to find PDB.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB" xml:space="preserve">
+    <value>'{0}' found in embedded PDB.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_but_checksum_failed" xml:space="preserve">
+    <value>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_but_could_not_write_file_1" xml:space="preserve">
+    <value>'{0}' found in embedded PDB but could not write to temp file: '{1}'</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_cached_source_file" xml:space="preserve">
+    <value>'{0}' found in embedded PDB and found cached source file.</value>
+  </data>
+  <data name="_0_found_via_SourceLink" xml:space="preserve">
+    <value>'{0}' found via SourceLink.</value>
+  </data>
+  <data name="_0_found_via_SourceLink_but_couldnt_read_file" xml:space="preserve">
+    <value>'{0}' found via SourceLink but couldn't read temp file.</value>
+  </data>
+  <data name="_0_found_in_original_location" xml:space="preserve">
+    <value>'{0}' found in original location.</value>
+  </data>
+  <data name="_0_found_in_original_location_but_checksum_failed" xml:space="preserve">
+    <value>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</value>
+  </data>
+  <data name="Could_not_find_PDB_on_disk_or_embedded_or_server" xml:space="preserve">
+    <value>Could not find PDB on disk, or embedded, or on a symbol server.</value>
+  </data>
+  <data name="Timeout_SourceLink" xml:space="preserve">
+    <value>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</value>
+  </data>
+  <data name="Timeout_symbol_server" xml:space="preserve">
+    <value>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</value>
+  </data>
+  <data name="Symbol_found_in_assembly_path_0" xml:space="preserve">
+    <value>Symbol found in assembly path '{0}'</value>
+  </data>
+  <data name="Invalid_number" xml:space="preserve">
+    <value>Invalid number</value>
+  </data>
+  <data name="Unterminated_comment" xml:space="preserve">
+    <value>Unterminated comment</value>
+  </data>
+  <data name="Unterminated_string" xml:space="preserve">
+    <value>Unterminated string</value>
+  </data>
+  <data name="_0_expected" xml:space="preserve">
+    <value>'{0}' expected</value>
+  </data>
+  <data name="_0_unexpected" xml:space="preserve">
+    <value>'{0}' unexpected</value>
+  </data>
+  <data name="Invalid_escape_sequence" xml:space="preserve">
+    <value>Invalid escape sequence</value>
+  </data>
+  <data name="Error_parsing_comment" xml:space="preserve">
+    <value>Error parsing comment</value>
+  </data>
+  <data name="Syntax_error" xml:space="preserve">
+    <value>Syntax error</value>
+  </data>
+  <data name="Invalid_property_name" xml:space="preserve">
+    <value>Invalid property name</value>
+  </data>
+  <data name="Missing_property_value" xml:space="preserve">
+    <value>Missing property value</value>
+  </data>
+  <data name="Nested_properties_not_allowed" xml:space="preserve">
+    <value>Nested properties not allowed</value>
+  </data>
+  <data name="Name_expected" xml:space="preserve">
+    <value>Name expected</value>
+  </data>
+  <data name="Invalid_constructor_name" xml:space="preserve">
+    <value>Invalid constructor name</value>
+  </data>
+  <data name="Comments_not_allowed" xml:space="preserve">
+    <value>Comments not allowed</value>
+  </data>
+  <data name="Constructors_not_allowed" xml:space="preserve">
+    <value>Constructors not allowed</value>
+  </data>
+  <data name="Illegal_string_character" xml:space="preserve">
+    <value>Illegal string character</value>
+  </data>
+  <data name="Illegal_whitespace_character" xml:space="preserve">
+    <value>Illegal whitespace character</value>
+  </data>
+  <data name="Only_properties_allowed_in_an_object" xml:space="preserve">
+    <value>Only properties allowed in an object</value>
+  </data>
+  <data name="Properties_not_allowed_in_an_array" xml:space="preserve">
+    <value>Properties not allowed in an array</value>
+  </data>
+  <data name="Property_name_must_be_a_string" xml:space="preserve">
+    <value>Property name must be a string</value>
+  </data>
+  <data name="Property_name_must_be_followed_by_a_colon" xml:space="preserve">
+    <value>Property name must be followed by a ':'</value>
+  </data>
+  <data name="Strings_must_start_with_double_quote_not_single_quote" xml:space="preserve">
+    <value>Strings must start with " not '</value>
+  </data>
+  <data name="Trailing_comma_not_allowed" xml:space="preserve">
+    <value>Trailing comma not allowed</value>
+  </data>
+  <data name="Value_required" xml:space="preserve">
+    <value>Value required</value>
+  </data>
+  <data name="_0_literal_not_allowed" xml:space="preserve">
+    <value>'{0}' literal not allowed</value>
+  </data>
+  <data name="JSON_issue_0" xml:space="preserve">
+    <value>JSON issue: {0}</value>
+  </data>
+  <data name="Probable_JSON_string_detected" xml:space="preserve">
+    <value>Probable JSON string detected</value>
+  </data>
+  <data name="Enable_all_JSON_editor_features" xml:space="preserve">
+    <value>Enable all JSON editor features</value>
+  </data>
+  <data name="Invalid_regex_pattern" xml:space="preserve">
+    <value>Invalid regex pattern</value>
+  </data>
+  <data name="Invalid_JSON_pattern" xml:space="preserve">
+    <value>Invalid JSON pattern</value>
+  </data>
+  <data name="Unwrap_initializer" xml:space="preserve">
+    <value>Unwrap initializer</value>
+  </data>
+  <data name="Wrap_initializer" xml:space="preserve">
+    <value>Wrap initializer</value>
+  </data>
+  <data name="Wrap_long_initializer" xml:space="preserve">
+    <value>Wrap long initializer</value>
+  </data>
+  <data name="Indent_all_elements" xml:space="preserve">
+    <value>Indent all elements</value>
+  </data>
+  <data name="Unwrap_all_elements" xml:space="preserve">
+    <value>Unwrap all elements</value>
+  </data>
+  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
+    <value>Cannot navigate to the symbol under the caret.</value>
+  </data>
+  <data name="_0_bases" xml:space="preserve">
+    <value>'{0}' bases</value>
+  </data>
+  <data name="_0_implementations" xml:space="preserve">
+    <value>'{0}' implementations</value>
+  </data>
+  <data name="_0_references" xml:space="preserve">
+    <value>'{0}' references</value>
+  </data>
+  <data name="The_symbol_has_no_base" xml:space="preserve">
+    <value>The symbol has no base.</value>
+  </data>
+  <data name="The_symbol_has_no_implementations" xml:space="preserve">
+    <value>The symbol has no implementations.</value>
+  </data>
+  <data name="Apply_auto_property_preferences" xml:space="preserve">
+    <value>Apply auto property preferences</value>
+  </data>
+  <data name="Apply_blank_line_preferences_experimental" xml:space="preserve">
+    <value>Apply blank line preferences (experimental)</value>
+  </data>
+  <data name="Apply_coalesce_expression_preferences" xml:space="preserve">
+    <value>Apply coalesce expression preferences</value>
+  </data>
+  <data name="Apply_compound_assignment_preferences" xml:space="preserve">
+    <value>Apply compound assignment preferences</value>
+  </data>
+  <data name="Apply_inferred_anonymous_type_member_names_preferences" xml:space="preserve">
+    <value>Apply inferred anonymous type member names preferences</value>
+  </data>
+  <data name="Apply_language_framework_type_preferences" xml:space="preserve">
+    <value>Apply language/framework type preferences</value>
+  </data>
+  <data name="Apply_namespace_matches_folder_preferences" xml:space="preserve">
+    <value>Apply namespace matches folder preferences</value>
+  </data>
+  <data name="Apply_null_checking_preferences" xml:space="preserve">
+    <value>Apply null checking preferences</value>
+  </data>
+  <data name="Apply_null_propagation_preferences" xml:space="preserve">
+    <value>Apply null propagation preferences</value>
+  </data>
+  <data name="Apply_object_initializer_preferences" xml:space="preserve">
+    <value>Apply object initializer preferences</value>
+  </data>
+  <data name="Apply_simplify_boolean_expression_preferences" xml:space="preserve">
+    <value>Apply simplify boolean expression preferences</value>
+  </data>
+  <data name="Apply_string_interpolation_preferences" xml:space="preserve">
+    <value>Apply string interpolation preferences</value>
+  </data>
+  <data name="Apply_tuple_name_preferences" xml:space="preserve">
+    <value>Apply tuple name preferences</value>
+  </data>
+  <data name="Remove_unused_suppressions" xml:space="preserve">
+    <value>Remove unused suppressions</value>
+  </data>
+  <data name="Apply_parentheses_preferences" xml:space="preserve">
+    <value>Apply parentheses preferences</value>
+  </data>
+  <data name="Apply_statement_after_block_preferences_experimental" xml:space="preserve">
+    <value>Apply statement after block preferences (experimental)</value>
+  </data>
+  <data name="Apply_unused_value_preferences" xml:space="preserve">
+    <value>Apply unused value preferences</value>
+  </data>
+  <data name="Remove_unused_parameters" xml:space="preserve">
+    <value>Remove unused parameters</value>
+  </data>
+  <data name="Apply_conditional_expression_preferences" xml:space="preserve">
+    <value>Apply conditional expression preferences</value>
+  </data>
+  <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
+    <value>Apply using directive placement preferences</value>
+  </data>
+  <data name="Remove_unnecessary_Imports_or_usings" xml:space="preserve">
+    <value>Remove unnecessary Imports or usings</value>
+  </data>
+  <data name="Sort_Imports_or_usings" xml:space="preserve">
+    <value>Sort Imports or usings</value>
+  </data>
+  <data name="if_statement" xml:space="preserve">
+    <value>if statement</value>
+  </data>
+  <data name="Directives_from_0" xml:space="preserve">
+    <value>Directives from '{0}'</value>
+  </data>
+  <data name="Decompiled" xml:space="preserve">
+    <value>decompiled</value>
+  </data>
+  <data name="Could_not_find_implementation_of_symbol_0" xml:space="preserve">
+    <value>Could not find implementation of symbol '{0}'</value>
+  </data>
+  <data name="Replace_conditional_expression_with_statements" xml:space="preserve">
+    <value>Replace conditional expression with statements</value>
+  </data>
+  <data name="Fixing_0" xml:space="preserve">
+    <value>Fixing '{0}'</value>
+  </data>
+  <data name="Pull_selected_members_up_to_0" xml:space="preserve">
+    <value>Pull selected members up to {0}</value>
+  </data>
+  <data name="Pull_selected_members_up" xml:space="preserve">
+    <value>Pull selected members up</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>required</value>
+    <comment>Used in the object initializer completion.</comment>
+  </data>
+  <data name="foreach_loop" xml:space="preserve">
+    <value>foreach loop</value>
+  </data>
+  <data name="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Deleting {0} requires restarting the application because is not supported by the runtime.</value>
+  </data>
+  <data name="Extract_base_record" xml:space="preserve">
+    <value>Extract base record...</value>
+    <comment>{Locked="record"} "record" is a language construct for C# and should not be localized.</comment>
+  </data>
+  <data name="Enum_members" xml:space="preserve">
+    <value>Enum members</value>
+  </data>
+  <data name="struct_" xml:space="preserve">
+    <value>struct</value>
+  </data>
+  <data name="Inline_temporary_variable" xml:space="preserve">
+    <value>Inline temporary variable</value>
+  </data>
+  <data name="while_loop" xml:space="preserve">
+    <value>while loop</value>
+  </data>
+  <data name="else_statement" xml:space="preserve">
+    <value>else statement</value>
+  </data>
+  <data name="Code_snippet_for_0" xml:space="preserve">
+    <value>Code snippet for '{0}'</value>
+  </data>
+  <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
+    <value>Please resolve errors in your code before renaming this element.</value>
+  </data>
+  <data name="Renaming_anonymous_type_members_is_not_yet_supported" xml:space="preserve">
+    <value>Renaming anonymous type members is not yet supported.</value>
+  </data>
+  <data name="You_cannot_rename_elements_from_previous_submissions" xml:space="preserve">
+    <value>You cannot rename elements from previous submissions.</value>
+  </data>
+  <data name="You_cannot_rename_elements_that_are_defined_in_metadata" xml:space="preserve">
+    <value>You cannot rename elements that are defined in metadata.</value>
+  </data>
+  <data name="You_cannot_rename_operators" xml:space="preserve">
+    <value>You cannot rename operators.</value>
+  </data>
+  <data name="You_cannot_rename_this_element" xml:space="preserve">
+    <value>You cannot rename this element.</value>
+  </data>
+  <data name="You_must_rename_an_identifier" xml:space="preserve">
+    <value>You must rename an identifier.</value>
   </data>
 </root>

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -13,15 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer
-        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryDiscardDesignationDiagnosticId,
                    EnforceOnBuildValues.RemoveUnnecessaryDiscardDesignation,
                    option: null,
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnessary_discard), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Discard_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   isUnnecessary: true)
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Discard_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -32,10 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
         {
             context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp9)
-                {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp9)
                     return;
-                }
 
                 context.RegisterSyntaxNodeAction(AnalyzeDiscardDesignation, SyntaxKind.DiscardDesignation);
             });

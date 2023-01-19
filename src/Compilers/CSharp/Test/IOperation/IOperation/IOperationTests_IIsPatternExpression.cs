@@ -1330,10 +1330,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[1]").WithLocation(6, 37),
                 // (6,40): error CS1003: Syntax error, ',' expected
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(6, 40),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(6, 40),
                 // (6,42): error CS1003: Syntax error, ',' expected
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "var").WithArguments(",", "").WithLocation(6, 42));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "var").WithArguments(",").WithLocation(6, 42));
 
             var expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is C1 { P ... 1]: var x }')
@@ -2319,6 +2319,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
 ";
             var expectedDiagnostics = new[]
             {
+                // (8,31): error CS8985: List patterns may not be used for a value of type 'X'. No suitable 'Length' or 'Count' property was found.
+                //         _ = /*<bind>*/this is []/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("X").WithLocation(8, 31),
                 // (8,31): error CS0518: Predefined type 'System.Index' is not defined or imported
                 //         _ = /*<bind>*/this is []/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(8, 31)

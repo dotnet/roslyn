@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable, allowScoped: true));
 
                     // also gather expression-declared variables from the bracketed argument lists and the initializers
                     ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
@@ -93,13 +93,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isExpression = !isUsingDeclaration && syntax.Kind() != SyntaxKind.VariableDeclaration;
             bool hasAwait = awaitKeyword != default;
 
+            if (isUsingDeclaration)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUsingDeclarations, diagnostics, usingKeyword.GetLocation());
+            }
+            else if (hasAwait)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureAsyncUsing, diagnostics, awaitKeyword.GetLocation());
+            }
+
             Debug.Assert(isUsingDeclaration || usingBinderOpt != null);
 
-            TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
-
-            Debug.Assert((object)disposableInterface != null);
-            bool hasErrors = ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
-
+            bool hasErrors = false;
             ImmutableArray<BoundLocalDeclaration> declarationsOpt = default;
             BoundMultipleLocalDeclarations? multipleDeclarationsOpt = null;
             BoundExpression? expressionOpt = null;
@@ -111,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 expressionOpt = usingBinderOpt!.BindTargetExpression(diagnostics, originalBinder);
                 hasErrors |= !bindDisposable(fromExpression: true, out patternDisposeInfo, out awaitableTypeOpt);
+                Debug.Assert(expressionOpt is not null);
+                if (expressionOpt.Type is not null)
+                {
+                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax, forUsingExpression: true);
+                }
             }
             else
             {
@@ -145,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     hasErrors |= ReportUseSite(awaitableTypeOpt, diagnostics, awaitKeyword);
-                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, valEscape: originalBinder.LocalScopeDepth, awaitableTypeOpt).MakeCompilerGenerated();
+                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
                     awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, diagnostics, ref hasErrors);
                 }
             }
@@ -173,6 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool bindDisposable(bool fromExpression, out MethodArgumentInfo? patternDisposeInfo, out TypeSymbol? awaitableType)
             {
+                TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
+                Debug.Assert((object)disposableInterface != null);
+
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
                 Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
                 patternDisposeInfo = null;
@@ -186,7 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
                     }
-                    return true;
+
+                    return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
                 }
 
                 Debug.Assert(!fromExpression || expressionOpt != null);
@@ -200,13 +214,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations)
+                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
                                                        ? diagnostics
                                                        : BindingDiagnosticBag.Discarded;
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics);
                     if (disposeMethod is object)
                     {
-                        MessageID.IDS_FeatureUsingDeclarations.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
+                        MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
 
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                         ImmutableArray<int> argsToParams = default;
@@ -288,12 +302,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Locals;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override SyntaxNode ScopeDesignator

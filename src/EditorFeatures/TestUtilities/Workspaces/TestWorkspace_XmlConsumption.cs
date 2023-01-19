@@ -58,29 +58,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => RuntimeHelpers.GetHashCode(this);
         }
 
-        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, ExportProvider exportProvider = null, TestComposition composition = null)
-            => Create(XElement.Parse(xmlDefinition), openDocuments, exportProvider, composition);
+        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, TestComposition composition = null)
+            => Create(XElement.Parse(xmlDefinition), openDocuments, composition);
 
         public static TestWorkspace CreateWorkspace(
             XElement workspaceElement,
             bool openDocuments = true,
-            ExportProvider exportProvider = null,
             TestComposition composition = null,
             string workspaceKind = null)
         {
-            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind);
+            return Create(workspaceElement, openDocuments, composition, workspaceKind);
         }
 
         internal static TestWorkspace Create(
             XElement workspaceElement,
             bool openDocuments = true,
-            ExportProvider exportProvider = null,
             TestComposition composition = null,
             string workspaceKind = null,
             IDocumentServiceProvider documentServiceProvider = null,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
         {
-            var workspace = new TestWorkspace(exportProvider, composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
+            var workspace = new TestWorkspace(composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
             workspace.InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
             return workspace;
         }
@@ -353,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var documentFilePath = typeof(SingleFileTestGenerator).Assembly.GetName().Name + '\\' + typeof(SingleFileTestGenerator).FullName + '\\' + name;
-                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, isSourceGenerated: true);
+                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, generator: testGenerator);
                 documents.Add(document);
 
                 testGenerator.AddSource(code, name);
@@ -787,8 +785,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
             }
 
-            TestFileMarkupParser.GetPositionAndSpans(markupCode,
-                out var code, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            var markupAttribute = documentElement.Attribute(MarkupAttributeName);
+            var isMarkup = markupAttribute == null || (string)markupAttribute == "true" || (string)markupAttribute == "SpansOnly";
+
+            string code;
+            int? cursorPosition;
+            ImmutableDictionary<string, ImmutableArray<TextSpan>> spans;
+
+            if (isMarkup)
+            {
+                // if the caller doesn't want us caring about positions, then replace any $'s with a character unlikely
+                // to ever show up in the doc naturally.  Then, after we convert things, change that character back. We
+                // do this as a single character so that all the positions of the spans do not change.
+                if ((string)markupAttribute == "SpansOnly")
+                    markupCode = markupCode.Replace("$", "\uD7FF");
+
+                TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+
+                // if we were told SpansOnly then that means that $$ isn't actually a caret (but is something like a raw
+                // interpolated string delimiter.  In that case, if we did see a $$ add it back it at the location we
+                // found it, and set the cursor back to null as the test will be specifying that location manually
+                // itself.
+                if ((string)markupAttribute == "SpansOnly")
+                {
+                    Contract.ThrowIfTrue(cursorPosition != null);
+                    code = code.Replace("\uD7FF", "$");
+                }
+            }
+            else
+            {
+                code = markupCode;
+                cursorPosition = null;
+                spans = ImmutableDictionary<string, ImmutableArray<TextSpan>>.Empty;
+            }
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
 
@@ -952,13 +981,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static SyntaxTree CreateSyntaxTree(ParseOptions options, string referencedCode)
         {
+            var sourceText = SourceText.From(referencedCode, encoding: null, SourceHashAlgorithms.Default);
+
             if (LanguageNames.CSharp == options.Language)
             {
-                return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(referencedCode, options);
+                return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(sourceText, options);
             }
             else
             {
-                return Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(referencedCode, options);
+                return Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(sourceText, options);
             }
         }
 
@@ -1007,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net45).HasValue &&
                 ((bool?)net45).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929 };
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.SystemRuntimeSerializationRef_v4_0_30319_17929 };
                 if (GetLanguage(workspace, element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef);
@@ -1067,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = NetCoreApp.StandardReferences.ToList();
+                references = NetCoreApp.References.ToList();
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
@@ -1076,6 +1107,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netstandard20).Value)
             {
                 references = TargetFrameworkUtil.NetStandard20References.ToList();
+            }
+
+            var net6 = element.Attribute(CommonReferencesNet6Name);
+            if (net6 != null &&
+                ((bool?)net6).HasValue &&
+                ((bool?)net6).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
             }
 
             return references;

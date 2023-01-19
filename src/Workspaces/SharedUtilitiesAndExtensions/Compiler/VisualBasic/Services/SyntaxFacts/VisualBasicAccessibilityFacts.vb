@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 #If CODE_STYLE Then
@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Internal.Editing
 Imports Microsoft.CodeAnalysis.Editing
 #End If
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicAccessibilityFacts
         Implements IAccessibilityFacts
 
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Private Sub New()
         End Sub
 
-        Public Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean Implements IAccessibilityFacts.CanHaveAccessibility
+        Public Function CanHaveAccessibility(declaration As SyntaxNode, Optional ignoreDeclarationModifiers As Boolean = False) As Boolean Implements IAccessibilityFacts.CanHaveAccessibility
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock,
                      SyntaxKind.ClassStatement,

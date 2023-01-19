@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
@@ -20,12 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
 
-            // TODO(cyrusn): lambda/anon methods can have out/ref parameters
             return
                 context.TargetToken.IsTypeParameterVarianceContext() ||
                 IsOutParameterModifierContext(position, context) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext();
         }
@@ -34,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return context.SyntaxTree.IsParameterModifierContext(
                        position, context.LeftToken, includeOperators: false, out _, out var previousModifier) &&
-                   previousModifier == SyntaxKind.None;
+                   previousModifier is SyntaxKind.None or SyntaxKind.ScopedKeyword;
         }
     }
 }

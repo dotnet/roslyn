@@ -17,6 +17,15 @@ namespace Roslyn.Utilities
         public abstract bool TryGetValue([MaybeNullWhen(false)] out T value);
         public abstract T GetValue(CancellationToken cancellationToken = default);
         public abstract Task<T> GetValueAsync(CancellationToken cancellationToken = default);
+
+        public static ValueSource<T> Constant(T value)
+            => new AsyncLazy<T>(value);
+    }
+
+    internal static class ValueSource
+    {
+        public static ValueSource<T> Constant<T>(T value)
+            => ValueSource<T>.Constant(value);
     }
 
     internal static class ValueSourceExtensions

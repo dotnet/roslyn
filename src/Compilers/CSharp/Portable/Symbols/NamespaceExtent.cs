@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// particular module, assembly, or merged across all modules (source and metadata) in a
     /// particular compilation.
     /// </summary>
-    internal struct NamespaceExtent : IEquatable<NamespaceExtent>
+    internal readonly struct NamespaceExtent : IEquatable<NamespaceExtent>
     {
         private readonly NamespaceKind _kind;
         private readonly object _symbolOrCompilation;

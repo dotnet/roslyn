@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -90,6 +89,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Tells if we are in positions like this: <c>#nullable $$</c> or <c>#pragma warning $$</c>
+        /// </summary>
+        internal static bool IsCompilerDirectiveTriggerCharacter(SourceText text, int characterPosition)
+        {
+            while (text[characterPosition] == ' ' ||
+                   char.IsLetter(text[characterPosition]))
+            {
+                characterPosition--;
+
+                if (characterPosition < 0)
+                    return false;
+            }
+
+            return text[characterPosition] == '#';
         }
 
         internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ImmutableHashSet.Create('.', '#', '>', ':');

@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,12 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private UseExpressionBodyForMethodsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
                    EnforceOnBuildValues.UseExpressionBodyForMethods,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_methods), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_methods), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_method), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_method), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                    ImmutableArray.Create(SyntaxKind.MethodDeclaration))
         {
         }
+
+        public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
+            => options.PreferExpressionBodiedMethods;
 
         protected override BlockSyntax GetBody(MethodDeclarationSyntax declaration)
             => declaration.Body;

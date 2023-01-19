@@ -10,9 +10,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,15 +25,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     internal class MetadataAsSourceFileService : IMetadataAsSourceFileService
     {
         /// <summary>
-        /// A lock to guard parallel accesses to this type. In practice, we presume that it's not 
-        /// an important scenario that we can be generating multiple documents in parallel, and so 
-        /// we simply take this lock around all public entrypoints to enforce sequential access.
+        /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
+        /// extracting it from a pdb).
+        /// </summary>
+        private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers;
+
+        /// <summary>
+        /// Workspace created the first time we generate any metadata for any symbol.
+        /// </summary>
+        private MetadataAsSourceWorkspace? _workspace;
+
+        /// <summary>
+        /// A lock to guard the mutex and filesystem data below.  We want to ensure we generate into that and clean that
+        /// up safely.  
         /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
-
-        private readonly Dictionary<string, IMetadataAsSourceFileProvider> _tempFileToProviderMap = new(StringComparer.OrdinalIgnoreCase);
-
-        private MetadataAsSourceWorkspace? _workspace;
 
         /// <summary>
         /// We create a mutex so other processes can see if our directory is still alive. We destroy the mutex when
@@ -40,7 +48,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         private Mutex? _mutex;
         private string? _rootTemporaryPathWithGuid;
         private readonly string _rootTemporaryPath;
-        private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -65,57 +72,74 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, CancellationToken cancellationToken = default)
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(
+            Workspace sourceWorkspace,
+            Project sourceProject,
+            ISymbol symbol,
+            bool signaturesOnly,
+            MetadataAsSourceOptions options,
+            CancellationToken cancellationToken = default)
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
+            if (sourceProject == null)
+                throw new ArgumentNullException(nameof(sourceProject));
 
             if (symbol == null)
-            {
                 throw new ArgumentNullException(nameof(symbol));
-            }
 
             if (symbol.Kind == SymbolKind.Namespace)
-            {
                 throw new ArgumentException(FeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
-            }
 
             symbol = symbol.GetOriginalUnreducedDefinition();
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                InitializeWorkspace(project);
+                _workspace ??= new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+
                 Contract.ThrowIfNull(_workspace);
                 var tempPath = GetRootPathWithGuid_NoLock();
+
+                // We don't want to track telemetry for signatures only requests, only where we try to show source
+                using var telemetryMessage = signaturesOnly ? null : new TelemetryMessage(cancellationToken);
 
                 foreach (var lazyProvider in _providers)
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
-                    var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, allowDecompilation, providerTempPath, cancellationToken).ConfigureAwait(false);
+                    var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, telemetryMessage, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {
-                        _tempFileToProviderMap[result.FilePath] = provider;
                         return result;
                     }
                 }
             }
 
             // The decompilation provider can always return something
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
+        {
+            var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
+            Contract.ThrowIfFalse(threadingService.IsOnMainThread);
         }
 
         public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer)
         {
-            using (_gate.DisposableWait())
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
+            // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
+            // MetadataAsSource instead of itself.
+            var workspace = _workspace;
+            if (workspace != null)
             {
-                if (_tempFileToProviderMap.TryGetValue(filePath, out var provider))
-                {
-                    Contract.ThrowIfNull(_workspace);
+                AssertIsMainThread(workspace);
 
-                    return provider.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer);
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer))
+                        return true;
                 }
             }
 
@@ -124,41 +148,84 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool TryRemoveDocumentFromWorkspace(string filePath)
         {
-            using (_gate.DisposableWait())
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be removed
+            // from it. This happens when the MiscWorkspace is hearing about a doc closing, and calls into the
+            // MetadataAsSource system to see if it owns the file and should handle that event.
+            var workspace = _workspace;
+            if (workspace != null)
             {
-                if (_tempFileToProviderMap.TryGetValue(filePath, out var provider))
-                {
-                    Contract.ThrowIfNull(_workspace);
+                AssertIsMainThread(workspace);
 
-                    return provider.TryRemoveDocumentFromWorkspace(_workspace, filePath);
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    if (provider.Value.TryRemoveDocumentFromWorkspace(workspace, filePath))
+                        return true;
                 }
             }
 
             return false;
         }
 
-        private void InitializeWorkspace(Project project)
+        public bool ShouldCollapseOnOpen(string? filePath, BlockStructureOptions blockStructureOptions)
         {
-            if (_workspace == null)
+            if (filePath is null)
+                return false;
+
+            var workspace = _workspace;
+
+            if (workspace == null)
             {
-                _workspace = new MetadataAsSourceWorkspace(this, project.Solution.Workspace.Services.HostServices);
+                try
+                {
+                    throw new InvalidOperationException(
+                        $"'{nameof(ShouldCollapseOnOpen)}' should only be called once outlining has already confirmed that '{filePath}' is from the {nameof(MetadataAsSourceWorkspace)}");
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
+
+                return false;
             }
+
+            AssertIsMainThread(workspace);
+
+            foreach (var provider in _providers)
+            {
+                if (!provider.IsValueCreated)
+                    continue;
+
+                if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
+                    return true;
+            }
+
+            return false;
         }
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(document.FilePath);
 
-            Project? project;
+            Project? project = null;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (!_tempFileToProviderMap.TryGetValue(document.FilePath, out var provider))
-                    return null;
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
 
-                project = provider.MapDocument(document);
-                if (project == null)
-                    return null;
+                    Contract.ThrowIfNull(_workspace);
+
+                    project = provider.Value.MapDocument(document);
+                    if (project is not null)
+                        break;
+                }
             }
+
+            if (project is null)
+                return null;
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
@@ -180,14 +247,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     _rootTemporaryPathWithGuid = null;
                 }
 
-                // Only cleanup for providers that have actually generated a file. This keeps us from
-                // accidentally loading lazy providers on cleanup that weren't used
-                foreach (var provider in _tempFileToProviderMap.Values.Distinct())
+                // Only cleanup for providers that have actually generated a file. This keeps us from accidentally loading
+                // lazy providers on cleanup that weren't used
+                var workspace = _workspace;
+                if (workspace != null)
                 {
-                    provider.CleanupGeneratedFiles(_workspace);
-                }
+                    foreach (var provider in _providers)
+                    {
+                        if (!provider.IsValueCreated)
+                            continue;
 
-                _tempFileToProviderMap.Clear();
+                        provider.Value.CleanupGeneratedFiles(workspace);
+                    }
+                }
 
                 try
                 {
@@ -198,7 +270,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         // Let's look through directories to delete.
                         foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
                         {
-
                             // Is there a mutex for this one?
                             if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
                             {
@@ -240,7 +311,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool IsNavigableMetadataSymbol(ISymbol symbol)
         {
-            if (!symbol.Locations.Any(l => l.IsInMetadata))
+            if (!symbol.Locations.Any(static l => l.IsInMetadata))
             {
                 return false;
             }

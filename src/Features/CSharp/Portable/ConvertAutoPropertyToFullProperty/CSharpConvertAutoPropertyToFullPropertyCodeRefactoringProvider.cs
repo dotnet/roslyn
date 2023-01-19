@@ -12,20 +12,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), Shared]
-    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax>
+    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax, CSharpCodeGenerationContextInfo>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -33,12 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
         }
 
-        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
+        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
-                new SymbolKindOrTypeKind(SymbolKind.Field),
+                new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
                 property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
                 Accessibility.Private,
+                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             var fieldName = rule.NamingStyle.MakeCompliant(property.Name).First();
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         }
 
         internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-            DocumentOptionSet options, SyntaxNode property,
+            CSharpCodeGenerationContextInfo info, SyntaxNode property,
             string fieldName, SyntaxGenerator generator)
         {
             // C# might have trivia with the accessors that needs to be preserved.  
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
             var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
-            var newGetter = GetUpdatedAccessor(options, getAccessor, getAccessorStatement);
+            var newGetter = GetUpdatedAccessor(info, getAccessor, getAccessorStatement);
 
             SyntaxNode newSetter = null;
             if (setAccessor != null)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(fieldName),
                     generator.IdentifierName("value")));
-                newSetter = GetUpdatedAccessor(options, setAccessor, setAccessorStatement);
+                newSetter = GetUpdatedAccessor(info, setAccessor, setAccessorStatement);
             }
 
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
@@ -75,20 +75,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
                                                                  a.IsKind(SyntaxKind.InitAccessorDeclaration)));
 
-        private static SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
+        private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationContextInfo info,
             SyntaxNode accessor, SyntaxNode statement)
         {
             var newAccessor = AddStatement(accessor, statement);
             var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
 
-            var preference = GetAccessorExpressionBodyPreference(options);
+            var preference = info.Options.PreferExpressionBodiedAccessors.Value;
             if (preference == ExpressionBodyPreference.Never)
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
             }
 
             if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
-                    accessorDeclarationSyntax.Kind(), accessor.SyntaxTree.Options, preference,
+                    accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference,
                     out var arrowExpression, out _))
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
@@ -113,11 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         }
 
         internal override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
-            DocumentOptionSet options, SyntaxNode property)
+            CSharpCodeGenerationContextInfo info, SyntaxNode property)
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)property;
 
-            var preference = GetPropertyExpressionBodyPreference(options);
+            var preference = info.Options.PreferExpressionBodiedProperties.Value;
             if (preference == ExpressionBodyPreference.Never)
             {
                 return propertyDeclaration.WithSemicolonToken(default);
@@ -138,12 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 
             return propertyDeclaration.WithSemicolonToken(default);
         }
-
-        internal static ExpressionBodyPreference GetAccessorExpressionBodyPreference(DocumentOptionSet options)
-            => options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-
-        internal static ExpressionBodyPreference GetPropertyExpressionBodyPreference(DocumentOptionSet options)
-            => options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
 
         internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
             => syntaxNode;

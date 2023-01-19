@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVariablePendingInference ||
+            Debug.Assert(!args.Any(static e => e.Kind == BoundKind.OutVariablePendingInference ||
                                         e.Kind == BoundKind.OutDeconstructVarPendingInference ||
                                         e.Kind == BoundKind.DiscardExpression && !e.HasExpressionType()));
             analyzedArguments.Arguments.AddRange(args);
@@ -1126,19 +1126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
-            if (!gotError)
-            {
-                gotError = !CheckInvocationArgMixing(
-                    node,
-                    method,
-                    receiver,
-                    method.Parameters,
-                    args,
-                    argsToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
-            }
-
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
@@ -1182,6 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have a call to a method M([Optional] object x) which omits the argument. The value we generate
             // for the argument depends on the presence or absence of other attributes. The rules are:
             //
+            // * If we're generating a default argument for an attribute, it's a compile error.
             // * If the parameter is marked as [MarshalAs(Interface)], [MarshalAs(IUnknown)] or [MarshalAs(IDispatch)]
             //   then the argument is null.
             // * Otherwise, if the parameter is marked as [IUnknownConstant] then the argument is
@@ -1191,7 +1179,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // * Otherwise, the argument is Type.Missing.
 
             BoundExpression? defaultValue = null;
-            if (parameter.IsMarshalAsObject)
+            if (InAttributeArgument)
+            {
+                // CS7067: Attribute constructor parameter '{0}' is optional, but no default parameter value was specified.
+                diagnostics.Add(ErrorCode.ERR_BadAttributeParamDefaultArgument, syntax.Location, parameter.Name);
+            }
+            else if (parameter.IsMarshalAsObject)
             {
                 // default(object)
                 defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
@@ -1278,7 +1271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             bool enableCallerInfo,
             BindingDiagnosticBag diagnostics,
-            bool assertMissingParametersAreOptional = true)
+            bool assertMissingParametersAreOptional = true,
+            Symbol? attributedMember = null)
         {
 
             var visitedParameters = BitVector.Create(parameters.Length);
@@ -1300,11 +1294,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // In a scenario like `string Prop { get; } = M();`, the containing symbol could be the synthesized field.
             // We want to use the associated user-declared symbol instead where possible.
-            var containingMember = ContainingMember() switch
+            var containingMember = InAttributeArgument ? attributedMember : ContainingMember() switch
             {
                 FieldSymbol { AssociatedSymbol: { } symbol } => symbol,
                 var c => c
             };
+            Debug.Assert(InAttributeArgument || (attributedMember is null && containingMember is not null));
 
             defaultArguments = BitVector.Create(parameters.Length);
             ArrayBuilder<int>? argsToParamsBuilder = null;
@@ -1348,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.Free();
             }
 
-            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt)
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol? containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt)
             {
                 TypeSymbol parameterType = parameter.Type;
                 if (Flags.Includes(BinderFlags.ParameterDefaultValue))
@@ -1358,7 +1353,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
                 }
 
-                var defaultConstantValue = parameter.ExplicitDefaultConstantValue switch
+                var parameterDefaultValue = parameter.ExplicitDefaultConstantValue;
+                if (InAttributeArgument && parameterDefaultValue?.IsBad == true)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAttributeArgument, syntax.Location);
+                    return BadExpression(syntax).MakeCompilerGenerated();
+                }
+
+                var defaultConstantValue = parameterDefaultValue switch
                 {
                     // Bad default values are implicitly replaced with default(T) at call sites.
                     { IsBad: true } => ConstantValue.Null,
@@ -1366,6 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
                 Debug.Assert((object?)defaultConstantValue != ConstantValue.Unset);
 
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var callerSourceLocation = enableCallerInfo ? GetCallerLocation(syntax) : null;
                 BoundExpression defaultValue;
                 if (callerSourceLocation is object && parameter.IsCallerLineNumber)
@@ -1378,13 +1381,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, Compilation.Options.SourceReferenceResolver);
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(path), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
-                else if (callerSourceLocation is object && parameter.IsCallerMemberName)
+                else if (callerSourceLocation is object && parameter.IsCallerMemberName && containingMember is not null)
                 {
                     var memberName = containingMember.GetMemberCallerName();
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
-                else if (callerSourceLocation is object && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex &&
-                    argumentIndex > -1 && argumentIndex < argumentsCount)
+                else if (callerSourceLocation is object
+                    && !parameter.IsCallerMemberName
+                    && Conversions.ClassifyBuiltInConversion(Compilation.GetSpecialType(SpecialType.System_String), parameterType, isChecked: false, ref discardedUseSiteInfo).Exists
+                    && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex
+                    && argumentIndex > -1 && argumentIndex < argumentsCount)
                 {
                     var argument = argumentsBuilder[argumentIndex];
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
@@ -1411,10 +1417,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol constantType = Compilation.GetSpecialType(defaultConstantValue.SpecialType);
                     defaultValue = new BoundLiteral(syntax, defaultConstantValue, constantType) { WasCompilerGenerated = true };
+
+                    if (InAttributeArgument && parameterType.SpecialType == SpecialType.System_Object)
+                    {
+                        // error CS1763: '{0}' is of type '{1}'. A default parameter value of a reference type other than string can only be initialized with null
+                        diagnostics.Add(ErrorCode.ERR_NotNullRefDefaultParameter, syntax.Location, parameter.Name, parameterType);
+                    }
                 }
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, ref useSiteInfo);
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(syntax, useSiteInfo);
 
                 if (!conversion.IsValid && defaultConstantValue is { SpecialType: SpecialType.System_Decimal or SpecialType.System_DateTime })
@@ -1834,31 +1846,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryBindNameofOperator(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics, out BoundExpression result)
         {
+            if (node.MayBeNameofOperator())
+            {
+                var binder = this.GetBinder(node);
+                if (binder.EnclosingNameofArgument == node.ArgumentList.Arguments[0].Expression)
+                {
+                    result = binder.BindNameofOperatorInternal(node, diagnostics);
+                    return true;
+                }
+            }
+
             result = null;
-            if (node.Expression.Kind() != SyntaxKind.IdentifierName ||
-                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() != SyntaxKind.NameOfKeyword ||
-                node.ArgumentList.Arguments.Count != 1)
-            {
-                return false;
-            }
-
-            ArgumentSyntax argument = node.ArgumentList.Arguments[0];
-            if (argument.NameColon != null || argument.RefOrOutKeyword != default(SyntaxToken) || InvocableNameofInScope())
-            {
-                return false;
-            }
-
-            result = BindNameofOperatorInternal(node, diagnostics);
-            return true;
+            return false;
         }
 
         private BoundExpression BindNameofOperatorInternal(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
-            // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
-            var nameofBinder = new NameofBinder(argument, this);
-            var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
+            var boundArgument = BindExpression(argument, diagnostics);
 
             bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
             if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)
@@ -1871,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    nameofBinder.EnsureNameofExpressionSymbols(methodGroup, diagnostics);
+                    EnsureNameofExpressionSymbols(methodGroup, diagnostics);
                 }
             }
 
@@ -1963,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Helper method that checks whether there is an invocable 'nameof' in scope.
         /// </summary>
-        private bool InvocableNameofInScope()
+        internal bool InvocableNameofInScope()
         {
             var lookupResult = LookupResult.GetInstance();
             const LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember;
@@ -2031,19 +2037,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
-            if (!hasErrors)
-            {
-                hasErrors = !CheckInvocationArgMixing(
-                    node,
-                    funcPtr.Signature,
-                    receiverOpt: null,
-                    funcPtr.Signature.Parameters,
-                    args,
-                    methodResult.Result.ArgsToParamsOpt,
-                    LocalScopeDepth,
-                    diagnostics);
-            }
-
             return new BoundFunctionPointerInvocation(
                 node,
                 boundExpression,

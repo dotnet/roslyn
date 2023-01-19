@@ -30,6 +30,7 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - group: DotNet-Roslyn-Insertion-Variables
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
@@ -49,7 +50,7 @@ stages:
     timeoutInMinutes: 360
     # Conditionally set build pool so we can share this YAML when building with different pipeline
     pool:
-      name: VSEngSS-MicroBuild2019-1ES
+      name: VSEngSS-MicroBuild2022-1ES
       demands:
       - msbuild
       - visualstudio
@@ -145,6 +146,15 @@ stages:
                    /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
 
+    - template: eng\common\templates\steps\generate-sbom.yml
+
+    - task: PowerShell@2
+      displayName: Publish Assets
+      inputs:
+        filePath: 'eng\publish-assets.ps1'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+      condition: succeeded()
+
     # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
     # a build execution.
     - task: PublishBuildArtifacts@1
@@ -234,10 +244,13 @@ stages:
         createDraftPR: true
         autoComplete: false
         insertToolset: ${{ parameters.InsertToolset }}
-        clientId: $(ClientId)
-        clientSecret: $(ClientSecret)
+        buildUserName: "dn-bot@microsoft.com"
+        buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+        componentUserName: "dn-bot@microsoft.com"
+        componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
         vsBranchName: ${{ parameters.VisualStudioBranchName }}
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
         publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+        queueSpeedometerValidation: true
 

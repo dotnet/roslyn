@@ -975,6 +975,15 @@ Additional information: {1}</value>
   <data name="Report_invalid_regular_expressions" xml:space="preserve">
     <value>Report invalid regular expressions</value>
   </data>
+  <data name="Colorize_JSON_strings" xml:space="preserve">
+    <value>Colorize JSON strings</value>
+  </data>
+  <data name="JSON_strings" xml:space="preserve">
+    <value>JSON strings</value>
+  </data>
+  <data name="Report_invalid_JSON_strings" xml:space="preserve">
+    <value>Report invalid JSON strings</value>
+  </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
   </data>
@@ -1312,8 +1321,8 @@ Additional information: {1}</value>
   <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
     <value>Code analysis terminated before completion for Solution.</value>
   </data>
-  <data name="Background_analysis_scope_colon" xml:space="preserve">
-    <value>Background analysis scope:</value>
+  <data name="Run_background_code_analysis_for_colon" xml:space="preserve">
+    <value>Run background code analysis for:</value>
   </data>
   <data name="Current_document" xml:space="preserve">
     <value>Current document</value>
@@ -1323,6 +1332,9 @@ Additional information: {1}</value>
   </data>
   <data name="Entire_solution" xml:space="preserve">
     <value>Entire solution</value>
+  </data>
+  <data name="Show_compiler_errors_and_warnings_for_colon" xml:space="preserve">
+    <value>Show compiler errors and warnings for:</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
@@ -1639,6 +1651,9 @@ Additional information: {1}</value>
   <data name="Show_inheritance_margin" xml:space="preserve">
     <value>Show inheritance margin</value>
   </data>
+  <data name="Include_global_imports" xml:space="preserve">
+    <value>Include global imports</value>
+  </data>
   <data name="Inheritance_Margin" xml:space="preserve">
     <value>Inheritance Margin</value>
   </data>
@@ -1823,6 +1838,10 @@ Additional information: {1}</value>
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
   </data>
+  <data name="Default_None" xml:space="preserve">
+    <value>Default (None)</value>
+    <comment>This text is a menu command</comment>
+  </data>
   <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
     <value>Suppress hints when argument matches parameter name</value>
   </data>
@@ -1866,7 +1885,7 @@ Additional information: {1}</value>
     <value>End of line</value>
   </data>
   <data name="Paste_valid_stack_trace" xml:space="preserve">
-    <value>Paste a valid stack trace to view and navigate it's values</value>
+    <value>Paste a stack trace to view and navigate it's values.</value>
     <comment>"Stack Trace" is a language term and should be kept the same. </comment>
   </data>
   <data name="Stack_Trace_Explorer" xml:space="preserve">
@@ -1892,5 +1911,122 @@ Additional information: {1}</value>
   </data>
   <data name="Sort_usings" xml:space="preserve">
     <value>Sort usings</value>
+  </data>
+  <data name="Navigate_to_external_sources" xml:space="preserve">
+    <value>Navigate to External Sources</value>
+  </data>
+  <data name="Automatically_open_stack_trace_explorer_on_focus" xml:space="preserve">
+    <value>Automatically open Stack Trace Explorer on focus</value>
+    <comment>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</comment>
+  </data>
+  <data name="Prefer_method_group_conversion" xml:space="preserve">
+    <value>Prefer method group conversion</value>
+  </data>
+  <data name="Entire_solution_and_external_sources" xml:space="preserve">
+    <value>Entire Solution and External Sources</value>
+  </data>
+  <data name="External_sources" xml:space="preserve">
+    <value>External Sources</value>
+  </data>
+  <data name="Call_Hierarchy" xml:space="preserve">
+    <value>Call Hierarchy</value>
+  </data>
+  <data name="Navigating" xml:space="preserve">
+    <value>Navigating</value>
+  </data>
+  <data name="Fix_text_pasted_into_string_literals_experimental" xml:space="preserve">
+    <value>Fix text pasted into string literals (experimental)</value>
+  </data>
+  <data name="Go_To_Definition" xml:space="preserve">
+    <value>Go To Definition</value>
+  </data>
+  <data name="Navigate_asynchronously_exerimental" xml:space="preserve">
+    <value>Navigate asynchronously (experimental)</value>
+  </data>
+  <data name="Always_use_default_symbol_servers_for_navigation" xml:space="preserve">
+    <value>Always use default symbol servers for navigation</value>
+  </data>
+  <data name="Prefer_top_level_statements" xml:space="preserve">
+    <value>Prefer top-level statements</value>
+  </data>
+  <data name="_0_1" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Used to show a symbol name, followed by the project name it came from</comment>
+  </data>
+  <data name="Prefer_Utf8_string_literals" xml:space="preserve">
+    <value>Prefer UTF-8 string literals</value>
+  </data>
+  <data name="Collapse_regions_on_file_open" xml:space="preserve">
+    <value>Collapse #regions on file open</value>
+  </data>
+  <data name="Collapse_metadata_signature_files_on_open" xml:space="preserve">
+    <value>Collapse metadata signature files to definitions on file open</value>
+  </data>
+  <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
+    <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
+  </data>
+  <data name="Document_Outline_Search" xml:space="preserve">
+    <value>Search Document Outline</value>
+  </data>
+  <data name="Document_Outline_Collapse_All" xml:space="preserve">
+    <value>Collapse All</value>
+  </data>
+  <data name="Document_Outline_Expand_All" xml:space="preserve">
+    <value>Expand All</value>
+  </data>
+  <data name="Document_Outline_Sort_Name" xml:space="preserve">
+    <value>Sort By Name</value>
+  </data>
+  <data name="Document_Outline_Sort_Order" xml:space="preserve">
+    <value>Sort By Order</value>
+  </data>
+  <data name="Document_Outline_Sort_Type" xml:space="preserve">
+    <value>Sort By Type</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Rename_asynchronously_experimental" xml:space="preserve">
+    <value>Rename asynchronously (experimental)</value>
+  </data>
+  <data name="Fix_analyzer_warnings_and_errors" xml:space="preserve">
+    <value>Fix analyzer warnings and errors</value>
+  </data>
+  <data name="Fix_analyzer_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
+    <value>Fix analyzer warnings and errors set in EditorConfig</value>
+  </data>
+  <data name="Fix_all_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
+    <value>Fix all warnings and errors set in EditorConfig</value>
+  </data>
+  <data name="Stack_Trace" xml:space="preserve">
+    <value>Stack Trace</value>
+  </data>
+  <data name="Document_Outline" xml:space="preserve">
+    <value>Document Outline</value>
+  </data>
+  <data name="Enable_navigation_to_sourcelink_and_embedded_sources" xml:space="preserve">
+    <value>Enable navigation to Source Link and Embedded sources</value>
+  </data>
+  <data name="Extract_Base_Record" xml:space="preserve">
+    <value>Extract Base Record</value>
+    <comment>{Locked="Record"} "Record" is a language construct for C# and should not be localized</comment>
+  </data>
+  <data name="Show_UI_as_dashboard_in_top_right" xml:space="preserve">
+    <value>Show UI as a dashboard in top right</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Show_UI_inline" xml:space="preserve">
+    <value>Show UI Inline</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Where_should_the_rename_UI_be_shown" xml:space="preserve">
+    <value>Where should the rename UI be shown?</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Prefer_read_only_struct" xml:space="preserve">
+    <value>Prefer read-only struct</value>
+  </data>
+  <data name="Analyze_source_generated_files" xml:space="preserve">
+    <value>Analyze source generated files</value>
   </data>
 </root>

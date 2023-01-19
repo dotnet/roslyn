@@ -7,6 +7,16 @@
         <target state="translated">MSB3883: 未預期的例外狀況: </target>
         <note>{StrBegin="MSB3883: "}</note>
       </trans-unit>
+      <trans-unit id="CopyRefAssembly_Changed">
+        <source>Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</source>
+        <target state="translated">來源參考組件 "{0}" (時間戳記 "{1}"，MVID "{2}") 與目的地 "{3}" (時間戳記 "{4}"，MVID "{5}") 不同。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_Copying">
+        <source>Copying reference assembly from "{0}" to "{1}".</source>
+        <target state="translated">正在將參考組件從 "{0}" 複製到 "{1}"。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
         <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
         <target state="translated">MSB3053: 參考 "{0}" 上的組件別名 "{1}" 包含不合法的字元。</target>

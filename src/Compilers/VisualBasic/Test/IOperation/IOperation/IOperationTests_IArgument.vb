@@ -553,8 +553,6 @@ IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0]
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ParamsArrayArgumentInNormalForm()
@@ -873,7 +871,7 @@ BC30587: Named argument cannot match a ParamArray parameter.
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub Error_NamedArgumenNotExist()
+        Public Sub Error_NamedArgumentNotExist()
             Dim source = <![CDATA[
 Class P
     Sub M1()

@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -23,17 +25,20 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMarginItemsAsync(
-            PinnedSolutionInfo pinnedSolutionInfo,
-            ProjectId projectId,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
+            Checksum solutionChecksum,
+            DocumentId documentId,
+            TextSpan spanToSearch,
+            bool includeGlobalImports,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
-            => RunServiceAsync(async cancellationToken =>
+        {
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(pinnedSolutionInfo, cancellationToken).ConfigureAwait(false);
-                return await InheritanceMarginServiceHelper
-                    .GetInheritanceMemberItemAsync(solution, projectId, symbolKeyAndLineNumbers, cancellationToken)
-                    .ConfigureAwait(false);
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
+                return await service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
+        }
     }
 }

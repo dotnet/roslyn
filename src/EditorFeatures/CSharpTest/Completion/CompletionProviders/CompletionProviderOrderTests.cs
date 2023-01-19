@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 typeof(ExtensionMethodImportCompletionProvider),
                 typeof(AggregateEmbeddedLanguageCompletionProvider),
                 typeof(FunctionPointerUnmanagedCallingConventionCompletionProvider),
+                typeof(CSharpSnippetCompletionProvider),
 
                 // Built-in interactive providers
                 typeof(LoadDirectiveCompletionProvider),

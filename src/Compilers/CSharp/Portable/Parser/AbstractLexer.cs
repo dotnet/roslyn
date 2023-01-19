@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal class AbstractLexer : IDisposable
     {
         internal readonly SlidingTextWindow TextWindow;
-        private List<SyntaxDiagnosticInfo> _errors;
+        private List<SyntaxDiagnosticInfo>? _errors;
 
         protected AbstractLexer(SourceText text)
         {
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return _errors != null; }
         }
 
-        protected SyntaxDiagnosticInfo[] GetErrors(int leadingTriviaWidth)
+        protected SyntaxDiagnosticInfo[]? GetErrors(int leadingTriviaWidth)
         {
             if (_errors != null)
             {
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddError(MakeError(code, args));
         }
 
-        protected void AddError(SyntaxDiagnosticInfo error)
+        protected void AddError(SyntaxDiagnosticInfo? error)
         {
             if (error != null)
             {

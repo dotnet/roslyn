@@ -1,0 +1,193 @@
+﻿<vs:DialogWindow x:Uid="PickMembersDialog"
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers.PickMembersDialog"
+             x:ClassModifier="internal"
+             x:Name="dialog"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:s="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             mc:Ignorable="d" 
+             d:DesignHeight="380" d:DesignWidth="460"
+             Height="380" Width="460"
+             MinHeight="380" MinWidth="460"
+             Title="{Binding ElementName=dialog, Path=PickMembersDialogTitle}"
+             HasHelpButton="True"
+             FocusManager.FocusedElement="{Binding ElementName=interfaceNameTextBox}"
+             ResizeMode="CanResizeWithGrip"
+             ShowInTaskbar="False"
+             HasDialogFrame="True"
+             WindowStartupLocation="CenterOwner"
+             vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+             Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}"
+             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
+    <Window.Resources>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="IsTabStop" 
+                    Value="False" />
+        </Style>
+
+        <Style TargetType="u:AutomationDelegatingListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" x:Key="AutomationDelegatingListViewStyle" />
+        <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
+        <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+        <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
+        <Thickness x:Key="textboxPadding">2</Thickness>
+        <vs:NegateBooleanConverter x:Key="NegateBooleanConverter"/>
+        <RoutedUICommand x:Key="MoveUp" />
+        <RoutedUICommand x:Key="MoveDown" />
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource MoveUp}" Executed="MoveUp_Click" />
+        <CommandBinding Command="{StaticResource MoveDown}" Executed="MoveDown_Click" />
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUp}" />
+        <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDown}" />
+    </Window.InputBindings>
+    <Grid Margin="11,6,11,11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBox x:Uid="SearchTextBox"
+                 x:Name="SearchTextBox"
+                 Grid.Row="0" 
+                 TextChanged="SearchTextBox_TextChanged"/>
+        <GroupBox x:Uid="MemberSelectionGroupBox"
+                  Margin="0, 9, 0, 0"
+                  Grid.Row="1"
+                  Header="{Binding ElementName=dialog, Path=PickMembersTitle}"
+                  Foreground="{DynamicResource {x:Static vs:ThemedDialogColors.HeaderTextBrushKey}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <u:AutomationDelegatingListView x:Uid="MemberSelectionList"
+                          x:Name="Members"
+                          Grid.Column="0"
+                          Margin="9"
+                          SelectionMode="Single"
+                          SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                          PreviewKeyDown="OnListViewPreviewKeyDown"
+                          MouseDoubleClick="OnListViewDoubleClick"
+                          ItemsSource="{Binding MemberContainers, Mode=TwoWay}"
+                          Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}"
+                          Foreground="{DynamicResource {x:Static vs:ThemedDialogColors.ListBoxTextBrushKey}}">
+                    <u:AutomationDelegatingListView.ItemTemplate x:Uid="SelectableMemberListItem">
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Uid="SelectableMemberCheckBox"
+                                          AutomationProperties.Name="{Binding SymbolAutomationText}"
+                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                                          Width="Auto"
+                                          Focusable="False"
+                                          AutomationProperties.AutomationId="{Binding SymbolName}">
+                                </CheckBox>
+                                <Image x:Uid="SelectableMemberGlyph" 
+                                       Margin="8,0,0,0"
+                                               Source="{Binding Glyph}"/>
+                                <TextBlock x:Uid="SelectableMemberName" 
+                                                   Text="{Binding SymbolName}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </u:AutomationDelegatingListView.ItemTemplate>
+                </u:AutomationDelegatingListView>
+
+                <StackPanel Grid.Column="1">
+
+                    <Button Name="UpButton" 
+                                 AutomationProperties.Name="{Binding MoveUpAutomationText}"
+                                 Margin="0 9 4 0"
+                                 IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
+                                 AutomationProperties.AutomationId="Up"
+                                 Height="Auto" Width="Auto"
+                                 Command="{StaticResource MoveUp}">
+                        <imaging:CrispImage Name="UpArrowImage" 
+                                        Height="16" 
+                                        Width="16" 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.MoveUp}" />
+                    </Button>
+                    <Button Name="DownButton" 
+                                 AutomationProperties.Name="{Binding MoveDownAutomationText}"
+                                 Margin="0 9 4 0"
+                                 IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
+                                 AutomationProperties.AutomationId="Down"
+                                 Height="Auto" Width="Auto"
+                                 Command="{StaticResource MoveDown}">
+                        <imaging:CrispImage Name="DownArrowImage" 
+                                        Height="16" 
+                                        Width="16" 
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" />
+
+                    </Button>
+
+                    <Button x:Uid="SelectAllButton"
+                            Content="{Binding ElementName=dialog, Path=SelectAll}" 
+                            Margin="0 29 4 0"
+                            Click="Select_All_Click" 
+                            Padding="{StaticResource ResourceKey=selectDeselectButtonPadding}"
+                            MinWidth="73"
+                            MinHeight="21"/>
+                    <Button x:Uid="DeselectAllButton"
+                            Content="{Binding ElementName=dialog, Path=DeselectAll}" 
+                            Margin="0 9 4 0"
+                            Padding="{StaticResource ResourceKey=selectDeselectButtonPadding}"
+                            Click="Deselect_All_Click" 
+                            MinWidth="73"
+                            MinHeight="21"/>
+                </StackPanel>
+                <ItemsControl Grid.Row="1" 
+                              Grid.ColumnSpan="2"
+                              ItemsSource="{Binding Options}"
+                              IsTabStop="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsChecked}"
+                                      VerticalAlignment="Center"
+                                      VerticalContentAlignment="Center"
+                                      Margin="8,0,0,5">
+                                <TextBlock Text="{Binding Title}"
+                                           TextWrapping="Wrap" />
+                            </CheckBox>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </GroupBox>
+        <StackPanel Grid.Row="2" 
+                    HorizontalAlignment="Right" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal">
+            <Button x:Uid="OkButton" 
+                    Name="OKButton"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Margin="0, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    Click="OK_Click" 
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+            <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
+                    Content="{Binding ElementName=dialog, Path=Cancel}"
+                    Margin="7, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    Click="Cancel_Click"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

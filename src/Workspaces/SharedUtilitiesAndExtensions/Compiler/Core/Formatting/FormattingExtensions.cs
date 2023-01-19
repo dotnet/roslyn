@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        [return: NotNullIfNotNull("list1"), NotNullIfNotNull("list2")]
+        [return: NotNullIfNotNull(nameof(list1)), NotNullIfNotNull(nameof(list2))]
         public static List<T>? Combine<T>(this List<T>? list1, List<T>? list2)
         {
             if (list1 == null)
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (i > 0)
             {
                 span = new TextSpan(span.Start + i, span.Length - i);
-                newText = newText.Substring(i);
+                newText = newText[i..];
             }
 
             return new TextChange(span, newText);
@@ -284,11 +284,22 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static IEnumerable<TextSpan> GetAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
         {
-            foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
+            if (annotation == SyntaxAnnotation.ElasticAnnotation)
             {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                yield return GetSpan(firstToken, lastToken);
+                var tokens = node.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
+                return AggregateSpans(tokens.Select(GetElasticSpan));
+            }
+
+            return EnumerateAnnotatedSpans(node, annotation);
+
+            static IEnumerable<TextSpan> EnumerateAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
+            {
+                foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
+                {
+                    var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                    var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                    yield return GetSpan(firstToken, lastToken);
+                }
             }
         }
 
@@ -308,12 +319,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-        }
-
-        internal static IEnumerable<TextSpan> GetElasticSpans(SyntaxNode root)
-        {
-            var tokens = root.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
-            return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
         }
 
         internal static TextSpan GetElasticSpan(SyntaxToken token)

@@ -7,24 +7,64 @@
         <target state="translated">Exécuter l'&amp;analyse du code durant la sélection</target>
         <note />
       </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|ButtonText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">Explorateur StackTrace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|MenuText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">Explorateur StackTrace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|ButtonText">
+        <source>Clear</source>
+        <target state="translated">Effacer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
+        <source>CleearStackTraceExplorerCommandName</source>
+        <target state="translated">CleearStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
+        <source>ClearStackTraceExplorer</source>
+        <target state="translated">ClearStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|ButtonText">
+        <source>Paste</source>
+        <target state="translated">Coller</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|CommandName">
+        <source>PasteStackTraceExplorerCommandName</source>
+        <target state="translated">PasteStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|LocCanonicalName">
+        <source>PasteStackTraceExplorer</source>
+        <target state="translated">PasteStackTraceExplorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">Explorateur de traces de pile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
         <source>ShowStackTraceExplorerCommandName</source>
-        <target state="new">ShowStackTraceExplorerCommandName</target>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
         <source>ShowStackTraceExplorer</source>
-        <target state="new">ShowStackTraceExplorer</target>
+        <target state="translated">ShowStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
-        <target state="translated">&amp;Document actif</target>
+        <target state="translated">Document a&amp;ctif</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
@@ -67,9 +107,24 @@
         <target state="translated">Solution complète</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="translated">&amp;Aucun</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
+        <source>AnalysisScopeNone</source>
+        <target state="translated">AnalysisScopeNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
+        <source>None</source>
+        <target state="translated">Aucun(e)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
         <source>&amp;Open Documents</source>
-        <target state="translated">&amp;Documents ouverts</target>
+        <target state="translated">Documents &amp;ouverts</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
@@ -539,7 +594,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ShowValueTracking</source>
-        <target state="needs-review-translation">ViewEditorConfigSettings</target>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

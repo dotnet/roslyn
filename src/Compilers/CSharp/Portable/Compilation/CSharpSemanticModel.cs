@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new abstract CSharpSyntaxNode Root { get; }
 
-
         // Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
         // WARN: If isSpeculative is true, then don't look at .Parent - there might not be one.
         internal static bool CanGetSemanticInfo(CSharpSyntaxNode node, bool allowNamedArgumentName = false, bool isSpeculative = false)
@@ -101,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.RefType:
+                case SyntaxKind.ScopedType:
                     // These are just placeholders and are not separately meaningful.
                     return false;
 
@@ -411,7 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AliasSymbol aliasOpt; // not needed.
             NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
-            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, BindingDiagnosticBag.Discarded);
+            // note: we don't need to pass an 'attributedMember' here because we only need symbolInfo from this node
+            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, attributedMember: null, BindingDiagnosticBag.Discarded);
 
             return boundNode;
         }
@@ -541,8 +542,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         if (((TypeSyntax)expression).IsVar)
                         {
-                            return SymbolInfo.None;
+                            var varTypeInfo = GetTypeInfoWorker(expression, cancellationToken);
+                            if (varTypeInfo.Type is { TypeKind: not TypeKind.Error })
+                            {
+                                return GetSymbolInfoFromSymbolOrNone(varTypeInfo.Type.GetPublicSymbol());
+                            }
+
+                            return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type.GetPublicSymbol());
                         }
+
                         break;
                 }
             }
@@ -616,7 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     initializer = (InitializerExpressionSyntax)initializer.Parent.Parent;
                 }
-
 
                 if (initializer.Parent is BaseObjectCreationExpressionSyntax objectCreation &&
                     objectCreation.Initializer == initializer &&
@@ -965,8 +972,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         if (((TypeSyntax)expression).IsVar)
                         {
-                            return CSharpTypeInfo.None;
+                            var varTypeInfo = GetTypeInfoWorker(expression, cancellationToken);
+                            if (varTypeInfo.Type is { TypeKind: not TypeKind.Error })
+                            {
+                                return varTypeInfo;
+                            }
+
+                            return GetTypeInfoWorker(parent, cancellationToken);
                         }
+
                         break;
                 }
             }
@@ -1598,9 +1612,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Method type parameters are not in scope outside a method
                 // body unless the position is either:
                 // a) in a type-only context inside an expression, or
-                // b) inside of an XML name attribute in an XML doc comment.
+                // b) inside of an XML name attribute in an XML doc comment,
+                // c) inside a nameof context.
                 var parentExpr = token.Parent as ExpressionSyntax;
-                if (parentExpr != null && !(parentExpr.Parent is XmlNameAttributeSyntax) && !SyntaxFacts.IsInTypeOnlyContext(parentExpr))
+                if (parentExpr != null && !(parentExpr.Parent is XmlNameAttributeSyntax) && !SyntaxFacts.IsInTypeOnlyContext(parentExpr) && !binder.IsInsideNameof)
                 {
                     options |= LookupOptions.MustNotBeMethodTypeParameter;
                 }
@@ -1636,7 +1651,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             info.Free();
-
 
             if ((options & LookupOptions.IncludeExtensionMethods) != 0)
             {
@@ -1985,15 +1999,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (subpatternSymbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
             {
-                return new SymbolInfo(symbol: null, originalErrorType.CandidateSymbols.GetPublicSymbols(), originalErrorType.ResultKind.ToCandidateReason());
+                return new SymbolInfo(originalErrorType.CandidateSymbols.GetPublicSymbols(), originalErrorType.ResultKind.ToCandidateReason());
             }
 
-            return new SymbolInfo(subpatternSymbol.GetPublicSymbol(), CandidateReason.None);
+            return new SymbolInfo(subpatternSymbol.GetPublicSymbol());
         }
 
         private SymbolInfo GetSymbolInfoForDeconstruction(BoundRecursivePattern pat)
         {
-            return new SymbolInfo(pat.DeconstructMethod.GetPublicSymbol(), CandidateReason.None);
+            return new SymbolInfo(pat.DeconstructMethod.GetPublicSymbol());
         }
 
         private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
@@ -2031,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
                     pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref discardedUseSiteInfo));
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, isChecked: false, ref discardedUseSiteInfo));
             }
             if (lowestBoundNode is BoundPropertySubpatternMember member)
             {
@@ -2191,7 +2205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // There is a sequence of conversions; we use ClassifyConversionFromExpression to report the most pertinent.
                         var binder = this.GetEnclosingBinder(boundExpr.Syntax.Span.Start);
                         var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref discardedUseSiteInfo);
+                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, isChecked: ((BoundConversion)highestBoundExpr).Checked, ref discardedUseSiteInfo);
                     }
                 }
                 else if (boundNodeForSyntacticParent?.Kind == BoundKind.DelegateCreationExpression)
@@ -2324,7 +2338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Non-error case. Use constructor that doesn't require creation of a Symbol array.
                 var symbolToReturn = ((options & SymbolInfoOptions.ResolveAliases) != 0) ? unwrapped : symbol;
-                return new SymbolInfo(symbolToReturn.GetPublicSymbol(), ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                return new SymbolInfo(symbolToReturn.GetPublicSymbol());
             }
         }
 
@@ -2488,10 +2502,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModelForMethodBody(int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(method);
-            return TryGetSpeculativeSemanticModelForMethodBodyCore((SyntaxTreeSemanticModel)this, position, method, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelForMethodBodyCore((SyntaxTreeSemanticModel)this, position, method, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a method body that did not appear in this source code.
@@ -2513,10 +2529,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModelForMethodBody(int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(accessor);
-            return TryGetSpeculativeSemanticModelForMethodBodyCore((SyntaxTreeSemanticModel)this, position, accessor, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelForMethodBodyCore((SyntaxTreeSemanticModel)this, position, accessor, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a type syntax node that did not appear in
@@ -2540,10 +2558,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, TypeSyntax type, out SemanticModel speculativeModel, SpeculativeBindingOption bindingOption = SpeculativeBindingOption.BindAsExpression)
         {
             CheckModelAndSyntaxNodeToSpeculate(type);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, type, bindingOption, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, type, bindingOption, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a statement that did not appear in
@@ -2564,10 +2584,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, StatementSyntax statement, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(statement);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, statement, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, statement, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with an initializer that did not appear in
@@ -2589,10 +2611,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(initializer);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, initializer, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, initializer, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with an expression body that did not appear in
@@ -2614,10 +2638,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(expressionBody);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, expressionBody, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, expressionBody, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
@@ -2642,10 +2668,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(constructorInitializer);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
@@ -2669,10 +2697,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(constructorInitializer);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a cref that did not appear in
@@ -2697,10 +2727,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool TryGetSpeculativeSemanticModel(int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel)
         {
             CheckModelAndSyntaxNodeToSpeculate(crefSyntax);
-            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, crefSyntax, out speculativeModel);
+            var result = TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, crefSyntax, out PublicSemanticModel speculativeSyntaxTreeModel);
+            speculativeModel = speculativeSyntaxTreeModel;
+            return result;
         }
 
-        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel);
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out PublicSemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with an attribute that did not appear in
@@ -2817,7 +2849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !cdestination.IsErrorType())
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, ref discardedUseSiteInfo);
+
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, isChecked: binder.CheckOverflowAtRuntime, ref discardedUseSiteInfo);
                 }
             }
 
@@ -2868,7 +2901,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !destination.IsErrorType())
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref discardedUseSiteInfo, forCast: true);
+
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, isChecked: binder.CheckOverflowAtRuntime, ref discardedUseSiteInfo, forCast: true);
                 }
             }
 
@@ -3219,9 +3253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="forEachStatement"></param>
-        public ILocalSymbol GetDeclaredSymbol(ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
+        public ILocalSymbol GetDeclaredSymbol(ForEachStatementSyntax forEachStatement)
         {
             Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(forEachStatement));
 
@@ -3256,9 +3289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="catchDeclaration"></param>
-        public ILocalSymbol GetDeclaredSymbol(CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
+        public ILocalSymbol GetDeclaredSymbol(CatchDeclarationSyntax catchDeclaration)
         {
             CSharpSyntaxNode catchClause = catchDeclaration.Parent; //Syntax->Binder map is keyed on clause, not decl
             Debug.Assert(catchClause.Kind() == SyntaxKind.CatchClause);
@@ -3764,9 +3796,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)unaryOperator.MethodOpt == null && unaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = unaryOperator.OperatorKind.Operator();
                 symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(unaryOperator.Operand.Type.StrippedType(),
-                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
-                                                                                                 unaryOperator.Type.StrippedType(),
-                                                                                                 unaryOperator.OperatorKind.IsChecked()));
+                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: unaryOperator.OperatorKind.IsChecked()),
+                                                                                                 unaryOperator.Type.StrippedType()));
                 resultKind = unaryOperator.ResultKind;
             }
         }
@@ -3788,9 +3819,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)increment.MethodOpt == null && increment.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
                 symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
-                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
-                                                                                                 increment.Type.StrippedType(),
-                                                                                                 increment.OperatorKind.IsChecked()));
+                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: increment.OperatorKind.IsChecked()),
+                                                                                                 increment.Type.StrippedType()));
                 resultKind = increment.ResultKind;
             }
         }
@@ -3822,10 +3852,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var objectType = binaryOperator.Type.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
 
                     symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(objectType,
-                                                                                             OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
+                                                                                             OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked: binaryOperator.OperatorKind.IsChecked()),
                                                                                              objectType,
-                                                                                             binaryOperator.Type,
-                                                                                             binaryOperator.OperatorKind.IsChecked()));
+                                                                                             binaryOperator.Type));
                 }
                 else
                 {
@@ -3864,10 +3893,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return new SynthesizedIntrinsicOperatorSymbol(leftType,
-                                                          OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
+                                                          OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked),
                                                           rightType,
-                                                          returnType,
-                                                          isChecked);
+                                                          returnType);
         }
 
         private static void GetSymbolsAndResultKind(BoundCompoundAssignmentOperator compoundAssignment, out bool isDynamic, ref LookupResultKind resultKind, ref ImmutableArray<Symbol> symbols)
@@ -4445,7 +4473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tupleArgument = (ArgumentSyntax)identifierNameSyntax.Parent.Parent;
                 var tupleElement = GetDeclaredSymbol(tupleArgument, cancellationToken);
-                return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement);
             }
 
             if (parent3.IsKind(SyntaxKind.PropertyPatternClause) || parent3.IsKind(SyntaxKind.PositionalPatternClause))
@@ -4459,7 +4487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)containingInvocationInfo.Symbol != null)
             {
                 ParameterSymbol param = FindNamedParameter(containingInvocationInfo.Symbol.GetSymbol().GetParameters(), argumentName);
-                return (object)param == null ? SymbolInfo.None : new SymbolInfo(param.GetPublicSymbol(), ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                return (object)param == null ? SymbolInfo.None : new SymbolInfo(param.GetPublicSymbol());
             }
             else
             {
@@ -4489,7 +4517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return new SymbolInfo(null, symbols.ToImmutableAndFree(), containingInvocationInfo.CandidateReason);
+                    return new SymbolInfo(symbols.ToImmutableAndFree(), containingInvocationInfo.CandidateReason);
                 }
             }
         }
@@ -4851,9 +4879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a position in the SyntaxTree for this SemanticModel returns the innermost
         /// NamedType that the position is considered inside of.
         /// </summary>
-        public new ISymbol GetEnclosingSymbol(
-            int position,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public ISymbol GetEnclosingSymbol(int position)
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
@@ -5078,9 +5104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return this.GetDeclaredSymbol(usingDirective, cancellationToken);
                 case SyntaxKind.ForEachStatement:
-                    return this.GetDeclaredSymbol((ForEachStatementSyntax)node, cancellationToken);
+                    return this.GetDeclaredSymbol((ForEachStatementSyntax)node);
                 case SyntaxKind.CatchDeclaration:
-                    return this.GetDeclaredSymbol((CatchDeclarationSyntax)node, cancellationToken);
+                    return this.GetDeclaredSymbol((CatchDeclarationSyntax)node);
                 case SyntaxKind.JoinIntoClause:
                     return this.GetDeclaredSymbol((JoinIntoClauseSyntax)node, cancellationToken);
                 case SyntaxKind.QueryContinuation:
@@ -5139,6 +5165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal abstract override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol);
+        internal abstract override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol);
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
@@ -5281,7 +5308,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override ISymbol GetEnclosingSymbolCore(int position, CancellationToken cancellationToken)
         {
-            return this.GetEnclosingSymbol(position, cancellationToken);
+            return this.GetEnclosingSymbol(position);
+        }
+
+        private protected sealed override ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken)
+        {
+            position = CheckAndAdjustPosition(position);
+            var binder = GetEnclosingBinder(position);
+            var builder = ArrayBuilder<IImportScope>.GetInstance();
+
+            for (var chain = binder?.ImportChain; chain != null; chain = chain.ParentOpt)
+            {
+                var imports = chain.Imports;
+                if (imports.IsEmpty)
+                    continue;
+
+                // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
+                // node corresponding to this set of imports and chain it to that.
+                builder.Add(new SimpleImportScope(
+                    imports.UsingAliases.SelectAsArray(static kvp => kvp.Value.Alias.GetPublicSymbol()),
+                    imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
+                    imports.Usings.SelectAsArray(static n => new ImportedNamespaceOrType(n.NamespaceOrType.GetPublicSymbol(), n.UsingDirectiveReference)),
+                    xmlNamespaces: ImmutableArray<ImportedXmlNamespace>.Empty));
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)
@@ -5297,24 +5348,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override NullableContext GetNullableContext(int position)
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
+
+            NullableContextOptions? lazyDefaultState = null;
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
-            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
-                ? NullableContextOptions.Disable
-                : Compilation.Options.NullableContextOptions;
 
-            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
-            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);
+            return contextState.AnnotationsState switch
+            {
+                NullableContextState.State.Enabled => NullableContext.AnnotationsEnabled,
+                NullableContextState.State.Disabled => NullableContext.Disabled,
+                _ when getDefaultState().AnnotationsEnabled() => NullableContext.AnnotationsContextInherited | NullableContext.AnnotationsEnabled,
+                _ => NullableContext.AnnotationsContextInherited,
+            }
+            | contextState.WarningsState switch
+            {
+                NullableContextState.State.Enabled => NullableContext.WarningsEnabled,
+                NullableContextState.State.Disabled => NullableContext.Disabled,
+                _ when getDefaultState().WarningsEnabled() => NullableContext.WarningsContextInherited | NullableContext.WarningsEnabled,
+                _ => NullableContext.WarningsContextInherited,
+            };
 
-            return context;
-
-            static NullableContext getFlag(NullableContextState.State contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
-                contextState switch
-                {
-                    NullableContextState.State.Enabled => enableFlag,
-                    NullableContextState.State.Disabled => NullableContext.Disabled,
-                    _ when defaultEnableState => (inheritedFlag | enableFlag),
-                    _ => inheritedFlag,
-                };
+            // IsGeneratedCode might be slow, only call it when needed:
+            NullableContextOptions getDefaultState()
+                => lazyDefaultState ??= syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
+                    ? NullableContextOptions.Disable
+                    : Compilation.Options.NullableContextOptions;
         }
 
         #endregion

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
             return await GetSemanticClassificationsAsync(document, span);
         }
@@ -208,7 +209,7 @@ class C
     dynamic d;
 }",
                 testHost,
-                Record("dynamic"));
+                RecordClass("dynamic"));
         }
 
         [Theory]
@@ -2098,8 +2099,7 @@ namespace Roslyn.Compilers.Internal
  EnumMember("E"));
         }
 
-        [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
-        [Theory]
+        [Theory, WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
         [CombinatorialData]
         public async Task TestGenericVarClassification(TestHost testHost)
         {
@@ -2122,8 +2122,7 @@ class var<T>
     Keyword("var"));
         }
 
-        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
-        [Theory]
+        [Theory, WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestInaccessibleVarClassification(TestHost testHost)
         {
@@ -2150,8 +2149,7 @@ class B : A
                 Keyword("var"));
         }
 
-        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
-        [Theory]
+        [Theory, WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestVarNamedTypeClassification(TestHost testHost)
         {
@@ -2167,8 +2165,7 @@ class B : A
                 Class("var"));
         }
 
-        [WorkItem(9513, "DevDiv_Projects/Roslyn")]
-        [Theory]
+        [Theory, WorkItem(9513, "DevDiv_Projects/Roslyn")]
         [CombinatorialData]
         public async Task RegressionFor9513(TestHost testHost)
         {
@@ -2206,8 +2203,7 @@ class C
                 EnumMember("A"));
         }
 
-        [WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
-        [Theory]
+        [Theory, WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
         [CombinatorialData]
         public async Task RegressionFor9572(TestHost testHost)
         {
@@ -2230,8 +2226,7 @@ class C
                 Interface("I"));
         }
 
-        [WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
-        [Theory]
+        [Theory, WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
         [CombinatorialData]
         public async Task RegressionFor9831(TestHost testHost)
         {
@@ -2253,8 +2248,7 @@ public class X : B<X>
                 Class("A"));
         }
 
-        [WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
-        [Theory]
+        [Theory, WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
         [CombinatorialData]
         public async Task TestVar(TestHost testHost)
         {
@@ -2285,8 +2279,7 @@ public class X : B<X>
                 Class("var"));
         }
 
-        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
-        [Theory]
+        [Theory, WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         [CombinatorialData]
         public async Task TestVar2(TestHost testHost)
         {
@@ -2305,8 +2298,7 @@ public class X : B<X>
                 Parameter("args"));
         }
 
-        [WorkItem(542778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
-        [Theory]
+        [Theory, WorkItem(542778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
         [CombinatorialData]
         public async Task TestDuplicateTypeParamWithConstraint(TestHost testHost)
         {
@@ -2326,8 +2318,7 @@ class C<T>
                 Interface("IEnumerable"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task OptimisticallyColorFromInDeclaration(TestHost testHost)
         {
@@ -2336,8 +2327,7 @@ class C<T>
                 Keyword("from"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task OptimisticallyColorFromInAssignment(TestHost testHost)
         {
@@ -2351,14 +2341,12 @@ q = from",
                 Keyword("from"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task DontColorThingsOtherThanFromInDeclaration(TestHost testHost)
             => await TestInExpressionAsync("fro ", testHost);
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task DontColorThingsOtherThanFromInAssignment(TestHost testHost)
         {
@@ -2371,8 +2359,7 @@ q = fro",
                 Local("q"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task DontColorFromWhenBoundInDeclaration(TestHost testHost)
         {
@@ -2385,8 +2372,7 @@ var q = from",
                 Local("from"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task DontColorFromWhenBoundInAssignment(TestHost testHost)
         {
@@ -2402,8 +2388,7 @@ q = from",
                 Local("from"));
         }
 
-        [WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
-        [Theory]
+        [Theory, WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
         [CombinatorialData]
         public async Task NewOfClassWithOnlyPrivateConstructor(TestHost testHost)
         {
@@ -2426,8 +2411,7 @@ class Program
                 Class("X"));
         }
 
-        [WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
-        [Theory]
+        [Theory, WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
         [CombinatorialData]
         public async Task TestNullableVersusConditionalAmbiguity1(TestHost testHost)
         {
@@ -2447,8 +2431,7 @@ public class C1
                 Class("C1"));
         }
 
-        [WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
-        [Theory]
+        [Theory, WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
         [CombinatorialData]
         public async Task TestPointerVersusMultiplyAmbiguity1(TestHost testHost)
         {
@@ -2468,8 +2451,7 @@ public class C1
                 Class("C1"));
         }
 
-        [WorkItem(544302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544302")]
-        [Theory]
+        [Theory, WorkItem(544302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544302")]
         [CombinatorialData]
         public async Task EnumTypeAssignedToNamedPropertyOfSameNameInAttributeCtor(TestHost testHost)
         {
@@ -2492,8 +2474,7 @@ class C
                 Enum("CallingConvention"));
         }
 
-        [WorkItem(531119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531119")]
-        [Theory]
+        [Theory, WorkItem(531119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531119")]
         [CombinatorialData]
         public async Task OnlyClassifyGenericNameOnce(TestHost testHost)
         {
@@ -2597,8 +2578,7 @@ struct Type<T>
                 Method("nameof"));
         }
 
-        [WpfFact]
-        [WorkItem(744813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
+        [WpfFact, WorkItem(744813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
@@ -2618,6 +2598,7 @@ struct Type<T>
                 workspace.GetService<IThreadingContext>(),
                 workspace.GetService<ClassificationTypeMap>(),
                 globalOptions,
+                visibilityTracker: null,
                 listenerProvider);
 
             using var tagger = (IDisposable?)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
@@ -2748,45 +2729,6 @@ namespace ConsoleApplication1
     Static("Assert"),
     Parameter("args"),
     Property("Length"));
-        }
-
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarInPattern1(TestHost testHost)
-        {
-            await TestAsync(
-@"
-class Program
-{
-    void Main(string s)
-    {
-        if (s is var v)
-        {
-        }
-    }
-}", testHost,
- Parameter("s"), Keyword("var"));
-        }
-
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarInPattern2(TestHost testHost)
-        {
-            await TestAsync(
-@"
-class Program
-{
-    void Main(string s)
-    {
-        switch (s)
-        {
-            case var v:
-        }
-    }
-}", testHost,
- Parameter("s"), Keyword("var"));
         }
 
         [Theory]
@@ -2970,7 +2912,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         var r = new Regex(@""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"");
@@ -3054,7 +2995,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         // language=regex
@@ -3238,6 +3178,56 @@ Regex.Comment("(?#comment)"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegex4_utf8_1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */""$\\a(?#comment)"";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape(@"\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegex4_utf8_2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */@""$\a(?#comment)""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestRegex5(TestHost testHost)
         {
             await TestAsync(
@@ -3397,6 +3387,33 @@ Regex.Text(" # is not end of line comment"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegex10_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        // lang=regex
+        var r = @""$\a(?#comment) # is not end of line comment""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # is not end of line comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestRegex11(TestHost testHost)
         {
             await TestAsync(
@@ -3423,6 +3440,110 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexSingleLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""$\a(?#comment)"""""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexSingleLineRawStringLiteral_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""$\a(?#comment)""""""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexMultiLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""
+            $\a(?#comment)
+            """""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexMultiLineRawStringLiteral_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""
+            $\a(?#comment)
+            """"""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
         [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
         [CombinatorialData]
         public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
@@ -3445,6 +3566,540 @@ Class("Regex"),
 Regex.Anchor("^"),
 Regex.Text(@" """" "),
 Regex.Anchor("$"));
+        }
+
+        [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
+        [CombinatorialData]
+        public async Task TestRegexWithSpecialCSharpCharLiterals_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // lang=regex
+    private string myRegex = @""^ """" $""u8;
+}",
+testHost,
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Regex.Anchor("^"),
+Regex.Text(@" """" "),
+Regex.Anchor("$"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string field;
+
+    void Goo()
+    {
+        [|this.field = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Field("field"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    [|private string field = @""$\a(?#comment)"";|]
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string Prop { get; set; }
+
+    void Goo()
+    {
+        [|this.Prop = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Prop"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    [|private string Prop { get; set; } = @""$\a(?#comment)"";|]
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] params string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, WorkItem(64549, "https://github.com/dotnet/roslyn/issues/64549")]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] params string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"", @""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ArrayArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new string[] { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new[] { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_CollectionArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] List<string> p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new List<string> { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Class("List"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitCollectionArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] List<string> p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new() { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument_Options(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p, RegexOptions options)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment) # is end of line comment"", RegexOptions.IgnorePatternWhitespace);|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"),
+Enum("RegexOptions"),
+EnumMember("IgnorePatternWhitespace"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Attribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string value) { }
+}
+
+class Program
+{
+    [|[RegexTest(@""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeField(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute() { }
+
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    public string value;
+}
+
+class Program
+{
+    [|[RegexTest(value = @""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Field("value"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(61947, "https://github.com/dotnet/roslyn/issues/61947")]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeProperty(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute() { }
+
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    public string value { get; set; }
+}
+
+class Program
+{
+    [|[RegexTest(value = @""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Property("value"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] params string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(@""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ArrayAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(new string[] { @""$\a(?#comment)"" })]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(new[] { @""$\a(?#comment)"" })]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
         }
 
         [Theory]
@@ -3475,6 +4130,304 @@ Namespace("Text"),
 Namespace("RegularExpressions"),
 Keyword("var"),
 Class("Regex"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")]
+        public async Task TestRegexAmbiguity1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = Regex.Match("""", [|@""$\a(?#comment)""|]
+",
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(61982, "https://github.com/dotnet/roslyn/issues/61982")]
+        public async Task TestRegexAmbiguity2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = Regex.Match("""", [|@""$\a(?#comment)""|],
+",
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = @""[/*comment*/{ 'goo': 0, bar: -Infinity, """"baz"""": true }, new Date(), text, 'str'] // comment"";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.PropertyName("bar"),
+Json.Punctuation(":"),
+Json.Operator("-"),
+Json.Keyword("Infinity"),
+Json.PropertyName(@"""""baz"""""),
+Json.Punctuation(":"),
+Json.Keyword("true"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Keyword("new"),
+Json.ConstructorName("Date"),
+Json.Punctuation("("),
+Json.Punctuation(")"),
+Json.Punctuation(","),
+Json.Text("text"),
+Json.Punctuation(","),
+Json.String("'str'"),
+Json.Array("]"),
+Json.Comment("// comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson_RawString(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = """"""[/*comment*/{ 'goo': 0 }]"""""";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestMultiLineJson1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = @""[
+            /*comment*/
+            {
+                'goo': 0,
+                bar: -Infinity,
+                """"baz"""": true,
+                0: null
+            },
+            new Date(),
+            text,
+            'str'] // comment"";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.PropertyName("bar"),
+Json.Punctuation(":"),
+Json.Operator("-"),
+Json.Keyword("Infinity"),
+Json.PropertyName(@"""""baz"""""),
+Json.Punctuation(":"),
+Json.Keyword("true"),
+Json.PropertyName("0"),
+Json.Punctuation(":"),
+Json.Keyword("null"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Keyword("new"),
+Json.ConstructorName("Date"),
+Json.Punctuation("("),
+Json.Punctuation(")"),
+Json.Punctuation(","),
+Json.Text("text"),
+Json.Punctuation(","),
+Json.String("'str'"),
+Json.Array("]"),
+Json.Comment("// comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson_NoComment_NotLikelyJson(TestHost testHost)
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[1, 2, 3]"";
+    }
+}";
+            await TestAsync(input,
+testHost,
+Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson_NoComment_LikelyJson(TestHost testHost)
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[1, { prop: 0 }, 3]"";
+    }
+}";
+            await TestAsync(input,
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Number("1"),
+Json.Punctuation(","),
+Json.Object("{"),
+Json.PropertyName("prop"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Number("3"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string field;
+    void Goo()
+    {
+        [|this.field = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Field("field"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string Prop { get; set; }
+    void Goo()
+    {
+        [|this.Prop = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Prop"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Json)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""[{ 'goo': 0}]"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
         }
 
         [Theory]
@@ -3547,9 +4500,29 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape1_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = ""goo\r\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestStringEscape2(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = @""goo\r\nbar"";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape2_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = @""goo\r\nbar""u8;",
                 testHost,
                 Keyword("var"));
         }
@@ -3567,9 +4540,31 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape3_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1}}bar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestStringEscape4(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""goo{{1}}bar"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape4_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""goo{{1}}bar""u8;",
                 testHost,
                 Keyword("var"),
                 Escape(@"{{"),
@@ -3591,9 +4586,33 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape5_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"{{"),
+                Escape(@"}}"),
+                Escape(@"\n"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestStringEscape6(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape6_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar""u8;",
                 testHost,
                 Keyword("var"),
                 Escape(@"{{"),
@@ -3613,9 +4632,31 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape7_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestStringEscape8(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape8_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}""u8;",
                 testHost,
                 Keyword("var"),
                 Escape(@"{{"),
@@ -3633,8 +4674,142 @@ class X
                 Escape(@"}}"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape9_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{{12:X}}}""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral1(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""goo\r\nbar"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral1_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""goo\r\nbar""""""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral2(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    goo\r\nbar
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral2_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    goo\r\nbar
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral3(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    goo\r\nbar
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral3_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    goo\r\nbar
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral4(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""\"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral4_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""\""""""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral5(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    \
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral5_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    \
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral6(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    \
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral6_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    \
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape1(TestHost testHost)
         {
@@ -3644,8 +4819,7 @@ class X
                 Escape(@"\n"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape2(TestHost testHost)
         {
@@ -3655,8 +4829,7 @@ class X
                 Escape(@"\\"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape3(TestHost testHost)
         {
@@ -3666,8 +4839,7 @@ class X
                 Escape(@"\'"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape5(TestHost testHost)
         {
@@ -3676,8 +4848,7 @@ class X
                 Keyword("var"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape4(TestHost testHost)
         {
@@ -3687,14 +4858,12 @@ class X
                 Escape(@"\u000a"));
         }
 
-        [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
-        [Theory]
+        [Theory, WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
         [CombinatorialData]
         public async Task TestDirectiveStringLiteral(TestHost testHost)
             => await TestInMethodAsync(@"#line 1 ""a\b""", testHost);
 
-        [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
-        [Theory]
+        [Theory, WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
         [CombinatorialData]
         public async Task TestFormatSpecifierInInterpolation(TestHost testHost)
         {
@@ -3705,8 +4874,7 @@ class X
                 Escape(@"}}"));
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_BinaryExpression(TestHost testHost)
         {
@@ -3738,8 +4906,7 @@ class True
                 Class("True"));
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_PrefixUnaryExpression(TestHost testHost)
         {
@@ -3767,8 +4934,7 @@ class True
                 Class("True"));
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_PostfixUnaryExpression(TestHost testHost)
         {
@@ -3802,8 +4968,7 @@ class True
                 Class("True"));
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_ConditionalExpression(TestHost testHost)
         {
@@ -4411,7 +5576,7 @@ class X
     R() { }
 }",
                 testHost,
-                Record("R"));
+                RecordClass("R"));
         }
 
         [Theory]
@@ -4427,7 +5592,7 @@ class C
     R r;
 }",
                 testHost,
-                Record("R"));
+                RecordClass("R"));
         }
 
         [Theory]
@@ -4442,7 +5607,7 @@ class C
     R() { }
 }",
                 testHost,
-                Record("R"));
+                RecordClass("R"));
         }
 
         [Theory]
@@ -4506,6 +5671,43 @@ int m(Delegate d) { }",
                     Method("m"),
                     Method("m"),
                     Method("m"));
+        }
+
+        /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
+        /// <seealso cref="TotalClassifierTests.LocalFunctionDeclarationAndUse"/>
+        [Theory]
+        [CombinatorialData]
+        public async Task LocalFunctionUse(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M(Action action)
+                    {
+                        [|localFunction();
+                        staticLocalFunction();
+
+                        M(localFunction);
+                        M(staticLocalFunction);
+
+                        void localFunction() { }
+                        static void staticLocalFunction() { }|]
+                    }
+                }
+
+                """,
+                testHost,
+                Method("localFunction"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
+                Method("M"),
+                Method("localFunction"),
+                Method("M"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"));
         }
     }
 }

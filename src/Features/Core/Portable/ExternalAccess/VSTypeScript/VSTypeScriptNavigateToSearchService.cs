@@ -13,13 +13,14 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptNavigateToSearchService : INavigateToSearchService
+    internal sealed class VSTypeScriptNavigateToSearchService : INavigateToSearchService
     {
         private readonly IVSTypeScriptNavigateToSearchService? _searchService;
 
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -55,6 +57,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -71,6 +74,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -82,6 +86,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Project project,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -132,36 +137,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             public string Summary => _result.Summary;
 
-            public INavigableItem? NavigableItem => _result.NavigableItem == null ? null : new WrappedNavigableItem(_result.NavigableItem);
-        }
+            public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
 
-        private class WrappedNavigableItem : INavigableItem
-        {
-            private readonly IVSTypeScriptNavigableItem _navigableItem;
-
-            public WrappedNavigableItem(IVSTypeScriptNavigableItem navigableItem)
-            {
-                _navigableItem = navigableItem;
-            }
-
-            public Glyph Glyph => _navigableItem.Glyph;
-
-            public ImmutableArray<TaggedText> DisplayTaggedParts => _navigableItem.DisplayTaggedParts;
-
-            public bool DisplayFileLocation => _navigableItem.DisplayFileLocation;
-
-            public bool IsImplicitlyDeclared => _navigableItem.IsImplicitlyDeclared;
-
-            public Document Document => _navigableItem.Document;
-
-            public TextSpan SourceSpan => _navigableItem.SourceSpan;
-
-            public bool IsStale => false;
-
-            public ImmutableArray<INavigableItem> ChildItems
-                => _navigableItem.ChildItems.IsDefault
-                    ? default
-                    : _navigableItem.ChildItems.SelectAsArray(i => (INavigableItem)new WrappedNavigableItem(i));
+            public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
         }
     }
 }

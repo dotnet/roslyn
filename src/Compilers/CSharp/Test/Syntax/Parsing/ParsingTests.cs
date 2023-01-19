@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
         }
 
-        protected void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
+        protected void UsingNode(string text, CSharpSyntaxNode node, params DiagnosticDescription[] expectedErrors)
         {
             Validate(text, node, expectedErrors);
             UsingNode(node);
@@ -141,14 +141,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(text, options: null, expectedErrors);
         }
 
-        /// <summary>
-        /// Parses given string and initializes a depth-first preorder enumerator.
-        /// </summary>
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options = null)
+        protected SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            return UsingTree(text, options: null, expectedErrors);
+        }
+
+        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             VerifyEnumeratorConsumed();
             var tree = ParseTree(text, options);
             _node = tree.GetCompilationUnitRoot();
+            var actualErrors = _node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
             var nodes = EnumerateNodes(_node, dump: false);
             _treeEnumerator = nodes.GetEnumerator();
 
@@ -291,6 +295,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     case SyntaxKind.IdentifierToken:
                     case SyntaxKind.NumericLiteralToken:
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.Utf8StringLiteralToken:
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                         if (node.IsMissing)
                         {
                             goto default;

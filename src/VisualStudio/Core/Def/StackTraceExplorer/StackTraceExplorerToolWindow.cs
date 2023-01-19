@@ -3,12 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -26,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
     {
         private bool _initialized;
+
+        [MemberNotNullWhen(true, nameof(_initialized))]
         public StackTraceExplorerRoot? Root { get; private set; }
 
         public StackTraceExplorerToolWindow() : base(null)
@@ -38,10 +47,71 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             dockPanel.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, (s, e) =>
             {
-                Root?.OnPaste();
+                Root?.ViewModel.DoPasteAsync(default).FileAndForget("StackTraceExplorerPaste");
             }));
 
             Content = dockPanel;
+        }
+
+        /// <summary>
+        /// Checks the contents of the clipboard for a valid stack trace and 
+        /// opens stack trace explorer if anything parses correctly
+        /// </summary>
+        public async Task<bool> ShouldShowOnActivatedAsync(CancellationToken cancellationToken)
+        {
+            if (Root is null)
+            {
+                return false;
+            }
+
+            var text = ClipboardHelpers.GetTextNoRetry();
+            if (RoslynString.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            if (Root.ViewModel.ContainsTab(text))
+            {
+                return false;
+            }
+
+            var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
+            if (result.ParsedFrames.Any(static frame => FrameTriggersActivate(frame)))
+            {
+                await Root.ViewModel.AddNewTabAsync(result, text, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool FrameTriggersActivate(ParsedFrame frame)
+        {
+            if (frame is not ParsedStackFrame parsedFrame)
+            {
+                return false;
+            }
+
+            var methodDeclaration = parsedFrame.Root.MethodDeclaration;
+
+            // Find the first token
+            var firstNodeOrToken = methodDeclaration.ChildAt(0);
+            while (firstNodeOrToken.IsNode)
+            {
+                firstNodeOrToken = firstNodeOrToken.Node.ChildAt(0);
+            }
+
+            if (firstNodeOrToken.Token.LeadingTrivia.IsDefault)
+            {
+                return false;
+            }
+
+            // If the stack frame starts with "at" we consider it a well formed stack frame and 
+            // want to automatically open the window. This helps avoids some false positive cases 
+            // where the window shows on code that parses as a stack frame but may not be. The explorer
+            // should still handle those cases if explicitly pasted in, but can lead to false positives 
+            // when automatically opening.
+            return firstNodeOrToken.Token.LeadingTrivia.Any(static t => t.Kind == StackFrameKind.AtTrivia);
         }
 
         public void InitializeIfNeeded(RoslynPackage roslynPackage)
@@ -56,6 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
             var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
             var threadingContext = roslynPackage.ComponentModel.GetService<IThreadingContext>();
+            var themingService = roslynPackage.ComponentModel.GetService<IWpfThemeService>();
 
             Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, workspace, formatMap, typeMap))
             {
@@ -64,30 +135,27 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             };
 
             var contentRoot = (DockPanel)Content;
+            themingService?.ApplyThemeToElement(contentRoot);
             contentRoot.Children.Add(Root);
 
-            var contextMenu = new ThemedContextMenu();
-            contextMenu.Items.Add(new MenuItem()
+            contentRoot.MouseRightButtonUp += (s, e) =>
             {
-                Header = ServicesVSResources.Paste,
-                Command = new DelegateCommand(_ => Root.OnPaste()),
-                Icon = new CrispImage()
-                {
-                    Moniker = KnownMonikers.Paste
-                }
-            });
+                var uiShell = roslynPackage.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
+                var relativePoint = e.GetPosition(contentRoot);
+                var screenPosition = contentRoot.PointToScreen(relativePoint);
 
-            contextMenu.Items.Add(new MenuItem()
-            {
-                Header = ServicesVSResources.Clear,
-                Command = new DelegateCommand(_ => Root.OnClear()),
-                Icon = new CrispImage()
-                {
-                    Moniker = KnownMonikers.ClearCollection
-                }
-            });
+                var points = new[] {
+                    new POINTS()
+                    {
+                        x = (short)screenPosition.X,
+                        y = (short)screenPosition.Y
+                    }
+                };
 
-            contentRoot.ContextMenu = contextMenu;
+                var refCommandId = new Guid(Guids.StackTraceExplorerCommandIdString);
+                var result = uiShell.ShowContextMenu(0, ref refCommandId, 0x0300, points, null);
+                Debug.Assert(result == S_OK);
+            };
 
             _initialized = true;
         }
@@ -109,12 +177,14 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 switch (command)
                 {
                     case VSStd97CmdID.Paste:
-                        Root?.OnPaste();
-                        break;
+                        Root?.ViewModel.DoPasteSynchronously(default);
+                        return S_OK;
                 }
             }
 
-            return VSConstants.S_OK;
+            // Return OLECMDERR_E_UNKNOWNGROUP if we don't handle the command
+            // see https://docs.microsoft.com/en-us/windows/win32/api/docobj/nf-docobj-iolecommandtarget-exec#return-value
+            return -2147221244;
         }
     }
 }

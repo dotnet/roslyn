@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var classConstructors = ClassType.InstanceConstructors;
 
-                var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
+                var destinationProvider = semanticDocument.Project.Solution.Services.GetLanguageServices(ClassType.Language);
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
                 UnimplementedConstructors =
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 // See if the user didn't supply a constructor, and thus the compiler automatically generated
                 // one for them.   If so, also see if there's an accessible no-arg contructor in the base.
                 // If not, then the compiler will error and we want the code-fix to take over solving this problem.
-                if (classType.Constructors.Any(c => c.Parameters.Length == 0 && c.IsImplicitlyDeclared))
+                if (classType.Constructors.Any(static c => c.Parameters.Length == 0 && c.IsImplicitlyDeclared))
                 {
                     var baseNoArgConstructor = baseType.Constructors.FirstOrDefault(c => c.Parameters.Length == 0);
                     if (baseNoArgConstructor == null ||
@@ -100,6 +100,14 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                     {
                         // this code is in error, but we're the refactoring codepath.  Offer nothing
                         // and let the code fix provider handle it instead.
+                        return true;
+                    }
+
+                    // If this is a struct that has initializers, but is missing a parameterless constructor then we are fixing
+                    // an error (CS8983) but since this is the only scenario where we support structs we don't need to actually
+                    // check for anything else.
+                    if (classType.TypeKind == TypeKind.Struct)
+                    {
                         return true;
                     }
                 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -11,9 +9,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
     public partial class InvertIfTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveIfBodyToElseClause1()
         {
             await TestInRegularAndScriptAsync(
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveIfBodyToElseClause2()
         {
             await TestInRegularAndScriptAsync(
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveIfBodyToElseClause3()
         {
             await TestInRegularAndScriptAsync(
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveIfBodyToElseClause4()
         {
             await TestInRegularAndScriptAsync(
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveIfBodyToElseClause5()
         {
             await TestInRegularAndScriptAsync(
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveIfBodyToElseClause6()
         {
             await TestInRegularAndScriptAsync(
@@ -259,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveIfBodyToElseClause7()
         {
             await TestInRegularAndScriptAsync(
@@ -310,8 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        [WorkItem(40909, "https://github.com/dotnet/roslyn/issues/40909")]
+        [Fact, WorkItem(40909, "https://github.com/dotnet/roslyn/issues/40909")]
         public async Task IfWithoutElse_MoveIfBodyToElseClause8()
         {
             await TestInRegularAndScriptAsync(
@@ -350,7 +348,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody1()
         {
             await TestInRegularAndScriptAsync(
@@ -385,7 +383,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody2()
         {
             await TestInRegularAndScriptAsync(
@@ -426,7 +424,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_MoveSubsequentStatementsToIfBody3()
         {
             await TestInRegularAndScriptAsync(
@@ -465,7 +463,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_SwapIfBodyWithSubsequentStatements1()
         {
             await TestInRegularAndScriptAsync(
@@ -495,7 +493,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_SwapIfBodyWithSubsequentStatements2()
         {
             await TestInRegularAndScriptAsync(
@@ -529,7 +527,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_WithElseClause1()
         {
             await TestInRegularAndScriptAsync(
@@ -560,7 +558,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_WithNegatedCondition1()
         {
             await TestInRegularAndScriptAsync(
@@ -580,7 +578,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_WithNearmostJumpStatement1()
         {
             await TestInRegularAndScriptAsync(
@@ -613,7 +611,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_WithNearmostJumpStatement2()
         {
             await TestInRegularAndScriptAsync(
@@ -650,7 +648,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_WithNearmostJumpStatement3()
         {
             await TestInRegularAndScriptAsync(
@@ -677,7 +675,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_WithNearmostJumpStatement4()
         {
             await TestInRegularAndScriptAsync(
@@ -710,7 +708,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_WithSubsequentExitPointStatement1()
         {
             await TestInRegularAndScriptAsync(
@@ -749,7 +747,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Fact]
         public async Task IfWithoutElse_WithSubsequentExitPointStatement2()
         {
             await TestInRegularAndScriptAsync(
@@ -794,7 +792,7 @@ class C
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [Theory]
         [InlineData("get")]
         [InlineData("set")]
         [InlineData("init")]

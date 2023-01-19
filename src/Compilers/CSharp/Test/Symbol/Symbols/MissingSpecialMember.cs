@@ -414,6 +414,17 @@ namespace System
 
     public class ValueType {{ }}
     public struct Void {{ }}
+    public struct Int32 {{ }}
+    public struct Boolean {{ }}
+    public class Attribute {{ }}
+    public class AttributeUsageAttribute : Attribute
+    {{
+        public AttributeUsageAttribute(AttributeTargets t) {{ }}
+        public bool AllowMultiple {{ get; set; }}
+        public bool Inherited {{ get; set; }}
+    }}
+    public struct Enum {{ }}
+    public enum AttributeTargets {{ }}
 }}
 ";
             Action<CSharpCompilation> validate = comp =>
@@ -471,14 +482,15 @@ namespace System
 }}
 ";
 
-            var corlibRef = CreateEmptyCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlibRef = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions).EmitToImageReference(expectedWarnings: new[]
             {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var publicLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
-            var internalLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
+            var publicLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }, parseOptions: parseOptions).EmitToImageReference();
+            var internalLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }, parseOptions: parseOptions).EmitToImageReference();
 
             var comp = CreateEmptyCompilation("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
 
@@ -493,7 +505,8 @@ namespace System
 
         private static void ValidateSourceAndMetadata(string source, Action<CSharpCompilation> validate)
         {
-            var comp1 = CreateEmptyCompilation(source);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp1 = CreateEmptyCompilation(source, parseOptions: parseOptions);
             validate(comp1);
 
             var reference = comp1.EmitToImageReference(expectedWarnings: new[]
@@ -502,7 +515,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var comp2 = CreateEmptyCompilation("", new[] { reference });
+            var comp2 = CreateEmptyCompilation("", new[] { reference }, parseOptions: parseOptions);
             validate(comp2);
         }
 
@@ -544,6 +557,8 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
                 {
                     Assert.Null(symbol); // Not available
@@ -610,6 +625,14 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
                     case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute:
+                    case WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute:
+                    case WellKnownType.System_MemoryExtensions:
+                    case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
+                    case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -917,10 +940,13 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor:
-                    case WellKnownMember.System_Span_T__ctor:
+                    case WellKnownMember.System_Span_T__ctor_Pointer:
+                    case WellKnownMember.System_Span_T__ctor_Array:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
-                    case WellKnownMember.System_ReadOnlySpan_T__ctor:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_Index__ctor:
@@ -964,6 +990,17 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
+                    case WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor:
+                    case WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor:
+                    case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
+                    case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
+                    case WellKnownMember.System_MemoryExtensions__AsSpan_String:
+                    case WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor:
+                    case WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

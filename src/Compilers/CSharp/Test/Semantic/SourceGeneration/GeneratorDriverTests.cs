@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -52,7 +52,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -74,7 +74,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -95,7 +95,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -124,7 +124,7 @@ class GeneratedClass { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -155,7 +155,7 @@ class GeneratedClass { }
             var parseOptions = TestOptions.Regular;
             var analyzer = new Analyzer_Is_Run_Analyzer();
 
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
 
@@ -214,7 +214,7 @@ class GeneratedClass { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -246,7 +246,7 @@ class C
 }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics(
                 // (5,12): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //     public D d;
@@ -271,7 +271,7 @@ class C
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -297,7 +297,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -318,7 +318,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -344,7 +344,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -377,7 +377,7 @@ class C
 }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics(
                     // (5,12): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                     //     public D d;
@@ -411,7 +411,7 @@ class C
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -437,7 +437,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -463,7 +463,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -492,7 +492,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -533,7 +533,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -571,7 +571,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -601,7 +601,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -646,7 +646,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -693,7 +693,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -728,7 +728,7 @@ class C
 }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -749,7 +749,6 @@ class C
                     e.CancellationToken.ThrowIfCancellationRequested();
                 });
 
-
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
             var oldDriver = driver;
 
@@ -766,7 +765,7 @@ class C
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -790,7 +789,7 @@ class C
 }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -815,7 +814,7 @@ class C
 }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -843,11 +842,11 @@ class C
 }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
-            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
+            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
 
             AnalyzerConfigOptionsProvider? passedIn = null;
             var testGenerator = new CallbackGenerator(
@@ -874,7 +873,7 @@ class C
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -885,7 +884,6 @@ class C { }
             }
 
             var generator = new CallbackGenerator((ic) => ic.RegisterForPostInitialization(postInit), (sgc) => { });
-
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
@@ -901,7 +899,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -928,7 +926,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -956,7 +954,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -988,7 +986,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1020,7 +1018,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1058,7 +1056,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -1085,7 +1083,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -1130,7 +1128,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -1157,7 +1155,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1199,7 +1197,6 @@ class C { }
             verifyDiagnosticsWithOptions(options.WithSpecificDiagnosticOptions("GEN002", ReportDiagnostic.Error),
                 Diagnostic("GEN001").WithLocation(1, 1),
                 Diagnostic("GEN002").WithLocation(1, 1).WithWarningAsError(true));
-
 
             void verifyDiagnosticsWithOptions(CompilationOptions options, params DiagnosticDescription[] expected)
             {
@@ -1257,7 +1254,7 @@ class C { }
             {
                 var parseOptions = TestOptions.Regular;
                 source = source.Replace(Environment.NewLine, "\r\n");
-                Compilation compilation = CreateCompilation(source, sourceFileName: "sourcefile.cs", options: TestOptions.DebugDll, parseOptions: parseOptions);
+                Compilation compilation = CreateCompilation(source, sourceFileName: "sourcefile.cs", options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
                 compilation.VerifyDiagnostics();
                 Assert.Single(compilation.SyntaxTrees);
 
@@ -1290,7 +1287,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1303,7 +1300,6 @@ class C { }
 
             int dualInitCount = 0, dualExecuteCount = 0, dualIncrementalInitCount = 0;
             var generator3 = new IncrementalAndSourceCallbackGenerator((ic) => dualInitCount++, (sgc) => dualExecuteCount++, (ic) => dualIncrementalInitCount++);
-
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2, generator3 }, parseOptions: parseOptions);
             driver.RunGenerators(compilation);
@@ -1326,7 +1322,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1348,7 +1344,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1373,7 +1369,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1398,7 +1394,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1427,7 +1423,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1460,7 +1456,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1481,7 +1477,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1543,7 +1539,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1587,7 +1583,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1806,7 +1802,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1842,7 +1838,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -1960,7 +1956,7 @@ class C { }
                         source =>
                         {
                             Assert.Empty((ImmutableArray<AdditionalText>)source.Source.Outputs[source.OutputIndex].Value);
-                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                            Assert.Equal(IncrementalStepRunReason.Unchanged, source.Source.Outputs[source.OutputIndex].Reason);
                         });
                     Assert.Collection(step.Outputs,
                         output =>
@@ -1980,7 +1976,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -2015,7 +2011,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -2087,7 +2083,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -2115,7 +2111,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -2166,6 +2162,69 @@ class C { }
             Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedParseOptions(null!));
         }
 
+        [Fact, WorkItem(57455, "https://github.com/dotnet/roslyn/issues/57455")]
+        public void RemoveTriggeringSyntaxAndVerifySyntaxTreeConsistentWithCompilation()
+        {
+            var source = @"
+[System.Obsolete]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                IncrementalValuesProvider<ClassDeclarationSyntax> classDeclarations = ctx.SyntaxProvider
+                    .CreateSyntaxProvider(static (s, t) => isSyntaxTargetForGeneration(s), static (context, ct) => getSemanticTargetForGeneration(context, ct))
+                    .Where(static c => c is not null)!;
+
+                IncrementalValueProvider<(Compilation, ImmutableArray<ClassDeclarationSyntax>)> compilationAndClasses =
+                    ctx.CompilationProvider.Combine(classDeclarations.Collect());
+
+                ctx.RegisterSourceOutput(compilationAndClasses, (context, ct) => validate(ct.Item1, ct.Item2));
+            }));
+
+            // run the generator once
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            Assert.True(driver.GetRunResult().Diagnostics.IsEmpty);
+
+            // now update the source 
+            var newSource = @"
+class C { }
+";
+            Compilation newCompilation = CreateCompilation(newSource, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+            // check we ran
+            driver = driver.RunGenerators(newCompilation);
+            Assert.True(driver.GetRunResult().Diagnostics.IsEmpty);
+            return;
+
+            static void validate(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> nodes)
+            {
+                foreach (var node in nodes)
+                {
+                    Assert.True(compilation.SyntaxTrees.Contains(node.SyntaxTree));
+                }
+            }
+
+            static bool isSyntaxTargetForGeneration(SyntaxNode node)
+                => node is ClassDeclarationSyntax { AttributeLists: { Count: > 0 } };
+
+            static ClassDeclarationSyntax? getSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+            {
+                var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
+                foreach (AttributeListSyntax attributeListSyntax in classDeclarationSyntax.AttributeLists)
+                {
+                    return classDeclarationSyntax;
+                }
+                return null;
+            }
+        }
+
         [Fact]
         public void AnalyzerConfig_Can_Be_Updated()
         {
@@ -2173,7 +2232,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -2190,7 +2249,7 @@ class C { }
 
             var builder = ImmutableDictionary<string, string>.Empty.ToBuilder();
             builder.Add("test", "value1");
-            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
+            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
 
             // run the generator once, and check it was passed the configs
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, optionsProvider: optionsProvider, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
@@ -2227,7 +2286,7 @@ class C { }
             // now update the config
             builder.Clear();
             builder.Add("test", "value2");
-            var newOptionsProvider = optionsProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
+            var newOptionsProvider = optionsProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
             driver = driver.WithUpdatedAnalyzerConfigOptions(newOptionsProvider);
 
             // check we ran
@@ -2257,7 +2316,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -2444,7 +2503,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -2634,7 +2693,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -2679,7 +2738,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -2725,7 +2784,7 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -2735,7 +2794,7 @@ class C { }
             {
                 ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
             });
-            var generator2 = new LocalPipelineCallbackGenerator(ctx =>
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
             {
                 ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
             });
@@ -2746,23 +2805,6 @@ class C { }
             Assert.All(runResult.Results,
                 result => Assert.Contains(WellKnownGeneratorInputs.AdditionalTexts, result.TrackedSteps.Keys));
             Assert.Equal(2, runResult.Results.Length);
-        }
-
-        // Introduce a local type here since GeneratorDriver validates that each generator is only included once
-        // by checking the type
-        private sealed class LocalPipelineCallbackGenerator : IIncrementalGenerator
-        {
-            private readonly Action<IncrementalGeneratorInitializationContext> _callback;
-
-            public LocalPipelineCallbackGenerator(Action<IncrementalGeneratorInitializationContext> callback)
-            {
-                _callback = callback;
-            }
-
-            public void Initialize(IncrementalGeneratorInitializationContext context)
-            {
-                _callback(context);
-            }
         }
 
         [Fact]
@@ -2776,7 +2818,7 @@ class C { }
                 MetadataReference.CreateFromAssemblyInternal(this.GetType().Assembly),
                 MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly)
             };
-            Compilation compilation = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, references: metadataRefs);
+            Compilation compilation = CreateEmptyCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions, references: metadataRefs);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -2805,6 +2847,482 @@ class C { }
 
             driver = driver.RunGenerators(compilation);
             Assert.Single(referenceList, modifiedRef.Display);
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
+        public void LongBinaryExpression()
+        {
+            var source = @"
+class C {
+public static readonly string F = ""a""
+";
+
+            for (int i = 0; i < 7000; i++)
+            {
+                source += @" + ""a""
+";
+            }
+
+            source += @";
+}
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider((node, ct) => node is ClassDeclarationSyntax c, (context, ct) => context.Node).WithTrackingName("Syntax"), (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
+                ctx.RegisterImplementationSourceOutput(ctx.MetadataReferencesProvider, (context, ct) => { });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, additionalTexts: new[] { new InMemoryAdditionalText("text.txt", "") }, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            driver.GetRunResult();
+        }
+
+        [Fact]
+        [WorkItem(59209, "https://github.com/dotnet/roslyn/issues/59209")]
+        public void Binary_Additional_Files_Do_Not_Throw_When_Compared()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, text) =>
+                {
+                    context.AddSource(Path.GetFileName(text.Path), "");
+                });
+            });
+
+            var additionalText1 = new InMemoryAdditionalText.BinaryText("file1");
+            var additionalText2 = new InMemoryAdditionalText.BinaryText("file2");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() },
+                parseOptions: parseOptions,
+                additionalTexts: new[] { additionalText1, additionalText2 },
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            driver = driver.RunGenerators(compilation);
+        }
+
+        [Fact]
+        [WorkItem(58625, "https://github.com/dotnet/roslyn/issues/58625")]
+        public void Incremental_Generators_Can_Recover_From_Exceptions()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            bool shouldThrow = true;
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    if (shouldThrow)
+                    {
+                        throw new InvalidOperationException();
+                    }
+                    else
+                    {
+                        context.AddSource("generated", "");
+                    }
+
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() },
+                parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+
+            var diag = Assert.Single(result.Diagnostics);
+
+            // update the compilation
+            compilation = compilation.WithOptions(compilation.Options.WithModuleName("newName"));
+            shouldThrow = false;
+
+            driver = driver.RunGenerators(compilation);
+            result = driver.GetRunResult();
+
+            Assert.Single(result.GeneratedTrees);
+        }
+
+        [Fact]
+        public void Timing_Info_Is_Empty_If_Not_Run()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            var timing = driver.GetTimingInfo();
+
+            Assert.Equal(TimeSpan.Zero, timing.ElapsedTime);
+
+            var generatorTiming = Assert.Single(timing.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming.Generator);
+            Assert.Equal(TimeSpan.Zero, generatorTiming.ElapsedTime);
+        }
+
+        [Fact]
+        public void Can_Get_Timing_Info()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                    Thread.Sleep(1);
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            driver = driver.RunGenerators(compilation);
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+
+            var generatorTiming = Assert.Single(timing.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming.Generator);
+            Assert.NotEqual(TimeSpan.Zero, generatorTiming.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= generatorTiming.ElapsedTime);
+        }
+
+        [Fact]
+        public void Can_Get_Timing_Info_From_Multiple_Generators()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                    Thread.Sleep(1);
+                });
+            }).AsSourceGenerator();
+
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                    Thread.Sleep(1);
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator, generator2 }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            driver = driver.RunGenerators(compilation);
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+            Assert.Equal(2, timing.GeneratorTimes.Length);
+
+            var timing1 = timing.GeneratorTimes[0];
+            Assert.Equal(generator, timing1.Generator);
+            Assert.NotEqual(TimeSpan.Zero, timing1.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= timing1.ElapsedTime);
+
+            var timing2 = timing.GeneratorTimes[1];
+            Assert.Equal(generator2, timing2.Generator);
+            Assert.NotEqual(TimeSpan.Zero, timing2.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= timing2.ElapsedTime);
+
+            Assert.True(timing.ElapsedTime >= timing1.ElapsedTime + timing2.ElapsedTime);
+        }
+
+        [Fact]
+        public void Timing_Info_Only_Includes_Last_Run()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    Thread.Sleep(50);
+                    context.AddSource("generated", "");
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            // run once
+            driver = driver.RunGenerators(compilation);
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+
+            var generatorTiming = Assert.Single(timing.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming.Generator);
+            Assert.NotEqual(TimeSpan.Zero, generatorTiming.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= generatorTiming.ElapsedTime);
+
+            // run a second time. No steps should be performed, so overall time should be less 
+            driver = driver.RunGenerators(compilation);
+            var timing2 = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing2.ElapsedTime);
+            Assert.True(timing.ElapsedTime > timing2.ElapsedTime);
+
+            var generatorTiming2 = Assert.Single(timing2.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming2.Generator);
+            Assert.NotEqual(TimeSpan.Zero, generatorTiming2.ElapsedTime);
+            Assert.True(generatorTiming.ElapsedTime > generatorTiming2.ElapsedTime);
+        }
+
+        [Fact]
+        public void Returning_Null_From_SelectMany_Gives_Empty_Array()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                var nullArray = ctx.CompilationProvider.Select((c, _) => null as object[]);
+                var flatArray = nullArray.SelectMany((a, _) => a!);
+                ctx.RegisterSourceOutput(flatArray, (_, _) => { });
+
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+
+            Assert.Empty(runResult.GeneratedTrees);
+            Assert.Empty(runResult.Diagnostics);
+            var result = Assert.Single(runResult.Results);
+            Assert.Empty(result.GeneratedSources);
+            Assert.Empty(result.Diagnostics);
+        }
+
+        [Fact]
+        public void Post_Init_Trees_Are_Reparsed_When_ParseOptions_Change()
+        {
+            var source = "class C{}";
+            var postInitSource = @"
+#pragma warning disable CS0169
+class D {  (int, bool) _field; }";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterPostInitializationOutput(c => c.AddSource("D", postInitSource));
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            compilation.VerifyDiagnostics();
+            Assert.Empty(diagnostics);
+
+            // change the parse options so that the tree is no longer accepted
+            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp2);
+            compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            driver = driver.WithUpdatedParseOptions(parseOptions);
+
+            // change some other options to ensure the parseOption change tracking flows correctly
+            driver = driver.AddAdditionalTexts(ImmutableArray<AdditionalText>.Empty);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics(
+                    // Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator\D.cs(3,12): error CS8022: Feature 'tuples' is not available in C# 2. Please use language version 7.0 or greater.
+                    // class D {  (int, bool) _field; }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "(int, bool)").WithArguments("tuples", "7.0").WithLocation(3, 12)
+                );
+
+            // change them back to something where it is supported
+            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp8);
+            compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            driver = driver.WithUpdatedParseOptions(parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Add_New_Generator_After_Generation()
+        {
+            // 1. run a generator, smuggling out some inputs from context
+            // 2. add a second generator, re-using the inputs from the first step and using a Combine node
+            // 3. run the new graph
+
+            var source = @"
+class C { }
+";
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing);
+            compilation.VerifyDiagnostics();
+
+            IncrementalValueProvider<ParseOptions> parseOptionsProvider = default;
+            IncrementalValueProvider<AnalyzerConfigOptionsProvider> configOptionsProvider = default;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var source = parseOptionsProvider = ctx.ParseOptionsProvider;
+                var source2 = configOptionsProvider = ctx.AnalyzerConfigOptionsProvider;
+                var combine = source.Combine(source2);
+                ctx.RegisterSourceOutput(combine, (spc, c) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator });
+            driver = driver.RunGenerators(compilation);
+
+            // parse options and analyzer options are now cached
+            // add a new generator that depends on them
+            bool wasCalled = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                var source = parseOptionsProvider;
+                var source2 = configOptionsProvider;
+                // this call should always be made, even though the above inputs are cached
+                var transform = source.Select((a, _) => { wasCalled = true; return new object(); });
+                // now combine source2 with the transform. Combine will call single on transform, and we'll crash if it wasn't called
+                var combine = source2.Combine(transform);
+                ctx.RegisterSourceOutput(combine, (spc, c) => { });
+            }));
+
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(generator2));
+            driver = driver.RunGenerators(compilation);
+            Assert.True(wasCalled);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Add_New_Generator_After_Generation_SourceOutputNode()
+        {
+            // 1. run a generator, smuggling out some inputs from context
+            // 2. add a second generator, re-using the inputs from the first step
+            // 3. run the new graph
+
+            var source = @"
+class C { }
+";
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing);
+            compilation.VerifyDiagnostics();
+
+            IncrementalValueProvider<ParseOptions> parseOptionsProvider = default;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var source = parseOptionsProvider = ctx.ParseOptionsProvider;
+                ctx.RegisterSourceOutput(source, (spc, c) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator });
+            driver = driver.RunGenerators(compilation);
+
+            // parse options are now cached
+            // add a new generator that depends on them
+            bool wasCalled = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                var source = parseOptionsProvider;
+                ctx.RegisterSourceOutput(source, (spc, c) => { wasCalled = true; });
+            }));
+
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(generator2));
+            driver = driver.RunGenerators(compilation);
+            Assert.True(wasCalled);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Add_New_Generator_With_Syntax_After_Generation()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            bool gen1Called = false;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var syntax = ctx.SyntaxProvider.CreateSyntaxProvider((s, _) => true, (s, _) => s.Node);
+                ctx.RegisterSourceOutput(syntax, (spc, c) =>
+                {
+                    gen1Called = true;
+                });
+            }));
+
+            // run the generator and make sure the first node is cached
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.True(gen1Called);
+
+            // now, add another syntax node from another generator
+            var gen2Called = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                var syntax = ctx.SyntaxProvider.CreateSyntaxProvider((s, _) => true, (s, _) => s.Node);
+                ctx.RegisterSourceOutput(syntax, (spc, c) =>
+                {
+                    gen2Called = true;
+                });
+            }));
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(generator2));
+
+            // ensure it runs successfully
+            gen1Called = false;
+            driver = driver.RunGenerators(compilation);
+
+            Assert.False(gen1Called); // Generator 1 did not re-run
+            Assert.True(gen2Called);
         }
     }
 }

@@ -11,12 +11,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 {
     public class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     {
+        public GoToDefinitionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestGotoDefinitionAsync()
         {
@@ -29,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = {|caret:|}aString.Length;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
@@ -56,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 }"
             };
 
-            using var testLspServer = await CreateTestLspServerAsync(markups);
+            await using var testLspServer = await CreateTestLspServerAsync(markups);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(string.Empty);
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty);
 
             AddMappedDocument(testLspServer.TestWorkspace, markup);
 
@@ -98,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
@@ -114,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
@@ -125,23 +130,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         {
             var markup =
 @"<Workspace>
-    <Project Language=""C#"" Name=""Definition"" CommonReferences=""true"">
-        <Document>
+    <Project Language=""C#"" Name=""Definition"" CommonReferences=""true"" FilePath=""C:\CSProj1.csproj"">
+        <Document FilePath=""C:\A.cs"">
             public class {|definition:A|}
             {
             }
         </Document>
     </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"" FilePath=""C:\CSProj2.csproj"">
         <ProjectReference>Definition</ProjectReference>
-        <Document>
+        <Document FilePath=""C:\C.cs"">
             Class C
                 Dim a As {|caret:A|}
             End Class
         </Document>
     </Project>
 </Workspace>";
-            using var testLspServer = await CreateMultiProjectLspServerAsync(markup);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
@@ -150,7 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
-                           CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                           CreateTextDocumentPositionParams(caret), CancellationToken.None);
         }
     }
 }

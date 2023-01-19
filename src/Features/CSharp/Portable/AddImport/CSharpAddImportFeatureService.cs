@@ -13,7 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,7 +22,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -56,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS0308:
                 case CS0428:
                 case CS1061:
-                    if (node.IsKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax conditionalAccess))
+                    if (node is ConditionalAccessExpressionSyntax conditionalAccess)
                     {
                         node = conditionalAccess.WhenNotNull;
                     }
-                    else if (node.IsKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax memberBinding1))
+                    else if (node is MemberBindingExpressionSyntax memberBinding1)
                     {
                         node = memberBinding1.Name;
                     }
@@ -284,11 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         protected override string GetDescription(IReadOnlyList<string> nameParts)
-            => $"using { string.Join(".", nameParts) };";
+            => $"using {string.Join(".", nameParts)};";
 
         protected override (string description, bool hasExistingImport) GetDescription(
             Document document,
-            OptionSet options,
+            AddImportPlacementOptions options,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             SyntaxNode contextNode,
@@ -340,19 +341,18 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             Document document,
-            bool allowInHiddenRegions,
+            AddImportPlacementOptions options,
             CancellationToken cancellationToken)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
-            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, options, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 
         private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
             Document document, CompilationUnitSyntax root, SyntaxNode contextNode, INamespaceOrTypeSymbol namespaceOrTypeSymbol,
-            bool allowInHiddenRegions, CancellationToken cancellationToken)
+            AddImportPlacementOptions options, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var (externAliasDirective, hasExistingExtern) = GetExternAliasDirective(
@@ -381,15 +381,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var addImportService = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = addImportService.AddImports(
-                semanticModel.Compilation, root, contextNode, newImports, generator, options, allowInHiddenRegions, cancellationToken);
+                semanticModel.Compilation, root, contextNode, newImports, generator, options, cancellationToken);
             return (CompilationUnitSyntax)newRoot;
         }
 
         protected override async Task<Document> AddImportAsync(
             SyntaxNode contextNode, IReadOnlyList<string> namespaceParts,
-            Document document, bool allowInHiddenRegions, CancellationToken cancellationToken)
+            Document document, AddImportPlacementOptions options, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
             var usingDirective = SyntaxFactory.UsingDirective(
@@ -399,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var service = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = service.AddImport(
-                compilation, root, contextNode, usingDirective, generator, options, allowInHiddenRegions, cancellationToken);
+                compilation, root, contextNode, usingDirective, generator, options, cancellationToken);
 
             return document.WithSyntaxRoot(newRoot);
         }
@@ -436,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         private (UsingDirectiveSyntax, bool hasExistingImport) GetUsingDirective(
             Document document,
-            OptionSet options,
+            AddImportPlacementOptions options,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             CompilationUnitSyntax root,

@@ -7,6 +7,11 @@
         <target state="translated">붙여넣을 때 누락된 import 추가</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Collapse_imports_on_file_open">
+        <source>Collapse Imports on file open</source>
+        <target state="translated">파일을 열 때 가져오기 축소</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">관계형 연산자:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>

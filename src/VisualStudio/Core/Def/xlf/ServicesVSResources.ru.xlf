@@ -77,6 +77,16 @@
         <target state="translated">Всегда использовать для ясности</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_use_default_symbol_servers_for_navigation">
+        <source>Always use default symbol servers for navigation</source>
+        <target state="translated">Всегда использовать серверы символов по умолчанию для навигации</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Анализ сгенерированного исходного файла</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Значения по умолчанию для анализатора</target>
@@ -107,6 +117,11 @@
         <target state="translated">Сборки</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="translated">Автоматически открывать обозреватель трассировки стека при фокусировке</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Избегайте операторов-выражений, неявно игнорирующих значение.</target>
@@ -125,11 +140,6 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">Назад</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Background_analysis_scope_colon">
-        <source>Background analysis scope:</source>
-        <target state="translated">Область фонового анализа:</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -167,6 +177,11 @@
         <target state="translated">Вычисление зависимостей…</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="translated">Иерархия вызовов</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">Значение места вызова:</target>
@@ -199,12 +214,12 @@
       </trans-unit>
       <trans-unit id="Clear">
         <source>Clear</source>
-        <target state="new">Clear</target>
+        <target state="translated">Очистить</target>
         <note>Clear content action</note>
       </trans-unit>
       <trans-unit id="Close_tab">
         <source>Close Tab</source>
-        <target state="new">Close Tab</target>
+        <target state="translated">Закрыть вкладку</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Style">
@@ -232,9 +247,29 @@
         <target state="translated">Анализ кода прерван до завершения решения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_signature_files_on_open">
+        <source>Collapse metadata signature files to definitions on file open</source>
+        <target state="translated">Сворачивать файлы подписей метаданных в определения при открытии файлов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="translated">Сворачивать #regions при открытии файлов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
+        <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
+        <target state="translated">Сворачивать ссылку на источник, встроенный и декомпилированный источник в определения при открытии файлов</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">Цветовые подсказки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="translated">Выделить строки JSON цветом</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -287,6 +322,11 @@
         <target state="translated">По умолчанию (все решение)</target>
         <note>This text is a menu command</note>
       </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="translated">По умолчанию (нет)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
       <trans-unit id="Default_Open_Documents">
         <source>Default (Open Documents)</source>
         <target state="translated">По умолчанию (открытые документы)</target>
@@ -309,7 +349,7 @@
       </trans-unit>
       <trans-unit id="Display_diagnostics_inline_experimental">
         <source>Display diagnostics inline (experimental)</source>
-        <target state="new">Display diagnostics inline (experimental)</target>
+        <target state="translated">Отображать встроенную диагностику (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -320,6 +360,41 @@
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
         <target state="translated">Отображать подсказки для встроенных типов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline">
+        <source>Document Outline</source>
+        <target state="translated">Структура документа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Collapse_All">
+        <source>Collapse All</source>
+        <target state="translated">Свернуть все</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Expand_All">
+        <source>Expand All</source>
+        <target state="translated">Развернуть все</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Search">
+        <source>Search Document Outline</source>
+        <target state="translated">Поиск структуры документа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Name">
+        <source>Sort By Name</source>
+        <target state="translated">Сортировать по имени</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Order">
+        <source>Sort By Order</source>
+        <target state="translated">Сортировать по порядку</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Type">
+        <source>Sort By Type</source>
+        <target state="translated">Сортировать по типу</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -362,6 +437,11 @@
         <target state="translated">Включить ведение журнала файлов для диагностики (в папке "%Temp%\Roslyn")</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
+        <source>Enable navigation to Source Link and Embedded sources</source>
+        <target state="translated">Включить навигацию для ссылки на источник и внедренных источников</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">Включить диагностику "pull" (экспериментальная функция, требуется перезапуск)</target>
@@ -392,6 +472,11 @@
         <target state="translated">Все решение</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_solution_and_external_sources">
+        <source>Entire Solution and External Sources</source>
+        <target state="translated">Все решение и внешние источники</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">Ошибка</target>
@@ -407,14 +492,44 @@
         <target state="translated">Оценка (задач в очереди: {0})</target>
         <note />
       </trans-unit>
+      <trans-unit id="External_sources">
+        <source>External Sources</source>
+        <target state="translated">Внешние источники</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_Base_Class">
         <source>Extract Base Class</source>
         <target state="translated">Извлечь базовый класс</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Base_Record">
+        <source>Extract Base Record</source>
+        <target state="translated">Извлечь базовый объект Record</target>
+        <note>{Locked="Record"} "Record" is a language construct for C# and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Готово</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
+        <source>Fix text pasted into string literals (experimental)</source>
+        <target state="translated">Исправлять текст, вставляемый в строковые литералы (экспериментальная функция)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors">
+        <source>Fix analyzer warnings and errors</source>
+        <target state="translated">Исправить предупреждения и ошибки анализатора</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix all warnings and errors set in EditorConfig</source>
+        <target state="translated">Исправить все предупреждения и ошибки, заданные в EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix analyzer warnings and errors set in EditorConfig</source>
+        <target state="translated">Исправить предупреждения и ошибки анализатора, заданные в EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -430,6 +545,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Создать файл EDITORCONFIG на основе параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="translated">Перейти к определению</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -467,6 +587,11 @@
         <target state="translated">В других операторах</target>
         <note />
       </trans-unit>
+      <trans-unit id="Include_global_imports">
+        <source>Include global imports</source>
+        <target state="translated">Включить глобальные директивы import</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Index">
         <source>Index</source>
         <target state="translated">Индекс</target>
@@ -492,14 +617,14 @@
         <target state="translated">Поле наследования</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Diagnostics_experimental">
-        <source>Inline Diagnostics (experimental)</source>
-        <target state="new">Inline Diagnostics (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">Унаследованные интерфейсы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="translated">Встроенная диагностика (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
@@ -529,12 +654,17 @@
       </trans-unit>
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
-        <target state="new">Invalid type name</target>
+        <target state="translated">Недопустимое имя типа</target>
         <note />
       </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">Источник элемента</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="translated">Строки JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -604,7 +734,7 @@
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type_colon">
         <source>Move Static Members to Another Type:</source>
-        <target state="new">Move Static Members to Another Type:</target>
+        <target state="translated">Переместить статические элементы в другой тип:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -797,9 +927,24 @@
         <target state="translated">Правила именования</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="translated">Асинхронная навигация (экспериментальная функция)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Перейти к {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="translated">Перейти ко внешним источникам</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="translated">Выполняется переход</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">
@@ -949,12 +1094,12 @@
       </trans-unit>
       <trans-unit id="Paste">
         <source>Paste</source>
-        <target state="new">Paste</target>
+        <target state="translated">Вставить</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a valid stack trace to view and navigate it's values</source>
-        <target state="new">Paste a valid stack trace to view and navigate it's values</target>
+        <source>Paste a stack trace to view and navigate it's values.</source>
+        <target state="translated">Вставьте трассировку стека, чтобы просмотреть ее значения и перемещаться между ними.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -972,6 +1117,11 @@
         <target state="translated">Предпочитать "System.HashCode" в "GetHashCode"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_Utf8_string_literals">
+        <source>Prefer UTF-8 string literals</source>
+        <target state="translated">Предпочитать строковые литералы UTF-8</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Предпочитать составные назначения</target>
@@ -982,6 +1132,11 @@
         <target state="translated">Предпочитать оператор index</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="translated">Предпочитать преобразование группы методов</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
         <target state="translated">Предпочитать пространство имен и структуру совпадений папок</target>
@@ -990,6 +1145,11 @@
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Предпочитать оператор range</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct">
+        <source>Prefer read-only struct</source>
+        <target state="translated">Предпочитать структуру только для чтения</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
@@ -1017,9 +1177,14 @@
         <target state="translated">Предпочитать статические локальные функции</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_top_level_statements">
+        <source>Prefer top-level statements</source>
+        <target state="translated">Предпочитать инструкции верхнего уровня</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
         <source>Prefer tuple swap</source>
-        <target state="new">Prefer tuple swap</target>
+        <target state="translated">Предпочитать переключение кортежей</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -1064,12 +1229,27 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
+        <target state="translated">Удалить ненужные директивы using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="translated">Переименование</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">Переименовать {0} в {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_asynchronously_experimental">
+        <source>Rename asynchronously (experimental)</source>
+        <target state="translated">Асинхронное переименование (экспериментальная функция)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="translated">Сообщить о недопустимых строках JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -1115,6 +1295,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">Запустить Code Analysis для {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_background_code_analysis_for_colon">
+        <source>Run background code analysis for:</source>
+        <target state="translated">Выполнить анализ кода в фоновом режиме для:</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
@@ -1192,6 +1377,21 @@
         <target state="translated">Показать команду "Удалить неиспользуемые ссылки" в Обозревателе решений (экспериментальная версия)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_UI_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="translated">Показывать пользовательский интерфейс как информационную панель в правом верхнем углу</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_UI_inline">
+        <source>Show UI Inline</source>
+        <target state="translated">Показывать встроенный пользовательский интерфейс</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="translated">Показывать ошибки и предупреждения компилятора для:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Показать список завершения</target>
@@ -1244,17 +1444,22 @@
       </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
-        <target state="new">Sort usings</target>
+        <target state="translated">Сортировать директивы using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="translated">Трассировка стека</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">Обозреватель трассировки стека</target>
         <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
       </trans-unit>
       <trans-unit id="Stack_trace_0">
         <source>Stack Trace {0}</source>
-        <target state="new">Stack Trace {0}</target>
+        <target state="translated">Трассировка стека {0}</target>
         <note>Header for numbered stack trace view tabs</note>
       </trans-unit>
       <trans-unit id="Suggestion">
@@ -1264,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
         <source>Suppress hints when argument matches parameter name</source>
-        <target state="new">Suppress hints when argument matches parameter name</target>
+        <target state="translated">Скрывать подсказки, когда аргумент соответствует имени параметра</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1467,6 +1672,11 @@
         <target state="translated">Эта рабочая область не поддерживает обновление параметров компиляции Visual Basic.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Where_should_the_rename_UI_be_shown">
+        <source>Where should the rename UI be shown?</source>
+        <target state="translated">Где следует показывать пользовательский интерфейс переименования?</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>
         <target state="translated">Пустое пространство</target>
@@ -1587,6 +1797,11 @@
         <target state="translated">Недопустимое значение</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_1">
+        <source>{0} ({1})</source>
+        <target state="translated">{0} ({1})</target>
+        <note>Used to show a symbol name, followed by the project name it came from</note>
+      </trans-unit>
       <trans-unit id="_0_is_inherited">
         <source>'{0}' is inherited</source>
         <target state="translated">"{0}" наследуется</target>
@@ -1609,7 +1824,7 @@
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">
         <source>at the end of the line of code</source>
-        <target state="new">at the end of the line of code</target>
+        <target state="translated">в конце строки кода</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -2635,7 +2850,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="on_the_right_edge_of_the_editor_window">
         <source>on the right edge of the editor window</source>
-        <target state="new">on the right edge of the editor window</target>
+        <target state="translated">на правом краю окна редактора</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

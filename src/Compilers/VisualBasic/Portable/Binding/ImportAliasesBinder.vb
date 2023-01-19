@@ -7,6 +7,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -39,6 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           (TypeOf containingBinder.ContainingBinder.ContainingBinder Is SourceFileBinder OrElse
                            TypeOf containingBinder.ContainingBinder.ContainingBinder Is SourceModuleBinder)))
         End Sub
+
+        Public Function GetImportChainData() As ImmutableArray(Of IAliasSymbol)
+            Return ImmutableArray(Of IAliasSymbol).CastUp(_importedAliases.SelectAsArray(Function(kvp) kvp.Value.Alias))
+        End Function
 
         Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
                                                      name As String,

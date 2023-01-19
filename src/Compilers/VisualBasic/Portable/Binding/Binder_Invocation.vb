@@ -1762,7 +1762,6 @@ ProduceBoundNode:
             Return If(commonReturnType, ErrorTypeSymbol.UnknownResultType)
         End Function
 
-
         Private Shared Sub ReportUnspecificProcedures(
             diagnosticLocation As Location,
             bestSymbols As ImmutableArray(Of Symbol),
@@ -1822,8 +1821,6 @@ ProduceBoundNode:
                                                     New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree())
                                                     ))
         End Sub
-
-
 
         Private Sub ReportOverloadResolutionFailureForASetOfCandidates(
             node As SyntaxNode,
@@ -2322,7 +2319,6 @@ ProduceBoundNode:
                             Continue For
                         End If
 
-
                         If paramArrayItems.Count = 1 Then
                             Dim paramArrayArgument = arguments(paramArrayItems(0))
 
@@ -2541,7 +2537,6 @@ ProduceBoundNode:
             End If
 
         End Sub
-
 
         ''' <summary>
         ''' Should be in sync with OverloadResolution.MatchArgumentToByValParameter.
@@ -2800,7 +2795,6 @@ ProduceBoundNode:
             parameterToArgumentMap.Free()
             Return (argumentsInOrder.ToImmutableAndFree(), defaultArguments)
         End Function
-
 
         Private Function PassArgument(
             argument As BoundExpression,

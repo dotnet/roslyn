@@ -321,7 +321,6 @@ class C
             }
             EOF();
 
-
             CreateCompilation(test).GetDiagnostics().Verify(
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]
@@ -791,7 +790,10 @@ class C
     {
         [A]yield
     }
-}");
+}",
+                // (6,17): error CS1002: ; expected
+                //         [A]yield
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 17));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1977,7 +1979,19 @@ class C
     {
         unsafe [A]{ }
     }
-}");
+}",
+                // (6,9): error CS0106: The modifier 'unsafe' is not valid for this item
+                //         unsafe [A]{ }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "unsafe").WithArguments("unsafe").WithLocation(6, 9),
+                // (6,16): error CS1031: Type expected
+                //         unsafe [A]{ }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 16),
+                // (6,19): error CS1001: Identifier expected
+                //         unsafe [A]{ }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(6, 19),
+                // (6,19): error CS1002: ; expected
+                //         unsafe [A]{ }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 19));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2397,7 +2411,28 @@ class C
                 return;
         }
     }
-}");
+}",
+                // (7,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 10),
+                // (8,16): error CS1525: Invalid expression term 'case'
+                //             [A]
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(8, 16),
+                // (8,16): error CS1002: ; expected
+                //             [A]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 16),
+                // (8,16): error CS1513: } expected
+                //             [A]
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 16),
+                // (9,19): error CS1002: ; expected
+                //             case 0:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(9, 19),
+                // (9,19): error CS1513: } expected
+                //             case 0:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(9, 19),
+                // (13,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(13, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2520,7 +2555,19 @@ class C
                 return;
         }
     }
-}");
+}",
+                // (7,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 10),
+                // (9,20): error CS1002: ; expected
+                //             default:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(9, 20),
+                // (9,20): error CS1513: } expected
+                //             default:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(9, 20),
+                // (13,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(13, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2782,7 +2829,13 @@ class C
     {
         try { } [A] finally { }
     }
-}");
+}",
+                // (6,15): error CS1524: Expected catch or finally
+                //         try { } [A] finally { }
+                Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15),
+                // (6,21): error CS1003: Syntax error, 'try' expected
+                //         try { } [A] finally { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2872,13 +2925,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try", "finally").WithLocation(6, 21),
-                // (6,21): error CS1514: { expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "finally").WithLocation(6, 21),
-                // (6,21): error CS1513: } expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "finally").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21));
         }
 
         [Fact]
@@ -2970,7 +3017,13 @@ class C
     {
         try { } [A] catch { }
     }
-}");
+}",
+                // (6,15): error CS1524: Expected catch or finally
+                //         try { } [A] catch { }
+                Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15),
+                // (6,21): error CS1003: Syntax error, 'try' expected
+                //         try { } [A] catch { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3060,13 +3113,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try", "catch").WithLocation(6, 21),
-                // (6,21): error CS1514: { expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "catch").WithLocation(6, 21),
-                // (6,21): error CS1513: } expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "catch").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21));
         }
 
         [Fact]
@@ -3234,7 +3281,10 @@ class C
     {
         [A]delegate { }
     }
-}");
+}",
+                // (6,24): error CS1002: ; expected
+                //         [A]delegate { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 24));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3311,7 +3361,13 @@ class C
     {
         [A]delegate
     }
-}");
+}",
+                // (6,20): error CS1514: { expected
+                //         [A]delegate
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(6, 20),
+                // (6,20): error CS1002: ; expected
+                //         [A]delegate
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 20));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6581,7 +6637,25 @@ class C
     {
         [A]int this[int i] => 0;
     }
-}");
+}",
+                // (6,16): error CS1001: Identifier expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "this").WithLocation(6, 16),
+                // (6,16): error CS1002: ; expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(6, 16),
+                // (6,21): error CS1525: Invalid expression term 'int'
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
+                // (6,25): error CS1003: Syntax error, ',' expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",").WithLocation(6, 25),
+                // (6,28): error CS1002: ; expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 28),
+                // (6,28): error CS1513: } expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 28));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6695,7 +6769,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
                 // (6,25): error CS1003: Syntax error, ',' expected
                 //         [A]int this[int i] => 0;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",", "").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",").WithLocation(6, 25),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
                 //         [A]int this[int i] => 0;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25),
@@ -6808,7 +6882,13 @@ class C
     {
         public extern int i = 1;
     }
-}");
+}",
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6888,7 +6968,13 @@ class C
     {
         extern public int i = 1;
     }
-}");
+}",
+                // (6,9): error CS0106: The modifier 'extern' is not valid for this item
+                //         extern public int i = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(6, 9),
+                // (6,16): error CS0106: The modifier 'public' is not valid for this item
+                //         extern public int i = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(6, 16));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6968,7 +7054,10 @@ class C
     {
         [A]public int i = 0;
     }
-}");
+}",
+                // (6,12): error CS0106: The modifier 'public' is not valid for this item
+                //         [A]public int i = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(6, 12));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7253,9 +7342,6 @@ class C
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]await using var i = d;
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
-                // (6,12): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
-                //         [A]await using var i = d;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 12),
                 // (6,12): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         [A]await using var i = d;
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(6, 12));
@@ -7364,10 +7450,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncDisposable").WithArguments("IAsyncDisposable", "System").WithLocation(4, 27),
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]await using var i = d;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
-                // (6,12): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
-                //         [A]await using var i = d;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 12));
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9));
         }
 
         [Fact]
@@ -7378,7 +7461,16 @@ class C
 {
     [Attr] x.y();
 }
-");
+",
+                // (4,15): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
+                //     [Attr] x.y();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 15),
+                // (4,16): error CS8124: Tuple must contain at least two elements.
+                //     [Attr] x.y();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 16),
+                // (4,17): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     [Attr] x.y();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 17));
 
             N(SyntaxKind.CompilationUnit);
             {

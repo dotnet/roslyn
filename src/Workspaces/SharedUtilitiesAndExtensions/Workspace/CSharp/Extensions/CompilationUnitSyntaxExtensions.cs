@@ -6,19 +6,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-    internal static class CompilationUnitSyntaxExtensions
+    internal static partial class CompilationUnitSyntaxExtensions
     {
-        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
-            => CanAddUsingDirectives(contextNode, document.CanAddImportsInHiddenRegions(), cancellationToken);
-
         public static bool CanAddUsingDirectives(this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();

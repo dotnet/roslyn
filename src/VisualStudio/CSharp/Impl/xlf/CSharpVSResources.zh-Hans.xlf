@@ -7,9 +7,19 @@
         <target state="translated">粘贴时添加缺少的 using 指令</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">允许在构造函数初始值设定项中的冒号后面使用空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">在箭头表达式子句中允许标记后的空行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">在条件表达式中允许标记后的空行</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -57,6 +67,11 @@
         <target state="translated">C# 格式规则</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="translated">打开文件时折叠 using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
         <target state="translated">完成</target>
@@ -97,6 +112,16 @@
         <target state="translated">编写 // 注释时，在新行开头插入 //</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">在调用的方法名称与其左括号之间插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">在方法名称与其左括号之间插入空格</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">在命名空间中</target>
@@ -124,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Prefer_extended_property_pattern">
         <source>Prefer extended property pattern</source>
-        <target state="new">Prefer extended property pattern</target>
+        <target state="translated">首选扩展属性模式</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
@@ -175,6 +200,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
         <target state="translated">显示 unimported 命名空间中的项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">显示新的代码片段体验(试验)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -392,19 +422,9 @@
         <target state="translated">在空参数列表的括号中插入空格</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">在方法名称与其左括号之间插入空格</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">在空参数列表的括号中插入空格</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">在方法名称与其左括号之间插入空格</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

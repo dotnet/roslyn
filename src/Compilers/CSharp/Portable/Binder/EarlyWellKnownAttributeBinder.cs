@@ -23,10 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal (CSharpAttributeData, BoundAttribute) GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, out bool generatedDiagnostics)
+        internal (CSharpAttributeData, BoundAttribute) GetAttribute(
+            AttributeSyntax node, NamedTypeSymbol boundAttributeType,
+            Action<AttributeSyntax> beforeAttributePartBound,
+            Action<AttributeSyntax> afterAttributePartBound,
+            out bool generatedDiagnostics)
         {
             var dummyDiagnosticBag = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
-            var result = base.GetAttribute(node, boundAttributeType, dummyDiagnosticBag);
+            var result = base.GetAttribute(node, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, dummyDiagnosticBag);
             generatedDiagnostics = !dummyDiagnosticBag.DiagnosticBag.IsEmptyWithoutResolution;
             dummyDiagnosticBag.Free();
             return result;
@@ -35,20 +39,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Hide the GetAttribute overload which takes a diagnostic bag.
         // This ensures that diagnostics from the early bound attributes are never preserved.
         [Obsolete("EarlyWellKnownAttributeBinder has a better overload - GetAttribute(AttributeSyntax, NamedTypeSymbol, out bool)", true)]
-#pragma warning disable format // https://github.com/dotnet/roslyn/issues/56498
-        internal new (CSharpAttributeData, BoundAttribute) GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
-#pragma warning restore format
+        internal new (CSharpAttributeData, BoundAttribute) GetAttribute(
+            AttributeSyntax node, NamedTypeSymbol boundAttributeType,
+            Action<AttributeSyntax> beforeAttributePartBound,
+            Action<AttributeSyntax> afterAttributePartBound,
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(false, "Don't call this overload.");
             diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
-            return base.GetAttribute(node, boundAttributeType, diagnostics);
+            return base.GetAttribute(node, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, diagnostics);
         }
 
         /// <remarks>
         /// Since this method is expected to be called on every nested expression of the argument, it doesn't
         /// need to recurse (directly).
         /// </remarks>
-        internal static bool CanBeValidAttributeArgument(ExpressionSyntax node, Binder typeBinder)
+        internal static bool CanBeValidAttributeArgument(ExpressionSyntax node)
         {
             Debug.Assert(node != null);
             switch (node.Kind())
@@ -74,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  Literals (including the null literal).
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.Utf8StringLiteralExpression:
+                case SyntaxKind.InterpolatedStringExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -117,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
                 case SyntaxKind.ExclusiveOrExpression:

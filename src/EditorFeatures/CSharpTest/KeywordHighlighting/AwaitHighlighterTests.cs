@@ -6,19 +6,20 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
+using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
     public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
         internal override Type GetHighlighterType()
             => typeof(AsyncAwaitHighlighter);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_2()
         {
             await TestAsync(
@@ -47,7 +48,7 @@ class AsyncExample
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_3()
         {
             await TestAsync(
@@ -76,7 +77,7 @@ class AsyncExample
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_4()
         {
             await TestAsync(
@@ -105,7 +106,7 @@ class AsyncExample
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample3_2()
         {
             await TestAsync(
@@ -134,8 +135,7 @@ class AsyncExample
 }");
         }
 
-        [WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
         public async Task TestNestedAwaits1()
         {
             await TestAsync(
@@ -169,8 +169,7 @@ class AsyncExample
 }");
         }
 
-        [WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
         public async Task TestNestedAwaits2()
         {
             await TestAsync(
@@ -204,7 +203,7 @@ class AsyncExample
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestAwaitUsing_OnAsync()
         {
             await TestAsync(
@@ -219,7 +218,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestAwaitUsing_OnAwait()
         {
             await TestAsync(
@@ -234,7 +233,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestAwaitUsingDeclaration_OnAsync()
         {
             await TestAsync(
@@ -249,7 +248,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestAwaitUsingDeclaration_OnAwait()
         {
             await TestAsync(
@@ -264,7 +263,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestAwaitForEach_OnAsync()
         {
             await TestAsync(
@@ -279,7 +278,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestAwaitForEach_OnAwait()
         {
             await TestAsync(
@@ -294,7 +293,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestForEachVariableAwait_OnAsync()
         {
             await TestAsync(
@@ -309,7 +308,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestForEachVariableAwait_OnAwait()
         {
             await TestAsync(
@@ -322,6 +321,14 @@ class C
         foreach {|Cursor:[|await|]|} (var (a, b) in new (int, int)[] { });
     }
 }");
+        }
+
+        [Fact, WorkItem(60400, "https://github.com/dotnet/roslyn/issues/60400")]
+        public async Task TestTopLevelStatements()
+        {
+            await TestAsync(
+@"[|await|] Task.Delay(1000);
+{|Cursor:[|await|]|} Task.Run(() => { })");
         }
     }
 }

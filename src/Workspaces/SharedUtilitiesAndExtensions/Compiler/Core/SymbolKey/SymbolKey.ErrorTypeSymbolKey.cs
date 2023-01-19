@@ -10,9 +10,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class ErrorTypeSymbolKey
+        private sealed class ErrorTypeSymbolKey : AbstractSymbolKey<INamedTypeSymbol>
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly ErrorTypeSymbolKey Instance = new();
+
+            public sealed override void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.Name);
                 switch (symbol.ContainingSymbol)
@@ -60,14 +62,18 @@ namespace Microsoft.CodeAnalysis
                 return builder.ToImmutable();
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualType, out string? failureReason)
             {
-                var name = reader.ReadString()!;
-                var containingSymbolResolution = ResolveContainer(reader, out var containingSymbolFailureReason);
+                var name = reader.ReadRequiredString();
+                var containingSymbolResolution = ResolveContainer(reader, contextualType, out var containingSymbolFailureReason);
                 var arity = reader.ReadInteger();
                 var isConstructed = reader.ReadBoolean();
 
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+                using var typeArguments = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(
+                    contextualType,
+                    getContextualSymbol: static (contextualType, i) => SafeGet(contextualType.TypeArguments, i),
+                    out var typeArgumentsFailureReason);
 
                 if (containingSymbolFailureReason != null)
                 {
@@ -77,15 +83,12 @@ namespace Microsoft.CodeAnalysis
 
                 if (typeArgumentsFailureReason != null)
                 {
+                    Contract.ThrowIfFalse(typeArguments.IsDefault);
                     failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
                     return default;
                 }
 
-                if (typeArguments.IsDefault)
-                {
-                    failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed)";
-                    return default;
-                }
+                Contract.ThrowIfTrue(typeArguments.IsDefault);
 
                 using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
@@ -104,12 +107,13 @@ namespace Microsoft.CodeAnalysis
                 return CreateResolution(result, $"({nameof(ErrorTypeSymbolKey)} failed)", out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader, out string? failureReason)
+            private static SymbolKeyResolution ResolveContainer(
+                SymbolKeyReader reader, INamedTypeSymbol? contextualType, out string? failureReason)
             {
                 var type = reader.ReadInteger();
 
                 if (type == 0)
-                    return reader.ReadSymbolKey(out failureReason);
+                    return reader.ReadSymbolKey(contextualType?.ContainingType, out failureReason);
 
                 if (type == 1)
                 {

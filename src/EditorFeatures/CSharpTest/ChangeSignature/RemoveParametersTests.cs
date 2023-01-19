@@ -380,8 +380,8 @@ class C{i}
             Assert.True(state.IsUnspecified);
         }
 
-        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
         public async Task RemoveParameters_ImplicitObjectCreation()
         {
             var markup = @"

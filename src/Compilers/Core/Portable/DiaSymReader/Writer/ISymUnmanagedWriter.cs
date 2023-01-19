@@ -142,7 +142,7 @@ namespace Microsoft.DiaSymReader
     ///   8 or 16 bytes of data
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    internal struct VariantStructure
+    internal readonly struct VariantStructure
     {
         public VariantStructure(DateTime date) : this() // Need this to avoid errors about the uninteresting union fields.
         {
@@ -184,7 +184,7 @@ namespace Microsoft.DiaSymReader
     /// This type is 8 bytes on a 32-bit platforms and 16 bytes on 64-bit platforms.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct VariantPadding
+    internal readonly unsafe struct VariantPadding
     {
         public readonly byte* Data2;
         public readonly byte* Data3;

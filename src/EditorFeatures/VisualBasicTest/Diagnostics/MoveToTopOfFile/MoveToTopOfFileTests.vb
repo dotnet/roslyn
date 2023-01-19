@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MoveTo
 
 #Region "Imports Tests"
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestTestImportsMissing() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -30,7 +30,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsInsideDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -45,7 +45,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsAfterDeclarations() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -61,7 +61,7 @@ End Module
 ")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsMovedNextToOtherImports() As Task
             Dim text = <File>
 Imports Microsoft
@@ -87,7 +87,7 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsMovedAfterOptions() As Task
             Dim text = <File>
 Option Explicit Off
@@ -113,7 +113,7 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsWithTriviaMovedNextToOtherImports() As Task
             Dim text = <File>
 Imports Microsoft
@@ -139,7 +139,7 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsWithTriviaMovedNextToOtherImportsWithTrivia() As Task
             Dim text = <File>
 Imports Microsoft 'C1
@@ -165,8 +165,8 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(601222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601222")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOnlyMoveOptions() As Task
             Dim text = <File>
 Imports Sys = System
@@ -178,7 +178,7 @@ Option Infer Off
 #End Region
 
 #Region "Option Tests"
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestTestOptionsMissing() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Option Explicit Off|]
@@ -189,7 +189,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsInsideDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -204,7 +204,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsAfterDeclarations() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -220,7 +220,7 @@ End Module
 ")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsMovedNextToOtherOptions() As Task
             Dim text = <File>
 Option Explicit Off
@@ -246,7 +246,7 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsWithTriviaMovedNextToOtherOptions() As Task
             Dim text = <File>
 Option Explicit Off
@@ -272,7 +272,7 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsWithTriviaMovedNextToOtherOptionsWithTrivia() As Task
             Dim text = <File>
 Option Explicit Off'C1
@@ -298,8 +298,8 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsMovedAfterBannerText() As Task
             Dim text = <File>
 ' Copyright
@@ -325,8 +325,8 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsMovedAfterBannerTextThatFollowsEndOfLineTrivia() As Task
             Dim text = <File>
 
@@ -354,8 +354,8 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsMovedAfterBannerTextFollowedByOtherOptions() As Task
             Dim text = <File>
 ' Copyright
@@ -383,8 +383,8 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsMovedToTopWithLeadingTriviaButNoBannerText() As Task
             Dim text = <File>
 #Const A = 5
@@ -410,8 +410,8 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsMovedAfterBannerTextWithImports() As Task
             Dim text = <File>
 
@@ -446,7 +446,7 @@ End Module
 #End Region
 
 #Region "Attribute Tests"
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestAttributeNoAction1() As Task
             Dim text = <File>
 [|&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;|]
@@ -461,7 +461,7 @@ End Module</File>
             Await TestMissingInRegularAndScriptAsync(text.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestAttributeNoAction2() As Task
             Dim text = <File>
 [|&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;|]
@@ -475,7 +475,7 @@ End Module</File>
             Await TestMissingInRegularAndScriptAsync(text.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestAttributeAfterDeclaration() As Task
             Dim text = <File>
 Module Program
@@ -497,7 +497,7 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestAttributeInsideDeclaration() As Task
             Dim text = <File>
 Module Program
@@ -519,7 +519,7 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestAttributePreserveTrivia() As Task
             Dim text = <File>
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Comment
@@ -543,8 +543,8 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestAttributeMovedAfterBannerText() As Task
             Dim text = <File>
 ' Copyright
@@ -572,8 +572,8 @@ End Module
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(600949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/600949")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestRemoveAttribute() As Task
             Dim text = <File>
 Class C
@@ -588,8 +588,8 @@ End Class
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=1)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(606857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606857")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestMoveImportBeforeAttribute() As Task
             Dim text = <File>
 &lt;Assembly:CLSCompliant(True)&gt;
@@ -602,8 +602,8 @@ End Class
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(606877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606877")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestNewLineWhenMovingFromEOF() As Task
             Dim text = <File>Imports System
 &lt;Assembly:CLSCompliant(True)&gt;
@@ -616,8 +616,8 @@ Imports System
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         <WorkItem(606851, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606851")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestDoNotMoveLeadingWhitespace() As Task
             Dim text = <File>Imports System
  
@@ -632,8 +632,8 @@ Imports System
         End Function
 #End Region
 
-        <WorkItem(632305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632305")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(632305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632305")>
         Public Async Function TestTestHiddenRegion() As Task
             Dim code =
 <File>

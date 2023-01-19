@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -148,5 +150,29 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </remarks>
         /// <returns>New <see cref="Stream"/> instance or null if the compiler generated no PDB (the symbols might be embedded in the assembly).</returns>
         protected abstract Stream? OpenPdbStream();
+
+        internal async ValueTask<bool> TryCopyAssemblyToAsync(Stream stream, CancellationToken cancellationToken)
+        {
+            var peImage = OpenAssemblyStreamChecked();
+            if (peImage == null)
+            {
+                return false;
+            }
+
+            await peImage.CopyToAsync(stream, bufferSize: 4 * 1024, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+
+        internal async ValueTask<bool> TryCopyPdbToAsync(Stream stream, CancellationToken cancellationToken)
+        {
+            var pdb = OpenPdb();
+            if (pdb == null)
+            {
+                return false;
+            }
+
+            await pdb.CopyContentToAsync(stream, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
     }
 }

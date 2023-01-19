@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -129,7 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var upconvertType = upconvertSpecialType == underlyingType.SpecialType ?
                     underlyingType :
                     _compilation.GetSpecialType(upconvertSpecialType);
-
 
                 var newOperand = MakeConversionNode(loweredOperand, upconvertType, false);
                 UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: result,
                     whenNullOpt: null,
                     id: conditionalLeft.Id,
+                    forceCopyOfNullableValueType: conditionalLeft.ForceCopyOfNullableValueType,
                     type: result.Type
                 );
             }
@@ -429,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, tempInitializers, tempSymbols, isDynamic);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamic);
             TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
             Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2));
@@ -585,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ApplyConversionIfNotIdentity(BoundExpression? conversion, BoundValuePlaceholder? placeholder, BoundExpression replacement)
         {
-            if (conversion is BoundConversion { Conversion: { IsIdentity: false } })
+            if (hasNonIdentityConversion(conversion))
             {
                 Debug.Assert(placeholder is not null);
 
@@ -593,6 +594,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return replacement;
+
+            static bool hasNonIdentityConversion([NotNullWhen(true)] BoundExpression? expression)
+            {
+                while (expression is BoundConversion conversion)
+                {
+                    if (!conversion.Conversion.IsIdentity)
+                    {
+                        return true;
+                    }
+
+                    expression = conversion.Operand;
+                }
+
+                return false;
+            }
         }
 
         private BoundExpression ApplyConversion(BoundExpression conversion, BoundValuePlaceholder placeholder, BoundExpression replacement)

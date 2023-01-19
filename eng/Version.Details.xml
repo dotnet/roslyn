@@ -6,25 +6,29 @@
       <Sha>7e80445ee82adbf9a8e6ae601ac5e239d982afaa</Sha>
       <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build" Version="0.1.0-alpha.1.21616.4">
-      <Uri>https://github.com/dotnet/source-build</Uri>
-      <Sha>90bdf447e1b97605f109b34243ab8c9f215308e9</Sha>
-      <SourceBuild RepoName="source-build" ManagedOnly="true" />
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="7.0.0-alpha.1.22409.1">
+      <Uri>https://github.com/dotnet/source-build-externals</Uri>
+      <Sha>ee790b0477953dd30ea83e0e47af909a04fd0ca3</Sha>
+      <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="7.0.0-beta.21623.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.23054.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>4abaab2bf44d06638abeb23fc96c4f6eef58a2f0</Sha>
+      <Sha>eae015fb1c92ceef69126164b3969447d0355c08</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.1.0-2.21609.7">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.1.0-5.22128.4">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>818313426323d979747781a17c78860c833776da</Sha>
+      <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="7.0.0-beta.21623.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.23054.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>4abaab2bf44d06638abeb23fc96c4f6eef58a2f0</Sha>
+      <Sha>eae015fb1c92ceef69126164b3969447d0355c08</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview1.23058.2">
+      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
+      <Sha>0b2bc22f087f4a42915a3f5d7049a0e71a179423</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

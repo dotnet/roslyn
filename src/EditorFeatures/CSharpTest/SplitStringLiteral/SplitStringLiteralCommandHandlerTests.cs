@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -24,11 +26,12 @@ using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
-using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
     public class SplitStringLiteralCommandHandlerTests
     {
         /// <summary>
@@ -47,36 +50,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
 
-            // TODO: set SmartIndent to textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp, indentStyle)));
-
             if (useTabs && expectedOutputMarkup != null)
             {
                 Assert.Contains("\t", expectedOutputMarkup);
             }
 
+            var editorOptionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
+
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
+            var textBuffer = view.TextBuffer;
+            var options = editorOptionsFactory.GetOptions(textBuffer);
 
-            view.Options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
-            view.Options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
+            options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+            options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
+            options.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
 
-            var originalSnapshot = view.TextBuffer.CurrentSnapshot;
+            // Remove once https://github.com/dotnet/roslyn/issues/62204 is fixed:
+            workspace.GlobalOptions.SetGlobalOption(IndentationOptionsStorage.SmartIndent, document.Project.Language, indentStyle);
+
+            var originalSnapshot = textBuffer.CurrentSnapshot;
             var originalSelections = document.SelectedSpans;
 
-            var snapshotSpans = new List<SnapshotSpan>();
-            foreach (var selection in originalSelections)
-            {
-                snapshotSpans.Add(selection.ToSnapshotSpan(originalSnapshot));
-            }
+            // primary caret will be the last one:
+            view.SetMultiSelection(originalSelections.Select(selection => selection.ToSnapshotSpan(originalSnapshot)));
 
-            view.SetMultiSelection(snapshotSpans);
+            // only validate when there is no selected text since the splitter is disabled in that case:
+            if (originalSelections.All(selection => selection.IsEmpty))
+            {
+                Assert.Equal(originalSelections.Last().Start, view.Caret.Position.BufferPosition.Position);
+            }
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
             var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
 
-            if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
+            if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, textBuffer), TestCommandExecutionContext.Create()))
             {
                 callback();
             }
@@ -86,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 MarkupTestFile.GetSpans(expectedOutputMarkup,
                     out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
-                Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
-                Assert.Equal(expectedSpans.First().Start, view.Caret.Position.BufferPosition.Position);
+                Assert.Equal(expectedOutput, textBuffer.CurrentSnapshot.AsText().ToString());
+                Assert.Equal(expectedSpans.Last().Start, view.Caret.Position.BufferPosition.Position);
 
                 if (verifyUndo)
                 {
@@ -97,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
                     var currentSnapshot = document.GetTextBuffer().CurrentSnapshot;
                     Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
-                    Assert.Equal(originalSelections.First().Start, view.Caret.Position.BufferPosition.Position);
+                    Assert.Equal(originalSelections.Last().Start, view.Caret.Position.BufferPosition.Position);
                 }
             }
         }
@@ -135,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             Assert.True(notHandled);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingBeforeString()
         {
             TestNotHandled(
@@ -148,7 +156,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
+        public void TestMissingBeforeUtf8String()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = [||]""""u8;
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestMissingBeforeInterpolatedString()
         {
             TestNotHandled(
@@ -161,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterString_1()
         {
             TestNotHandled(
@@ -174,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterString_2()
         {
             TestNotHandled(
@@ -187,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterString_3()
         {
             TestNotHandled(
@@ -200,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterString_4()
         {
             TestNotHandled(
@@ -213,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterInterpolatedString_1()
         {
             TestNotHandled(
@@ -226,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterInterpolatedString_2()
         {
             TestNotHandled(
@@ -239,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterInterpolatedString_3()
         {
             TestNotHandled(
@@ -252,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterInterpolatedString_4()
         {
             TestNotHandled(
@@ -265,7 +286,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
+        public void TestMissingAfterUtf8String_1()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"[||]u8;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingAfterUtf8String_2()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u8[||];
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingAfterUtf8String_3()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u8[||]
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingAfterUtf8String_4()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""""u8 [||]
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingAfterUtf8String_5()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u[||]8;
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestMissingInVerbatimString()
         {
             TestNotHandled(
@@ -278,7 +364,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
+        public void TestMissingInUtf8VerbatimString()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = @""a[||]b""u8;
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestMissingInInterpolatedVerbatimString()
         {
             TestNotHandled(
@@ -291,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyString()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -315,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             verifyUndo: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyString_BlockIndent()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -340,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             IndentStyle.Block);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyString_NoneIndent()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -365,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             IndentStyle.None);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyInterpolatedString()
         {
             TestHandled(
@@ -386,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyInterpolatedString_BlockIndent()
         {
             TestHandled(
@@ -407,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }", indentStyle: IndentStyle.Block);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyInterpolatedString_NoneIndent()
         {
             TestHandled(
@@ -428,7 +527,7 @@ $""[||]"";
 }", indentStyle: IndentStyle.None);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestSimpleString1()
         {
             TestHandled(
@@ -449,7 +548,49 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
+        public void TestUtf8String_1()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""now is [||]the time""u8;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = ""now is ""u8 +
+            ""[||]the time""u8;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestUtf8String_2()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""now is [||]the time""U8;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = ""now is ""U8 +
+            ""[||]the time""U8;
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestInterpolatedString1()
         {
             TestHandled(
@@ -470,7 +611,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInterpolatedString2()
         {
             TestHandled(
@@ -491,7 +632,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInterpolatedString3()
         {
             TestHandled(
@@ -512,7 +653,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInInterpolation1()
         {
             TestNotHandled(
@@ -525,7 +666,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInInterpolation2()
         {
             TestNotHandled(
@@ -538,7 +679,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestSelection()
         {
             TestNotHandled(
@@ -552,7 +693,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote1()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -589,7 +730,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote2()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -626,7 +767,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote3()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -663,7 +804,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote4()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -700,7 +841,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote5()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -737,7 +878,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote6()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -774,7 +915,7 @@ $""[||]"";
         }
 
         [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMultiCaretSingleLine()
         {
             TestHandled(
@@ -797,7 +938,7 @@ $""[||]"";
         }
 
         [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMultiCaretMultiLines()
         {
             TestHandled(
@@ -825,7 +966,7 @@ $""[||]"";
         }
 
         [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMultiCaretInterpolatedString()
         {
             TestHandled(
@@ -854,7 +995,7 @@ $""[||]"";
         }
 
         [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInStringWithKeepTabsEnabled1()
         {
             TestHandled(
@@ -877,7 +1018,7 @@ $""[||]"";
         }
 
         [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInStringWithKeepTabsEnabled2()
         {
             TestHandled(
@@ -899,6 +1040,66 @@ $""[||]"";
 	}
 }",
             useTabs: true);
+        }
+
+        [WpfFact]
+        public void TestMissingInRawStringLiteral()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"""Hello[||]there
+world
+"""""";
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingInRawStringLiteralInterpolation()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""""""Hello[||]there
+world
+"""""";
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingInRawStringLiteralInterpolation_MultiBrace()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ${|#0:|}$""""""Hello[||]there
+world
+"""""";
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingInRawUtf8StringLiteral()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"""Hello[||]there
+world
+""""""u8;
+    }
+}");
         }
     }
 }

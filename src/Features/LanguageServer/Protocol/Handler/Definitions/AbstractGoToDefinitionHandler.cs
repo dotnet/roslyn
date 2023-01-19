@@ -10,28 +10,37 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractGoToDefinitionHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
+    internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IGlobalOptionService _globalOptions;
 
-        public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
-            => _metadataAsSourceFileService = metadataAsSourceFileService;
+        public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
+        {
+            _metadataAsSourceFileService = metadataAsSourceFileService;
+            _globalOptions = globalOptions;
+        }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+
+        public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 
         protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
+            var workspace = context.Workspace;
             var document = context.Document;
-            if (document == null)
+            if (workspace is null || document is null)
                 return null;
 
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
@@ -62,7 +71,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
-                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: true, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+                        var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.Services);
+                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location

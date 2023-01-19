@@ -46,7 +46,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(5)").WithArguments("d"));
         }
 
-
         [Fact]
         public void Test13861()
         {
@@ -225,13 +224,13 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'fg' of 'C.F'
+                // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'fg' of 'C.F'
                 //         f(0, fz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f").WithArguments("fg", "C.F").WithLocation(10, 9),
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'my' of 'C.M(int, int, int)'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'my' of 'C.M(int, int, int)'
                 //         M(0, mz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("my", "C.M(int, int, int)").WithLocation(11, 9),
-                // (12,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'cy' of 'C.C(int, int, int)'
+                // (12,13): error CS7036: There is no argument given that corresponds to the required parameter 'cy' of 'C.C(int, int, int)'
                 //         new C(0, cz : 456);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("cy", "C.C(int, int, int)").WithLocation(12, 13));
         }
@@ -772,7 +771,7 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
-            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify);
 
             c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
@@ -889,7 +888,6 @@ public struct Vector3
 }";
             CreateCompilation(source).VerifyDiagnostics();
         }
-
 
         [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
@@ -1013,7 +1011,7 @@ public class Parent
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
- // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Goo(ref int)'
+ // (8,10): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Parent.Goo(ref int)'
  //          Goo();
  Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("x", "Parent.Goo(ref int)"));
         }
@@ -1427,7 +1425,7 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'D.M(ref object)'
+                // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'D.M(ref object)'
                 //         d.M(); //CS1501
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
         }
@@ -1726,7 +1724,6 @@ one
 }");
         }
 
-
         [Fact]
         public void OmittedComOutParameter()
         {
@@ -1748,7 +1745,7 @@ class P
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-// (11,26): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'I.M(out object)'
+// (11,26): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'I.M(out object)'
 //     static void Q(I i) { i.M(); }
 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "I.M(out object)")
                 );
@@ -2489,6 +2486,59 @@ class C
                 // (8,14): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     C(object obj = System.DayOfWeek.Monday) // 2
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(8, 14));
+        }
+
+        [Fact, WorkItem(59789, "https://github.com/dotnet/roslyn/issues/59789")]
+        public void DefaultValue_NonNullConvertedString()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    const IEnumerable<char> y = ""world""; // 1
+    const string y2 = ""world"";
+    const object y3 = ""world""; // 2
+    const dynamic y4 = ""world""; // 3
+
+    void M(IEnumerable<char> x = ""hello"") // 4
+    {
+    }
+
+    void M2(string x = ""hello"")
+    {
+    }
+
+    void M3(object x = ""hello"") // 5
+    {
+    }
+
+    void M4(dynamic x = ""hello"") // 6
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0134: 'C.y' is of type 'IEnumerable<char>'. A const field of a reference type other than string can only be initialized with null.
+                //     const IEnumerable<char> y = "world"; // 1
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y", "System.Collections.Generic.IEnumerable<char>").WithLocation(6, 33),
+                // (8,23): error CS0134: 'C.y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //     const object y3 = "world"; // 2
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y3", "object").WithLocation(8, 23),
+                // (9,24): error CS0134: 'C.y4' is of type 'dynamic'. A const field of a reference type other than string can only be initialized with null.
+                //     const dynamic y4 = "world"; // 3
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y4", "dynamic").WithLocation(9, 24),
+                // (11,30): error CS1763: 'x' is of type 'IEnumerable<char>'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M(IEnumerable<char> x = "hello") // 4
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "System.Collections.Generic.IEnumerable<char>").WithLocation(11, 30),
+                // (19,20): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M3(object x = "hello") // 5
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(19, 20),
+                // (23,21): error CS1763: 'x' is of type 'dynamic'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M4(dynamic x = "hello") // 6
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "dynamic").WithLocation(23, 21)
+                );
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+                var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
 
                 var appliedChanges = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
                 var oldSolution = appliedChanges.Item1;
@@ -1063,9 +1063,9 @@ public interface I1
     protected void M01();
 }
 
-class C1 : [|I1|]
+class C1 : I1
 {
-    public void M01() {}
+    public void [|M01|]() {}
 }
 ",
                 expected: LanguageVersion.CSharp10,
@@ -1100,8 +1100,47 @@ class Test
                  [|}|]y"";
     }
 }",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_1()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X;
+    public [|Test|]() { }
+}",
+                expected: LanguageVersion.CSharp11,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_2()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X;
+    public [|Test|]() { this.ToString(); }
+}",
+                expected: LanguageVersion.CSharp11,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_3()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X { get; set; }
+    public [|Test|]() { this.ToString(); }
+}",
+                expected: LanguageVersion.CSharp11,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
         }
     }
 }

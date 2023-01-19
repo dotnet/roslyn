@@ -17,9 +17,9 @@
         <target state="translated">Eksik usings Ekle</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_remove_braces_for_single_line_control_statements">
-        <source>Add/remove braces for single-line control statements</source>
-        <target state="translated">Tek satır denetim deyimleri için küme ayracı ekle/küme ayraçlarını kaldır</target>
+      <trans-unit id="Add_required_braces_for_single_line_control_statements">
+        <source>Add required braces for single-line control statements</source>
+        <target state="translated">Tek satır denetim deyimleri için gerekli küme ayraçlarını ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
@@ -27,14 +27,39 @@
         <target state="translated">Bu projede güvenli olmayan koda izin ver</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
+        <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
+        <target state="translated">Oluşturucu başlatıcı tercihlerinde iki nokta üst üste işaretinden sonra boş satır uygula (deneysel)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_blank_lines_between_consecutive_braces_preferences_experimental">
+        <source>Apply blank lines between consecutive braces preferences (experimental)</source>
+        <target state="translated">Ardışık küme ayraçları tercihleri arasına boş satırlar uygula (deneysel)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_conditional_delegate_call_preferences">
+        <source>Apply conditional delegate call preferences</source>
+        <target state="translated">Koşullu temsilci çağrısı tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_deconstruct_preferences">
+        <source>Apply deconstruct preferences</source>
+        <target state="translated">Ayrıştırma tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_default_T_preferences">
+        <source>Apply default(T) preferences</source>
+        <target state="translated">Varsayılan (T) tercihleri uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_embedded_statements_on_same_line_preferences_experimental">
+        <source>Apply embedded statements on same line preferences (experimental)</source>
+        <target state="translated">Eklenmiş deyimleri aynı satır tercihlerine uygula (deneysel)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">İfade/blok gövdesi tercihlerini uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_implicit_explicit_type_preferences">
-        <source>Apply implicit/explicit type preferences</source>
-        <target state="translated">Örtük/açık tür tercihlerini uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
@@ -42,20 +67,65 @@
         <target state="translated">Satır içi 'out' değişkenlerine ilişkin tercihleri uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_language_framework_type_preferences">
-        <source>Apply language/framework type preferences</source>
-        <target state="translated">Dil/çerçeve türü tercihlerini uygula</target>
+      <trans-unit id="Apply_local_over_anonymous_function_preferences">
+        <source>Apply local over anonymous function preferences</source>
+        <target state="translated">Anonim işlev tercihleri üzerinde yerel ayarı uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_this_qualification_preferences">
-        <source>Apply 'this.' qualification preferences</source>
-        <target state="translated">'this.' nitelemesi tercihlerini uygula</target>
+      <trans-unit id="Apply_method_group_conversion_preferences">
+        <source>Apply method group conversion preferences</source>
+        <target state="translated">Yöntem grubu dönüştürme tercihlerini uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_using_directive_placement_preferences">
-        <source>Apply preferred 'using' placement preferences</source>
-        <target state="translated">Tercih edilen 'using' yerleştirme tercihlerini uygulayın</target>
-        <note>'using' is a C# keyword and should not be localized</note>
+      <trans-unit id="Apply_namespace_preferences">
+        <source>Apply namespace preferences</source>
+        <target state="translated">Ad alanı tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_new_preferences">
+        <source>Apply new() preferences</source>
+        <target state="translated">Yeni() tercihleri uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_parameter_null_preferences">
+        <source>Apply parameter null preferences</source>
+        <target state="translated">Parametre null tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_pattern_matching_preferences">
+        <source>Apply pattern matching preferences</source>
+        <target state="translated">Desen eşleştirme tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_range_preferences">
+        <source>Apply range preferences</source>
+        <target state="translated">Aralık tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_readonly_struct_preferences">
+        <source>Apply 'readonly struct' preferences</source>
+        <target state="translated">'Salt okunur yapı' tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_static_local_function_preferences">
+        <source>Apply static local function preferences</source>
+        <target state="translated">Statik yerel işlev tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_throw_expression_preferences">
+        <source>Apply throw expression preferences</source>
+        <target state="translated">İfade oluşturma tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_using_statement_preferences">
+        <source>Apply using statement preferences</source>
+        <target state="translated">Using deyimi tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_var_preferences">
+        <source>Apply 'var' preferences</source>
+        <target state="translated">'var' tercihlerini uygula</target>
+        <note />
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
@@ -66,11 +136,6 @@
         <source>Assign 'out' parameters (at start)</source>
         <target state="translated">'out' parametreleri ata (başlangıçta)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_to_0">
-        <source>Assign to '{0}'</source>
-        <target state="translated">'{0}' öğesine ata</target>
-        <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
@@ -87,14 +152,24 @@
         <target state="translated">Tür dönüştürme olarak değiştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compare_to_0">
-        <source>Compare to '{0}'</source>
-        <target state="translated">'{0}' ile karşılaştır</target>
-        <note />
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">'{0}'i record’a dönüştür</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Yönteme dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">Konum record’una dönüştür</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_raw_string">
+        <source>Convert to raw string</source>
+        <target state="translated">Ham dizeye dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -117,24 +192,19 @@
         <target state="translated">Düz metin dizesine dönüştür</target>
         <note />
       </trans-unit>
-      <trans-unit id="Declare_as_nullable">
-        <source>Declare as nullable</source>
-        <target state="translated">Olarak null olabilecek ilan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
-        <target state="new">Enable nullable reference types in project</target>
+        <target state="translated">Projedeki null atanabilir başvuru türlerini etkinleştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_return_type">
-        <source>Fix return type</source>
-        <target state="translated">Dönüş türünü düzelt</target>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">Çözümdeki null atanabilir başvuru türlerini etkinleştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Satır içi geçici değişken</target>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="translated">Genel 'using' yönergeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -167,44 +237,24 @@
         <target state="translated">'for' ifadesini tersine çevir</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">Seçim, oluşturucu başlatıcıda olamaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
-        <target state="new">Selection cannot include global statements</target>
+        <target state="translated">Seçim genel deyimleri içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_top_level_statements">
         <source>Selection cannot include top-level statements</source>
-        <target state="new">Selection cannot include top-level statements</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_lambda_expression">
-        <source>Simplify lambda expression</source>
-        <target state="translated">Lambda ifadesini basitleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_all_occurrences">
-        <source>Simplify all occurrences</source>
-        <target state="translated">Tüm yinelemeleri basitleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_accessibility_modifiers">
-        <source>Sort accessibility modifiers</source>
-        <target state="translated">Erişilebilirlik değiştiricilerini sırala</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unseal_class_0">
-        <source>Unseal class '{0}'</source>
-        <target state="translated">'{0}' sınıfının mührünü aç</target>
+        <target state="translated">Seçim en üst düzey deyimleri içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
         <target state="translated">Özyinelemeli desenler kullan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_Expression_may_change_code_meaning">
-        <source>Warning: Expression may have side effects. Code meaning may change.</source>
-        <target state="new">Warning: Expression may have side effects. Code meaning may change.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -234,7 +284,7 @@
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
-        <target state="translated">&lt; lambda ifadesi &gt;</target>
+        <target state="translated">&lt;lambda ifadesi&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_lambda_declaration">
@@ -249,22 +299,12 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt; üye adı &gt; = </target>
+        <target state="translated">&lt;üye adı&gt; = </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
         <source>Autoselect disabled due to possible explicitly named anonymous type member creation.</source>
         <target state="translated">Otomatik seçim, olası açık adlı anonim tür üyesi oluşturma nedeniyle devre dışı bırakıldı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="element_name">
-        <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt; öğe adı &gt;: </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
-        <source>Autoselect disabled due to possible tuple type element creation.</source>
-        <target state="translated">Olası demet türü öğe oluşturma işleminden dolayı Otomatik seçim devre dışı bırakıldı.</target>
         <note />
       </trans-unit>
       <trans-unit id="pattern_variable">
@@ -274,7 +314,7 @@
       </trans-unit>
       <trans-unit id="range_variable">
         <source>&lt;range variable&gt;</source>
-        <target state="translated">&lt; Aralık değişkeni &gt;</target>
+        <target state="translated">&lt;Aralık değişkeni&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
@@ -297,11 +337,6 @@
         <target state="translated">this' nitelemesini kaldır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified</source>
-        <target state="translated">Ad basitleştirilebilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
         <source>Can't determine valid range of statements to extract</source>
         <target state="translated">Ayıklanacak deyimlerin geçerli aralığı belirlenemiyor</target>
@@ -315,11 +350,6 @@
       <trans-unit id="Selection_does_not_contain_a_valid_node">
         <source>Selection does not contain a valid node</source>
         <target state="translated">Seçim, geçerli bir düğüm içermiyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_selection">
-        <source>Invalid selection.</source>
-        <target state="translated">Geçersiz seçim.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -392,24 +422,9 @@
         <target state="translated">Kullanımları Düzenle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_await">
-        <source>Insert 'await'.</source>
-        <target state="translated">await' ekle.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
         <target state="translated">{0} öğesi boşluk yerine Görev döndürsün.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_return_type_from_0_to_1">
-        <source>Change return type from {0} to {1}</source>
-        <target state="translated">Dönüş türünü {0} değerinden {1} olarak değiştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_return_with_yield_return">
-        <source>Replace return with yield return</source>
-        <target state="translated">Dönüşü, bırakma dönüşüyle değiştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -642,19 +657,9 @@
         <target state="translated">öznitelik hedefi</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
-        <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'{0}' bu kadar çok sayıda bağımsız değişken alan bir oluşturucu içermiyor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">
         <source>The name '{0}' does not exist in the current context.</source>
         <target state="translated">'{0}' adı geçerli bağlamda yok.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hide_base_member">
-        <source>Hide base member</source>
-        <target state="translated">Temel üyeyi gizle</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties">
@@ -669,7 +674,7 @@
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt; ad alanı adı &gt;</target>
+        <target state="translated">&lt;ad alanı adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
@@ -694,22 +699,22 @@
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt; sınıf adı &gt;</target>
+        <target state="translated">&lt;sınıf adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt; arabirim adı &gt;</target>
+        <target state="translated">&lt;arabirim adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">
         <source>&lt;designation name&gt;</source>
-        <target state="translated">&lt; atama adı &gt;</target>
+        <target state="translated">&lt;atama adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
-        <target state="translated">&lt; yapı adı &gt;</target>
+        <target state="translated">&lt;yapı adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async">
@@ -724,7 +729,7 @@
       </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
-        <target state="translated">&lt; ad &gt;</target>
+        <target state="translated">&lt;ad&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_member_declaration">
@@ -762,11 +767,6 @@
         <target state="translated">if ifadesini tersine çevir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add [Obsolete]</source>
-        <target state="translated">Ekle [Eski]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
         <target state="translated">'{0}' kullan</target>
@@ -776,6 +776,14 @@
         <source>Introduce 'using' statement</source>
         <target state="translated">'using' deyimi ekle</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="without_leading_whitespace_may_change_semantics">
+        <source>... without leading whitespace (may change semantics)</source>
+        <target state="translated">...başta boşluk olmadan (semantiği değiştirebilir)</target>
+        <note>This clause is a follow up to the "Convert to raw string" loc string.
+    The intent is that the user sees "Convert to raw string" as an option to select,
+    and that is then followed with this clause.  This is so we don't have a huge string
+    saying "Convert to raw string without leading whitespace (may change semantics)"</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>

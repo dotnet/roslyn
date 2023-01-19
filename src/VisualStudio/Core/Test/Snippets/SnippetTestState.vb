@@ -5,15 +5,16 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Editor
@@ -41,13 +42,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                        excludedTypes:={GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), GetType(FormatCommandHandler)}.Concat(If(excludedTypes, {})).ToList(),
                        includeFormatCommandHandler:=False)
 
-            Workspace.TryApplyChanges(Workspace.CurrentSolution.WithOptions(Workspace.Options _
-                    .WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)))
+            Workspace.GlobalOptions.SetGlobalOption(InternalFeatureOnOffOptions.Snippets, True)
 
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)(MockBehavior.Strict)
             mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
 
             Dim globalOptions = Workspace.GetService(Of IGlobalOptionService)
+            Dim editorOptionsService = Workspace.GetService(Of EditorOptionsService)()
+            Dim indentationManager = Workspace.GetService(Of IIndentationManagerService)()
 
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(
@@ -57,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
                     Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
-                    globalOptions), AbstractSnippetCommandHandler),
+                    editorOptionsService), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(
                     Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(),
@@ -65,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
                     Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
-                    globalOptions))
+                    editorOptionsService))
 
             SnippetExpansionClient = New MockSnippetExpansionClient(
                 Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
@@ -73,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 If(languageName Is LanguageNames.CSharp, Guids.CSharpLanguageServiceId, Guids.VisualBasicLanguageServiceId),
                 TextView,
                 SubjectBuffer,
-                globalOptions)
+                editorOptionsService)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
         End Sub
 
@@ -101,9 +103,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                                </Workspace>
 
             Dim state = New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts, excludedTypes:=Enumerable.Empty(Of Type), WorkspaceKind.Interactive)
-            Dim workspace = state.Workspace
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                .WithChangedOption(InternalFeatureOnOffOptions.Snippets, False)))
+            state.Workspace.GlobalOptions.SetGlobalOption(InternalFeatureOnOffOptions.Snippets, False)
             Return state
         End Function
 
@@ -151,8 +151,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Friend Class MockSnippetExpansionClient
             Inherits AbstractSnippetExpansionClient
 
-            Public Sub New(threadingContext As IThreadingContext, startActiveSession As Boolean, languageServiceGuid As Guid, textView As ITextView, subjectBuffer As ITextBuffer, globalOptions As IGlobalOptionService)
-                MyBase.New(threadingContext, languageServiceGuid, textView, subjectBuffer, signatureHelpControllerProvider:=Nothing, editorCommandHandlerServiceFactory:=Nothing, Nothing, ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty, globalOptions)
+            Public Sub New(threadingContext As IThreadingContext,
+                           startActiveSession As Boolean,
+                           languageServiceGuid As Guid,
+                           textView As ITextView,
+                           subjectBuffer As ITextBuffer,
+                           editorOptionsService As EditorOptionsService)
+                MyBase.New(threadingContext,
+                           languageServiceGuid,
+                           textView,
+                           subjectBuffer,
+                           signatureHelpControllerProvider:=Nothing,
+                           editorCommandHandlerServiceFactory:=Nothing,
+                           Nothing,
+                           ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty,
+                           editorOptionsService)
 
                 If startActiveSession Then
                     TryHandleTabReturnValue = True
@@ -205,10 +218,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Return TryInsertExpansionReturnValue
             End Function
 
-            Public Overrides Function GetExpansionFunction(xmlFunctionNode As IXMLDOMNode, bstrFieldName As String, ByRef pFunc As IVsExpansionFunction) As Integer
-                Throw New NotImplementedException()
-            End Function
-
             Protected Overrides Function InsertEmptyCommentAndGetEndPositionTrackingSpan() As ITrackingSpan
                 Throw New NotImplementedException()
             End Function
@@ -219,7 +228,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 End Get
             End Property
 
-            Friend Overrides Function AddImports(document As Document, options As OptionSet, position As Integer, snippetNode As XElement, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Document
+            Friend Overrides Function AddImports(document As Document, addImportOptions As AddImportPlacementOptions, formattingOptions As SyntaxFormattingOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Document
                 Return document
             End Function
         End Class

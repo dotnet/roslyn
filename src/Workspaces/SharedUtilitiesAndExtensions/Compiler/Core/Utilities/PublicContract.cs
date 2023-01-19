@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         // while keeping the rarely executed code in a separate method.
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void RequireNonNullItems<T>([NotNull] IEnumerable<T>? sequence, string argumentName) where T : class
+        internal static IEnumerable<T> RequireNonNullItems<T>([NotNull] IEnumerable<T>? sequence, string argumentName) where T : class
         {
             if (sequence == null)
             {
@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis
             {
                 ThrowArgumentItemNullException(sequence, argumentName);
             }
+
+            return sequence;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -145,9 +147,9 @@ namespace Microsoft.CodeAnalysis
 
             argumentName = MakeIndexedArgumentName(argumentName, index);
 
-            throw (list[index] is null) ?
-                 new ArgumentNullException(argumentName) :
-                 new ArgumentException(CompilerExtensionsResources.Specified_sequence_has_duplicate_items, argumentName);
+            throw (list[index] is null)
+                 ? new ArgumentNullException(argumentName)
+                 : new ArgumentException(CompilerExtensionsResources.Specified_sequence_has_duplicate_items, argumentName);
         }
 
         [DoesNotReturn]

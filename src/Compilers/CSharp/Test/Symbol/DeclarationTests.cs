@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DeclarationTests : CSharpTestBase
     {
-        private CompilationUnitSyntax ParseFile(string text)
-        {
-            return SyntaxFactory.ParseCompilationUnit(text);
-        }
-
         [Fact]
         public void TestSimpleDeclarations()
         {
@@ -255,7 +250,6 @@ namespace NA
             table = table.RemoveRootDeclaration(decl2);
             Assert.True(table.TypeNames.IsEmpty());
         }
-
 
         [Fact]
         public void Bug2038()

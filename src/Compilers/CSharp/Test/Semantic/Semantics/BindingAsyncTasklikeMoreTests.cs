@@ -807,7 +807,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyEmitDiagnostics(
-                // (8,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'AsyncMethodBuilderAttribute.AsyncMethodBuilderAttribute(Type, int)'
+                // (8,2): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'AsyncMethodBuilderAttribute.AsyncMethodBuilderAttribute(Type, int)'
                 // [AsyncMethodBuilder(typeof(B2))] class T2 { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AsyncMethodBuilder(typeof(B2))").WithArguments("i", "System.Runtime.CompilerServices.AsyncMethodBuilderAttribute.AsyncMethodBuilderAttribute(System.Type, int)").WithLocation(8, 2),
                 // (13,14): error CS1983: The return type of an async method must be void, Task or Task<T>
@@ -1587,11 +1587,79 @@ class Program
 
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "3");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "3");
 
             compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "3");
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "3");
+        }
+
+        [Theory, CombinatorialData, WorkItem(60332, "https://github.com/dotnet/roslyn/issues/60332")]
+        public void RefParameterOnMethodWithAsyncMethodBuilderAttribute(bool useCSharp9)
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                int x = 1;
+                await m0(ref x, out var y0);
+                await m1(ref x, out var y1);
+
+                static async ValueTask m0(ref int x, out int y) // 1
+                {
+                    await Task.Delay(1000);
+                    y = x * x;
+                    x = y * y;
+                }
+
+                [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
+                static async ValueTask m1(ref int x, out int y) // 2
+                {
+                    await Task.Delay(1000);
+                    y = x * x;
+                    x = y * y;
+                }
+                """;
+
+            var compilation = CreateCompilation(source, parseOptions: useCSharp9 ? TestOptions.Regular9 : TestOptions.Regular10, targetFramework: TargetFramework.Net70);
+            if (useCSharp9)
+            {
+                compilation.VerifyDiagnostics(
+                    // (8,35): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m0(ref int x, out int y) // 1
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(8, 35),
+                    // (8,46): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m0(ref int x, out int y) // 1
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "y").WithLocation(8, 46),
+                    // (16,24): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    // static async ValueTask m1(ref int x, out int y) // 2
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "m1").WithArguments("async method builder override", "10.0").WithLocation(16, 24),
+                    // (16,35): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m1(ref int x, out int y) // 2
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(16, 35),
+                    // (16,46): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m1(ref int x, out int y) // 2
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "y").WithLocation(16, 46)
+                    );
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // (8,35): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m0(ref int x, out int y) // 1
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(8, 35),
+                    // (8,46): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m0(ref int x, out int y) // 1
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "y").WithLocation(8, 46),
+                    // (16,35): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m1(ref int x, out int y) // 2
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(16, 35),
+                    // (16,46): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m1(ref int x, out int y) // 2
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "y").WithLocation(16, 46)
+                    );
+            }
         }
     }
 }

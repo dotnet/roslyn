@@ -7,17 +7,19 @@ Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -34,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
         Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
-        Private ReadOnly _globalOptions As IGlobalOptionService
+        Private ReadOnly _editorOptionsService As EditorOptionsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -44,14 +46,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
             <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            globalOptions As IGlobalOptionService)
+            editorOptionsService As EditorOptionsService)
 
             _threadingContext = threadingContext
             _signatureHelpControllerProvider = signatureHelpControllerProvider
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
             _editorAdaptersFactoryService = editorAdaptersFactoryService
             _argumentProviders = argumentProviders.ToImmutableArray()
-            _globalOptions = globalOptions
+            _editorOptionsService = editorOptionsService
         End Sub
 
         Friend Overrides ReadOnly Property Language As String
@@ -80,32 +82,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim snippets = snippetInfoService.GetSnippetsIfAvailable()
 
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
-            Dim isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken)
+            Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Dim targetToken = leftToken.GetPreviousTokenIfTouchingWord(position)
 
-            If (IsInNonUserCode(syntaxTree, position, cancellationToken)) Then
+            If syntaxTree.IsPossibleTupleContext(leftToken, position) Then
+                Return
+            End If
+
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
+            If IsInNonUserCode(syntaxTree, position, cancellationToken) Then
                 Return
             End If
 
             context.IsExclusive = context.CompletionOptions.SnippetsBehavior = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
-            context.AddItems(CreateCompletionItems(snippets, isPossibleTupleContext))
+            context.AddItems(CreateCompletionItems(snippets))
         End Function
 
         Private Shared ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
         Private Shared ReadOnly s_rules As CompletionItemRules = CompletionItemRules.Create(
             commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, s_commitChars)))
 
-        Private Shared ReadOnly s_tupleRules As CompletionItemRules = s_rules.
-            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
-
-        Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), isTupleContext As Boolean) As IEnumerable(Of CompletionItem)
+        Private Shared Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo)) As IEnumerable(Of CompletionItem)
 
             Return snippets.Select(Function(s) CommonCompletionItem.Create(
                                        s.Shortcut,
                                        displayTextSuffix:="",
                                        description:=s.Description.ToSymbolDisplayParts(),
                                        glyph:=Glyph.Snippet,
-                                       rules:=If(isTupleContext, s_tupleRules, s_rules)))
+                                       rules:=s_rules))
         End Function
 
         Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
@@ -127,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 _editorCommandHandlerServiceFactory,
                 _editorAdaptersFactoryService,
                 _argumentProviders,
-                _globalOptions)
+                _editorOptionsService)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

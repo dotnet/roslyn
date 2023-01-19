@@ -134,7 +134,6 @@ End Class
                 </file>
             </compilation>
 
-
         Public Sub New()
             ' The following two libraries are shrunk code pulled from
             ' corresponding files in the csharp5 legacy tests
@@ -213,6 +212,7 @@ End Class
                     _eventLibRef},
                 options:=TestOptions.ReleaseModule).EmitToImageReference()
 
+            ' ILVerify: Assembly or module not found: 05ca8eb4-6571-4ba9-8736-a47aa3bc2cc7
             Dim verifier = CompileAndVerifyOnWin8Only(
                 src,
                 allReferences:={
@@ -220,7 +220,8 @@ End Class
                     SystemCoreRef_v4_0_30319_17929,
                     CSharpRef,
                     _eventLibRef,
-                    dynamicCommonRef})
+                    dynamicCommonRef},
+                verify:=Verification.FailsILVerify)
             verifier.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
@@ -765,7 +766,8 @@ Public Partial Class A
   IL_004b:  ret
 }
                     </output>
-            CompileAndVerify(compilation).VerifyIL("abcdef.goo", expectedIL.Value())
+            ' ILVerify: Missing method 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken Windows.UI.Xaml.Application.add_Suspending(Windows.UI.Xaml.SuspendingEventHandler)'
+            CompileAndVerify(compilation, verify:=Verification.FailsILVerify).VerifyIL("abcdef.goo", expectedIL.Value())
         End Sub
 
         <Fact()>
@@ -785,7 +787,6 @@ End Class
             options:=TestOptions.ReleaseWinMD)
             comp.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_WinRTEventWithoutDelegate, "E"))
         End Sub
-
 
         ''' <summary>
         ''' Verify that WinRT events compile into the IL that we 

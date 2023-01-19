@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
 {
+    [Trait(Traits.Feature, Traits.Features.UnusedReferences)]
     public class UnusedReferencesRemoverTests
     {
         private static readonly string[] Empty = Array.Empty<string>();
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
         private const string UnusedAssemblyName = "Unused.dll";
         private const string UnusedAssemblyPath = $"/libs/{UnusedAssemblyName}";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public void GetUnusedReferences_DirectlyUsedAssemblyReferences_AreNotReturned()
         {
             var usedAssemblies = new[] { UsedAssemblyPath };
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Empty(unusedReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public void GetUnusedReferences_DirectlyUsedPackageReferences_AreNotReturned()
         {
             var usedAssemblies = new[] { UsedAssemblyPath };
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Empty(unusedReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public void GetUnusedReferences_DirectlyUsedProjectReferences_AreNotReturned()
         {
             var usedProjects = new[] { UsedAssemblyName };
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Empty(unusedReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public void GetUnusedReferences_UnusedReferences_AreReturned()
         {
             var usedAssemblies = new[] { UsedAssemblyPath };
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Single(unusedReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public void GetUnusedReferences_TransitivelyUsedPackageReferences_AreNotReturned()
         {
             var usedAssemblies = new[] { UsedAssemblyPath };
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Empty(unusedReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public void GetUnusedReferences_TransitivelyUsedProjectReferences_AreNotReturned()
         {
             var usedAssemblies = new[] { UsedAssemblyPath };
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Empty(unusedReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public void GetUnusedReferences_WhenUsedAssemblyIsAvilableDirectlyAndTransitively_DirectReferencesAreReturned()
         {
             var usedAssemblies = new[] { UsedAssemblyPath };
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Single(unusedReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public void GetUnusedReferences_ReferencesThatDoNotContributeToCompilation_AreNotReturned()
         {
             var usedAssemblies = new[] { UsedAssemblyPath };
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Empty(unusedReferences);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Theory]
         [InlineData(UpdateAction.None, false)]
         [InlineData(UpdateAction.None, true)]
         [InlineData(UpdateAction.TreatAsUnused, false)]
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Empty(appliedUpdates);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Theory]
         [InlineData(UpdateAction.Remove, false)]
         [InlineData(UpdateAction.Remove, true)]
         [InlineData(UpdateAction.TreatAsUnused, true)]
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             Assert.Single(appliedUpdates);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
+        [Fact]
         public async Task ApplyReferenceUpdates_MixOfChangeAndNoChangeUpdates_ChangesAreApplied()
         {
             var noChangeUpdate = new ReferenceUpdate(UpdateAction.None, PackageReference(UsedAssemblyPath));

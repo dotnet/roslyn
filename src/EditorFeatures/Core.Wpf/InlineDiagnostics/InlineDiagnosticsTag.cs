@@ -9,8 +9,8 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI;
@@ -18,12 +18,11 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
-using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    internal class InlineDiagnosticsTag : GraphicsTag, IEndOfLineAdornmentTag
+    internal class InlineDiagnosticsTag : GraphicsTag
     {
         public const string TagID = "inline diagnostics - ";
         public readonly string ErrorType;
@@ -35,16 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         private readonly IClassificationType? _classificationType;
-
-        public string Type => "Inline Diagnostics";
-
-        public double HorizontalOffset => double.NaN;
-
-        public double VerticalOffset => double.NaN;
-
-        public double Width => double.NaN;
-
-        public double Height => double.NaN;
 
         public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap,
             IClassificationFormatMapService classificationFormatMapService, IClassificationTypeRegistryService classificationTypeRegistryService,
@@ -64,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Creates a GraphicsResult object which is the error block based on the geometry and formatting set for the item.
         /// </summary>
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format)
+        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry unused, TextFormattingRunProperties format)
         {
             var block = new TextBlock
             {
@@ -122,7 +111,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             ImageThemingUtilities.SetImageBackgroundColor(border, editorBackground);
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            view.ViewportWidthChanged += ViewportWidthChangedHandler;
             view.LayoutChanged += View_LayoutChanged;
 
             return new GraphicsResult(border, dispose:
@@ -133,21 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                         hyperlink.RequestNavigate -= HandleRequestNavigate;
                     }
 
-                    view.ViewportWidthChanged -= ViewportWidthChangedHandler;
                     view.LayoutChanged -= View_LayoutChanged;
                 });
-
-            // The tag listens to the width changing to allow the diagnostic UI to move with
-            // the window as it gets moved.
-            // The InlineDiagnosticsAdornmentManager listens to the viewport width
-            // changing to deal with diagnostics intersecting with the text in the editor.
-            void ViewportWidthChangedHandler(object s, EventArgs e)
-            {
-                if (Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
-                {
-                    Canvas.SetLeft(border, view.ViewportRight - border.DesiredSize.Width);
-                }
-            }
 
             void View_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
             {
@@ -169,11 +144,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var id = new Run(_diagnostic.Id);
                 link = null;
 
-                if (!string.IsNullOrEmpty(_diagnostic.HelpLink))
+                var helpLinkUri = _diagnostic.GetValidHelpLinkUri();
+                if (helpLinkUri != null)
                 {
                     link = new Hyperlink(id)
                     {
-                        NavigateUri = new Uri(_diagnostic.HelpLink),
+                        NavigateUri = helpLinkUri
                     };
                 }
 

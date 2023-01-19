@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,9 +19,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
 using Roslyn.Utilities;
@@ -44,41 +48,51 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         // but we want to keep it alive until the VS is closed, so we don't dispose it.
         private ISymbolSearchUpdateEngine _lazyUpdateEngine;
 
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly SVsServiceProvider _serviceProvider;
         private readonly IPackageInstallerService _installerService;
-        private readonly string _localSettingsDirectory;
-        private readonly LogService _logService;
+
+        private string _localSettingsDirectory;
+        private LogService _logService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSymbolSearchService(
             IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
             VSShell.SVsServiceProvider serviceProvider)
-            : base(threadingContext, workspace, globalOptions, SymbolSearchGlobalOptions.Enabled,
-                  SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            : base(threadingContext,
+                   globalOptions,
+                   workspace,
+                   listenerProvider,
+                   SymbolSearchGlobalOptions.Enabled,
+                   ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
-            _workspace = workspace;
+            _serviceProvider = serviceProvider;
             _installerService = workspace.Services.GetService<IPackageInstallerService>();
-            _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
-
-            _logService = new LogService(threadingContext, (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
         }
 
-        protected override Task EnableServiceAsync(CancellationToken cancellationToken)
+        protected override async Task EnableServiceAsync(CancellationToken cancellationToken)
         {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
+
+            _logService = new LogService(this.ThreadingContext, (IVsActivityLog)_serviceProvider.GetService(typeof(SVsActivityLog)));
+
             // When our service is enabled hook up to package source changes.
             // We need to know when the list of sources have changed so we can
             // kick off the work to process them.
             _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
-            return Task.CompletedTask;
+
+            // Kick off the initial work to pull down the nuget index.
+            this.StartWorking();
         }
 
         private void OnPackageSourcesChanged(object sender, EventArgs e)
             => StartWorking();
 
-        protected override void StartWorking()
+        private void StartWorking()
         {
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
@@ -90,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 return _lazyUpdateEngine ??= await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
-                    _workspace, _logService, cancellationToken).ConfigureAwait(false);
+                    Workspace, _logService, FileDownloader.Factory.Instance, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -123,6 +137,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private ImmutableArray<TPackageResult> FilterAndOrderPackages<TPackageResult>(
             ImmutableArray<TPackageResult> allPackages) where TPackageResult : PackageResult
         {
+            // The ranking threshold under while we start aggressively filtering out packages if they don't have a high
+            // enough rank.  Above this and we will always include the item as it's shown more than enough usage to
+            // indicate it's a high value, highly used package.  Note: the reason for this is that some minor packages
+            // include copies of types within them).  So we don't want to clutter the display with redundant duplicate
+            // matches from rarely used packages that are extremely unlikely to be relevant.  Once the package is highly
+            // used though, it's def likely that this could be a viable match.
+            //
+            // The 25 number was picked as it's equivalent to >25m downloads from nuget, which def seems a reasonable
+            // signal that this is an important package.
+            const int RankThreshold = 25;
+
             var packagesUsedInOtherProjects = new List<TPackageResult>();
             var packagesNotUsedInOtherProjects = new List<TPackageResult>();
 
@@ -151,10 +176,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var rank = packageWithType.Rank;
                 bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
 
-                if (Math.Abs(bestRank.Value - rank) > 1)
-                {
+                if (rank < RankThreshold && Math.Abs(bestRank.Value - rank) > 1)
                     break;
-                }
 
                 result.Add(packageWithType);
             }

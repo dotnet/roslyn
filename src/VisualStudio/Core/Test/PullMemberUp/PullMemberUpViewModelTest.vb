@@ -6,18 +6,20 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PullMemberUp
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+Imports Microsoft.VisualStudio.LanguageServices.Utilities
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.PullMemberUp
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
     Public Class PullMemberUpViewModelTest
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_VerifySameBaseTypeAppearMultipleTimes() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -52,7 +54,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Assert.True(viewModel.OkButtonEnabled)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_NoVBDestinationAppearInCSharpProject() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -90,7 +92,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Assert.Single(baseTypeTree)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_SelectInterfaceDisableMakeAbstractCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -135,7 +137,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Next
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_SelectInterfaceDisableFieldCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -178,7 +180,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Next
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_SelectClassEnableFieldCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -225,7 +227,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Next
         End Function
 
-        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
+        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of MemberSymbolViewModel)) As MemberSymbolViewModel
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.SymbolName.Equals(name))
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
@@ -234,7 +236,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Return member
         End Function
 
-        Private Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of PullMemberUpDialogViewModel)
+        Private Shared Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of PullMemberUpDialogViewModel)
             Dim workspaceXml =
             <Workspace>
                 <Project Language=<%= languageName %> CommonReferences="true">
@@ -250,12 +252,12 @@ class MyClass : Level1BaseClass, Level1Interface
                 End If
 
                 Dim tree = Await workspaceDoc.GetSyntaxTreeAsync()
-                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.Services.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim memberSymbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
                 Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(glyphService:=Nothing, workspaceDoc.Project.Solution, memberSymbol.ContainingType, CancellationToken.None)
                 Dim membersInType = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
                 Dim membersViewModel = membersInType.SelectAsArray(
-                    Function(member) New PullMemberUpSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
+                    Function(member) New MemberSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
                 Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
                 Return New PullMemberUpDialogViewModel(
                     workspace.GetService(Of IUIThreadOperationExecutor),

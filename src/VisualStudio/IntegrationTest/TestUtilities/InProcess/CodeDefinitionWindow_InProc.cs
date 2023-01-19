@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static CodeDefinitionWindow_InProc Create()
             => new CodeDefinitionWindow_InProc();
 
-        private IWpfTextView GetCodeDefinitionWpfTextView()
+        private static IWpfTextView GetCodeDefinitionWpfTextView()
         {
             var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
             var windowGuid = Guid.Parse(ToolWindowGuids80.CodedefinitionWindow);
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// Waits for all async processing to complete, including the async processing in the
         /// code definition window itself.
         /// </summary>
-        private void WaitUntilProcessingComplete()
+        private static void WaitUntilProcessingComplete()
         {
             GetWaitingService().WaitForAsyncOperations(FeatureAttribute.CodeDefinitionWindow);
 

@@ -14,13 +14,14 @@
       https://github.com/Microsoft/visualfsharp
     </PackageDescription>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="VisualFSharp.UnitTests" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
 
@@ -35,8 +36,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +63,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Internal\Utilities\" />
   </ItemGroup>
 
 </Project>

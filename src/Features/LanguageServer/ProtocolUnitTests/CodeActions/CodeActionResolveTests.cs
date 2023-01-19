@@ -12,12 +12,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     {
+        public CodeActionResolveTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [WpfFact]
         public async Task TestCodeActionResolveHandlerAsync()
         {
@@ -29,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(initialMarkup);
+            await using var testLspServer = await CreateTestLspServerAsync(initialMarkup);
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(initialMarkup);
+            await using var testLspServer = await CreateTestLspServerAsync(initialMarkup);
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
@@ -132,11 +137,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static async Task<LSP.VSInternalCodeAction> RunGetCodeActionResolveAsync(
             TestLspServer testLspServer,
-            VSInternalCodeAction unresolvedCodeAction,
-            LSP.ClientCapabilities clientCapabilities = null)
+            VSInternalCodeAction unresolvedCodeAction)
         {
             var result = (VSInternalCodeAction)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
-                LSP.Methods.CodeActionResolveName, unresolvedCodeAction, clientCapabilities, null, CancellationToken.None);
+                LSP.Methods.CodeActionResolveName, unresolvedCodeAction, CancellationToken.None);
             return result;
         }
 

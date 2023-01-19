@@ -233,15 +233,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not _globalOptions.GetOption(FormattingBehaviorOptions.FormatOnPaste, LanguageNames.VisualBasic) Then
+                If Not _globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, LanguageNames.VisualBasic) Then
                     transaction.Complete()
                     Return
                 End If
 
                 Dim document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
                 If document IsNot Nothing Then
-                    Dim formattingRuleService = document.Project.Solution.Workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-                    If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document) Then
+                    Dim formattingRuleService = document.Project.Solution.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+                    If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id) Then
                         transaction.Complete()
                         Return
                     End If

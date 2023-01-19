@@ -8,9 +8,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
-using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -28,32 +27,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);
 
-        protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
+        protected override void WarmUpCacheInBackground(Document document)
+        {
+            var typeImportCompletionService = document.GetRequiredLanguageService<ITypeImportCompletionService>();
+            typeImportCompletionService.QueueCacheWarmUpTask(document.Project);
+        }
+
+        protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
-                var telemetryCounter = new TelemetryCounter(isExpandedCompletion);
+                var telemetryCounter = new TelemetryCounter();
                 var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
-                var itemsFromAllAssemblies = await typeImportCompletionService.GetAllTopLevelTypesAsync(
+                var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
                     completionContext.Document.Project,
                     syntaxContext,
-                    forceCacheCreation: isExpandedCompletion,
+                    forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
                     completionContext.CompletionOptions,
                     cancellationToken).ConfigureAwait(false);
 
-                if (itemsFromAllAssemblies == null)
-                {
+                var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
+                foreach (var items in itemsFromAllAssemblies)
+                    AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
+
+                if (isPartialResult)
                     telemetryCounter.CacheMiss = true;
-                }
-                else
-                {
-                    var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
-                    foreach (var items in itemsFromAllAssemblies)
-                    {
-                        AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
-                    }
-                }
 
                 telemetryCounter.Report();
             }
@@ -164,17 +163,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private class TelemetryCounter
         {
-            private readonly int _tick;
-            private readonly bool _isExpandedCompletion;
+            private readonly SharedStopwatch _elapsedTime;
 
             public int ItemsCount { get; set; }
             public int ReferenceCount { get; set; }
             public bool CacheMiss { get; set; }
 
-            public TelemetryCounter(bool isExpandedCompletion)
+            public TelemetryCounter()
             {
-                _tick = Environment.TickCount;
-                _isExpandedCompletion = isExpandedCompletion;
+                _elapsedTime = SharedStopwatch.StartNew();
             }
 
             public void Report()
@@ -185,8 +182,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 // cache miss still count towards the cost of completion, so we need to log regardless of it.
-                var delta = Environment.TickCount - _tick;
-                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta, _isExpandedCompletion);
+                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(_elapsedTime.Elapsed);
                 CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
                 CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
             }

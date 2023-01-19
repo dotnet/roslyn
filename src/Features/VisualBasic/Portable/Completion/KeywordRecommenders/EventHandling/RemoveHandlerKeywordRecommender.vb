@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
                                                                  New RemoveHandlerStatementDocumentation()))
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            Return If(context.IsSingleLineStatementContext OrElse context.CanDeclareCustomEventAccessor(SyntaxKind.RemoveHandlerAccessorBlock),
+            Return If(context.IsStatementContext OrElse context.CanDeclareCustomEventAccessor(SyntaxKind.RemoveHandlerAccessorBlock),
                 s_keywords,
                 ImmutableArray(Of RecommendedKeyword).Empty)
         End Function

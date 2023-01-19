@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -23,6 +24,7 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public partial class CodeGenerationTests
     {
         [UseExportProvider]
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     public C();
 }";
                 await TestAddConstructorAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -218,6 +220,59 @@ class C
 }";
                 await TestAddNamedTypeAsync(input, expected,
                     modifiers: new Editing.DeclarationModifiers(isStatic: true));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            public async Task AddStaticAbstractClass()
+            {
+                var input = "namespace [|N|] { }";
+                var expected = @"namespace N
+{
+    public static class C
+    {
+    }
+}";
+                // note that 'abstract' is dropped here
+                await TestAddNamedTypeAsync(input, expected,
+                    modifiers: new Editing.DeclarationModifiers(isStatic: true, isAbstract: true));
+            }
+
+            [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [InlineData(Accessibility.NotApplicable)]
+            [InlineData(Accessibility.Internal)]
+            [InlineData(Accessibility.Public)]
+            public async Task AddFileClass(Accessibility accessibility)
+            {
+                var input = "namespace [|N|] { }";
+                var expected = @"namespace N
+{
+    file class C
+    {
+    }
+}";
+                // note: when invalid combinations of modifiers+accessibility are present here,
+                // we actually drop the accessibility. This is similar to what is done if someone declares a 'static abstract class C { }'.
+                await TestAddNamedTypeAsync(input, expected,
+                    accessibility: accessibility,
+                    modifiers: new Editing.DeclarationModifiers(isFile: true));
+            }
+
+            [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [InlineData("struct", TypeKind.Struct)]
+            [InlineData("interface", TypeKind.Interface)]
+            [InlineData("enum", TypeKind.Enum)]
+            public async Task AddFileType(string kindString, TypeKind typeKind)
+            {
+                var input = "namespace [|N|] { }";
+                var expected = @"namespace N
+{
+    file " + kindString + @" C
+    {
+    }
+}";
+                await TestAddNamedTypeAsync(input, expected,
+                    typeKind: typeKind,
+                    modifiers: new Editing.DeclarationModifiers(isFile: true));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
@@ -365,7 +420,7 @@ class C
     public event System.Action E;
 }";
                 await TestAddEventAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -400,8 +455,8 @@ class C
         }
     }
 }";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -414,7 +469,7 @@ class C
 }";
                 await TestAddEventAsync(input, expected,
                     modifiers: new Editing.DeclarationModifiers(isUnsafe: true),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -437,7 +492,7 @@ class C
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                     removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -472,8 +527,8 @@ class C
         return 0;
     }
 }";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -551,7 +606,7 @@ class C
 }";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(int),
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -914,8 +969,8 @@ class C
                 await TestAddStatementsAsync(input, expected, "Console.WriteLine(2);");
             }
 
-            [WorkItem(840265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(840265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
             public async Task AddDefaultParameterWithNonDefaultValueToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
@@ -942,8 +997,8 @@ class C
                     Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5f)));
             }
 
-            [WorkItem(841365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(841365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
             public async Task AddParamsParameterToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
@@ -1003,8 +1058,8 @@ class C
         }
     }
 }";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1016,8 +1071,7 @@ class C
                     type: typeof(string),
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
-                    isIndexer: true,
-                    codeGenerationOptions: new CodeGenerationOptions(parseOptions: CSharpParseOptions.Default));
+                    isIndexer: true);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1039,7 +1093,8 @@ class C
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
                     isIndexer: true,
-                    options: new Dictionary<OptionKey2, object> {
+                    options: new OptionsCollection(LanguageNames.CSharp)
+                    {
                         { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                         { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                     });
@@ -1538,12 +1593,11 @@ namespace N
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     forceLanguage: LanguageNames.CSharp,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
         }
 
-        [WorkItem(665008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(665008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
         public async Task TestExtensionMethods()
         {
             var generationSource = @"
@@ -1557,12 +1611,11 @@ public static class [|C|]
     public static void ExtMethod1(this string s, int y, string z);
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
 
-        [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
         public async Task TestVBPropertiesWithParams()
         {
             var generationSource = @"
@@ -1589,11 +1642,10 @@ End Namespace
     }
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                context: new CodeGenerationContext(generateMethodBodies: false));
         }
 
-        [WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
         public async Task TestRefParamsWithDefaultValue()
         {
             var generationSource = @"
@@ -1607,12 +1659,11 @@ End Class";
     public void Goo(int x, ref int y, ref object z);
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
 
-        [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
         public async Task TestConstraints()
         {
             var generationSource = @"
@@ -1642,7 +1693,7 @@ namespace N
     }
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
     }

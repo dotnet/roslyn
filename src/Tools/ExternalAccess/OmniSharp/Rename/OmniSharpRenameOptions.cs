@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
         bool RenameInStrings,
         bool RenameOverloads)
     {
-        internal RenameOptionSet ToRenameOptions()
+        internal SymbolRenameOptions ToRenameOptions()
             => new(
                 RenameOverloads: RenameOverloads,
                 RenameInStrings: RenameInStrings,

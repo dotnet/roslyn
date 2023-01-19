@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -33,21 +32,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
+        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs, DiagnosticKind diagnosticKind)
         {
-            var globalOptions = workspace.GetService<IGlobalOptionService>();
-            var source = new TestDiagnosticUpdateSource(globalOptions);
+            var source = new TestDiagnosticUpdateSource();
 
             using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
 
-            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(firstDocument.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
+
+            var analyzerServer = (MockDiagnosticAnalyzerService)workspace.GetService<IDiagnosticAnalyzerService>();
+            analyzerServer.AddDiagnostics(updateArgs.Diagnostics, diagnosticKind);
 
             source.RaiseDiagnosticsUpdated(updateArgs);
 
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
             return spans;
@@ -55,11 +57,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
         internal static DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
         {
+            var sourceText = document.GetTextBuffer().CurrentSnapshot.AsText();
+            var linePosSpan = sourceText.Lines.GetLinePositionSpan(span);
             return new DiagnosticData(
                 id: "test",
                 category: "test",
                 message: "test",
-                enuMessageForBingSearch: "test",
                 severity: DiagnosticSeverity.Error,
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
@@ -67,21 +70,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, span),
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, linePosSpan), document.Id),
                 language: document.Project.Language);
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
             private ImmutableArray<DiagnosticData> _diagnostics = ImmutableArray<DiagnosticData>.Empty;
-            private readonly IGlobalOptionService _globalOptions;
-
-            public TestDiagnosticUpdateSource(IGlobalOptionService globalOptions)
-                => _globalOptions = globalOptions;
 
             public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
             {
-                _diagnostics = args.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                _diagnostics = args.Diagnostics;
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 

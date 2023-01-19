@@ -5,13 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -30,6 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
+        private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -47,18 +52,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.Assembly, LSP.CompletionItemKind.File },
             { WellKnownTags.Class, LSP.CompletionItemKind.Class },
             { WellKnownTags.Constant, LSP.CompletionItemKind.Constant },
-            { WellKnownTags.Delegate, LSP.CompletionItemKind.Method },
+            { WellKnownTags.Delegate, LSP.CompletionItemKind.Delegate },
             { WellKnownTags.Enum, LSP.CompletionItemKind.Enum },
             { WellKnownTags.EnumMember, LSP.CompletionItemKind.EnumMember },
             { WellKnownTags.Event, LSP.CompletionItemKind.Event },
-            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.Method },
+            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.ExtensionMethod },
             { WellKnownTags.Field, LSP.CompletionItemKind.Field },
             { WellKnownTags.Interface, LSP.CompletionItemKind.Interface },
             { WellKnownTags.Intrinsic, LSP.CompletionItemKind.Text },
             { WellKnownTags.Keyword, LSP.CompletionItemKind.Keyword },
             { WellKnownTags.Label, LSP.CompletionItemKind.Text },
             { WellKnownTags.Local, LSP.CompletionItemKind.Variable },
-            { WellKnownTags.Namespace, LSP.CompletionItemKind.Text },
+            { WellKnownTags.Namespace, LSP.CompletionItemKind.Namespace },
             { WellKnownTags.Method, LSP.CompletionItemKind.Method },
             { WellKnownTags.Module, LSP.CompletionItemKind.Module },
             { WellKnownTags.Operator, LSP.CompletionItemKind.Operator },
@@ -141,12 +146,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static Uri GetUriFromFilePath(string? filePath)
+        public static Uri GetUriFromFilePath(string filePath)
         {
             if (filePath is null)
                 throw new ArgumentNullException(nameof(filePath));
 
             return new Uri(filePath, UriKind.Absolute);
+        }
+
+        public static Uri GetUriFromPartialFilePath(string? filePath)
+        {
+            if (filePath is null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            return new Uri(SourceGeneratedDocumentBaseUri, filePath);
         }
 
         public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
@@ -182,7 +195,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
             var linePositionSpan = RangeToLinePositionSpan(range);
-            return text.Lines.GetTextSpan(linePositionSpan);
+
+            try
+            {
+                return text.Lines.GetTextSpan(linePositionSpan);
+            }
+            // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            {
+                throw;
+            }
         }
 
         public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText oldText)
@@ -367,18 +389,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLink)
-        {
-            if (Uri.TryCreate(helpLink, UriKind.RelativeOrAbsolute, out var uri))
-            {
-                return new LSP.CodeDescription
-                {
-                    Href = uri,
-                };
-            }
-
-            return null;
-        }
+        public static LSP.CodeDescription? HelpLinkToCodeDescription(Uri? uri)
+            => (uri != null) ? new LSP.CodeDescription { Href = uri } : null;
 
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
         {
@@ -654,23 +666,52 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var delimiter = projectContext.Id.IndexOf('|');
 
             return ProjectId.CreateFromSerialized(
-                Guid.Parse(projectContext.Id.Substring(0, delimiter)),
-                debugName: projectContext.Id.Substring(delimiter + 1));
+                Guid.Parse(projectContext.Id[..delimiter]),
+                debugName: projectContext.Id[(delimiter + 1)..]);
         }
 
-        public static async Task<DocumentOptionSet> FormattingOptionsToDocumentOptionsAsync(
-            LSP.FormattingOptions options,
+        public static LSP.VSProjectContext ProjectToProjectContext(Project project)
+        {
+            var projectContext = new LSP.VSProjectContext
+            {
+                Id = ProjectIdToProjectContextId(project.Id),
+                Label = project.Name
+            };
+
+            if (project.Language == LanguageNames.CSharp)
+            {
+                projectContext.Kind = LSP.VSProjectKind.CSharp;
+            }
+            else if (project.Language == LanguageNames.VisualBasic)
+            {
+                projectContext.Kind = LSP.VSProjectKind.VisualBasic;
+            }
+
+            return projectContext;
+        }
+
+        public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(
+            LSP.FormattingOptions? options,
             Document document,
+            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            // LSP doesn't currently support indent size as an option. However, except in special
-            // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
-            var updatedOptions = documentOptions
-                .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
-                .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
-                .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
-            return updatedOptions;
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
+
+            if (options != null)
+            {
+                // LSP doesn't currently support indent size as an option. However, except in special
+                // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
+                formattingOptions = formattingOptions.With(new LineFormattingOptions()
+                {
+                    UseTabs = !options.InsertSpaces,
+                    TabSize = options.TabSize,
+                    IndentationSize = options.TabSize,
+                    NewLine = formattingOptions.NewLine
+                });
+            }
+
+            return formattingOptions;
         }
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)

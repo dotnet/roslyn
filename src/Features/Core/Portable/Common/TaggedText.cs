@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// A piece of text with a descriptive tag.
     /// </summary>
     [DataContract]
-    public readonly struct TaggedText
+    public readonly record struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.
@@ -103,8 +104,8 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayPartKindTags.GetTag(d.Kind),
                     d.ToString(),
                     style,
-                    includeNavigationHints ? GetNavigationTarget(d.Symbol) : null,
-                    includeNavigationHints ? getNavigationHint(d.Symbol) : null));
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
         }
 
         private static string GetNavigationTarget(ISymbol symbol)

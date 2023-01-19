@@ -77,7 +77,8 @@ class Program
         Console.WriteLine((((DoubleAndStruct)args[0]).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
+            // ILVerify: Unexpected type on the stack. { Offset = 59, Found = readonly address of '[...]DoubleAndStruct', Expected = address of '[...]DoubleAndStruct' }
+            var result = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -164,7 +165,8 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
+            // ILVerify: Unexpected type on the stack. { Offset = 34, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
+            var result = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -928,7 +930,6 @@ public class H
                 Assert.Null(type.GetMember(".cctor"));
             }
         }
-
 
         [Fact]
         public void TestGeneratingStaticMethod()
@@ -3184,7 +3185,6 @@ public class D
 ");
         }
 
-
         [Fact]
         public void RefStaticField()
         {
@@ -4359,7 +4359,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.Fails, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4492,7 +4492,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.Fails, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -5259,6 +5259,12 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
+            // PEVerify:
+            // [ : Program::GetElementRef[T]][mdToken=0x6000004][offset 0x00000009][found readonly address of ref ][expected address of ref ] Unexpected type on the stack.
+            // [ : Program::GetElementRef[T]][mdToken= 0x6000004][offset 0x00000017][found readonly address of ref ][expected address of ref ] Unexpected type on the stack.
+            // ILVerify:
+            // Unexpected type on the stack. { Offset = 9, Found = readonly address of 'T', Expected = address of 'T' }
+            // Unexpected type on the stack. { Offset = 23, Found = readonly address of 'T', Expected = address of 'T' }
             var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
 
             var expectedIL = @"
@@ -6902,7 +6908,6 @@ public class D
 ");
         }
 
-
         [Fact]
         public void ArrayInitFromBlobEnum()
         {
@@ -7155,7 +7160,6 @@ class Program
 }
 ");
         }
-
 
         [Fact]
         public void EmitObjectToStringOnSimpleType()
@@ -9054,7 +9058,6 @@ class A
 ");
         }
 
-
         [Fact]
         public void PostIncrementUnusedStruct()
         {
@@ -9243,7 +9246,6 @@ struct S1
 }
 ");
         }
-
 
         [Fact, WorkItem(543618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543618")]
         public void ImplicitConversionCharToDecimal()
@@ -10458,7 +10460,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -10516,7 +10518,7 @@ class Test
     }
 }
 ";
-            CreateEmptyCompilation(source).VerifyEmitDiagnostics(
+            CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute()).VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
         }
 
@@ -12280,7 +12282,8 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.FailsPEVerify);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12433,7 +12436,8 @@ struct MyManagedStruct
             return null;
         }
     }";
-            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.FailsPEVerify);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -13322,7 +13326,6 @@ class A
             }
         }
     }
-
 }
 ";
             var compilation = CompileAndVerify(
@@ -13711,7 +13714,6 @@ public class C1
 }
 ");
         }
-
 
         [Fact]
         public void ReferenceEqualsIntrinsic()
@@ -14190,7 +14192,6 @@ public class Test
             CompileAndVerifyWithMscorlib40(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
         }
 
-
         [WorkItem(653588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653588")]
         [Fact]
         public void SelfAssignStructCallTarget()
@@ -14544,7 +14545,7 @@ class C
         switch (s) { case ""A"": break; case ""B"": break; }
     }
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14578,7 +14579,7 @@ class C
 {
     static object F = typeof(C);
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14614,7 +14615,7 @@ class C
         return __reftype(__makeref(o));
     }
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -17216,7 +17217,14 @@ class Program
 System.Threading.Tasks.Task`1[System.Object]
 Success
 True
-").VerifyDiagnostics();
+", verify: Verification.FailsILVerify with
+            {
+                ILVerifyMessage =
+                    """
+                    [GetReference]: TypedReference not supported in .NET Core
+                    [MoveNext]: TypedReference not supported in .NET Core
+                    """
+            }).VerifyDiagnostics();
         }
     }
 }

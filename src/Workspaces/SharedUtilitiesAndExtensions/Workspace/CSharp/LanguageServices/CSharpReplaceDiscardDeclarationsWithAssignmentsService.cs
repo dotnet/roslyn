@@ -14,9 +14,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignments
@@ -32,9 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
         {
         }
 
-        public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> ReplaceAsync(
+            Document document,
+            SyntaxNode memberDeclaration,
+            CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(memberDeclaration, workspace);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(memberDeclaration, document.Project.Solution.Services);
             foreach (var child in memberDeclaration.DescendantNodes())
             {
                 switch (child)
@@ -101,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                 }
             }
 
-            return Task.FromResult(editor.GetChangedRoot());
+            return editor.GetChangedRoot();
         }
 
         private static bool IsDiscardDeclaration(VariableDeclaratorSyntax variable)
@@ -114,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
             private readonly LocalDeclarationStatementSyntax _localDeclarationStatement;
             private readonly SyntaxEditor _editor;
             private readonly ArrayBuilder<StatementSyntax> _statementsBuilder;
-            private SeparatedSyntaxList<VariableDeclaratorSyntax> _currentNonDiscardVariables;
+            private SeparatedSyntaxList<VariableDeclaratorSyntax> _currentNonDiscardVariables = new();
 
             private RemoveDiscardHelper(LocalDeclarationStatementSyntax localDeclarationStatement, SyntaxEditor editor)
             {
@@ -122,7 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                 _editor = editor;
 
                 _statementsBuilder = ArrayBuilder<StatementSyntax>.GetInstance();
-                _currentNonDiscardVariables = new SeparatedSyntaxList<VariableDeclaratorSyntax>();
             }
 
             public static void ProcessDeclarationStatement(

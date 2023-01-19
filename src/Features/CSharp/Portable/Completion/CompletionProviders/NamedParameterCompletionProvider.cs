@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
                     .GetPreviousTokenIfTouchingWord(position);
 
-                if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+                if (token.Kind() is not (SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken))
                 {
                     return;
                 }
@@ -100,15 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
                 // See https://github.com/dotnet/roslyn/issues/20657
-                var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions!).LanguageVersion;
+                var languageVersion = document.Project.ParseOptions!.LanguageVersion();
                 if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
                 {
                     context.IsExclusive = true;
                 }
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var workspace = document.Project.Solution.Workspace;
 
                 foreach (var parameter in unspecifiedParameters)
                 {
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         filterText: escapedName));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }

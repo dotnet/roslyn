@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Host
         public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
-        public struct TestAccessor
+        public readonly struct TestAccessor
         {
             public static readonly IChecksummedPersistentStorage StorageInstance = Instance;
         }

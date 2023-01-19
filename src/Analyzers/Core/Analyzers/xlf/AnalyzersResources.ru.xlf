@@ -14,12 +14,17 @@
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_required">
         <source>Accessibility modifiers required</source>
-        <target state="translated">Требуются модификаторы доступности</target>
+        <target state="translated">Требуются модификаторы доступа</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">Добавьте модификаторы доступности</target>
+        <target state="translated">Добавить модификаторы доступа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">Добавить явное приведение</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
@@ -62,8 +67,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Добавьте квалификацию "this" или "Me".</target>
+        <source>Add 'this' or 'Me' qualification</source>
+        <target state="translated">Добавьте квалификацию \"this\" или \"Me\"</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
@@ -126,6 +131,11 @@
         <target state="translated">Инициализацию коллекции можно упростить.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">Исправить форматирование</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">Строка формата содержит недопустимый заполнитель</target>
@@ -184,6 +194,11 @@
       <trans-unit id="Modifiers_are_not_ordered">
         <source>Modifiers are not ordered</source>
         <target state="translated">Модификаторы не упорядочены</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Имя может быть упрощено</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
@@ -276,6 +291,11 @@
         <target state="translated">Удалить ненужное приведение</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">Удалить модификаторы доступа</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Удалите лишнее равенство.</target>
@@ -334,6 +354,21 @@
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">Упростите выражение LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Упрощение доступа для членов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Упрощение имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">Упростить проверку</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -424,6 +459,11 @@
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
         <target state="translated">Использовать выражение "throw"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="translated">Оператор "{0}" неявно преобразует "{1}" в "{2}". Добавьте явное приведение, чтобы сделать намерение более понятным, поскольку возможен сбой во время выполнения</target>
         <note />
       </trans-unit>
     </body>

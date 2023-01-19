@@ -36,44 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnostics = diagnostics;
         }
 
-        /// <summary>
-        /// Gets all the diagnostics for this event, regardless if this is for pull or push diagnostics.  Most clients
-        /// should not use this.  The only clients that should are ones that are aggregating the values transparently
-        /// and then forwarding on later on to other clients that will make this decision.
-        /// </summary>
-        /// <returns></returns>
-        public ImmutableArray<DiagnosticData> GetAllDiagnosticsRegardlessOfPushPullSetting()
-            => _diagnostics;
-
-        /// <summary>
-        /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
-        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
-        /// diagnostics in their scenario (or an empty array if not in their scenario).
-        /// </summary>
-        public ImmutableArray<DiagnosticData> GetPullDiagnostics(
-            IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
-        {
-            // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
-            if (globalOptions.IsPushDiagnostics(diagnosticMode))
-                return ImmutableArray<DiagnosticData>.Empty;
-
-            return _diagnostics;
-        }
-
-        /// <summary>
-        /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
-        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
-        /// diagnostics in their scenario (or an empty array if not in their scenario).
-        /// </summary>
-        public ImmutableArray<DiagnosticData> GetPushDiagnostics(
-            IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
-        {
-            // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
-            if (globalOptions.IsPullDiagnostics(diagnosticMode))
-                return ImmutableArray<DiagnosticData>.Empty;
-
-            return _diagnostics;
-        }
+        public ImmutableArray<DiagnosticData> Diagnostics => _diagnostics;
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
             object id,

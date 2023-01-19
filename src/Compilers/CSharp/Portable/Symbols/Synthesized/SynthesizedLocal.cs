@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -17,13 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A synthesized local variable.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal class SynthesizedLocal : LocalSymbol
+    internal sealed class SynthesizedLocal : LocalSymbol
     {
         private readonly MethodSymbol _containingMethodOpt;
         private readonly TypeWithAnnotations _type;
         private readonly SynthesizedLocalKind _kind;
         private readonly SyntaxNode _syntaxOpt;
         private readonly bool _isPinned;
+        private bool _isKnownToReferToTempIfReferenceType;
         private readonly RefKind _refKind;
 
 #if DEBUG
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SynthesizedLocalKind kind,
             SyntaxNode syntaxOpt = null,
             bool isPinned = false,
+            bool isKnownToReferToTempIfReferenceType = false,
             RefKind refKind = RefKind.None
 #if DEBUG
             ,
@@ -48,12 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!type.IsVoidType());
             Debug.Assert(!kind.IsLongLived() || syntaxOpt != null);
             Debug.Assert(refKind != RefKind.Out);
+            Debug.Assert(containingMethodOpt is null || containingMethodOpt.DeclaringCompilation is not null);
 
             _containingMethodOpt = containingMethodOpt;
             _type = type;
             _kind = kind;
             _syntaxOpt = syntaxOpt;
             _isPinned = isPinned;
+            _isKnownToReferToTempIfReferenceType = isKnownToReferToTempIfReferenceType;
             _refKind = refKind;
 
 #if DEBUG
@@ -75,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 kind,
                 syntax,
                 _isPinned,
+                _isKnownToReferToTempIfReferenceType,
                 _refKind);
         }
 
@@ -149,22 +153,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isPinned; }
         }
 
+        internal sealed override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return _isKnownToReferToTempIfReferenceType; }
+        }
+
+        internal void SetIsKnownToReferToTempIfReferenceType()
+        {
+            Debug.Assert(!_isKnownToReferToTempIfReferenceType);
+            _isKnownToReferToTempIfReferenceType = true;
+        }
+
         internal sealed override bool IsCompilerGenerated
         {
             get { return true; }
         }
 
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
-
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal sealed override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal sealed override ScopedKind Scope => ScopedKind.None;
 
         internal sealed override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {

@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -47,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(unboundLambda.Syntax.GetReference())
         {
             Debug.Assert(syntaxReferenceOpt is not null);
+            Debug.Assert(containingSymbol.DeclaringCompilation == compilation);
+
             _binder = binder;
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
@@ -265,9 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override Binder SignatureBinder => _binder;
+        internal override Binder OuterBinder => _binder;
 
-        internal override Binder ParameterBinder => new WithLambdaParametersBinder(this, _binder);
+        internal override Binder WithTypeParametersBinder => _binder;
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
@@ -281,7 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var parameter in _parameters)
             {
                 parameter.ForceComplete(locationOpt: null, cancellationToken: default);
-                ParameterHelpers.ReportParameterNullCheckingErrors(addTo.DiagnosticBag, parameter);
             }
 
             GetAttributes();
@@ -334,28 +336,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeWithAnnotations type;
                 RefKind refKind;
+                ScopedKind scope;
+                ParameterSyntax? paramSyntax = null;
                 if (hasExplicitlyTypedParameterList)
                 {
                     type = unboundLambda.ParameterTypeWithAnnotations(p);
                     refKind = unboundLambda.RefKind(p);
+                    scope = unboundLambda.DeclaredScope(p);
+                    paramSyntax = unboundLambda.ParameterSyntax(p);
                 }
                 else if (p < numDelegateParameters)
                 {
                     type = parameterTypes[p];
-                    refKind = parameterRefKinds[p];
+                    refKind = RefKind.None;
+                    scope = ScopedKind.None;
                 }
                 else
                 {
                     type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
+                    scope = ScopedKind.None;
                 }
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
+                var isParams = paramSyntax?.Modifiers.Any(static m => m.IsKind(SyntaxKind.ParamsKeyword)) ?? false;
 
-                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), unboundLambda.ParameterIsNullChecked(p), locations);
+                var parameter = new LambdaParameterSymbol(owner: this, paramSyntax?.GetReference(), attributeLists, type, ordinal: p, refKind, scope, name, unboundLambda.ParameterIsDiscard(p), isParams, locations);
                 builder.Add(parameter);
             }
 
@@ -405,10 +414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
         protected override void NoteAttributesComplete(bool forReturnType)
         {

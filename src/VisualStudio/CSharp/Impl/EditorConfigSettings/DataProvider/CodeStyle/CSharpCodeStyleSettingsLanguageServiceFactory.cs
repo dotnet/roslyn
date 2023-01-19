@@ -9,22 +9,26 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.CodeStyle
 {
     [ExportLanguageServiceFactory(typeof(ILanguageSettingsProviderFactory<CodeStyleSetting>), LanguageNames.CSharp), Shared]
-    internal class CSharpCodeStyleSettingsLanguageServiceFactory : ILanguageServiceFactory
+    internal sealed class CSharpCodeStyleSettingsLanguageServiceFactory : ILanguageServiceFactory
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeStyleSettingsLanguageServiceFactory()
+        public CSharpCodeStyleSettingsLanguageServiceFactory(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             var workspace = languageServices.WorkspaceServices.Workspace;
-            return new CSharpCodeStyleSettingsProviderFactory(workspace);
+            return new CSharpCodeStyleSettingsProviderFactory(workspace, _globalOptions);
         }
     }
 }

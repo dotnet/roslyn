@@ -4,22 +4,62 @@
     <body>
       <trans-unit id="ECMD_RUNFXCOPSEL|ButtonText">
         <source>Run Code &amp;Analysis on Selection</source>
-        <target state="translated">&amp;Spustit analýzu kódu na výběr</target>
+        <target state="translated">Spustit &amp;analýzu kódu při výběru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|ButtonText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">Průzkumník StackTrace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|MenuText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">Průzkumník StackTrace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|ButtonText">
+        <source>Clear</source>
+        <target state="translated">Vymazat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
+        <source>CleearStackTraceExplorerCommandName</source>
+        <target state="translated">CleearStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
+        <source>ClearStackTraceExplorer</source>
+        <target state="translated">ClearStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|ButtonText">
+        <source>Paste</source>
+        <target state="translated">Vložit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|CommandName">
+        <source>PasteStackTraceExplorerCommandName</source>
+        <target state="translated">PasteStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|LocCanonicalName">
+        <source>PasteStackTraceExplorer</source>
+        <target state="translated">PasteStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">Průzkumník trasování zásobníku</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
         <source>ShowStackTraceExplorerCommandName</source>
-        <target state="new">ShowStackTraceExplorerCommandName</target>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
         <source>ShowStackTraceExplorer</source>
-        <target state="new">ShowStackTraceExplorer</target>
+        <target state="translated">ShowStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
@@ -65,6 +105,21 @@
       <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
         <source>Entire Solution</source>
         <target state="translated">Celé řešení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="translated">Žád&amp;ný</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
+        <source>AnalysisScopeNone</source>
+        <target state="translated">AnalysisScopeNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
+        <source>None</source>
+        <target state="translated">Žádný</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
@@ -319,7 +374,7 @@
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
         <source>Run C&amp;ode Analysis</source>
-        <target state="translated">Spustit &amp;analýzu kódu</target>
+        <target state="translated">Spustit analýzu &amp;kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|CommandName">
@@ -514,7 +569,7 @@
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|ButtonText">
         <source>Sync &amp;Namespaces</source>
-        <target state="translated">Synchronizovat &amp;obory názvů</target>
+        <target state="translated">Synchronizovat obory &amp;názvů</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|CommandName">
@@ -539,7 +594,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ShowValueTracking</source>
-        <target state="needs-review-translation">ViewEditorConfigSettings</target>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

@@ -106,7 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 #If DEBUG Then
+#Disable Warning IDE0051 ' Remove unused private members
         Private Function Dump() As String
+#Enable Warning IDE0051 ' Remove unused private members
             Return TreeDumper.DumpCompact(BoundTreeDumperNodeProducer.MakeTree(Me))
         End Function
 

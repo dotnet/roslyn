@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -14,7 +15,8 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,9 +29,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
+    [Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task Brackets_0()
         {
             await TestInMethodAndScriptAsync(
@@ -42,19 +45,19 @@ switch (true)
 {");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task Brackets_1()
             => await TestInClassAsync("int Property { get; }$$ ", "int Property {");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task Brackets_2()
             => await TestInClassAsync("void M()\r\n{ }$$ ", "void M()\r\n{");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task Brackets_3()
             => await TestInMethodAndScriptAsync("var a = new int[] { }$$ ", "new int[] {");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task Brackets_4()
         {
             await TestInMethodAndScriptAsync(
@@ -68,7 +71,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_0()
         {
             await TestInMethodAndScriptAsync(
@@ -81,7 +84,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_1()
         {
             await TestInMethodAndScriptAsync(
@@ -98,7 +101,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_2()
         {
             await TestInMethodAndScriptAsync(
@@ -114,7 +117,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_3()
         {
             await TestInMethodAndScriptAsync(
@@ -134,7 +137,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_4()
         {
             await TestInMethodAndScriptAsync(
@@ -149,7 +152,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_5()
         {
             await TestInMethodAndScriptAsync(
@@ -165,7 +168,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_6()
         {
             await TestInMethodAndScriptAsync(
@@ -188,7 +191,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_7()
         {
             await TestInMethodAndScriptAsync(
@@ -212,7 +215,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_8()
         {
             await TestInMethodAndScriptAsync(
@@ -234,7 +237,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_9()
         {
             await TestInClassAsync(
@@ -250,7 +253,7 @@ if (true)
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact]
         public async Task ScopeBrackets_10()
         {
             await TestInMethodAndScriptAsync(
@@ -266,8 +269,7 @@ if (true)
 {");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsStartRegionMessage()
         {
             await TestAsync(
@@ -276,8 +278,7 @@ if (true)
 #end$$region", "#region Start");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Theory, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [InlineData("$$#endregion")]
         [InlineData("#$$endregion")]
         [InlineData("#endregion$$ ")]
@@ -291,8 +292,7 @@ if (true)
 {endRegion}", "#region Start");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Theory, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [InlineData("#endregion$$")]
         [InlineData("# $$ endregion")]
         [InlineData("#endregion $$End")]
@@ -307,16 +307,14 @@ if (true)
 {endRegion}", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndHasNoQuickinfo_MissingRegionStart_1()
         {
             await TestAsync(
 @$"#end$$region", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndHasNoQuickinfo_MissingRegionStart_2()
         {
             await TestAsync(
@@ -326,8 +324,7 @@ if (true)
 #end$$region", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsRegionStart_Nesting_1()
         {
             await TestAsync(
@@ -338,8 +335,7 @@ if (true)
 #end$$region", "#region Start1");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsRegionStart_Nesting_2()
         {
             await TestAsync(
@@ -350,8 +346,7 @@ if (true)
 #endregion", "#region Start2");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsRegionStart_Blocks_1()
         {
             await TestAsync(
@@ -362,8 +357,7 @@ if (true)
 #endregion", "#region Start1");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsRegionStart_Blocks_2()
         {
             await TestAsync(
@@ -374,8 +368,7 @@ if (true)
 #end$$region", "#region Start2");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfCondition_1()
         {
             await TestAsync(
@@ -384,8 +377,7 @@ if (true)
 #end$$if", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfCondition_2()
         {
             await TestAsync(
@@ -395,8 +387,7 @@ if (true)
 #end$$if", "#if DEBUG\r\n#else");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsElIfCondition()
         {
             await TestAsync(
@@ -406,8 +397,7 @@ if (true)
 #end$$if", "#if DEBUG\r\n#elif RELEASE");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task ElseShowsIfCondition()
         {
             await TestAsync(
@@ -417,8 +407,7 @@ if (true)
 #endif", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task ElseShowsElIfCondition_1()
         {
             await TestAsync(
@@ -429,8 +418,7 @@ if (true)
 #endif", "#if DEBUG\r\n#elif RELEASE");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task ElseShowsElIfCondition_2()
         {
             await TestAsync(
@@ -442,8 +430,7 @@ if (true)
 #endif", "#if DEBUG\r\n#elif RELEASE\r\n#elif DEMO");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task ElIfShowsIfCondition()
         {
             await TestAsync(
@@ -453,8 +440,7 @@ if (true)
 #endif", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfNested_1()
         {
             await TestAsync(
@@ -465,8 +451,7 @@ if (true)
 #endif", "#if RELEASE");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfNested_2()
         {
             await TestAsync(
@@ -477,8 +462,7 @@ if (true)
 #end$$if", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfNested_3()
         {
             await TestAsync(
@@ -490,8 +474,7 @@ if (true)
 #endif", "#if DEMO");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfNested_4()
         {
             await TestAsync(
@@ -503,8 +486,7 @@ if (true)
 #end$$if", "#if DEBUG\r\n#elif RELEASE");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfHasNoQuickinfo_MissingIf_1()
         {
             await TestAsync(
@@ -512,8 +494,7 @@ if (true)
 #end$$if", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfHasNoQuickinfo_MissingIf_2()
         {
             await TestAsync(
@@ -523,8 +504,7 @@ if (true)
 #end$$if", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Theory, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [InlineData("#$$elif RELEASE")]
         [InlineData("#elif$$ RELEASE")]
         [InlineData("#elif RELEASE$$")]
@@ -537,8 +517,7 @@ if (true)
 #endif", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Theory, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [InlineData("#elif $$RELEASE")]
         [InlineData("#elif RELE$$ASE")]
         [InlineData("#elif (REL$$EASE == true)")]
@@ -568,8 +547,7 @@ if (true)
             int position)
         {
             var provider = CreateProvider();
-            var options = SymbolDescriptionOptions.From(document.Project);
-            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, options, CancellationToken.None)));
+            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, SymbolDescriptionOptions.Default, CancellationToken.None)));
         }
 
         protected override async Task AssertContentIsAsync(
@@ -580,8 +558,7 @@ if (true)
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider();
-            var options = SymbolDescriptionOptions.From(document.Project);
-            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, options, CancellationToken.None));
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, SymbolDescriptionOptions.Default, CancellationToken.None));
             Assert.NotNull(info);
             Assert.NotEqual(0, info.RelatedSpans.Length);
 
@@ -591,7 +568,7 @@ if (true)
             var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
             var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(
                 trackingSpan.Object, info, document,
-                threadingContext, operationExecutor,
+                ClassificationOptions.Default, LineFormattingOptions.Default, threadingContext, operationExecutor,
                 AsynchronousOperationListenerProvider.NullListener,
                 streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;

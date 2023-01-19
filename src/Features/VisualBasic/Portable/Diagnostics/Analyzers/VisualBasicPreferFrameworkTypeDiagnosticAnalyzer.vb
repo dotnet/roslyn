@@ -25,10 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             Return Not KeywordMatchesTypeName(node.Keyword.Kind())
         End Function
 
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
-        End Function
-
         ''' <summary>
         ''' Returns true, if the VB language keyword for predefined type matches its
         ''' actual framework type name.

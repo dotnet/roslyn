@@ -37,6 +37,11 @@
         <target state="translated">보간된 축자 문자열 수정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="translated">붙여넣기 후 문자열 리터럴 수정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">'{1}'의 어셈블리를 '{0}'개 찾았습니다.</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">이벤트 구독 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="translated">원시 문자열 증가</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
@@ -95,6 +105,11 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">스마트 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="translated">원시 문자열 분할</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

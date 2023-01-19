@@ -10,8 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int AutoComment
         {
-            get { return GetBooleanOption(DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration); }
-            set { SetBooleanOption(DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, value); }
+            get { return GetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration); }
+            set { SetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, value); }
         }
     }
 }

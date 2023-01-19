@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(cancellationToken =>
             {
                 var workspace = GetWorkspace();
-                var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
+                var exportProvider = workspace.Services.SolutionServices.ExportProvider;
                 var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
 
                 return new ValueTask<bool>(!listenerProvider.HasPendingWaiter(featureNames.ToArray()));
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(async cancellationToken =>
             {
                 var workspace = GetWorkspace();
-                var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
+                var exportProvider = workspace.Services.SolutionServices.ExportProvider;
                 var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
 
                 await listenerProvider.WaitAllAsync(workspace, featureNames.ToArray()).ConfigureAwait(false);

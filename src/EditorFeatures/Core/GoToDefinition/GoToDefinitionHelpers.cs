@@ -2,71 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
         public static async Task<ImmutableArray<DefinitionItem>> GetDefinitionsAsync(
-            ISymbol symbol,
+            ISymbol? symbol,
             Solution solution,
             bool thirdPartyNavigationAllowed,
             CancellationToken cancellationToken)
         {
-            var alias = symbol as IAliasSymbol;
-            if (alias != null)
-            {
-                if (alias.Target is INamespaceSymbol ns && ns.IsGlobalNamespace)
-                {
-                    return ImmutableArray.Create<DefinitionItem>();
-                }
-            }
+            symbol = await TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            if (symbol is null)
+                return ImmutableArray.Create<DefinitionItem>();
 
-            // VB global import aliases have a synthesized SyntaxTree.
-            // We can't go to the definition of the alias, so use the target type.
-
-            if (alias != null)
-            {
-                var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
-                    solution, symbol, cancellationToken);
-
-                if (sourceLocations.All(l => solution.GetDocument(l.SourceTree) == null))
-                {
-                    symbol = alias.Target;
-                }
-            }
-
-            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            symbol = definition ?? symbol;
-
-            // If it is a partial method declaration with no body, choose to go to the implementation
-            // that has a method body.
-            if (symbol is IMethodSymbol method)
-            {
-                symbol = method.PartialImplementationPart ?? symbol;
-            }
-
-            using var definitionsDisposer = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
+            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 
             // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
             // This happens when there is more than one location for the symbol (i.e. for partial
@@ -91,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             if (thirdPartyNavigationAllowed)
             {
-                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var factory = solution.Services.GetService<IDefinitionsAndReferencesFactory>();
                 if (factory != null)
                 {
                     var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
@@ -103,7 +68,45 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return definitions.ToImmutable();
         }
 
-        public static bool TryGoToDefinition(
+        public static async Task<ISymbol?> TryGetPreferredSymbolAsync(
+            Solution solution, ISymbol? symbol, CancellationToken cancellationToken)
+        {
+            // VB global import aliases have a synthesized SyntaxTree.
+            // We can't go to the definition of the alias, so use the target type.
+
+            var alias = symbol as IAliasSymbol;
+            if (alias != null)
+            {
+                if (alias.Target is INamespaceSymbol ns && ns.IsGlobalNamespace)
+                    return null;
+            }
+
+            // VB global import aliases have a synthesized SyntaxTree.
+            // We can't go to the definition of the alias, so use the target type.
+
+            if (alias != null)
+            {
+                var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
+                    solution, symbol, cancellationToken);
+
+                if (sourceLocations.All(l => solution.GetDocument(l.SourceTree) == null))
+                    symbol = alias.Target;
+            }
+
+            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            symbol = definition ?? symbol;
+
+            // If it is a partial method declaration with no body, choose to go to the implementation
+            // that has a method body.
+            if (symbol is IMethodSymbol method)
+                symbol = method.PartialImplementationPart ?? symbol;
+
+            return symbol;
+        }
+
+        public static async Task<bool> TryNavigateToLocationAsync(
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -111,11 +114,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            return threadingContext.JoinableTaskFactory.Run(
-                () => TryGoToDefinitionAsync(symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed));
+            var location = await GetDefinitionLocationAsync(
+                symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed).ConfigureAwait(false);
+            return await location.TryNavigateToAsync(
+                threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<bool> TryGoToDefinitionAsync(
+        public static async Task<INavigableLocation?> GetDefinitionLocationAsync(
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -128,11 +133,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
-            return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
+            return await streamingPresenter.GetStreamingLocationAsync(
                 threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
-
-#nullable enable
 
         public static async Task<IEnumerable<INavigableItem>?> GetDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -148,7 +151,5 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
             return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
-
-#nullable restore
     }
 }

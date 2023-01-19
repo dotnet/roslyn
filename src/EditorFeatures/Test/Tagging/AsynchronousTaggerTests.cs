@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         /// This hits a special codepath in the product that is optimized for more than 100 spans.
         /// I'm leaving this test here because it covers that code path (as shown by code coverage)
         /// </summary>
-        [WpfFact]
-        [WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
+        [WpfFact, WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
         public async Task LargeNumberOfSpans()
         {
             using var workspace = TestWorkspace.CreateCSharp(@"class Program
@@ -75,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             var textBuffer = document.GetTextBuffer();
             var snapshot = textBuffer.CurrentSnapshot;
             var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
+            Contract.ThrowIfNull(tagger);
 
             using var disposable = (IDisposable)tagger;
             var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
             var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+            Contract.ThrowIfNull(tagger);
 
             using var disposable = (IDisposable)tagger;
             // The very first all to get tags will not be synchronous as this contains no #region tag
@@ -125,6 +126,7 @@ class Program
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
             var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+            Contract.ThrowIfNull(tagger);
 
             using var disposable = (IDisposable)tagger;
             // The very first all to get tags will be synchronous because of the #region
@@ -156,7 +158,7 @@ class Program
                 ITaggerEventSource eventSource,
                 IGlobalOptionService globalOptions,
                 IAsynchronousOperationListener asyncListener)
-                : base(threadingContext, globalOptions, asyncListener)
+                : base(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
             {
                 _callback = callback;
                 _eventSource = eventSource;
@@ -164,7 +166,7 @@ class Program
 
             protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
-            protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+            protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
                 => _eventSource;
 
             protected override Task ProduceTagsAsync(
@@ -181,6 +183,9 @@ class Program
 
                 return Task.CompletedTask;
             }
+
+            protected override bool TagEquals(TestTag tag1, TestTag tag2)
+                => tag1 == tag2;
         }
 
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource

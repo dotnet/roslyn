@@ -5,18 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal static partial class SymbolCompletionItem
+    internal static class SymbolCompletionItem
     {
+        private const string InsertionTextProperty = "InsertionText";
+
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
         private static readonly char[] s_projectSeperators = new[] { ';' };
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (insertionText != null)
             {
-                props = props.Add("InsertionText", insertionText);
+                props = props.Add(InsertionTextProperty, insertionText);
             }
 
             props = props.Add("ContextPosition", contextPosition.ToString());
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (symbols.Count > 1)
             {
-                return string.Join("|", symbols.Select(s => EncodeSymbol(s)));
+                return string.Join("|", symbols.Select(EncodeSymbol));
             }
             else if (symbols.Count == 1)
             {
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
             var semanticModel = await contextDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             return await CommonCompletionUtilities.CreateDescriptionAsync(services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
 
@@ -254,7 +257,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => GetContextPosition(item);
 
         public static string GetInsertionText(CompletionItem item)
-            => item.Properties["InsertionText"];
+            => item.Properties[InsertionTextProperty];
+
+        public static bool TryGetInsertionText(CompletionItem item, [NotNullWhen(true)] out string? insertionText)
+            => item.Properties.TryGetValue(InsertionTextProperty, out insertionText);
 
         // COMPAT OVERLOAD: This is used by IntelliCode.
         public static CompletionItem CreateWithSymbolId(
@@ -353,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (symbols.Count != 0)
             {
-                return await CommonCompletionUtilities.CreateDescriptionAsync(document.Project.Solution.Workspace.Services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+                return await CommonCompletionUtilities.CreateDescriptionAsync(document.Project.Solution.Services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
             }
             else
             {

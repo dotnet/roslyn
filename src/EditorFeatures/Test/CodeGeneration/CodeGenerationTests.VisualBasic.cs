@@ -84,8 +84,8 @@ End Class";
                 await TestAddConstructorAsync(input, expected);
             }
 
-            [WorkItem(530785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(530785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
             public async Task AddConstructorWithXmlComment()
             {
                 var input = @"
@@ -117,7 +117,7 @@ End Class";
     Public Sub New()
 End Class";
                 await TestAddConstructorAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -355,7 +355,7 @@ Class C
     Public Event E As Action
 End Class";
                 await TestAddEventAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -388,8 +388,8 @@ End Class";
         End RaiseEvent
     End Event
 End Class";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -425,7 +425,7 @@ End Class";
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                         getExplicitInterfaceImplementations: GetExplicitInterfaceEvent,
                         type: typeof(System.ComponentModel.PropertyChangedEventHandler),
-                        codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                        context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -447,7 +447,7 @@ Class C
 End Class";
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -480,7 +480,7 @@ End Class";
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, removeStatements),
                     raiseMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, raiseStatements),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -509,8 +509,8 @@ End Class";
         Return 0
     End Function
 End Class";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -577,7 +577,7 @@ End Class";
 End Class";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void),
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -937,8 +937,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5F)));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyBlock()
             {
                 var input = "Class C\n [|Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property|]\n End Class";
@@ -955,8 +955,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyStatement()
             {
                 var input = "Class C\n [|Public Property P As String|]\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -973,8 +973,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyGetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n [|Get\n Return String.Empty\n End Get|]\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -983,8 +983,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertySetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n [|Set(value As String)\n End Set|]\n End Property\n End Class";
@@ -1035,8 +1035,8 @@ End Class";
         End Get
     End Property
 End Class";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1050,7 +1050,7 @@ End Class";
                     type: typeof(int),
                     getStatements: "Return 0",
                     setStatements: "Me.P = Value",
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1677,11 +1677,11 @@ End Namespace";
 End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     forceLanguage: LanguageNames.VisualBasic,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
-            [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
             public async Task TestConstraints()
             {
                 var generationSource = @"
@@ -1701,7 +1701,7 @@ End Namespace
     End Class
 End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                    context: new CodeGenerationContext(generateMethodBodies: false),
                     onlyGenerateMembers: true);
             }
         }

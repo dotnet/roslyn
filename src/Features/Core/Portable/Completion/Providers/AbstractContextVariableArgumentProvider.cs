@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -12,28 +15,151 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     internal abstract class AbstractContextVariableArgumentProvider : ArgumentProvider
     {
-        public override Task ProvideArgumentAsync(ArgumentContext context)
+        protected abstract string ThisOrMeKeyword { get; }
+
+        protected abstract bool IsInstanceContext(SyntaxTree syntaxTree, SyntaxToken targetToken, SemanticModel semanticModel, CancellationToken cancellationToken);
+
+        public override async Task ProvideArgumentAsync(ArgumentContext context)
         {
             if (context.PreviousValue is not null)
             {
                 // This argument provider does not attempt to replace arguments already in code.
-                return Task.CompletedTask;
+                return;
             }
 
-            var symbols = context.SemanticModel.LookupSymbols(context.Position, name: context.Parameter.Name);
+            var requireExactType = context.Parameter.Type.IsSpecialType()
+                || context.Parameter.RefKind != RefKind.None;
+            var symbols = context.SemanticModel.LookupSymbols(context.Position);
+
+            // First try to find a local variable
+            ISymbol? bestSymbol = null;
+            string? bestSymbolName = null;
+            CommonConversion bestConversion = default;
             foreach (var symbol in symbols)
             {
-                // Currently we check for an exact type match before using a variable from context. As we hone the
-                // default argument provider heuristics, we may alter the definition of "in scope" as well as the type
-                // and name check(s) that occur.
-                if (SymbolEqualityComparer.Default.Equals(context.Parameter.Type, symbol.GetSymbolType()))
+                ISymbol candidate;
+                if (symbol.IsKind(SymbolKind.Parameter, out IParameterSymbol? parameter))
+                    candidate = parameter;
+                else if (symbol.IsKind(SymbolKind.Local, out ILocalSymbol? local))
+                    candidate = local;
+                else
+                    continue;
+
+                CheckCandidate(candidate);
+            }
+
+            if (bestSymbol is not null)
+            {
+                context.DefaultValue = bestSymbolName;
+                return;
+            }
+
+            // Next try fields and properties of the current type
+            foreach (var symbol in symbols)
+            {
+                ISymbol candidate;
+                if (symbol.IsKind(SymbolKind.Field, out IFieldSymbol? field))
+                    candidate = field;
+                else if (symbol.IsKind(SymbolKind.Property, out IPropertySymbol? property))
+                    candidate = property;
+                else
+                    continue;
+
+                // Require a name match for primitive types
+                if (candidate.GetSymbolType().IsSpecialType()
+                    && !string.Equals(candidate.Name, context.Parameter.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    context.DefaultValue = context.Parameter.Name;
-                    return Task.CompletedTask;
+                    continue;
+                }
+
+                CheckCandidate(candidate);
+            }
+
+            if (bestSymbol is not null)
+            {
+                context.DefaultValue = bestSymbolName;
+                return;
+            }
+
+            // Finally, if the invocation occurs in an instance context, check the current type ('this' or 'Me')
+            var tree = context.SemanticModel.SyntaxTree;
+            var targetToken = await tree.GetTouchingTokenAsync(context.Position, context.CancellationToken).ConfigureAwait(false);
+            if (IsInstanceContext(tree, targetToken, context.SemanticModel, context.CancellationToken))
+            {
+                var enclosingSymbol = context.SemanticModel.GetEnclosingSymbol(targetToken.SpanStart, context.CancellationToken);
+                while (enclosingSymbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction or MethodKind.AnonymousFunction } method)
+                {
+                    // It is allowed to reference the instance (`this`) within a local function or anonymous function,
+                    // as long as the containing method allows it
+                    enclosingSymbol = enclosingSymbol.ContainingSymbol;
+                }
+
+                if (enclosingSymbol is IMethodSymbol { ContainingType: { } containingType })
+                {
+                    CheckCandidate(containingType, ThisOrMeKeyword);
                 }
             }
 
-            return Task.CompletedTask;
+            if (bestSymbol is not null)
+            {
+                context.DefaultValue = bestSymbolName;
+                return;
+            }
+
+            // Local functions
+            void CheckCandidate(ISymbol candidate, string? overridingName = null)
+            {
+                if (candidate.GetSymbolType() is not { } symbolType)
+                {
+                    return;
+                }
+
+                if (requireExactType && !SymbolEqualityComparer.Default.Equals(context.Parameter.Type, symbolType))
+                {
+                    return;
+                }
+
+                var conversion = context.SemanticModel.Compilation.ClassifyCommonConversion(symbolType, context.Parameter.Type);
+                if (!conversion.IsImplicit)
+                {
+                    return;
+                }
+
+                if (bestSymbol is not null && !IsNewConversionSameOrBetter(conversion))
+                {
+                    if (!IsNewConversionSameOrBetter(conversion))
+                        return;
+
+                    if (!IsNewNameSameOrBetter(candidate))
+                        return;
+                }
+
+                bestSymbol = candidate;
+                bestSymbolName = overridingName ?? bestSymbol.Name;
+                bestConversion = conversion;
+            }
+
+            bool IsNewConversionSameOrBetter(CommonConversion conversion)
+            {
+                if (bestConversion.IsIdentity && !conversion.IsIdentity)
+                    return false;
+
+                if (bestConversion.IsImplicit && !conversion.IsImplicit)
+                    return false;
+
+                return true;
+            }
+
+            bool IsNewNameSameOrBetter(ISymbol symbol)
+            {
+                if (string.Equals(bestSymbol.Name, context.Parameter.Name))
+                    return string.Equals(symbol.Name, context.Parameter.Name);
+
+                if (string.Equals(bestSymbol.Name, context.Parameter.Name, StringComparison.OrdinalIgnoreCase))
+                    return string.Equals(symbol.Name, context.Parameter.Name, StringComparison.OrdinalIgnoreCase);
+
+                return true;
+            }
         }
     }
 }

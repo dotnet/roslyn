@@ -22,6 +22,11 @@
         <target state="translated">アクセシビリティ修飾子を追加します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">明示的なキャストの追加</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
         <target state="translated">わかりやすくするためにかっこを追加</target>
@@ -62,8 +67,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">this' または 'Me' 修飾子を追加します。</target>
+        <source>Add 'this' or 'Me' qualification</source>
+        <target state="translated">this' または 'Me' 修飾子を追加する</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
@@ -126,6 +131,11 @@
         <target state="translated">コレクションの初期化を簡素化できます</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">書式設定を修正</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">書式設定文字列に無効なプレース ホルダーが含まれています</target>
@@ -184,6 +194,11 @@
       <trans-unit id="Modifiers_are_not_ordered">
         <source>Modifiers are not ordered</source>
         <target state="translated">修飾子が順序付けされていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">名前を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
@@ -276,6 +291,11 @@
         <target state="translated">不要なキャストの削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">アクセシビリティ修飾子を削除する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">冗長な等値を削除</target>
@@ -334,6 +354,21 @@
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">LINQ 式を簡略化する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">メンバー アクセスを単純化します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">名前を単純化します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">チェックの簡略化</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -424,6 +459,11 @@
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
         <target state="translated">スロー' 式を使用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="translated">'{0}' ステートメントは、'{1}' を暗黙的に '{2}' に変換します。実行時に失敗する可能性があるため、インテントをより明確にするために明示的なキャストを追加します</target>
         <note />
       </trans-unit>
     </body>

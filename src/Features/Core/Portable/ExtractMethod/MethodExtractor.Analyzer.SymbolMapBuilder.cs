@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 private readonly SemanticModel _semanticModel;
                 private readonly ISyntaxFactsService _service;
                 private readonly TextSpan _span;
-                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap;
+                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap = new();
                 private readonly CancellationToken _cancellationToken;
 
                 public static Dictionary<ISymbol, List<SyntaxToken>> Build(
@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     _semanticModel = semanticModel;
                     _service = service;
                     _span = span;
-                    _symbolMap = new Dictionary<ISymbol, List<SyntaxToken>>();
                     _cancellationToken = cancellationToken;
                 }
 

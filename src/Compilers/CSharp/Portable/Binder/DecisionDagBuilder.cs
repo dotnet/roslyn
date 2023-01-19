@@ -60,13 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Conversions _conversions;
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly LabelSymbol _defaultLabel;
+        /// <summary>
+        /// We might need to build a dedicated dag for lowering during which we
+        /// avoid synthesizing tests to relate alternative indexers. This won't 
+        /// affect code semantics but it results in a better code generation.
+        /// </summary>
+        private readonly bool _forLowering;
 
-        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, BindingDiagnosticBag diagnostics)
+        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, bool forLowering, BindingDiagnosticBag diagnostics)
         {
             this._compilation = compilation;
             this._conversions = compilation.Conversions;
             _diagnostics = diagnostics;
             _defaultLabel = defaultLabel;
+            _forLowering = forLowering;
         }
 
         /// <summary>
@@ -78,9 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchGoverningExpression,
             ImmutableArray<BoundSwitchSection> switchSections,
             LabelSymbol defaultLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForSwitchStatement(syntax, switchGoverningExpression, switchSections);
         }
 
@@ -93,9 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchExpressionInput,
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             LabelSymbol defaultLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForSwitchExpression(syntax, switchExpressionInput, switchArms);
         }
 
@@ -109,9 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern,
             LabelSymbol whenTrueLabel,
             LabelSymbol whenFalseLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
         }
 
@@ -421,8 +431,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Tests> tests)
         {
             // Add a null test if needed
-            if (input.Type.CanContainNull())
+            if (input.Type.CanContainNull() &&
+                // The slice value is assumed to be never null
+                input.Source is not BoundDagSliceEvaluation)
+            {
                 tests.Add(new Tests.One(new BoundDagNonNullTest(syntax, isExplicitTest, input)));
+            }
         }
 
         /// <summary>
@@ -440,7 +454,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
-                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, ref useSiteInfo);
+                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, isChecked: false, ref useSiteInfo);
+                Debug.Assert(!conversion.IsUserDefined);
+
                 _diagnostics.Add(syntax, useSiteInfo);
                 if (input.Type.IsDynamic() ? type.SpecialType == SpecialType.System_Object : conversion.IsImplicit)
                 {
@@ -469,6 +485,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 output = input;
                 return new Tests.One(new BoundDagExplicitNullTest(constant.Syntax, input));
+            }
+            else if (constant.ConstantValue.IsString && input.Type.IsSpanOrReadOnlySpanChar())
+            {
+                output = input;
+                return new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, input));
             }
             else
             {
@@ -1228,14 +1249,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTypeTest t2:
                             {
                                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
-                                bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
-                                if (matches == false)
+                                ConstantValue? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
+                                if (matches == ConstantValue.False)
                                 {
                                     // If T1 could never be T2
                                     // v is T1 --> !(v is T2)
                                     trueTestPermitsTrueOther = false;
                                 }
-                                else if (matches == true)
+                                else if (matches == ConstantValue.True)
                                 {
                                     // If T1: T2
                                     // v is T1 --> v is T2
@@ -1245,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
                                 matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteInfo, out _);
                                 _diagnostics.Add(syntax, useSiteInfo);
-                                if (matches == true)
+                                if (matches == ConstantValue.True)
                                 {
                                     // If T2: T1
                                     // !(v is T1) --> !(v is T2)
@@ -1336,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Returns true if the tests are related i.e. they have the same input, otherwise false.</summary>
         /// <param name="relationCondition">The pre-condition under which these tests are related.</param>
         /// <param name="relationEffect">A possible assignment node which will correspond two non-identical but related test inputs.</param>
-        private static bool CheckInputRelation(
+        private bool CheckInputRelation(
             SyntaxNode syntax,
             DagState state,
             BoundDagTest test,
@@ -1375,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We should've skipped all type evaluations at this point.
                     case (BoundDagTypeEvaluation, _):
                     case (_, BoundDagTypeEvaluation):
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
 
                     // If we have found two identical evaluations as the source (possibly null), inputs can be considered related.
                     case var (s1, s2) when s1 == s2:
@@ -1426,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
-                                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                if (!_forLowering && lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
                                     (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
@@ -1466,12 +1487,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of a switch (on the one hand) and a series of if-then-else statements (on the other).
         /// See, for example, https://github.com/dotnet/roslyn/issues/35661
         /// </summary>
-        private bool? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
+        private ConstantValue? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
             TypeSymbol expressionType,
             TypeSymbol patternType,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteInfo, out Conversion conversion);
+            ConstantValue result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteInfo, out Conversion conversion);
             return (!conversion.Exists && isRuntimeSimilar(expressionType, patternType))
                 ? null // runtime and compile-time test behavior differ. Pretend we don't know what happens.
                 : result;
@@ -1832,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Is the pattern in a state in which it is fully matched and there is no when clause?
             /// </summary>
-            public bool IsFullyMatched => RemainingTests is Tests.True && (WhenClause is null || WhenClause.ConstantValue == ConstantValue.True);
+            public bool IsFullyMatched => RemainingTests is Tests.True && (WhenClause is null || WhenClause.ConstantValueOpt == ConstantValue.True);
 
             /// <summary>
             /// Is the pattern fully matched and ready for the when clause to be evaluated (if any)?
@@ -1847,7 +1868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool Equals(object? obj)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public bool Equals(StateForCase other)
@@ -1898,7 +1919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out Tests whenTrue,
                 out Tests whenFalse,
                 ref bool foundExplicitNullTest);
-            public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
+            public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable();
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             /// <summary>
             /// Rewrite nested length tests in slice subpatterns to check the top-level length property instead.
@@ -1971,7 +1992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxNode syntax = test.Syntax;
                     BoundDagTest other = this.Test;
                     if (other is BoundDagEvaluation ||
-                        !CheckInputRelation(syntax, state, test, other,
+                        !builder.CheckInputRelation(syntax, state, test, other,
                             relationCondition: out Tests relationCondition,
                             relationEffect: out Tests relationEffect))
                     {

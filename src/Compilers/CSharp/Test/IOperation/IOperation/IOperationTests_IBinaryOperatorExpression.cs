@@ -416,6 +416,67 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void TestBinaryOperators_UnsignedRightShift()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int a, int b)
+    {
+        _ = /*<bind>*/ a >>> b /*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperation (BinaryOperatorKind.UnsignedRightShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a >>> b')
+  Left:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+  Right:
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestBinaryOperators_UnsignedRightShift_UserDefined()
+        {
+            string source = @"
+using System;
+
+public class C1
+{
+    public static C1 operator >>>(C1 x, int y)
+    {
+        return x;
+    }
+}
+
+class C
+{
+    void M(C1 a, int b)
+    {
+        _ = /*<bind>*/ a >>> b /*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperation (BinaryOperatorKind.UnsignedRightShift) (OperatorMethod: C1 C1.op_UnsignedRightShift(C1 x, System.Int32 y)) (OperationKind.Binary, Type: C1) (Syntax: 'a >>> b')
+  Left:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C1) (Syntax: 'a')
+  Right:
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void TestBinaryOperators_Checked()
         {
             string source = @"
@@ -546,6 +607,73 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestBinaryOperators_UnsignedRightShift_Checked()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int a, int b)
+    {
+        checked
+        {
+            _ = /*<bind>*/ a >>> b /*</bind>*/;
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperation (BinaryOperatorKind.UnsignedRightShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a >>> b')
+  Left:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+  Right:
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestBinaryOperators_UnsignedRightShift_UserDefined_Checked()
+        {
+            string source = @"
+using System;
+
+public class C1
+{
+    public static C1 operator >>>(C1 x, int y)
+    {
+        return x;
+    }
+}
+
+class C
+{
+    void M(C1 a, int b)
+    {
+        checked
+        {
+            _ = /*<bind>*/ a >>> b /*</bind>*/;
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperation (BinaryOperatorKind.UnsignedRightShift) (OperatorMethod: C1 C1.op_UnsignedRightShift(C1 x, System.Int32 y)) (OperationKind.Binary, Type: C1) (Syntax: 'a >>> b')
+  Left:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C1) (Syntax: 'a')
+  Right:
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

@@ -6,15 +6,16 @@
 // Uncomment to enable the IOperation test hook on all test runs. Do not commit this uncommented.
 //#define ROSLYN_TEST_IOPERATION
 
+// Uncomment to enable the Used Assemblies test hook on all test runs. Do not commit this uncommented.
+//#define ROSLYN_TEST_USEDASSEMBLIES
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,11 +23,10 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -39,7 +39,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
 #endif
 
-        internal static bool EnableVerifyUsedAssemblies { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_USEDASSEMBLIES"));
+        internal static bool EnableVerifyUsedAssemblies { get; } =
+#if ROSLYN_TEST_USEDASSEMBLIES
+            true;
+#else
+            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_USEDASSEMBLIES"));
+#endif
 
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
@@ -301,8 +306,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(semanticModel, operation.SemanticModel);
                         Assert.NotSame(semanticModel, ((Operation)operation).OwningSemanticModel);
                         Assert.NotNull(((Operation)operation).OwningSemanticModel);
-                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingModelOrSelf);
-                        Assert.Same(semanticModel, semanticModel.ContainingModelOrSelf);
+                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingPublicModelOrSelf);
+                        Assert.Same(semanticModel, semanticModel.ContainingPublicModelOrSelf);
 
                         if (operation.Parent == null)
                         {
@@ -366,8 +371,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
 
                     case IParameterInitializerOperation parameterInitializerOperation:
-                        // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local functions.
-                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+                        // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local and anonymous functions.
+                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction))
                         {
                             ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root), associatedSymbol);
                         }
@@ -381,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// up <see cref="CompilationReference"/> which contains all of the well known types that were used from that
         /// reference by the compiler.
         /// </summary>
-        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference()
+        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference(TargetFramework targetFramework = TargetFramework.NetCoreApp)
         {
             var source = @"
 namespace System.Runtime.InteropServices.WindowsRuntime
@@ -428,8 +433,8 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             // WellKnownTypes and WellKnownMembers so it can be safely skipped here. 
             var compilation = CSharpCompilation.Create(
                 "System.Runtime.InteropServices.WindowsRuntime",
-                new[] { CSharpSyntaxTree.ParseText(source) },
-                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
+                new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
+                references: TargetFrameworkUtil.GetReferences(targetFramework),
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.VerifyEmitDiagnostics();
             return compilation.EmitToPortableExecutableReference();

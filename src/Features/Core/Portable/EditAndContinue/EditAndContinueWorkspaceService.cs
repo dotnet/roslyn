@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -24,7 +26,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        internal static readonly TraceLog Log = new(2048, "EnC");
+        internal static readonly TraceLog Log;
+        internal static readonly TraceLog AnalysisLog;
 
         private Func<Project, CompilationOutputs> _compilationOutputsProvider;
 
@@ -39,6 +42,43 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public EditAndContinueWorkspaceService()
         {
             _compilationOutputsProvider = GetCompilationOutputs;
+        }
+
+        static EditAndContinueWorkspaceService()
+        {
+            Log = new(2048, "EnC", "Trace.log");
+            AnalysisLog = new(1024, "EnC", "Analysis.log");
+
+            var logDir = GetLogDirectory();
+            if (logDir != null)
+            {
+                Log.SetLogDirectory(logDir);
+                AnalysisLog.SetLogDirectory(logDir);
+            }
+        }
+
+        private static string? GetLogDirectory()
+        {
+            try
+            {
+                var path = Environment.GetEnvironmentVariable("Microsoft_CodeAnalysis_EditAndContinue_LogDir");
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    return null;
+                }
+
+                Directory.CreateDirectory(path);
+                return path;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public void SetFileLoggingDirectory(string? logDirectory)
+        {
+            Log.SetLogDirectory(logDirectory ?? GetLogDirectory());
         }
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
@@ -73,50 +113,50 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void OnSourceFileUpdated(Document document)
-        {
-            // notify all active debugging sessions
-            foreach (var debuggingSession in GetActiveDebuggingSessions())
-            {
-                // fire and forget
-                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document)).ReportNonFatalErrorAsync();
-            }
-        }
-
         public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
             Solution solution,
             IManagedHotReloadService debuggerService,
+            IPdbMatchingSourceTextProvider sourceTextProvider,
             ImmutableArray<DocumentId> captureMatchingDocuments,
             bool captureAllMatchingDocuments,
             bool reportDiagnostics,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
-
-            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
-
-            if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
+            try
             {
-                var documentsByProject = captureAllMatchingDocuments ?
-                    solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
-                    GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+                Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
 
-                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false);
+                IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
+
+                if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
+                {
+                    var documentsByProject = captureAllMatchingDocuments
+                        ? solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values))
+                        : GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+
+                    initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+                }
+
+                var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
+                var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, reportDiagnostics);
+
+                lock (_debuggingSessions)
+                {
+                    _debuggingSessions.Add(session);
+                }
+
+                Log.Write("Session #{0} started.", sessionId.Ordinal);
+                return sessionId;
+
             }
-            else
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+                throw ExceptionUtilities.Unreachable();
             }
-
-            var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
-
-            lock (_debuggingSessions)
-            {
-                _debuggingSessions.Add(session);
-            }
-
-            return sessionId;
         }
 
         private static IEnumerable<(Project, IEnumerable<DocumentState>)> GetDocumentStatesGroupedByProject(Solution solution, ImmutableArray<DocumentId> documentIds)
@@ -137,6 +177,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
 
             debuggingSession.EndSession(out documentsToReanalyze, out var telemetryData);
+
+            Log.Write("Session #{0} ended.", debuggingSession.Id.Ordinal);
         }
 
         public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
@@ -152,29 +194,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 (s, arg, cancellationToken) => s.GetDocumentDiagnosticsAsync(arg.document, arg.activeStatementSpanProvider, cancellationToken),
                 (document, activeStatementSpanProvider),
                 cancellationToken);
-        }
-
-        /// <summary>
-        /// Determine whether updates have been made to projects containing the specified file (or all projects that are built,
-        /// if <paramref name="sourceFilePath"/> is null).
-        /// </summary>
-        public ValueTask<bool> HasChangesAsync(
-            DebuggingSessionId sessionId,
-            Solution solution,
-            ActiveStatementSpanProvider activeStatementSpanProvider,
-            string? sourceFilePath,
-            CancellationToken cancellationToken)
-        {
-            // GetStatusAsync is called outside of edit session when the debugger is determining
-            // whether a source file checksum matches the one in PDB.
-            // The debugger expects no changes in this case.
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return default;
-            }
-
-            return debuggingSession.EditSession.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken);
         }
 
         public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(

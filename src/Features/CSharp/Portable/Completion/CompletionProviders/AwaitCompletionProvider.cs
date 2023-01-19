@@ -10,7 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override string Language => LanguageNames.CSharp;
         public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
+
+        protected override bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
+            => base.IsAwaitKeywordContext(syntaxContext) || syntaxContext.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
 
         /// <summary>
         /// Gets the span start where async keyword should go.

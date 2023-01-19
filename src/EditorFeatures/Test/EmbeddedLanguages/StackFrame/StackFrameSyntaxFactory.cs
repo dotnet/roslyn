@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static readonly StackFrameToken GraveAccentToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
         public static readonly StackFrameToken EOLToken = CreateToken(StackFrameKind.EndOfFrame, "");
         public static readonly StackFrameToken ColonToken = CreateToken(StackFrameKind.ColonToken, ":");
+        public static readonly StackFrameToken DollarToken = CreateToken(StackFrameKind.DollarToken, "$");
+        public static readonly StackFrameToken PipeToken = CreateToken(StackFrameKind.PipeToken, "|");
 
         public static readonly StackFrameTrivia AtTrivia = CreateTrivia(StackFrameKind.AtTrivia, "at ");
         public static readonly StackFrameTrivia LineTrivia = CreateTrivia(StackFrameKind.LineTrivia, "line ");
@@ -87,6 +89,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         {
             return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, argumentList ?? ParameterList(OpenParenToken, CloseParenToken));
         }
+
+        public static StackFrameGeneratedMethodNameNode GeneratedName(string name, bool endWithDollar = true)
+            => new(LessThanToken, IdentifierToken(name), GreaterThanToken, endWithDollar ? DollarToken : null);
 
         public static StackFrameQualifiedNameNode QualifiedName(string s, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
             => QualifiedName(s, leadingTrivia.ToImmutableArray(), trailingTrivia.ToImmutableArray());
@@ -191,13 +196,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameIdentifierNameNode TypeArgument(StackFrameToken identifier)
             => new(identifier);
 
-        public static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken colon, StackFrameToken line)
-            => new(path.With(leadingTrivia: ImmutableArray.Create(InTrivia)), colon, line);
+        public static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken colon, StackFrameToken line, StackFrameTrivia? inTrivia = null)
+            => new(path.With(leadingTrivia: ImmutableArray.Create(inTrivia.HasValue ? inTrivia.Value : InTrivia)), colon, line);
 
         public static StackFrameToken Path(string path)
             => CreateToken(StackFrameKind.PathToken, path);
 
         public static StackFrameToken Line(int lineNumber)
             => CreateToken(StackFrameKind.NumberToken, lineNumber.ToString(), leadingTrivia: ImmutableArray.Create(LineTrivia));
+
+        public static StackFrameLocalMethodNameNode LocalMethod(StackFrameGeneratedMethodNameNode encapsulatingMethod, string identifier, string suffix)
+            => new(
+                encapsulatingMethod,
+                CreateToken(StackFrameKind.GeneratedNameSeparatorToken, "g__"),
+                IdentifierToken(identifier),
+                PipeToken,
+                CreateToken(StackFrameKind.GeneratedNameSuffixToken, suffix));
     }
 }

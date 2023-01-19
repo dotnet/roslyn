@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnreferencedVar = 168,
         WRN_UnreferencedField = 169,
         ERR_UseDefViolationField = 170,
-        ERR_UnassignedThis = 171,
+        ERR_UnassignedThisUnsupportedVersion = 171,
         ERR_AmbigQM = 172,
         ERR_InvalidQM = 173, // Requires SymbolDistinguisher.
         ERR_NoBaseClass = 174,
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_IsAlwaysFalse = 184,
         ERR_LockNeedsReference = 185,
         ERR_NullNotValid = 186,
-        ERR_UseDefViolationThis = 188,
+        ERR_UseDefViolationThisUnsupportedVersion = 188,
         ERR_ArgsInvalid = 190,
         ERR_AssgReadonly = 191,
         ERR_RefReadonly = 192,
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_AutoPropertiesMustHaveBothAccessors = 840,
         ERR_VariableUsedBeforeDeclaration = 841,
         //ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
-        ERR_UnassignedThisAutoProperty = 843,
+        ERR_UnassignedThisAutoPropertyUnsupportedVersion = 843,
         ERR_VariableUsedBeforeDeclarationAndHidesField = 844,
         ERR_ExpressionTreeContainsBadCoalesce = 845,
         ERR_ArrayInitializerExpected = 846,
@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
+        // ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeOther = 8349,
         ERR_CallArgMixing = 8350,
         ERR_MismatchedRefEscapeInTernary = 8351,
-        ERR_EscapeLocal = 8352,
+        ERR_EscapeVariable = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
         ERR_OutAttrOnInParam = 8355,
@@ -1610,6 +1610,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarianceInterfaceNesting = 8427,
         ERR_ImplicitIndexIndexerWithName = 8428,
         ERR_ImplicitRangeIndexerWithName = 8429,
+        // available range
+
+        WRN_ManagedAddr = 8500,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1723,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidModifierForLanguageVersion = 8703,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
         ERR_MostSpecificImplementationIsNotFound = 8705,
-        ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
+        ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember = 8706,
 
         ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
         //ERR_NotBaseOrImplementedInterface = 8708,
@@ -1885,12 +1888,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // The following warnings correspond to errors of the same name, but are reported
         // when a definite assignment issue is reported due to private fields imported from metadata.
-        WRN_UnassignedThisAutoProperty = 8880,
-        WRN_UnassignedThis = 8881,
+        WRN_UnassignedThisAutoPropertyUnsupportedVersion = 8880,
+        WRN_UnassignedThisUnsupportedVersion = 8881,
         WRN_ParamUnassigned = 8882,
         WRN_UseDefViolationProperty = 8883,
         WRN_UseDefViolationField = 8884,
-        WRN_UseDefViolationThis = 8885,
+        WRN_UseDefViolationThisUnsupportedVersion = 8885,
         WRN_UseDefViolationOut = 8886,
         WRN_UseDefViolation = 8887,
 
@@ -2007,13 +2010,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // at runtime.
         ERR_CannotUseRefInUnmanagedCallersOnly = 8977,
 
-        ERR_IncorrectNullCheckSyntax = 8990,
-        ERR_MustNullCheckInImplementation = 8991,
-        ERR_NonNullableValueTypeIsNullChecked = 8992,
-        WRN_NullCheckedHasDefaultNull = 8993,
-        ERR_NullCheckingOnByRefParameter = 8994,
-        WRN_NullCheckingOnNullableType = 8995,
-
         #endregion
 
         #region diagnostics introduced for C# 11.0
@@ -2024,9 +2020,151 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_LowerCaseTypeName = 8981,
         ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
+        ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
+        ERR_EncUpdateFailedDelegateTypeChanged = 8984,
+
+        ERR_ListPatternRequiresLength = 8985,
+        ERR_ScopedMismatchInParameterOfTarget = 8986,
+        ERR_ScopedMismatchInParameterOfOverrideOrImplementation = 8987,
+        ERR_ScopedMismatchInParameterOfPartial = 8988,
+
+        // param-nullchecking feature removed from C# 11
+        ERR_ParameterNullCheckingNotSupported = 8989,
+        // ERR_DiscardCannotBeNullChecked = 8990,
+        // ERR_MustNullCheckInImplementation = 8991,
+        // ERR_NonNullableValueTypeIsNullChecked = 8992,
+        // WRN_NullCheckedHasDefaultNull = 8993,
+        // ERR_NullCheckingOnOutParameter = 8994,
+        // WRN_NullCheckingOnNullableType = 8995,
+
+        ERR_RawStringNotInDirectives = 8996,
+        ERR_UnterminatedRawString = 8997,
+        ERR_TooManyQuotesForRawString = 8998,
+        ERR_LineDoesNotStartWithSameWhitespace = 8999,
+        ERR_RawStringDelimiterOnOwnLine = 9000,
+        ERR_RawStringInVerbatimInterpolatedStrings = 9001,
+        ERR_RawStringMustContainContent = 9002,
+        ERR_LineContainsDifferentWhitespace = 9003,
+
+        // raw interpolated string literals
+        ERR_NotEnoughQuotesForRawString = 9004,
+        ERR_NotEnoughCloseBracesForRawString = 9005,
+        ERR_TooManyOpenBracesForRawString = 9006,
+        ERR_TooManyCloseBracesForRawString = 9007,
+
+        ERR_IllegalAtSequence = 9008,
+        ERR_StringMustStartWithQuoteCharacter = 9009,
+
+        ERR_NoEnumConstraint = 9010,
+        ERR_NoDelegateConstraint = 9011,
+        ERR_MisplacedRecord = 9012,
+        ERR_PatternSpanCharCannotBeStringNull = 9013,
+
+        ERR_UseDefViolationPropertyUnsupportedVersion = 9014,
+        ERR_UseDefViolationFieldUnsupportedVersion = 9015,
+        WRN_UseDefViolationPropertyUnsupportedVersion = 9016,
+        WRN_UseDefViolationFieldUnsupportedVersion = 9017,
+
+        WRN_UseDefViolationPropertySupportedVersion = 9018,
+        WRN_UseDefViolationFieldSupportedVersion = 9019,
+        WRN_UseDefViolationThisSupportedVersion = 9020,
+        WRN_UnassignedThisAutoPropertySupportedVersion = 9021,
+        WRN_UnassignedThisSupportedVersion = 9022,
+
+        ERR_OperatorCantBeChecked = 9023,
+        ERR_ImplicitConversionOperatorCantBeChecked = 9024,
+        ERR_CheckedOperatorNeedsMatch = 9025,
+
+        ERR_CannotBeConvertedToUtf8 = 9026,
+        ERR_MisplacedUnchecked = 9027,
+        ERR_LineSpanDirectiveRequiresSpace = 9028,
+
+        ERR_RequiredNameDisallowed = 9029,
+        ERR_OverrideMustHaveRequired = 9030,
+        ERR_RequiredMemberCannotBeHidden = 9031,
+        ERR_RequiredMemberCannotBeLessVisibleThanContainingType = 9032,
+        ERR_ExplicitRequiredMember = 9033,
+        ERR_RequiredMemberMustBeSettable = 9034,
+        ERR_RequiredMemberMustBeSet = 9035,
+        ERR_RequiredMembersMustBeAssignedValue = 9036,
+        ERR_RequiredMembersInvalid = 9037,
+        ERR_RequiredMembersBaseTypeInvalid = 9038,
+        ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers = 9039,
+        ERR_NewConstraintCannotHaveRequiredMembers = 9040,
+        ERR_UnsupportedCompilerFeature = 9041,
+        WRN_ObsoleteMembersShouldNotBeRequired = 9042,
+        ERR_RefReturningPropertiesCannotBeRequired = 9043,
+        ERR_ImplicitImplementationOfInaccessibleInterfaceMember = 9044,
+        ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
+        ERR_BadAbstractEqualityOperatorSignature = 9046,
+        ERR_BadBinaryReadOnlySpanConcatenation = 9047,
+        ERR_ScopedRefAndRefStructOnly = 9048,
+        ERR_FixedFieldMustNotBeRef = 9049,
+        ERR_RefFieldCannotReferToRefStruct = 9050,
+
+        ERR_FileTypeDisallowedInSignature = 9051,
+        ERR_FileTypeNoExplicitAccessibility = 9052,
+        ERR_FileTypeBase = 9053,
+        ERR_FileTypeNested = 9054,
+        ERR_GlobalUsingStaticFileType = 9055,
+        ERR_FileTypeNameDisallowed = 9056,
+        WRN_AnalyzerReferencesNewerCompiler = 9057,
+        ERR_FeatureNotAvailableInVersion11 = 9058,
+        ERR_RefFieldInNonRefStruct = 9059,
+        ERR_CannotMatchOnINumberBase = 9060,
+        ERR_ScopedDiscard = 9061,
+        ERR_ScopedTypeNameDisallowed = 9062,
+        ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
+        ERR_RuntimeDoesNotSupportRefFields = 9064,
+        ERR_ExplicitScopedRef = 9065,
+        ERR_UnscopedScoped = 9066,
+        WRN_DuplicateAnalyzerReference = 9067,
+        ERR_FileTypeNonUniquePath = 9068,
+        ERR_FilePathCannotBeConvertedToUtf8 = 9069,
+        ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
+        ERR_FileLocalDuplicateNameInNS = 9071,
+        ERR_DeconstructVariableCannotBeByRef = 9072,
+        WRN_ScopedMismatchInParameterOfTarget = 9073,
+        WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
+        ERR_RefReturnScopedParameter = 9075,
+        ERR_RefReturnScopedParameter2 = 9076,
+        ERR_RefReturnOnlyParameter = 9077,
+        ERR_RefReturnOnlyParameter2 = 9078,
+        ERR_RefAssignReturnOnly = 9079,
+
+        WRN_EscapeVariable = 9080,
+        WRN_EscapeStackAlloc = 9081,
+        WRN_RefReturnNonreturnableLocal = 9082,
+        WRN_RefReturnNonreturnableLocal2 = 9083,
+        WRN_RefReturnStructThis = 9084,
+        WRN_RefAssignNarrower = 9085,
+        WRN_MismatchedRefEscapeInTernary = 9086,
+        WRN_RefReturnParameter = 9087,
+        WRN_RefReturnScopedParameter = 9088,
+        WRN_RefReturnParameter2 = 9089,
+        WRN_RefReturnScopedParameter2 = 9090,
+        WRN_RefReturnLocal = 9091,
+        WRN_RefReturnLocal2 = 9092,
+        WRN_RefAssignReturnOnly = 9093,
+        WRN_RefReturnOnlyParameter = 9094,
+        WRN_RefReturnOnlyParameter2 = 9095,
+        ERR_RefAssignValEscapeWider = 9096,
+        WRN_RefAssignValEscapeWider = 9097,
 
         #endregion
 
-        // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
+        #region diagnostics introduced for C# 12.0
+
+        ERR_ImplicitlyTypedDefaultParameter = 9098,
+        WRN_OptionalParamValueMismatch = 9099,
+        WRN_ParamsArrayInLambdaOnly = 9100,
+        ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
+        ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
+        ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
+        ERR_BadSpecialByRefUsing = 9104,
+        #endregion
+
+        // Note: you will need to do the following after adding warnings:
+        //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
     }
 }

@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 return await CommonCompletionUtilities.CreateDescriptionAsync(
-                    document.Project.Solution.Workspace.Services,
+                    document.Project.Solution.Services,
                     semanticModel,
                     position: 0,
                     symbol,

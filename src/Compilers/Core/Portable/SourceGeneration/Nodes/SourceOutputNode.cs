@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly IIncrementalGeneratorNode<TInput> _source;
 
-        private readonly Action<SourceProductionContext, TInput> _action;
+        private readonly Action<SourceProductionContext, TInput, CancellationToken> _action;
 
         private readonly IncrementalGeneratorOutputKind _outputKind;
 
         private readonly string _sourceExtension;
 
-        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
+        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput, CancellationToken> action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
         {
             _source = source;
             _action = action;
@@ -35,20 +35,20 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalGeneratorOutputKind Kind => _outputKind;
 
-        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
             string stepName = Kind == IncrementalGeneratorOutputKind.Source ? WellKnownGeneratorOutputs.SourceOutput : WellKnownGeneratorOutputs.ImplementationSourceOutput;
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
-            if (sourceTable.IsCached)
+            if (sourceTable.IsCached && previousTable is not null)
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<TOutput>.Default);
                 }
                 return previousTable;
             }
 
-            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName);
+            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
             foreach (var entry in sourceTable)
             {
                 var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         var stopwatch = SharedStopwatch.StartNew();
-                        _action(context, entry.Item);
+                        _action(context, entry.Item, cancellationToken);
                         var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
                         nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
                     }
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis
             return nodeTable.ToImmutableAndFree();
         }
 
-        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
+        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable();
 
-        public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable;
+        public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
 
-        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
+        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
 
         public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
         {

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
-            var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
+            var syntaxFactory = newDocument.GetRequiredLanguageService<SyntaxGenerator>();
 
             var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
             var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.RequiresUnsafeModifier());

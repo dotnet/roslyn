@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <remarks>This method is optional and only should be implemented by languages that support
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="AddSyntacticClassificationsAsync"/> instead.</remarks>
-        void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddSyntacticClassifications(SolutionServices services, SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  The syntax of the document 
@@ -41,18 +41,28 @@ namespace Microsoft.CodeAnalysis.Classification
         Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Produce the classifications for the span of text specified.  Semantics of the language
-        /// can be used to provide richer information for constructs where syntax is insufficient.
-        /// For example, semantic information can be used to determine if an identifier should be
-        /// classified as a type, structure, or something else entirely. 
+        /// Produce the classifications for the span of text specified.  Semantics of the language can be used to
+        /// provide richer information for constructs where syntax is insufficient. For example, semantic information
+        /// can be used to determine if an identifier should be classified as a type, structure, or something else
+        /// entirely.
         /// </summary>
+        /// <remarks>
+        /// This will not include classifications for embedded language constructs in string literals.  For that use
+        /// <see cref="AddEmbeddedLanguageClassificationsAsync"/>.
+        /// </remarks>
         Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Produce the classifications for embedded language string literals (e.g. Regex/Json strings) in the span of
+        /// text specified.
+        /// </summary>
+        Task AddEmbeddedLanguageClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adjust a classification from a previous version of text accordingly based on the current
         /// text.  For example, if a piece of text was classified as an identifier in a previous version,
         /// but a character was added that would make it into a keyword, then indicate that here.
-        /// 
+        ///
         /// This allows the classified to quickly fix up old classifications as the user types.  These
         /// adjustments are allowed to be incorrect as they will be superseded by calls to get the
         /// syntactic and semantic classifications for this version later.
@@ -84,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="ComputeSyntacticChangeRangeAsync"/> instead.</remarks>
         TextChangeRange? ComputeSyntacticChangeRange(
-            Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot,
+            SolutionServices workspace, SyntaxNode oldRoot, SyntaxNode newRoot,
             TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

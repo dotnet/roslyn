@@ -8,10 +8,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
         Public Property Option_TriggerOnTypingLetters As Boolean
             Get
-                Return GetBooleanOption(CompletionOptions.Metadata.TriggerOnTypingLetters)
+                Return GetBooleanOption(CompletionOptionsStorage.TriggerOnTypingLetters)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(CompletionOptions.Metadata.TriggerOnTypingLetters, value)
+                SetBooleanOption(CompletionOptionsStorage.TriggerOnTypingLetters, value)
             End Set
         End Property
 
@@ -26,37 +26,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Option_EnterKeyBehavior As Integer
             Get
-                Return GetOption(CompletionOptions.Metadata.EnterKeyBehavior)
+                Return GetOption(CompletionOptionsStorage.EnterKeyBehavior)
             End Get
             Set(value As Integer)
-                SetOption(CompletionOptions.Metadata.EnterKeyBehavior, DirectCast(value, EnterKeyRule))
+                SetOption(CompletionOptionsStorage.EnterKeyBehavior, DirectCast(value, EnterKeyRule))
             End Set
         End Property
 
         Public Property Option_SnippetsBehavior As Integer
             Get
-                Return GetOption(CompletionOptions.Metadata.SnippetsBehavior)
+                Return GetOption(CompletionOptionsStorage.SnippetsBehavior)
             End Get
             Set(value As Integer)
-                SetOption(CompletionOptions.Metadata.SnippetsBehavior, DirectCast(value, SnippetsRule))
+                SetOption(CompletionOptionsStorage.SnippetsBehavior, DirectCast(value, SnippetsRule))
             End Set
         End Property
 
         Public Property Option_ShowItemsFromUnimportedNamespaces As Integer
             Get
-                Return GetBooleanOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces)
+                Return GetBooleanOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces)
             End Get
             Set(value As Integer)
-                SetBooleanOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, value)
+                SetBooleanOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, value)
             End Set
         End Property
 
         Public Property Option_TriggerInArgumentLists As Boolean
             Get
-                Return GetBooleanOption(CompletionOptions.Metadata.TriggerInArgumentLists)
+                Return GetBooleanOption(CompletionOptionsStorage.TriggerInArgumentLists)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(CompletionOptions.Metadata.TriggerInArgumentLists, value)
+                SetBooleanOption(CompletionOptionsStorage.TriggerInArgumentLists, value)
             End Set
         End Property
 

@@ -4,6 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -25,80 +28,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// </summary>
         public static readonly Dictionary<string, int> TokenTypeToIndex;
 
-        public static readonly ImmutableArray<string> RoslynCustomTokenTypes = ImmutableArray.Create(
-            ClassificationTypeNames.ClassName,
-            ClassificationTypeNames.ConstantName,
-            ClassificationTypeNames.ControlKeyword,
-            ClassificationTypeNames.DelegateName,
-            ClassificationTypeNames.EnumMemberName,
-            ClassificationTypeNames.EnumName,
-            ClassificationTypeNames.EventName,
-            ClassificationTypeNames.ExcludedCode,
-            ClassificationTypeNames.ExtensionMethodName,
-            ClassificationTypeNames.FieldName,
-            ClassificationTypeNames.InterfaceName,
-            ClassificationTypeNames.LabelName,
-            ClassificationTypeNames.LocalName,
-            ClassificationTypeNames.MethodName,
-            ClassificationTypeNames.ModuleName,
-            ClassificationTypeNames.NamespaceName,
-            ClassificationTypeNames.OperatorOverloaded,
-            ClassificationTypeNames.ParameterName,
-            ClassificationTypeNames.PropertyName,
-
-            // Preprocessor
-            ClassificationTypeNames.PreprocessorKeyword,
-            ClassificationTypeNames.PreprocessorText,
-
-            ClassificationTypeNames.Punctuation,
-            ClassificationTypeNames.RecordClassName,
-            ClassificationTypeNames.RecordStructName,
-
-            // Regex
-            ClassificationTypeNames.RegexAlternation,
-            ClassificationTypeNames.RegexAnchor,
-            ClassificationTypeNames.RegexCharacterClass,
-            ClassificationTypeNames.RegexComment,
-            ClassificationTypeNames.RegexGrouping,
-            ClassificationTypeNames.RegexOtherEscape,
-            ClassificationTypeNames.RegexQuantifier,
-            ClassificationTypeNames.RegexSelfEscapedCharacter,
-            ClassificationTypeNames.RegexText,
-
-            ClassificationTypeNames.StringEscapeCharacter,
-            ClassificationTypeNames.StructName,
-            ClassificationTypeNames.Text,
-            ClassificationTypeNames.TypeParameterName,
-            ClassificationTypeNames.VerbatimStringLiteral,
-            ClassificationTypeNames.WhiteSpace,
-
-            // XML
-            ClassificationTypeNames.XmlDocCommentAttributeName,
-            ClassificationTypeNames.XmlDocCommentAttributeQuotes,
-            ClassificationTypeNames.XmlDocCommentAttributeValue,
-            ClassificationTypeNames.XmlDocCommentCDataSection,
-            ClassificationTypeNames.XmlDocCommentComment,
-            ClassificationTypeNames.XmlDocCommentDelimiter,
-            ClassificationTypeNames.XmlDocCommentEntityReference,
-            ClassificationTypeNames.XmlDocCommentName,
-            ClassificationTypeNames.XmlDocCommentProcessingInstruction,
-            ClassificationTypeNames.XmlDocCommentText,
-            ClassificationTypeNames.XmlLiteralAttributeName,
-            ClassificationTypeNames.XmlLiteralAttributeQuotes,
-            ClassificationTypeNames.XmlLiteralAttributeValue,
-            ClassificationTypeNames.XmlLiteralCDataSection,
-            ClassificationTypeNames.XmlLiteralComment,
-            ClassificationTypeNames.XmlLiteralDelimiter,
-            ClassificationTypeNames.XmlLiteralEmbeddedExpression,
-            ClassificationTypeNames.XmlLiteralEntityReference,
-            ClassificationTypeNames.XmlLiteralName,
-            ClassificationTypeNames.XmlLiteralProcessingInstruction,
-            ClassificationTypeNames.XmlLiteralText);
-
         // TO-DO: Expand this mapping once support for custom token types is added:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
-        private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
-            new Dictionary<string, string>
+        internal static readonly Dictionary<string, string> ClassificationTypeToSemanticTokenTypeMap =
+            new()
             {
                 [ClassificationTypeNames.Comment] = LSP.SemanticTokenTypes.Comment,
                 [ClassificationTypeNames.Identifier] = LSP.SemanticTokenTypes.Variable,
@@ -107,6 +40,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 [ClassificationTypeNames.Operator] = LSP.SemanticTokenTypes.Operator,
                 [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
             };
+
+        public static readonly ImmutableArray<string> RoslynCustomTokenTypes = ClassificationTypeNames.AllTypeNames
+            .Where(
+                type => !ClassificationTypeToSemanticTokenTypeMap.ContainsKey(type) &&
+                !ClassificationTypeNames.AdditiveTypeNames.Contains(type)).Order().ToImmutableArray();
+
+        public static readonly ImmutableArray<string> AllTokenTypes = SemanticTokenTypes.AllTypes.Concat(RoslynCustomTokenTypes).ToImmutableArray();
 
         static SemanticTokensHelpers()
         {
@@ -129,10 +69,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
-        internal static async Task<(int[], bool isFinalized)> ComputeSemanticTokensDataAsync(
+        internal static async Task<int[]> ComputeSemanticTokensDataAsync(
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
+            ClassificationOptions options,
             bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
@@ -143,15 +84,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // can pass in a range if they wish.
             var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
-            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
-            // results but will speed up how quickly we can respond to the client's request.
-            var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
-            var semanticModel = await frozenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
-            document = frozenDocument;
-
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
-                document, textSpan, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
+                document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
@@ -159,12 +93,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
-            return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isFinalized);
+            return ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
         }
 
         private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
             Document document,
             TextSpan textSpan,
+            ClassificationOptions options,
             bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
@@ -182,17 +117,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // casing: https://github.com/dotnet/razor-tooling/issues/5850
             if (includeSyntacticClassifications)
             {
-                // `removeAdditiveSpans` will remove token modifiers such as 'static', which we want to include in LSP.
-                // `fillInClassifiedSpanGaps` includes whitespace in the results, which we don't care about in LSP.
-                // Therefore, we set both optional parameters to false.
+                // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
                 var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, textSpan, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
-                classifiedSpans.AddRange(spans);
+                    document, textSpan, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
+
+                // The spans returned to us may include some empty spans, which we don't care about. We also don't care
+                // about the 'text' classification.  It's added for everything between real classifications (including
+                // whitespace), and just means 'don't classify this'.  No need for us to actually include that in
+                // semantic tokens as it just wastes space in the result.
+                var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
+                classifiedSpans.AddRange(nonEmptySpans);
             }
             else
             {
-                var options = ClassificationOptions.From(document.Project);
                 await classificationService.AddSemanticClassificationsAsync(
+                    document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddEmbeddedLanguageClassificationsAsync(
                     document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
             }
 
@@ -201,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return classifiedSpans.ToArray();
         }
 
-        private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
+        public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
         {
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var updatedClassifiedSpans);
 
@@ -265,8 +205,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
                     }
 
-                    var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
-                    updatedClassifiedSpans.Add(updatedClassifiedSpan);
+                    // Omit 0-length spans created in this fashion.
+                    if (textSpan.Value.Length > 0)
+                    {
+                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
+                        updatedClassifiedSpans.Add(updatedClassifiedSpan);
+                    }
 
                     // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
                     // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim
@@ -354,6 +298,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // 3. Token length
             var tokenLength = originalTextSpan.Length;
+            Contract.ThrowIfFalse(tokenLength > 0);
 
             // We currently only have one modifier (static). The logic below will need to change in the future if other
             // modifiers are added in the future.
@@ -402,7 +347,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static int GetTokenTypeIndex(string classificationType, Dictionary<string, int> tokenTypesToIndex)
         {
-            if (!s_classificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr))
+            if (!ClassificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr))
             {
                 tokenTypeStr = classificationType;
             }

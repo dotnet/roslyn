@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert(underlyingLocal is object);
             RoslynDebug.Assert(updatedContainingSymbol is object);
+            Debug.Assert(updatedContainingSymbol.DeclaringCompilation is not null);
             Debug.Assert(!assertContaining || updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
             ContainingSymbol = updatedContainingSymbol;
             TypeWithAnnotations = updatedType;
@@ -85,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsImportedFromMetadata => _underlyingLocal.IsImportedFromMetadata;
         internal override SyntaxToken IdentifierToken => _underlyingLocal.IdentifierToken;
         internal override bool IsPinned => _underlyingLocal.IsPinned;
+        internal override bool IsKnownToReferToTempIfReferenceType => _underlyingLocal.IsKnownToReferToTempIfReferenceType;
         internal override bool IsCompilerGenerated => _underlyingLocal.IsCompilerGenerated;
-        internal override uint RefEscapeScope => _underlyingLocal.RefEscapeScope;
-        internal override uint ValEscapeScope => _underlyingLocal.ValEscapeScope;
+        internal override ScopedKind Scope => _underlyingLocal.Scope;
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics = null) =>
             _underlyingLocal.GetConstantValue(node, inProgress, diagnostics);
         internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override SyntaxNode GetDeclaratorSyntax() =>
             _underlyingLocal.GetDeclaratorSyntax();
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) =>
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         #endregion
     }
 }

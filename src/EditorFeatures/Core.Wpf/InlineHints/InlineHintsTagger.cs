@@ -4,11 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -16,7 +13,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
@@ -47,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private TextFormattingRunProperties? _format;
         private readonly IClassificationType _hintClassification;
 
-        private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
         private readonly InlineHintsTaggerProvider _taggerProvider;
 
         private readonly ITextBuffer _buffer;
@@ -61,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             ITextBuffer buffer,
             ITagAggregator<InlineHintDataTag> tagAggregator)
         {
-            _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
             _taggerProvider = taggerProvider;
 
             _textView = textView;
@@ -71,16 +65,46 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineHintsTag.TagId);
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
-            _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
+            _tagAggregator.BatchedTagsChanged += TagAggregator_BatchedTagsChanged;
+        }
+
+        /// <summary>
+        /// Goes through all the spans in which tags have changed and
+        /// invokes a TagsChanged event. Using the BatchedTagsChangedEvent since it is raised
+        /// on the same thread that created the tag aggregator, unlike TagsChanged.
+        /// </summary>
+        private void TagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
+        {
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
+            InvalidateCache();
+
+            var tagsChanged = TagsChanged;
+            if (tagsChanged is null)
+            {
+                return;
+            }
+
+            var mappingSpans = e.Spans;
+            foreach (var item in mappingSpans)
+            {
+                var spans = item.GetSpans(_buffer);
+                foreach (var span in spans)
+                {
+                    if (tagsChanged != null)
+                    {
+                        tagsChanged.Invoke(this, new SnapshotSpanEventArgs(span));
+                    }
+                }
+            }
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
         {
-            _threadAffinitizedObject.AssertIsForeground();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             if (_format != null)
             {
                 _format = null;
-                _cache.Clear();
+                InvalidateCache();
 
                 // When classifications change we need to rebuild the inline tags with updated Font and Color information.
                 var tags = GetTags(new NormalizedSnapshotSpanCollection(_textView.TextViewLines.FormattedSpan));
@@ -92,24 +116,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-        private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
-        {
-            _cache.Clear();
-            var spans = e.Span.GetSpans(_buffer);
-            foreach (var span in spans)
-            {
-                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
-            }
-        }
-
         private TextFormattingRunProperties Format
         {
             get
             {
-                _threadAffinitizedObject.AssertIsForeground();
+                _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
                 _format ??= _formatMap.GetTextProperties(_hintClassification);
                 return _format;
             }
+        }
+
+        private void InvalidateCache()
+        {
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
+            _cacheSnapshot = null;
+            _cache.Clear();
         }
 
         public IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
@@ -122,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 }
 
                 var snapshot = spans[0].Snapshot;
-                if (_cache.Count == 0 || snapshot != _cacheSnapshot)
+                if (snapshot != _cacheSnapshot)
                 {
                     // Calculate UI elements
                     _cache.Clear();
@@ -136,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     {
                         // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
                         // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
-                        // occuring
+                        // occurring
                         var dataTagSpans = tag.Span.GetSpans(snapshot);
                         if (dataTagSpans.Count == 1)
                         {
@@ -146,37 +167,42 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 }
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var classify = document != null && _taggerProvider.GlobalOptions.GetOption(InlineHintsViewOptions.ColorHints, document.Project.Language);
+                var classify = document != null && _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptions.ColorHints, document.Project.Language);
 
                 var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
                 for (var i = 0; i < _cache.Count; i++)
                 {
-                    var tagSpan = _cache[i].mappingTagSpan.Span.GetSpans(snapshot)[0];
-                    if (spans.IntersectsWith(tagSpan))
+                    var tagSpans = _cache[i].mappingTagSpan.Span.GetSpans(snapshot);
+                    if (tagSpans.Count == 1)
                     {
-                        if (_cache[i].tagSpan is not { } hintTagSpan)
+                        var tagSpan = tagSpans[0];
+                        if (spans.IntersectsWith(tagSpan))
                         {
-                            var parameterHintUITag = InlineHintsTag.Create(
-                                    _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
-                            hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, parameterHintUITag);
-                            _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
-                        }
+                            if (_cache[i].tagSpan is not { } hintTagSpan)
+                            {
+                                var hintUITag = InlineHintsTag.Create(
+                                        _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
 
-                        selectedSpans.Add(hintTagSpan);
+                                hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
+                                _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
+                            }
+
+                            selectedSpans.Add(hintTagSpan);
+                        }
                     }
                 }
 
                 return selectedSpans;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
         public void Dispose()
         {
-            _tagAggregator.TagsChanged -= OnTagAggregatorTagsChanged;
+            _tagAggregator.BatchedTagsChanged -= TagAggregator_BatchedTagsChanged;
             _tagAggregator.Dispose();
             _formatMap.ClassificationFormatMappingChanged -= OnClassificationFormatMappingChanged;
         }

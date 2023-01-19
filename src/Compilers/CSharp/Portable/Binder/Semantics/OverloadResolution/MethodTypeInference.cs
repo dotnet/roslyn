@@ -1337,7 +1337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-
             if (delegateOrFunctionPointerType.IsFunctionPointer() != (source.Kind == BoundKind.UnconvertedAddressOfOperator))
             {
                 return false;
@@ -2793,7 +2792,7 @@ OuterBreak:
             static bool hasExpressionTypeConstraint(TypeParameterSymbol typeParameter)
             {
                 var constraintTypes = typeParameter.ConstraintTypesNoUseSiteDiagnostics;
-                return constraintTypes.Any(t => isExpressionType(t.Type));
+                return constraintTypes.Any(static t => isExpressionType(t.Type));
             }
 
             static bool isExpressionType(TypeSymbol? type)
@@ -2973,7 +2972,6 @@ OuterBreak:
         // Helper methods
         //
 
-
         ////////////////////////////////////////////////////////////////////////////////
         //
         // In error recovery and reporting scenarios we sometimes end up in a situation
@@ -3115,22 +3113,21 @@ OuterBreak:
                     type = type.SetUnknownNullabilityForReferenceTypes();
                 }
 
-                AddOrMergeCandidate(candidates, type, variance, conversions);
+                Debug.Assert(conversions.IncludeNullability ||
+                    type.SetUnknownNullabilityForReferenceTypes().Equals(type, TypeCompareKind.ConsiderEverything));
+
+                AddOrMergeCandidate(candidates, type, variance);
             }
         }
 
         private static void AddOrMergeCandidate(
             Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates,
             TypeWithAnnotations newCandidate,
-            VarianceKind variance,
-            ConversionsBase conversions)
+            VarianceKind variance)
         {
-            Debug.Assert(conversions.IncludeNullability ||
-                newCandidate.SetUnknownNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.ConsiderEverything));
-
             if (candidates.TryGetValue(newCandidate, out TypeWithAnnotations oldCandidate))
             {
-                MergeAndReplaceIfStillCandidate(candidates, oldCandidate, newCandidate, variance, conversions);
+                MergeAndReplaceIfStillCandidate(candidates, oldCandidate, newCandidate, variance);
             }
             else
             {
@@ -3193,7 +3190,7 @@ OuterBreak:
                         // This rule doesn't have to be implemented explicitly due to special handling of 
                         // conversions from dynamic in ImplicitConversionExists helper.
                         // 
-                        MergeAndReplaceIfStillCandidate(candidates, candidate, bound, variance, conversions);
+                        MergeAndReplaceIfStillCandidate(candidates, candidate, bound, variance);
                     }
                 }
             }
@@ -3203,8 +3200,7 @@ OuterBreak:
             Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates,
             TypeWithAnnotations oldCandidate,
             TypeWithAnnotations newCandidate,
-            VarianceKind variance,
-            ConversionsBase conversions)
+            VarianceKind variance)
         {
             // We make an exception when new candidate is dynamic, for backwards compatibility 
             if (newCandidate.Type.IsDynamic())

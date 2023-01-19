@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
         Protected Overrides ReadOnly Property Language As String = "vb"
 
-        Protected Overrides Function CreateWorkspace(content As String, exportProvider As ExportProvider) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(content, exportProvider:=exportProvider)
+        Protected Overrides Function CreateWorkspace(content As String, composition As TestComposition) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(content, composition:=composition)
         End Function
 
         <Theory>
@@ -719,8 +719,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
-        <Theory>
+        <Theory, WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
         <CombinatorialData>
         Public Async Function TestFindClassInNamespaceWithGlobalPrefix(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "Namespace Global.MyNS
@@ -732,8 +731,7 @@ End Namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WorkItem(1121267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
-        <Theory>
+        <Theory, WorkItem(1121267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
         <CombinatorialData>
         Public Async Function TestFindClassInGlobalNamespace(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "Namespace Global
@@ -745,8 +743,7 @@ End Namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
-        <Theory>
+        <Theory, WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
         <CombinatorialData>
         Public Async Function TestConstructorNotParentedByTypeBlock(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "Module Program
@@ -852,7 +849,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -887,7 +884,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -920,7 +917,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -950,7 +947,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -986,7 +983,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1012,7 +1009,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1039,7 +1036,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1049,6 +1046,21 @@ End Class
                     },
                     Await _aggregator.GetItemsAsync("Outer"))
             End Using
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem(59231, "https://github.com/dotnet/roslyn/issues/59231")>
+        Public Async Function FindMethodWithTuple(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
+    Public Sub Method(
+        t1 as (x as integer, y as Dictionary(of integer, string)),
+        t2 as (b as boolean, c as global.System.Int32) )
+    End Sub
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Method")).Single()
+                VerifyNavigateToResultItem(item, "Method", "[|Method|]((x as integer, y as Dictionary(of integer, string)), (b as boolean, c as global.System.Int32))", PatternMatchKind.Exact, NavigateToItemKind.Method,
+                                           Glyph.MethodPublic, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
     End Class
 End Namespace

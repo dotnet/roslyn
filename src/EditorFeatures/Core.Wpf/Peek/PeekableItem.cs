@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         protected PeekableItem(IPeekResultFactory peekResultFactory)
             => this.PeekResultFactory = peekResultFactory;
 
-        public string DisplayName =>
+        public string DisplayName
                 // This is unused, and was supposed to have been removed from IPeekableItem.
-                null;
+                => null;
 
         public abstract IEnumerable<IPeekRelationship> Relationships { get; }
 

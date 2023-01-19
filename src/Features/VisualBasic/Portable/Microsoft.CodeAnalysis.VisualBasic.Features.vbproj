@@ -59,9 +59,6 @@
     <EmbeddedResource Update="VBFeaturesResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

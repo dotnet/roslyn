@@ -4,12 +4,11 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
+    <Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
     Public Class ValidateFormatStringTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -18,15 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
         End Function
 
-        Private Function OptionOn() As OptionsCollection
-            Return New OptionsCollection(GetLanguage()) From {{ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, True}}
-        End Function
-
-        Private Function OptionOff() As OptionsCollection
-            Return New OptionsCollection(GetLanguage()) From {{ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, False}}
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function ObjectArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -36,8 +27,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(42764, "https://github.com/dotnet/roslyn/issues/42764")>
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact, WorkItem(42764, "https://github.com/dotnet/roslyn/issues/42764")>
         Public Async Function LiteralArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -47,7 +37,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function StringArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -58,7 +48,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function TwoPlaceholders() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -68,7 +58,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function IFormatProviderAndThreePlaceholders() As Task
             Await TestDiagnosticMissingAsync("
 Imports System.Globalization
@@ -80,7 +70,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function OnePlaceholderOutOfBounds() As Task
             Await TestDiagnosticInfoAsync("
 Class C
@@ -94,7 +84,7 @@ End Class",
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function FourPlaceholdersWithOnePlaceholderOutOfBounds() As Task
             Await TestDiagnosticInfoAsync("
 Class C
@@ -108,7 +98,7 @@ End Class",
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function IFormatProviderAndTwoPlaceholdersWithOnePlaceholderOutOfBounds() As Task
             Await TestDiagnosticInfoAsync("
 Imports System.Globalization
@@ -124,7 +114,7 @@ End Class",
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function NamedParameters() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -134,7 +124,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function NamedParametersOneOutOfBounds() As Task
             Await TestDiagnosticInfoAsync("
 Class C
@@ -148,7 +138,7 @@ End Class",
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function NamedParametersWithIFormatProvider() As Task
             Await TestDiagnosticMissingAsync("
 Imports System.Globalization
@@ -160,7 +150,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function NamedParametersWithIFormatProviderAndParamsObject() As Task
             Await TestDiagnosticMissingAsync("
 Imports System.Globalization
@@ -172,7 +162,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function DuplicateNamedParameters() As Task
             Await TestDiagnosticMissingAsync("
 Imports System.Globalization
@@ -184,7 +174,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function DuplicateNamedParametersInNet45() As Task
             Await TestDiagnosticMissingAsync("
 <Workspace>
@@ -202,7 +192,7 @@ End Class
                 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function NamespaceAliasForStringClass() As Task
             Await TestDiagnosticMissingAsync("
 Imports stringalias = System.String
@@ -213,7 +203,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function VerbatimMultipleLines() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -224,7 +214,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function Interpolated() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -235,7 +225,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function Empty() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -245,7 +235,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function LeftParenOnly() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -255,7 +245,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function ParenthesesOnly() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -265,7 +255,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function DifferentFunction() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -275,7 +265,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function FormatMethodOnGenericIdentifier() As Task
             Await TestDiagnosticMissingAsync("
 Class G(Of T)
@@ -292,7 +282,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        <Fact>
         Public Async Function OmittedArgument() As Task
             Await TestDiagnosticMissingAsync("Module M
     Sub Main()
@@ -302,32 +292,49 @@ End Module")
         End Function
 
 #If CODE_STYLE Then
-        <InlineData(False, True)>   ' Option has no effect on CodeStyle layer CI execution as it is not an editorconfig option.
-        <InlineData(True, True)>
-        <Theory, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function TestOption(optionOn As Boolean, expectDiagnostic As Boolean) As Task
-#Else
-        <InlineData(False, False)>
-        <InlineData(True, True)>
-        <Theory, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function TestOption(optionOn As Boolean, expectDiagnostic As Boolean) As Task
-#End If
+        ' Option has no effect on CodeStyle layer CI execution as it is not an editorconfig option.
+        <Fact>
+        Public Async Function TestOption_Ignored() As Task
             Dim source = "
 Class C
-     Sub Main 
+    Sub Main 
         string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
     End Sub
 End Class"
-            Dim options = If(optionOn, Me.OptionOn(), OptionOff())
-            If Not expectDiagnostic Then
-                Await TestDiagnosticMissingAsync(source, New TestParameters(options:=options))
-            Else
-                Await TestDiagnosticInfoAsync(source,
-                    options,
-                    diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                    diagnosticSeverity:=DiagnosticSeverity.Info,
-                    diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
-            End If
+            Await TestDiagnosticInfoAsync(
+                source,
+                diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
+                diagnosticSeverity:=DiagnosticSeverity.Info,
+                diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
+#Else
+        <Fact>
+        Public Async Function TestOption_Enabled() As Task
+            Dim source = "
+Class C
+    Sub Main 
+        string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
+    End Sub
+End Class"
+            Await TestDiagnosticInfoAsync(
+                source,
+                diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
+                diagnosticSeverity:=DiagnosticSeverity.Info,
+                diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder,
+                globalOptions:=[Option](IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, True))
+        End Function
+
+        <Fact>
+        Public Async Function TestOption_Disabled() As Task
+            Dim source = "
+Class C
+    Sub Main 
+        string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
+    End Sub
+End Class"
+            Await TestDiagnosticMissingAsync(source, New TestParameters(globalOptions:=
+                [Option](IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, False)))
+        End Function
+#End If
     End Class
 End Namespace

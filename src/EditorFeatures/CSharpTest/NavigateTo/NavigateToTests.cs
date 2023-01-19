@@ -7,13 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -31,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     {
         protected override string Language => "csharp";
 
-        protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharp(content, exportProvider: exportProvider);
+        protected override TestWorkspace CreateWorkspace(string content, TestComposition composition)
+            => TestWorkspace.CreateCSharp(content, composition: composition);
 
         [Theory]
         [CombinatorialData]
@@ -669,6 +666,113 @@ testHost, composition, @"public interface IGoo
 
         [Theory]
         [CombinatorialData]
+        public async Task FindTopLevelLocalFunction(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"void Goo()
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+    VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindTopLevelLocalFunction_WithParameters(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"void Goo(int i)
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+    VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindTopLevelLocalFunction_WithTypeArgumentsAndParameters(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"void Goo<T>(int i)
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+    VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>(int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindNestedLocalFunctionTopLevelStatements(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"void Goo()
+{
+    void Bar()
+    {
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Bar")).Single();
+    VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindLocalFunctionInMethod(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"
+class C
+{
+    void M()
+    {
+        void Goo()
+        {
+            void Bar()
+            {
+            }
+        }
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+    VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindNestedLocalFunctionInMethod(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"
+class C
+{
+    void M()
+    {
+        void Goo()
+        {
+            void Bar()
+            {
+            }
+        }
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Bar")).Single();
+    VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task FindDelegateInNamespace(TestHost testHost, Composition composition)
         {
             await TestAsync(
@@ -1149,8 +1253,7 @@ class D
             });
         }
 
-        [Fact]
-        [WorkItem(1174255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
+        [Fact, WorkItem(1174255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
         [WorkItem(8009, "https://github.com/dotnet/roslyn/issues/8009")]
         public async Task NavigateToGeneratedFiles()
         {
@@ -1179,7 +1282,7 @@ class D
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
@@ -1194,8 +1297,7 @@ class D
             VerifyNavigateToResultItems(expectedItems, items);
         }
 
-        [WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]
-        [Theory]
+        [Theory, WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]
         [CombinatorialData]
         public async Task FindFuzzy1(TestHost testHost, Composition composition)
         {
@@ -1212,8 +1314,7 @@ testHost, composition, @"class C
             });
         }
 
-        [WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
-        [Theory]
+        [Theory, WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
         [CombinatorialData]
         public async Task Test__arglist(TestHost testHost, Composition composition)
         {
@@ -1252,7 +1353,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1286,7 +1387,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1319,7 +1420,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1349,7 +1450,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1384,7 +1485,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1411,7 +1512,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1438,7 +1539,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1464,7 +1565,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1493,7 +1594,7 @@ public partial class C
                 },
                 composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1503,6 +1604,307 @@ public partial class C
                     new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                 },
                 await _aggregator.GetItemsAsync("C"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(59231, "https://github.com/dotnet/roslyn/issues/59231")]
+        public async Task FindMethodWithTuple(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"class Goo
+{
+    public void Method(
+        (int x, Dictionary<int,string> y) t1,
+        (bool b, global::System.Int32 c) t2)
+    {
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Method")).Single();
+    VerifyNavigateToResultItem(item, "Method", "[|Method|]((int x, Dictionary<int,string> y), (bool b, global::System.Int32 c))", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        public async Task FindRecordMember1(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        public async Task FindRecordMember2(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+    public int Member { get; } = Member;
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        public async Task FindRecordMember3(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+    public int Member = Member;
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Field);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPublic);
+});
+        }
+
+        private static bool IsFromFile(NavigateToItem item, string fileName)
+        {
+            return ((CodeAnalysis.NavigateTo.INavigateToSearchResult)item.Tag).NavigableItem.Document.Name == fileName;
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument1(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0001") && IsFromFile(i, "File2.cs"));
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument2(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"" Folders=""A\B\C"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"" Folders=""A\B\C"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0001") && IsFromFile(i, "File2.cs"));
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument3(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"" Folders=""A\B\C\D"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"" Folders=""A\B\C"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0002") && IsFromFile(i, "File2.cs"));
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument4(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"" Folders=""A\B\C"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"" Folders=""A\B\C\D"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0002") && IsFromFile(i, "File2.cs"));
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument5(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"" Folders=""A\B\C\D1"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"" Folders=""A\B\C\D2"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0003") && IsFromFile(i, "File2.cs"));
+            });
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -19,10 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
             return await GetAllClassificationsAsync(document, span);
         }
@@ -188,9 +189,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 testHost,
                 Keyword("record"),
                 Keyword("class"),
-                Record("R"),
+                RecordClass("R"),
                 Punctuation.OpenCurly,
-                Record("R"),
+                RecordClass("R"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -484,8 +485,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [WorkItem(545611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
-        [Theory]
+        [Theory, WorkItem(545611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
         [CombinatorialData]
         public async Task TestVarConstructor(TestHost testHost)
         {
@@ -515,8 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
-        [Theory]
+        [Theory, WorkItem(545609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
         [CombinatorialData]
         public async Task TestVarTypeParameter(TestHost testHost)
         {
@@ -547,8 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
-        [Theory]
+        [Theory, WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [CombinatorialData]
         public async Task TestVarAttribute1(TestHost testHost)
         {
@@ -574,8 +572,7 @@ class var : Attribute
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
-        [Theory]
+        [Theory, WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [CombinatorialData]
         public async Task TestVarAttribute2(TestHost testHost)
         {
@@ -601,8 +598,7 @@ class varAttribute : Attribute
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(546170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
-        [Theory]
+        [Theory, WorkItem(546170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
         [CombinatorialData]
         public async Task TestStandaloneTypeName(TestHost testHost)
         {
@@ -639,8 +635,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
-        [Theory]
+        [Theory, WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
         [CombinatorialData]
         public async Task TestNamespaceClassAmbiguities(TestHost testHost)
         {
@@ -1468,8 +1463,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOperatorOverloading(TestHost testHost)
         {
@@ -1959,8 +1953,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(10174, "https://github.com/dotnet/roslyn/issues/10174")]
-        [Theory]
+        [Theory, WorkItem(10174, "https://github.com/dotnet/roslyn/issues/10174")]
         [CombinatorialData]
         public async Task VarInPropertyPattern(TestHost testHost)
         {
@@ -2011,7 +2004,7 @@ class Program
                 Field("Name"),
                 Punctuation.Colon,
                 Keyword("var"),
-                Identifier("n"),
+                Local("n"),
                 Punctuation.CloseCurly,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2029,8 +2022,7 @@ class Program
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task NotPattern(TestHost testHost)
         {
@@ -2070,8 +2062,7 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task OrPattern(TestHost testHost)
         {
@@ -2111,8 +2102,46 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem(59484, "https://github.com/dotnet/roslyn/issues/59484")]
+        [CombinatorialData]
+        public async Task TestPatternVariables(TestHost testHost)
+        {
+            await TestAsync(
+                @"
+void M(object o) {
+    _ = o is [var (x, y), {} z] list;
+} 
+",
+                testHost,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("_"),
+                Operators.Equals,
+                Parameter("o"),
+                Keyword("is"),
+                Punctuation.OpenBracket,
+                Keyword("var"),
+                Punctuation.OpenParen,
+                Local("x"),
+                Punctuation.Comma,
+                Local("y"),
+                Punctuation.CloseParen,
+                Punctuation.Comma,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Local("z"),
+                Punctuation.CloseBracket,
+                Local("list"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task RelationalPattern(TestHost testHost)
         {
@@ -2188,6 +2217,511 @@ class C { }",
                 Escape("}}"),
                 Verbatim("\""),
                 Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        public async Task TestStaticConstructorClass(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class C
+{
+    static C() { }
+}",
+                testHost,
+Keyword("class"),
+Class("C"),
+Punctuation.OpenCurly,
+Keyword("static"),
+Class("C"),
+Static("C"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        public async Task TestStaticConstructorInterface(TestHost testHost)
+        {
+            await TestAsync(
+@"
+interface C
+{
+    static C() { }
+}",
+                testHost,
+Keyword("interface"),
+Interface("C"),
+Punctuation.OpenCurly,
+Keyword("static"),
+Interface("C"),
+Static("C"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        public async Task TestArgsInTopLevel(TestHost testHost)
+        {
+            await TestAsync(
+@"
+[|foreach (var arg in args)
+{
+}|]",
+                testHost,
+                parseOptions: null,
+ControlKeyword("foreach"),
+Punctuation.OpenParen,
+Keyword("var"),
+Local("arg"),
+ControlKeyword("in"),
+Keyword("args"),
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        public async Task TestArgsInNormalProgram(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|foreach (var arg in args)
+        {
+        }|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+ControlKeyword("foreach"),
+Punctuation.OpenParen,
+Keyword("var"),
+Local("arg"),
+ControlKeyword("in"),
+Parameter("args"),
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteMember(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    public async
+}",
+                testHost,
+                parseOptions: null,
+Keyword("class"),
+Class("Test"),
+Punctuation.OpenCurly,
+Keyword("public"),
+Keyword("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteMemberWhenAsyncTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync(
+@"[|class Test
+{
+    public async
+}|]
+
+class async
+{
+}",
+                testHost,
+                parseOptions: null,
+Keyword("class"),
+Class("Test"),
+Punctuation.OpenCurly,
+Keyword("public"),
+Class("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInPotentialLocalFunctionDeclaration(TestHost testHost)
+        {
+            await TestAsync(
+@"void M()
+{
+    async
+}",
+                testHost,
+                parseOptions: null,
+Keyword("void"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Keyword("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInPotentialLocalFunctionDeclarationWhenAsyncTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync(
+@"[|void M()
+{
+    async
+}|]
+
+class async
+{
+}",
+                testHost,
+                parseOptions: null,
+Keyword("void"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Class("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsLocalMemberType_NoAsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    void M()
+    {
+        [|async a;|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Keyword("async"),
+Local("a"),
+Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsLocalMemberType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    void M()
+    {
+        [|async a;|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Class("async"),
+Local("a"),
+Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsPropertyType_NoAsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    [|public async Prop { get; set; }|]
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Keyword("async"),
+Property("Prop"),
+Punctuation.OpenCurly,
+Keyword("get"),
+Punctuation.Semicolon,
+Keyword("set"),
+Punctuation.Semicolon,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsPropertyType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    [|public async Prop { get; set; }|]
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Class("async"),
+Property("Prop"),
+Punctuation.OpenCurly,
+Keyword("get"),
+Punctuation.Semicolon,
+Keyword("set"),
+Punctuation.Semicolon,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsMethodReturnType_NoAsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    [|public async M()|] {}
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Keyword("async"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsMethodReturnType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    [|public async M()|] {}
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Class("async"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsAccessingName(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    void M()
+    {
+        var a = [|C.async;|]
+    }
+}
+
+class C
+{
+    public static int async;
+}",
+                testHost,
+                parseOptions: null,
+Class("C"),
+Operators.Dot,
+Field("async"),
+Static("async"),
+Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteDelegateOrLambda(TestHost testHost)
+        {
+            await TestAsync(
+@"using System;
+class Test
+{
+    void M()
+    {
+        [|Action a = async |]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Delegate("Action"),
+Local("a"),
+Operators.Equals,
+Keyword("async"));
+        }
+
+        /// <seealso cref="SemanticClassifierTests.LocalFunctionUse"/>
+        /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
+        [Theory]
+        [CombinatorialData]
+        public async Task LocalFunctionDeclarationAndUse(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M(Action action)
+                    {
+                        [|localFunction();
+                        staticLocalFunction();
+
+                        M(localFunction);
+                        M(staticLocalFunction);
+
+                        void localFunction() { }
+                        static void staticLocalFunction() { }|]
+                    }
+                }
+
+                """,
+                testHost,
+                Method("localFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Method("M"),
+                Punctuation.OpenParen,
+                Method("localFunction"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Method("M"),
+                Punctuation.OpenParen,
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("void"),
+                Method("localFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("static"),
+                Keyword("void"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestScopedVar(TestHost testHost)
+        {
+            await TestAsync("""
+                static void method(scoped in S s)
+                {
+                    scoped var rs1 = s;
+                }
+
+                file readonly ref struct S { }
+                """, testHost,
+                Keyword("static"),
+                Keyword("void"),
+                Method("method"),
+                Static("method"),
+                Punctuation.OpenParen,
+                Keyword("scoped"),
+                Keyword("in"),
+                Struct("S"),
+                Parameter("s"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("scoped"),
+                Keyword("var"),
+                Local("rs1"),
+                Operators.Equals,
+                Parameter("s"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Keyword("file"),
+                Keyword("readonly"),
+                Keyword("ref"),
+                Keyword("struct"),
+                Struct("S"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Lambda_DefaultParameterValue(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    const int N = 10;
+
+                    void M()
+                    {
+                        var lam = [|(int x = N) => x|];
+                    }
+                }
+
+                """,
+                testHost,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Operators.Equals,
+                Constant("N"),
+                Static("N"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Parameter("x"));
         }
     }
 }

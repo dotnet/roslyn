@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitBaseline baseline,
             Compilation targetCompilation,
             CommonPEModuleBuilder targetModuleBuilder,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers)
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedDeletedMembers)
         {
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
@@ -61,8 +62,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: baseline.UserStringStreamLengthAdded,
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
                 anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
-                synthesizedDelegates: MapSynthesizedDelegates(baseline.SynthesizedDelegates),
+                anonymousDelegates: MapAnonymousDelegates(baseline.AnonymousDelegates),
+                anonymousDelegatesWithIndexedNames: MapAnonymousDelegatesWithIndexedNames(baseline.AnonymousDelegatesWithIndexedNames),
                 synthesizedMembers: mappedSynthesizedMembers,
+                deletedMembers: mappedDeletedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
                 debugInformationProvider: baseline.DebugInformationProvider,
                 localSignatureProvider: baseline.LocalSignatureProvider);
@@ -114,11 +117,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapSynthesizedDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates)
+        private IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates)
         {
             var result = new Dictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
-            foreach (var (key, value) in synthesizedDelegates)
+            foreach (var (key, value) in anonymousDelegates)
             {
                 var delegateTypeDef = (Cci.ITypeDefinition?)MapDefinition(value.Delegate);
                 RoslynDebug.Assert(delegateTypeDef != null);
@@ -128,9 +131,23 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
+        private IReadOnlyDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithIndexedNames(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
+        {
+            var result = new Dictionary<string, AnonymousTypeValue>();
+
+            foreach (var (key, value) in anonymousDelegates)
+            {
+                var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
+                RoslynDebug.Assert(type != null);
+                result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+            }
+
+            return result;
+        }
+
         /// <summary>
-        /// Merges synthesized members generated during lowering of the current compilation with aggregate synthesized members 
-        /// from all previous source generations (gen >= 1).
+        /// Merges synthesized or deleted members generated during lowering, or emit, of the current compilation with aggregate
+        /// synthesized or deleted members from all previous source generations (gen >= 1).
         /// </summary>
         /// <remarks>
         /// Suppose {S -> {A, B, D}, T -> {E, F}} are all synthesized members in previous generations,
@@ -142,9 +159,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Then the resulting collection shall have the following entries:
         /// {S' -> {A', B', C, D}, U -> {G, H}, T -> {E, F}}
         /// </remarks>
-        internal ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedMembers(
+        internal ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedOrDeletedMembers(
             ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers)
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers,
+            bool isDeletedMemberMapping)
         {
             // Note: we can't just return previous members if there are no new members, since we still need to map the symbols to the new compilation.
 
@@ -157,11 +175,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             synthesizedMembersBuilder.AddRange(newMembers);
 
-            foreach (var pair in previousMembers)
+            foreach (var (previousContainer, members) in previousMembers)
             {
-                var previousContainer = pair.Key;
-                var members = pair.Value;
-
                 var mappedContainer = MapDefinitionOrNamespace(previousContainer);
                 if (mappedContainer == null)
                 {
@@ -190,7 +205,11 @@ namespace Microsoft.CodeAnalysis.Emit
                         // If the matcher found a member in the current compilation corresponding to previous memberDef,
                         // then the member has to be synthesized and produced as a result of a method update 
                         // and thus already contained in newSynthesizedMembers.
-                        Debug.Assert(newSynthesizedMembers.Contains(mappedMember));
+                        // However, because this method is also used to map deleted members, it's possible that a method
+                        // could be renamed in the previous generation, and renamed back in this generation, which would
+                        // mean it could be mapped, but isn't in the newSynthesizedMembers list, so we allow the flag to
+                        // override this behaviour for deleted methods.
+                        Debug.Assert(isDeletedMemberMapping || newSynthesizedMembers.Contains(mappedMember));
                     }
                     else
                     {

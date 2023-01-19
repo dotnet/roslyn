@@ -71,7 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private CustomAttributesBag<CSharpAttributeData> _lazyNetModuleAttributesBag;
 
+#nullable enable 
+
         private IDictionary<string, NamedTypeSymbol> _lazyForwardedTypesFromSource;
+
+#nullable disable
 
         /// <summary>
         /// Indices of attributes that will not be emitted for one of two reasons:
@@ -692,7 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // UnverifiableCodeAttribute is found.
             Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
                 WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor, diagnostics, NoLocation.Singleton);
-
 
             TypeSymbol securityPermissionAttribute = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute);
             Debug.Assert((object)securityPermissionAttribute != null, "GetWellKnownType unexpectedly returned null");
@@ -1686,6 +1689,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
+        //Please don't use thread local storage widely. This is hoped to be the second one-off usage.
+        [ThreadStatic]
+        private static PooledHashSet<AttributeSyntax> t_forwardedTypesAttributesInProgress;
+
         /// <summary>
         /// This only forces binding of attributes that look like they may be forwarded types attributes (syntactically).
         /// </summary>
@@ -1698,11 +1705,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ((CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData)?.ForwardedTypes;
             }
 
-            attributesBag = null;
-            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, attributeMatchesOpt: this.IsPossibleForwardedTypesAttribute);
+            var allocate = t_forwardedTypesAttributesInProgress is null;
 
-            var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributesBag?.DecodedWellKnownAttributeData;
-            return wellKnownAttributeData?.ForwardedTypes;
+            if (allocate)
+            {
+                t_forwardedTypesAttributesInProgress = PooledHashSet<AttributeSyntax>.GetInstance();
+            }
+
+            try
+            {
+                attributesBag = null;
+                LoadAndValidateAttributes(
+                    OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag,
+                    attributeMatchesOpt: this.IsPossibleForwardedTypesAttribute,
+                    beforeAttributePartBound: BeforePossibleForwardedTypesAttributePartBound,
+                    afterAttributePartBound: AfterPossibleForwardedTypesAttributePartBound);
+
+                var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributesBag?.DecodedWellKnownAttributeData;
+                return wellKnownAttributeData?.ForwardedTypes;
+            }
+            finally
+            {
+                if (allocate)
+                {
+                    var tofree = t_forwardedTypesAttributesInProgress;
+                    t_forwardedTypesAttributesInProgress = null;
+                    tofree.Free();
+                }
+            }
+        }
+
+        private static void BeforePossibleForwardedTypesAttributePartBound(AttributeSyntax node)
+        {
+            bool added = t_forwardedTypesAttributesInProgress.Add(node);
+            Debug.Assert(added);
+        }
+
+        private static void AfterPossibleForwardedTypesAttributePartBound(AttributeSyntax node)
+        {
+            bool removed = t_forwardedTypesAttributesInProgress.Remove(node);
+            Debug.Assert(removed);
         }
 
         private bool IsPossibleForwardedTypesAttribute(AttributeSyntax node)
@@ -1710,7 +1752,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             QuickAttributeChecker checker =
                 this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
 
-            return checker.IsPossibleMatch(node, QuickAttributes.TypeForwardedTo);
+            if (checker.IsPossibleMatch(node, QuickAttributes.TypeForwardedTo))
+            {
+                if (!t_forwardedTypesAttributesInProgress.Contains(node))
+                {
+                    return true;
+                }
+
+                // It looks like we started binding this attribute and circled back to it again.
+                // Let's skip it.
+                ;
+            }
+
+            return false;
         }
 
         private static IEnumerable<Cci.SecurityAttribute> GetSecurityAttributes(CustomAttributesBag<CSharpAttributeData> attributesBag)
@@ -1793,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void SetNoPiaResolutionAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies()
@@ -1807,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // SourceAssemblySymbol is never used directly as a reference
             // when it is or any of its references is linked.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool IsLinked
@@ -1888,7 +1942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (c) There is no applied CompilationRelaxationsAttribute assembly attribute for any of the added PE modules.
             // Above requirements also hold for synthesizing RuntimeCompatibilityAttribute attribute.
 
-            bool emitCompilationRelaxationsAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyCompilationRelaxationsAttribute);
+            bool emitCompilationRelaxationsAttribute = !isBuildingNetModule && !this.Modules.Any(static m => m.HasAssemblyCompilationRelaxationsAttribute);
             if (emitCompilationRelaxationsAttribute)
             {
                 // Synthesize attribute: [CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
@@ -1908,7 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            bool emitRuntimeCompatibilityAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyRuntimeCompatibilityAttribute);
+            bool emitRuntimeCompatibilityAttribute = !isBuildingNetModule && !this.Modules.Any(static m => m.HasAssemblyRuntimeCompatibilityAttribute);
             if (emitRuntimeCompatibilityAttribute)
             {
                 // Synthesize attribute: [RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
@@ -2275,7 +2329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             DecodeWellKnownAttribute(ref arguments, arguments.Index, isFromNetModule: false);
         }
@@ -2701,7 +2755,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+#nullable enable
+
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
             int forcedArity = emittedName.ForcedArity;
 
@@ -2749,7 +2805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyForwardedTypesFromSource = forwardedTypesFromSource;
             }
 
-            NamedTypeSymbol result;
+            NamedTypeSymbol? result;
 
             if (_lazyForwardedTypesFromSource.TryGetValue(emittedName.FullName, out result))
             {
@@ -2785,7 +2841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                            return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                            return firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies);
                         }
                     }
                 }
@@ -2793,6 +2849,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+#nullable disable
 
         internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {

@@ -109,11 +109,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return lazyFiles
         End Function
 
-        Private Shared Function Free(builder As ArrayBuilder(Of Cci.IFileReference)) As Boolean
-            builder.Free()
-            Return False
-        End Function
-
         Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)
             Dim modules = m_SourceAssembly.Modules
 

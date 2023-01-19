@@ -23,6 +23,13 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Add LINQ expressions | LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
 | Modify LINQ expressions | LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
 | Modifying async lambda and LINQ expressions in combination | You can edit various nested expressions provided that they otherwise satisfy the EnC rules | 
+| Edit partial class * | https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes#:~:text=it%20is%20now%20possible%20to%20apply%20changes%20in%20code%20that%20is%20within%20a%20partial%20class. |
+| Edit Source Generated File * | https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes#:~:text=you%20can%20now%20apply%20changes%20within%20a%20source%20generated)%20file. |
+| Add using statement * | https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes#:~:text=it%20is%20now%20possible%20to%20add%20and%2For%20change%20a%20using%20directive. |
+
+* = As of Visual Studio 2019 Version 16.10
+
+
 
 ### Not Supported Edits
 | Edit operation      | Additional Info |
@@ -39,7 +46,7 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Renaming of any kind | - |
 | Delete members, types, namespaces | - |
 | Delete entire method bodies | Not supported because deleting an entire method body would make the method “abstract”—which is not currently supported |
-| Add using statements | - | 
+| Add using statements | Allowed in Visual Studio 2019 Version 16.10 | 
 | Add a namespace | - |
 | Edit a member referencing an embedded interop type | - |
 | Edit a member with On Error or Resume statements | Specific to Visual Basic |

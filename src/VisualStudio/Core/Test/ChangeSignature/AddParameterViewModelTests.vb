@@ -253,7 +253,7 @@ class MyClass
             Assert.True(viewModel.TrySubmit())
         End Sub
 
-        Private Sub AssertTypeBindingIconAndTextIs(viewModel As AddParameterDialogViewModel, currentIcon As String, expectedMessage As String)
+        Private Shared Sub AssertTypeBindingIconAndTextIs(viewModel As AddParameterDialogViewModel, currentIcon As String, expectedMessage As String)
             Assert.True(viewModel.TypeIsEmptyImage = If(NameOf(viewModel.TypeIsEmptyImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
             Assert.True(viewModel.TypeDoesNotParseImage = If(NameOf(viewModel.TypeDoesNotParseImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
             Assert.True(viewModel.TypeDoesNotBindImage = If(NameOf(viewModel.TypeDoesNotBindImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
@@ -262,7 +262,7 @@ class MyClass
             Assert.Equal(expectedMessage, viewModel.TypeBindsDynamicStatus)
         End Sub
 
-        Private Sub VerifyOpeningState(viewModel As AddParameterDialogViewModel)
+        Private Shared Sub VerifyOpeningState(viewModel As AddParameterDialogViewModel)
             Assert.True(viewModel.TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name)
 
             Assert.True(viewModel.TypeIsEmptyImage = Visibility.Visible)
@@ -285,7 +285,7 @@ class MyClass
             Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
         End Sub
 
-        Private Function GetViewModelTestStateAsync(
+        Private Shared Function GetViewModelTestStateAsync(
             markup As XElement,
             languageName As String) As AddParameterViewModelTestState
 

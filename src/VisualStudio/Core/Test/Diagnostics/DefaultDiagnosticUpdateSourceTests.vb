@@ -7,7 +7,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -21,7 +20,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.Tagging)>
     Public Class DefaultDiagnosticUpdateSourceTests
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
@@ -45,10 +44,9 @@ class 123 { }
 
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
-                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
-                Assert.False(miscService.SupportGetDiagnostics)
+                Dim miscService = DirectCast(workspace.GetService(Of IDiagnosticAnalyzerService), DiagnosticAnalyzerService)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+                DiagnosticProvider.Enable(workspace)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
@@ -74,7 +72,7 @@ class 123 { }
         End Function
 
         <Fact>
-        Public Async Function TestDefaultDiagnosticProviderSyntax() As Task
+        Public Async Function TestDefaultDiagnosticProviderSyntaxAndSemantics() As Task
             Dim code = <code>
 class A
 {
@@ -94,7 +92,7 @@ class A
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+                DiagnosticProvider.Enable(workspace)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -105,10 +103,10 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
-                Assert.Single(diagnostics)
+                Assert.Equal(2, diagnostics.Length)
             End Using
         End Function
 
@@ -133,7 +131,7 @@ class A
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic)
+                DiagnosticProvider.Enable(workspace)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -143,8 +141,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 ' error CS0246: The type or namespace name 'M' could not be found
                 AssertEx.Equal({"CS0246"}, diagnostics.Select(Function(d) d.Id))
@@ -172,7 +170,7 @@ class A
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
+                DiagnosticProvider.Enable(workspace)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -182,8 +180,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 ' error CS1002: ; expected
                 ' error CS0246: The type or namespace name 'M' could not be found
@@ -212,7 +210,7 @@ class A
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
+                DiagnosticProvider.Enable(workspace)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -224,8 +222,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 AssertEx.Empty(diagnostics)
             End Using
@@ -243,7 +241,7 @@ class 123 { }
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+                DiagnosticProvider.Enable(workspace)
 
                 Dim buildTool = String.Empty
 
@@ -272,7 +270,7 @@ End Class
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+                DiagnosticProvider.Enable(workspace)
 
                 Dim buildTool = String.Empty
 
@@ -316,7 +314,7 @@ End Class
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.ScriptSemantic)
+                DiagnosticProvider.Enable(workspace)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -327,8 +325,8 @@ End Class
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, CancellationToken.None)
 
                 Assert.Single(diagnostics)
             End Using
