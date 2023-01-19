@@ -23,46 +23,36 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         protected override string LanguageName => LanguageNames.CSharp;
 
         [IdeFact]
-        public async Task ClosedRazorFile_NoErrors()
+        public async Task ClosedRazorFile()
         {
-            var source = @"
+            var source = """
 @page
-@model IndexModel
 @{
-    var x = ""Hello"";
+    var x = "Hello"
 }
-";
+""";
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, @"Pages\\Index.razor", HangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync(source, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.CloseActiveWindow(HangMitigatingCancellationToken);
+
+            await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
 
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
-            var expectedContents = new string[] { };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
-            var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
-            AssertEx.EqualOrDiff(
-                string.Join<string>(Environment.NewLine, expectedContents),
-                string.Join<string>(Environment.NewLine, actualContents));
-        }
 
-        [IdeFact]
-        public async Task ClosedRazorFile_Errors()
-        {
-            var source = @"
-@page ""/""
-@{
-    var x = ""Hello""
-}
-";
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, @"Pages\\Index.razor", HangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync(source, HangMitigatingCancellationToken);
-
-            await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
-            var expectedContents = new string[] { };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
+
+            string[] expectedContents =
+            {
+                    "(Compiler) Index.razor(3, 20): Error CS1002: ; expected",
+                    "(Compiler) Index.razor(3, 9): Warning CS0219: The variable 'x' is assigned but its value is never used",
+                    "(Csc) Index.razor(1, 6): Error RZ1016: The 'page' directive expects a string surrounded by double quotes.",
+            };
+
             AssertEx.EqualOrDiff(
-                string.Join<string>(Environment.NewLine, expectedContents),
-                string.Join<string>(Environment.NewLine, actualContents));
+                string.Join(Environment.NewLine, expectedContents),
+                string.Join(Environment.NewLine, actualContents));
         }
     }
 }
