@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// Set of analyzer dependencies original full paths to the data calculated for that path
         /// </summary>
         /// <remarks>
-        /// Access must be guaraded by <see cref="_guard"/>
+        /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
         private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?> _analyzerAssemblyInfoMap = new();
 
@@ -38,17 +38,17 @@ namespace Microsoft.CodeAnalysis
         /// tracks the paths provided to the analyzer as it's a place to look for indirect loads. 
         /// </summary>
         /// <remarks>
-        /// Access must be guaraded by <see cref="_guard"/>
+        /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
         private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// The implementation needs to load an <see cref="Assembly"/> with the specified <see cref="AssemblyName"/>. The
         /// <paramref name="assemblyOriginalPath"/> parameter is the original path. It may be different than
-        /// <see cref="AssemblyName.CodeBase"/>
+        /// <see cref="AssemblyName.CodeBase"/> as that is empty on .NET Core.
         /// </summary>
         /// <remarks>
-        /// The implementation should return null on error, not throw an exception
+        /// This method should return an <see cref="Assembly"/> instance or throw.
         /// </remarks>
         protected abstract Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath);
 

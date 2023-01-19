@@ -264,8 +264,6 @@ Delta: Gamma: Beta: Test B
         {
             Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
-                StringBuilder sb = new StringBuilder();
-
                 loader.AddDependencyLocation(testFixture.Delta1.Path);
                 testFixture.Delta1.WriteAllBytes(testFixture.Delta2.ReadAllBytes());
                 var assembly = loader.LoadFromPath(testFixture.Delta1.Path);

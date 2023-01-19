@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
         }
 
-        protected override Assembly? Load(AssemblyName assemblyName, string assemblyOriginalPath)
+        protected override Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath)
         {
             DirectoryLoadContext? loadContext;
 
