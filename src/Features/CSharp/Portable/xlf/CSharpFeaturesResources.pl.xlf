@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="new">Inline temporary variable</target>
+        <target state="translated">Wstawiona zmienna tymczasowa</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">

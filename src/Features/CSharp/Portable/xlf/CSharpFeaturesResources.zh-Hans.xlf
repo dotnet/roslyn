@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="new">Inline temporary variable</target>
+        <target state="translated">内联临时变量</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -774,7 +774,7 @@
       </trans-unit>
       <trans-unit id="without_leading_whitespace_may_change_semantics">
         <source>... without leading whitespace (may change semantics)</source>
-        <target state="translated">...不带前导空格 (可能会更改语义)</target>
+        <target state="translated">...不带前导空格（可能会更改语义）</target>
         <note>This clause is a follow up to the "Convert to raw string" loc string.
     The intent is that the user sees "Convert to raw string" as an option to select,
     and that is then followed with this clause.  This is so we don't have a huge string
