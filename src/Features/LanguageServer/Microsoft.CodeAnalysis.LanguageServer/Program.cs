@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Elfie.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Composition;
 
 Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 
@@ -45,15 +45,22 @@ var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync().Con
 // Immediately set the logger factory, so that way it'll be available for the rest of the composition
 exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
 
-var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
+// Create the project system first, since right now the language server will assume there's at least one Workspace
+var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
 
-using (var workspace = await LanguageServerWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, hostServices, loggerFactory).ConfigureAwait(false))
-{
-    var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
+var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
+    .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer", StringComparison.Ordinal))
+    .Select(f => f.FullName)
+    .ToImmutableArray();
 
-    server.Start();
-    await server.WaitForExitAsync().ConfigureAwait(false);
-}
+await projectSystem.InitializeSolutionLevelAnalyzersAsync(analyzerPaths).ConfigureAwait(false);
+
+var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
+server.Start();
+
+projectSystem.OpenSolution(solutionPath);
+
+await server.WaitForExitAsync().ConfigureAwait(false);
 
 // Dispose of our container, so parts can cleanly shut themselves down
 exportProvider.Dispose();

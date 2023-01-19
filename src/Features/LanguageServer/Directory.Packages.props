@@ -1,6 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MicrosoftBuildVersion>17.4.0</MicrosoftBuildVersion>
     <MicrosoftBuildLocatorVersion>1.5.5</MicrosoftBuildLocatorVersion>
 
     <MicrosoftCodeAnalysisVersion>4.6.0-2.23101.21</MicrosoftCodeAnalysisVersion>
