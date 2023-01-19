@@ -242,6 +242,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
         }
 
+        public async ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                GetLocalService().SetFileLoggingDirectory(logDirectory);
+            }
+            else
+            {
+                await client.TryInvokeAsync<IRemoteEditAndContinueService>(
+                    (service, cancellationToken) => service.SetFileLoggingDirectoryAsync(logDirectory, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         private sealed class LocalConnection : IDisposable
         {
             public static readonly LocalConnection Instance = new();

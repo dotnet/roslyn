@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1056,6 +1057,26 @@ End Operator")
             VerifySyntax(Of OperatorBlockSyntax)(
                 Generator.OperatorDeclaration(OperatorKind.ExplicitConversion, parameters, returnType),
 "Narrowing Operator CType(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+        End Sub
+
+        <Fact, WorkItem(65833, "https://github.com/dotnet/roslyn/issues/65833")>
+        Public Sub TestConversionOperatorDeclaration()
+            Dim gcHandleType = _emptyCompilation.GetTypeByMetadataName(GetType(GCHandle).FullName)
+            Dim Conversion = gcHandleType.GetMembers().OfType(Of IMethodSymbol)().Single(
+                Function(m) m.Name = WellKnownMemberNames.ExplicitConversionName AndAlso m.Parameters(0).Type.Equals(gcHandleType))
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.Declaration(Conversion),
+"Public Shared Narrowing Operator CType(value As Global.System.Runtime.InteropServices.GCHandle) As Global.System.IntPtr
+End Operator")
+
+            Dim doubleType = _emptyCompilation.GetSpecialType(SpecialType.System_Decimal)
+            Conversion = doubleType.GetMembers().OfType(Of IMethodSymbol)().Single(
+                Function(m) m.Name = WellKnownMemberNames.ImplicitConversionName AndAlso m.Parameters(0).Type.Equals(_emptyCompilation.GetSpecialType(SpecialType.System_Byte)))
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.Declaration(Conversion),
+"Public Shared Widening Operator CType(value As System.Byte) As System.Decimal
 End Operator")
         End Sub
 
@@ -2309,6 +2330,22 @@ End Enum")
             Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("Public Delegate Sub D()"))
             Dim type = compilation.GetTypeByMetadataName("D")
             VerifySyntax(Of DelegateStatementSyntax)(Generator.Declaration(type), "Public Delegate Sub D()")
+        End Sub
+
+        <Fact, WorkItem(65835, "https://github.com/dotnet/roslyn/issues/65835")>
+        Public Sub TestMethodDeclarationFromSymbol()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Sub M(ParamArray arr() As Integer)
+    End Sub
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("M").Single()
+
+            VerifySyntax(Of MethodBlockSyntax)(Generator.Declaration(method),
+"Public Sub M(ParamArray arr As System.Int32())
+End Sub")
         End Sub
 #End Region
 

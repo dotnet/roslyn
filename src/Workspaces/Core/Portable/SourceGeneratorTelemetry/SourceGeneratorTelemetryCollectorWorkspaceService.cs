@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
 
                 if (Identity.AssemblyPath != null)
                 {
-                    FileVersion = FileVersionInfo.GetVersionInfo(Identity.AssemblyPath).FileVersion;
+                    FileVersion = IOUtilities.PerformIO(() => FileVersionInfo.GetVersionInfo(Identity.AssemblyPath).FileVersion, defaultValue: "(reading version threw exception)");
                 }
             }
 

@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromAnyNullPatterns(slot, expression.Type, pattern);
         }
 
-        private void VisitPatternForRewriting(BoundPattern pattern)
+        private void VisitForRewriting(BoundNode node)
         {
-            // Don't let anything under the pattern actually affect current state,
+            // Don't let anything under the node actually affect current state,
             // as we're only visiting for nullable information.
             Debug.Assert(!IsConditionalState);
             var currentState = State;
-            VisitWithoutDiagnostics(pattern);
+            VisitWithoutDiagnostics(node);
             SetState(currentState);
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/35041 We only need to do this when we're rewriting, so we
             // can get information for any nodes in the pattern.
-            VisitPatternForRewriting(pattern);
+            VisitForRewriting(pattern);
 
             switch (pattern)
             {
@@ -282,7 +282,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var label in node.SwitchLabels)
             {
                 TakeIncrementalSnapshot(label);
-                VisitPatternForRewriting(label.Pattern);
+                VisitForRewriting(label.Pattern);
+
+                if (!State.Reachable && label.WhenClause != null)
+                {
+                    // Unreachable when clauses are not visited in `LearnFromDecisionDag`.
+                    VisitForRewriting(label.WhenClause);
+                }
+
                 VisitLabel(label.Label, node);
             }
 
@@ -865,7 +872,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(getStateForArm(arm, labelStateMap));
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
                 TakeIncrementalSnapshot(arm);
-                VisitPatternForRewriting(arm.Pattern);
+                VisitForRewriting(arm.Pattern);
+
+                if (!State.Reachable && arm.WhenClause != null)
+                {
+                    // Unreachable when clauses are not visited in `LearnFromDecisionDag`.
+                    VisitForRewriting(arm.WhenClause);
+                }
+
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
                 SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
@@ -987,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
-            VisitPatternForRewriting(node.Pattern);
+            VisitForRewriting(node.Pattern);
             var hasStateWhenNotNull = VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull);
             var expressionState = ResultType;
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, hasStateWhenNotNull ? conditionalStateWhenNotNull : null);
