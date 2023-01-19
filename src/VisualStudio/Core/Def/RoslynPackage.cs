@@ -33,9 +33,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -170,6 +173,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // doc events and appropriately map files to/from it and other relevant workspaces (like the
             // metadata-as-source workspace).
             await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this).ConfigureAwait(false);
+
+            // Proffer in-process service broker services
+            var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(this.JoinableTaskFactory).ConfigureAwait(false);
+
+            serviceBrokerContainer.Proffer(
+                WorkspaceProjectFactoryService.ServiceDescriptor,
+                (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
         }
 
         private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
@@ -295,8 +305,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void Dispose(bool disposing)
         {
-            DisposeVisualStudioServices();
-
             UnregisterAnalyzerTracker();
             UnregisterRuleSetEventHandler();
 
@@ -319,12 +327,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             ChangeSignatureLogger.ReportTelemetry();
             InheritanceMarginLogger.ReportTelemetry();
             ComponentModel.GetService<VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory>().ReportOtherWorkspaceTelemetry();
-        }
-
-        private void DisposeVisualStudioServices()
-        {
-            var referenceManager = this.ComponentModel.GetService<VisualStudioMetadataReferenceManager>();
-            referenceManager.DisconnectFromVisualStudioNativeServices();
         }
 
         private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)

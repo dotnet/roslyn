@@ -1831,6 +1831,42 @@ namespace NS2
 }}
 ";
 
+        private static readonly string s_allow_blank_line_after_token_in_arrow_expression_clause_true = $@"
+class Class
+{{
+//[
+    // {ServicesVSResources.Allow_colon}
+    int Method() =>
+        1 + 1;
+//]
+}}
+";
+
+        private static readonly string s_allow_blank_line_after_token_in_arrow_expression_clause_false = $@"
+namespace NS1
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Require_colon}
+        int Method()
+            => 1 + 1;
+    //]
+    }}
+}}
+namespace NS2
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Over_colon}
+        int Method() =>
+            1 + 1;
+    //]
+    }}
+}}
+";
+
         #endregion
 
         #region arithmetic binary parentheses
@@ -2267,30 +2303,31 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, ServicesVSResources.Allow_statement_immediately_after_block, s_allow_statement_immediately_after_block_true, s_allow_statement_immediately_after_block_false, this, optionStore, newLinePreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CSharpVSResources.Allow_blank_line_after_colon_in_constructor_initializer, s_allow_blank_line_after_colon_in_constructor_initializer_true, s_allow_blank_line_after_colon_in_constructor_initializer_false, this, optionStore, newLinePreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CSharpVSResources.Allow_blank_line_after_token_in_conditional_expression, s_allow_blank_line_after_token_in_conditional_expression_true, s_allow_blank_line_after_token_in_conditional_expression_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CSharpVSResources.Allow_blank_line_after_token_in_arrow_expression_clause, s_allow_blank_line_after_token_in_arrow_expression_clause_true, s_allow_blank_line_after_token_in_arrow_expression_clause_false, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)
         {
             AddParenthesesOption(
-                LanguageNames.CSharp, optionStore, CodeStyleOptions2.ArithmeticBinaryParentheses,
+                optionStore, CodeStyleOptions2.ArithmeticBinaryParentheses,
                 CSharpVSResources.In_arithmetic_binary_operators,
                 new[] { s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary },
                 defaultAddForClarity: true);
 
             AddParenthesesOption(
-                LanguageNames.CSharp, optionStore, CodeStyleOptions2.OtherBinaryParentheses,
+                optionStore, CodeStyleOptions2.OtherBinaryParentheses,
                 CSharpVSResources.In_other_binary_operators,
                 new[] { s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary },
                 defaultAddForClarity: true);
 
             AddParenthesesOption(
-                LanguageNames.CSharp, optionStore, CodeStyleOptions2.RelationalBinaryParentheses,
+                optionStore, CodeStyleOptions2.RelationalBinaryParentheses,
                 CSharpVSResources.In_relational_binary_operators,
                 new[] { s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary },
                 defaultAddForClarity: true);
 
             AddParenthesesOption(
-                LanguageNames.CSharp, optionStore, CodeStyleOptions2.OtherParentheses,
+                optionStore, CodeStyleOptions2.OtherParentheses,
                 ServicesVSResources.In_other_operators,
                 new[] { s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary },
                 defaultAddForClarity: false);
@@ -2444,7 +2481,7 @@ class C2
                 s_avoidUnusedParametersAllMethods
             };
 
-            AddUnusedParameterOption(LanguageNames.CSharp, optionStore, parameterPreferencesGroupTitle, examples);
+            AddUnusedParameterOption(optionStore, parameterPreferencesGroupTitle, examples);
         }
     }
 }

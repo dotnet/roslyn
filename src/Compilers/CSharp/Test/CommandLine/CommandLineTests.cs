@@ -11792,7 +11792,7 @@ class C
                 $@"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
 System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors>b__0(Object _)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
 -----
 Analyzer 'TestAnalyzer' threw the following exception:
@@ -13803,6 +13803,96 @@ key7 = value7");
             Assert.False(generatedOptions.TryGetValue("key5", out _));
             Assert.False(generatedOptions.TryGetValue("key6", out _));
             Assert.False(generatedOptions.TryGetValue("key7", out _));
+        }
+
+        internal class FailsExecuteGenerator : ISourceGenerator
+        {
+            public void Initialize(GeneratorInitializationContext context) { }
+            public void Execute(GeneratorExecutionContext context) => throw new System.Exception("THROW");
+        }
+
+        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        public void FailedGeneratorExecuteWarning_AsError()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+class C
+{
+}
+""");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/t:library", "/nologo", "/warnaserror+", src.Path },
+                generators: new[] { new FailsExecuteGenerator() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith($"error CS8785: Generator 'FailsExecuteGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type 'Exception' with message 'THROW'",
+                outWriter.ToString());
+        }
+
+        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        public void FailedGeneratorExecuteWarning_Suppressed()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+class C
+{
+}
+""");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/t:library", "/nologo", "/nowarn:CS8785", src.Path },
+                generators: new[] { new FailsExecuteGenerator() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+        }
+
+        internal class FailsInitializeGenerator : ISourceGenerator
+        {
+            public void Initialize(GeneratorInitializationContext context) => throw new System.Exception("THROW");
+            public void Execute(GeneratorExecutionContext context) { }
+        }
+
+        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        public void FailedGeneratorInitializeWarning_AsError()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+class C
+{
+}
+""");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/t:library", "/nologo", "/warnaserror+", src.Path },
+                generators: new[] { new FailsInitializeGenerator() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith($"error CS8784: Generator 'FailsInitializeGenerator' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type 'Exception' with message 'THROW'",
+                outWriter.ToString());
+        }
+
+        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        public void FailedGeneratorInitializeWarning_Suppressed()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+class C
+{
+}
+""");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/t:library", "/nologo", "/nowarn:CS8784", src.Path },
+                generators: new[] { new FailsInitializeGenerator() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
         }
 
         [Theory]

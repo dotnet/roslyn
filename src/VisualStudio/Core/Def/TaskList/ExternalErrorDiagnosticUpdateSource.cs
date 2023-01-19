@@ -10,12 +10,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -415,6 +413,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
         {
+            Debug.Assert(diagnostic.IsBuildDiagnostic());
+
             // Capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
@@ -427,6 +427,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
+            Debug.Assert(diagnostic.IsBuildDiagnostic());
+
             // Capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
@@ -440,6 +442,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
+            Debug.Assert(projectErrors.All(d => d.IsBuildDiagnostic()));
+            Debug.Assert(documentErrorMap.SelectMany(kvp => kvp.Value).All(d => d.IsBuildDiagnostic()));
+
             // Capture state that will be processed in background thread
             var state = GetOrCreateInProgressState();
 
@@ -792,6 +797,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
+                // Compiler diagnostics reported on additional documents indicate mapped diagnostics, such as compiler diagnostics
+                // in razor files which are actually reported on generated source files but mapped to razor files during build.
+                // These are not reported on additional files during live analysis, and can be considered to be build-only diagnostics.
+                if (IsAdditionalDocumentDiagnostic(project, diagnosticData) &&
+                    diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
+                {
+                    return false;
+                }
+
                 if (IsSupportedLiveDiagnosticId(project, diagnosticData.Id))
                 {
                     return true;
@@ -829,6 +843,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         (diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Line > 0 ||
                          diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Character > 0);
                 }
+
+                static bool IsAdditionalDocumentDiagnostic(Project project, DiagnosticData diagnosticData)
+                    => diagnosticData.DocumentId != null && project.ContainsAdditionalDocument(diagnosticData.DocumentId);
             }
 
             private bool IsSupportedLiveDiagnosticId(Project project, string id)

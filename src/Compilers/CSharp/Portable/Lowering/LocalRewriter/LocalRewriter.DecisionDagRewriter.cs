@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode Visit(BoundNode node)
                 {
                     // A constant expression cannot mutate anything
-                    if (node is BoundExpression { ConstantValue: { } })
+                    if (node is BoundExpression { ConstantValueOpt: { } })
                         return null;
 
                     // Stop visiting once we determine something might get assigned
@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node is BoundWhenDecisionDagNode whenNode)
                     {
                         var whenExpression = whenNode.WhenExpression;
-                        if (whenExpression is not null && whenExpression.ConstantValue != ConstantValue.True)
+                        if (whenExpression is not null && whenExpression.ConstantValueOpt != ConstantValue.True)
                         {
                             LabelSymbol labelToWhenExpression;
                             if (whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo))
@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var whenFalse = whenClause.WhenFalse;
                     var trueLabel = GetDagNodeLabel(whenTrue);
-                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
+                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValueOpt != ConstantValue.True)
                     {
                         addConditionalGoto(whenClause.WhenExpression, whenClause.Syntax, trueLabel, sectionBuilder);
 

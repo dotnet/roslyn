@@ -243,7 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!argument.HasAnyErrors)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
-                argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
             }
             else
             {
@@ -713,7 +712,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeSyntax = scopedType.Type;
             }
 
-            typeSyntax = typeSyntax.SkipRef(out _);
+            // Slightly odd, but we unwrap ref here (and report a lang-version diagnostic when appropriate).  Ideally,
+            // this would be in the constructor of SourceLocalSymbol, but it lacks a diagnostics bag passed to it to add
+            // this diagnostic.
+            typeSyntax = typeSyntax.SkipRefInLocalOrReturn(diagnostics, out _);
 
             bool isVar;
             AliasSymbol alias;
@@ -795,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we want to treat the declaration as an explicitly typed declaration.
 
             Debug.Assert(typeSyntax is not ScopedTypeSyntax);
-            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar, out alias);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 
             if (isVar)
@@ -1095,45 +1097,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax))
-            {
-                hasErrors = true;
-            }
+            CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax);
 
-            if (localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
             {
                 localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }
 
             localSymbol.SetTypeWithAnnotations(declTypeOpt);
-
-            if (initializerOpt != null)
-            {
-                if (UseUpdatedEscapeRules && localSymbol.Scope != DeclarationScope.Unscoped)
-                {
-                    // If the local has a scoped modifier, then the lifetime is not inferred from
-                    // the initializer. Validate the escape values for the initializer instead.
-
-                    Debug.Assert(localSymbol.RefKind == RefKind.None ||
-                        localSymbol.RefEscapeScope >= GetRefEscape(initializerOpt, LocalScopeDepth));
-
-                    if (declTypeOpt.Type.IsRefLikeType)
-                    {
-                        initializerOpt = ValidateEscape(initializerOpt, localSymbol.ValEscapeScope, isByRef: false, diagnostics);
-                    }
-                }
-                else
-                {
-                    var currentScope = LocalScopeDepth;
-
-                    localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
-
-                    if (localSymbol.RefKind != RefKind.None)
-                    {
-                        localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
-                    }
-                }
-            }
 
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
 
@@ -1450,23 +1421,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDeconstruction(node, diagnostics);
             }
 
-            BindValueKind lhsKind;
-            ExpressionSyntax rhsExpr;
-            bool isRef = false;
+            var rhsExpr = node.Right.CheckAndUnwrapRefExpression(diagnostics, out var refKind);
+            var isRef = refKind == RefKind.Ref;
+            var lhsKind = isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable;
 
-            if (node.Right is RefExpressionSyntax refExpression)
-            {
-                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
-
-                isRef = true;
-                lhsKind = BindValueKind.RefAssignable;
-                rhsExpr = refExpression.Expression;
-            }
-            else
-            {
-                lhsKind = BindValueKind.Assignable;
-                rhsExpr = node.Right;
-            }
+            if (isRef)
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right, node.Right.GetFirstToken().GetLocation());
 
             var op1 = BindValue(node.Left, diagnostics, lhsKind);
             ReportSuppressionIfNeeded(op1, diagnostics);
@@ -1474,13 +1434,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(op1) : BindValueKind.RValue;
             var op2 = BindValue(rhsExpr, diagnostics, rhsKind);
 
-            if (op1.Kind == BoundKind.DiscardExpression)
+            bool discardAssignment = op1.Kind == BoundKind.DiscardExpression;
+            if (discardAssignment)
             {
                 op2 = BindToNaturalType(op2, diagnostics);
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            return BindAssignment(node, op1, op2, isRef, verifyEscapeSafety: true, diagnostics);
+            return BindAssignment(node, op1, op2, isRef, diagnostics);
         }
 
         private static BindValueKind GetRequiredRHSValueKindForRefAssignment(BoundExpression boundLeft)
@@ -1523,7 +1484,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression op1,
             BoundExpression op2,
             bool isRef,
-            bool verifyEscapeSafety,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(op1 != null);
@@ -1550,64 +1510,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     op2 = BindToNaturalType(op2, diagnostics);
                 }
-
-                if (verifyEscapeSafety)
-                {
-                    if (isRef)
-                    {
-                        // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#rules-ref-reassignment
-                        // For a ref reassignment in the form `e1 = ref e2` both of the following must be true:
-                        // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
-                        // 2. `e1` must have the same *safe-to-escape* as `e2`
-
-                        var leftEscape = GetRefEscape(op1, LocalScopeDepth);
-                        var rightEscape = GetRefEscape(op2, LocalScopeDepth);
-                        if (leftEscape < rightEscape)
-                        {
-                            var errorCode = (rightEscape, this.InUnsafeRegion) switch
-                            {
-                                (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
-                                (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
-                                (_, false) => ErrorCode.ERR_RefAssignNarrower,
-                                (_, true) => ErrorCode.WRN_RefAssignNarrower
-                            };
-
-                            Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
-                            if (!this.InUnsafeRegion)
-                            {
-                                op2 = ToBadExpression(op2);
-                            }
-                        }
-                        else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
-                        {
-                            leftEscape = GetValEscape(op1, LocalScopeDepth);
-                            rightEscape = GetValEscape(op2, LocalScopeDepth);
-
-                            Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
-
-                            // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
-                            // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
-                            // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
-                            if (leftEscape > rightEscape)
-                            {
-                                Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
-
-                                var errorCode = this.InUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
-                                Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
-                                if (!this.InUnsafeRegion)
-                                {
-                                    op2 = ToBadExpression(op2);
-                                }
-                            }
-                        }
-                    }
-
-                    if (op1.Type.IsRefLikeType)
-                    {
-                        var leftEscape = GetValEscape(op1, LocalScopeDepth);
-                        op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
-                    }
-                }
             }
             else
             {
@@ -1627,6 +1529,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
+        }
+    }
+
+    partial class RefSafetyAnalysis
+    {
+        private void ValidateAssignment(
+            SyntaxNode node,
+            BoundExpression op1,
+            BoundExpression op2,
+            bool isRef,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(op1 != null);
+            Debug.Assert(op2 != null);
+
+            if (!op1.HasAnyErrors)
+            {
+                Debug.Assert(op1.Type is { });
+
+                bool hasErrors = false;
+                if (isRef)
+                {
+                    // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#rules-ref-reassignment
+                    // For a ref reassignment in the form `e1 = ref e2` both of the following must be true:
+                    // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
+                    // 2. `e1` must have the same *safe-to-escape* as `e2`
+
+                    var leftEscape = GetRefEscape(op1, _localScopeDepth);
+                    var rightEscape = GetRefEscape(op2, _localScopeDepth);
+                    if (leftEscape < rightEscape)
+                    {
+                        var errorCode = (rightEscape, _inUnsafeRegion) switch
+                        {
+                            (ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                            (ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                            (_, false) => ErrorCode.ERR_RefAssignNarrower,
+                            (_, true) => ErrorCode.WRN_RefAssignNarrower
+                        };
+
+                        Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                        if (!_inUnsafeRegion)
+                        {
+                            hasErrors = true;
+                        }
+                    }
+                    else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
+                    {
+                        leftEscape = GetValEscape(op1, _localScopeDepth);
+                        rightEscape = GetValEscape(op2, _localScopeDepth);
+
+                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+
+                        // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
+                        // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
+                        // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
+                        if (leftEscape > rightEscape)
+                        {
+                            Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
+
+                            var errorCode = _inUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
+                            Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                            if (!_inUnsafeRegion)
+                            {
+                                hasErrors = true;
+                            }
+                        }
+                    }
+                }
+
+                if (!hasErrors && op1.Type.IsRefLikeType)
+                {
+                    var leftEscape = GetValEscape(op1, _localScopeDepth);
+                    ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
+                }
+            }
 
             static object getName(BoundExpression expr)
             {
@@ -1647,7 +1624,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return "";
             }
         }
+    }
 
+    partial class Binder
+    {
         internal static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
         {
             if (expr is null)
@@ -1796,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (object)sourceProperty != null &&
                     sourceProperty.IsAutoPropertyWithGetAccessor &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
         }
@@ -1866,13 +1846,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocalFunction(nameToken);
         }
 
-        /// <summary>
-        /// Returns a value that tells how many local scopes are visible, including the current.
-        /// I.E. outside of any method will be 0
-        ///      immediately inside a method - 1
-        /// </summary>
-        internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
-
         internal virtual BoundBlock BindEmbeddedBlock(BlockSyntax node, BindingDiagnosticBag diagnostics)
         {
             return BindBlock(node, diagnostics);
@@ -1915,6 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
+                hasUnsafeModifier: node.Parent?.Kind() == SyntaxKind.UnsafeStatement,
                 boundStatements);
         }
 
@@ -2418,7 +2392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceType = operand.Type;
             if ((object)sourceType != null)
             {
-                GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, operand.ConstantValue);
+                GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, operand.ConstantValueOpt);
                 return;
             }
 
@@ -2607,7 +2581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (expr.Kind == BoundKind.AssignmentOperator)
                     {
                         var assignment = (BoundAssignmentOperator)expr;
-                        if (assignment.Right.Kind == BoundKind.Literal && assignment.Right.ConstantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean)
+                        if (assignment.Right.Kind == BoundKind.Literal && assignment.Right.ConstantValueOpt.Discriminator == ConstantValueTypeDiscriminator.Boolean)
                         {
                             Error(diagnostics, ErrorCode.WRN_IncorrectBooleanAssg, assignment.Syntax);
                         }
@@ -2737,7 +2711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Fixed and using variables are not allowed to be ref-like, but regular variables are
             if (localKind == LocalDeclarationKind.RegularVariable)
             {
-                typeSyntax = typeSyntax.SkipRef(out _);
+                typeSyntax = typeSyntax.SkipRef();
             }
 
             AliasSymbol alias;
@@ -3031,7 +3005,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         arg = CreateReturnConversion(syntax, diagnostics, arg, sigRefKind, retType);
-                        arg = ValidateEscape(arg, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
                     }
                 }
             }
@@ -3276,11 +3249,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureExceptionFilter.CheckFeatureAvailability(diagnostics, filter, filter.WhenKeyword.GetLocation());
 
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
-            if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
+            if (boundFilter.ConstantValueOpt != ConstantValue.NotAvailable)
             {
                 // Depending on whether the filter constant is true or false, and whether there are other catch clauses,
                 // we suggest different actions
-                var errorCode = boundFilter.ConstantValue.BooleanValue
+                var errorCode = boundFilter.ConstantValueOpt.BooleanValue
                     ? ErrorCode.WRN_FilterIsConstantTrue
                     : (filter.Parent.Parent is TryStatementSyntax s && s.Catches.Count == 1 && s.Finally == null)
                         ? ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch
@@ -3433,7 +3406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
-                        expression = ValidateEscape(expression, Binder.ReturnOnlyScope, isByRef: refKind != RefKind.None, diagnostics);
                     }
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
@@ -3466,9 +3438,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
         /// </summary>
-        internal virtual BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
-                                                      BindingDiagnosticBag diagnostics)
+        internal virtual BoundBlock BindExpressionBodyAsBlock(
+            ArrowExpressionClauseSyntax expressionBody,
+            BindingDiagnosticBag diagnostics)
         {
+            var messageId = expressionBody.Parent switch
+            {
+                ConstructorDeclarationSyntax or DestructorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedDeOrConstructor,
+                AccessorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedAccessor,
+                BaseMethodDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedMethod,
+                IndexerDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedIndexer,
+                PropertyDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedProperty,
+                // No need to check if expression bodies are allowed if we have a local function. Local functions
+                // themselves are checked for availability, and if they are available then expression bodies must 
+                // also be available.
+                LocalFunctionStatementSyntax => (MessageID?)null,
+                // null in speculative scenarios.
+                null => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(expressionBody.Parent.Kind()),
+            };
+
+            messageId?.CheckFeatureAvailability(diagnostics, expressionBody, expressionBody.ArrowToken.GetLocation());
+
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
 
@@ -3560,10 +3551,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, BindingDiagnosticBag diagnostics)
         {
             ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
+            var first = true;
             foreach (var statement in compilationUnit.Members)
             {
                 if (statement is GlobalStatementSyntax topLevelStatement)
                 {
+                    if (first)
+                    {
+                        first = false;
+                        MessageID.IDS_TopLevelStatements.CheckFeatureAvailability(diagnostics, topLevelStatement);
+                    }
+
                     var boundStatement = BindStatement(topLevelStatement.Statement, diagnostics);
                     boundStatements.Add(boundStatement);
                 }

@@ -661,4 +661,7 @@
   <data name="Allow_blank_line_after_token_in_conditional_expression" xml:space="preserve">
     <value>Allow blank line after token in conditional expression</value>
   </data>
+  <data name="Allow_blank_line_after_token_in_arrow_expression_clause" xml:space="preserve">
+    <value>Allow blank line after token in arrow expression clause</value>
+  </data>
 </root>

@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             SpillEvalStack();
         }
 
-        [return: NotNullIfNotNull("result")]
+        [return: NotNullIfNotNull(nameof(result))]
         private IOperation? FinishVisitingStatement(IOperation originalOperation, IOperation? result = null)
         {
             Debug.Assert(((Operation)originalOperation).OwningSemanticModel != null, "Not an original node.");
@@ -7592,7 +7592,7 @@ oneMoreTime:
             return Visit(operation, argument: null);
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IOperation? VisitRequired(IOperation? operation, int? argument = null)
         {
@@ -7602,7 +7602,7 @@ oneMoreTime:
             return result;
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IOperation? BaseVisitRequired(IOperation? operation, int? argument)
         {

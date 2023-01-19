@@ -3812,6 +3812,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
   </data>
+  <data name="ERR_BadSpecialByRefUsing" xml:space="preserve">
+    <value>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</value>
+  </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
   </data>
@@ -6845,7 +6848,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not compare function pointer values</value>
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
-    <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
+    <value>Using a function pointer type in this context is not supported.</value>
   </data>
   <data name="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</value>
@@ -7365,7 +7368,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeUnsupportedTarget" xml:space="preserve">
-    <value>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</value>
+    <value>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeUnsupportedMemberTarget" xml:space="preserve">
+    <value>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to an interface implementation.</value>
+  </data>
+  <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
+    <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>

@@ -9,12 +9,17 @@
       </trans-unit>
       <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">コンストラクター初期化子のコロンの後に空白行を許可する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">矢印式句でトークンの後に空白行を許可します</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
         <source>Allow blank line after token in conditional expression</source>
-        <target state="new">Allow blank line after token in conditional expression</target>
+        <target state="translated">条件式でトークンの後に空白行を許可します</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -109,12 +114,12 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
         <source>Insert space between called method name and its opening parenthesis</source>
-        <target state="new">Insert space between called method name and its opening parenthesis</target>
+        <target state="translated">呼び出されたメソッド名と始めかっこの間にスペースを挿入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <target state="translated">メソッド名と始めかっこの間にスペースを挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">

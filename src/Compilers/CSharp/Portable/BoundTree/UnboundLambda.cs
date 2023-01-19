@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations returnType,
             ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes,
             ImmutableArray<RefKind> refKinds,
-            ImmutableArray<DeclarationScope> declaredScopes,
+            ImmutableArray<ScopedKind> declaredScopes,
             ImmutableArray<TypeWithAnnotations> types,
             ImmutableArray<string> names,
             ImmutableArray<bool> discardsOpt,
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, out inferredFromFunctionType);
 
         public RefKind RefKind(int index) { return Data.RefKind(index); }
-        public DeclarationScope DeclaredScope(int index) { return Data.DeclaredScope(index); }
+        public ScopedKind DeclaredScope(int index) { return Data.DeclaredScope(index); }
         public void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
         public bool GenerateSummaryErrors(BindingDiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
         public bool IsAsync { get { return Data.IsAsync; } }
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
         public abstract RefKind RefKind(int index);
-        public abstract DeclarationScope DeclaredScope(int index);
+        public abstract ScopedKind DeclaredScope(int index);
         public abstract ParameterSyntax? ParameterSyntax(int i);
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
 
@@ -610,10 +610,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return invokeMethod.ReturnTypeWithAnnotations;
         }
 
-        internal (ImmutableArray<RefKind>, ArrayBuilder<DeclarationScope>, ImmutableArray<TypeWithAnnotations>, bool) CollectParameterProperties()
+        internal (ImmutableArray<RefKind>, ArrayBuilder<ScopedKind>, ImmutableArray<TypeWithAnnotations>, bool) CollectParameterProperties()
         {
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
-            var parameterScopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance(ParameterCount);
+            var parameterScopesBuilder = ArrayBuilder<ScopedKind>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
             bool getEffectiveScopeFromSymbol = false;
 
@@ -622,10 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var refKind = RefKind(i);
                 var scope = DeclaredScope(i);
                 var type = ParameterTypeWithAnnotations(i);
-                if (scope == DeclarationScope.Unscoped &&
+                if (scope == ScopedKind.None &&
                     ParameterHelpers.IsRefScopedByDefault(Binder.UseUpdatedEscapeRules, refKind))
                 {
-                    scope = DeclarationScope.RefScoped;
+                    scope = ScopedKind.ScopedRef;
                     if (_unboundLambda.ParameterAttributes(i).Any())
                     {
                         getEffectiveScopeFromSymbol = true;
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < ParameterCount; i++)
                 {
-                    if (DeclaredScope(i) == DeclarationScope.Unscoped && parameterScopesBuilder[i] == DeclarationScope.RefScoped && _unboundLambda.ParameterAttributes(i).Any())
+                    if (DeclaredScope(i) == ScopedKind.None && parameterScopesBuilder[i] == ScopedKind.ScopedRef && _unboundLambda.ParameterAttributes(i).Any())
                     {
                         Debug.Assert(getEffectiveScopeFromSymbol);
                         parameterScopesBuilder[i] = lambdaSymbol.Parameters[i].EffectiveScope;
@@ -711,6 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _unboundLambda.Syntax,
                 lambdaSymbol,
                 parameterScopesBuilder.ToImmutableAndFree(),
+                lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute),
                 returnRefKind,
                 returnType);
         }
@@ -1126,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ?? rebind(ReallyInferReturnType(delegateType: null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty));
 
             // Rebind a lambda to push target conversions through the return/result expressions
-            [return: NotNullIfNotNull("lambda")] BoundLambda? rebind(BoundLambda? lambda)
+            [return: NotNullIfNotNull(nameof(lambda))] BoundLambda? rebind(BoundLambda? lambda)
             {
                 if (lambda is null)
                     return null;
@@ -1207,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameter in lambda.Parameters)
             {
-                builder.Builder.Append(parameter.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                builder.Builder.Append(parameter.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
             }
 
             if (lambda.ReturnTypeWithAnnotations.HasType)
@@ -1375,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<bool> _parameterIsDiscardOpt;
         private readonly ImmutableArray<TypeWithAnnotations> _parameterTypesWithAnnotations;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
-        private readonly ImmutableArray<DeclarationScope> _parameterDeclaredScopes;
+        private readonly ImmutableArray<ScopedKind> _parameterDeclaredScopes;
         private readonly ImmutableArray<EqualsValueClauseSyntax?> _defaultValues;
         private readonly SeparatedSyntaxList<ParameterSyntax>? _parameterSyntaxList;
         private readonly bool _isAsync;
@@ -1391,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> parameterIsDiscardOpt,
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes,
+            ImmutableArray<ScopedKind> parameterDeclaredScopes,
             ImmutableArray<EqualsValueClauseSyntax?> defaultValues,
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList,
             bool isAsync,
@@ -1484,10 +1485,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _parameterRefKinds.IsDefault ? Microsoft.CodeAnalysis.RefKind.None : _parameterRefKinds[index];
         }
 
-        public override DeclarationScope DeclaredScope(int index)
+        public override ScopedKind DeclaredScope(int index)
         {
             Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
-            return _parameterDeclaredScopes.IsDefault ? DeclarationScope.Unscoped : _parameterDeclaredScopes[index];
+            return _parameterDeclaredScopes.IsDefault ? ScopedKind.None : _parameterDeclaredScopes[index];
         }
 
         public override ParameterSyntax ParameterSyntax(int index)

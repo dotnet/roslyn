@@ -85,6 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
             }
+
+            if (syntax.ExplicitInterfaceSpecifier != null)
+                MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.CheckFeatureAvailability(diagnostics, syntax.ExplicitInterfaceSpecifier);
         }
 
         internal OperatorDeclarationSyntax GetSyntax()

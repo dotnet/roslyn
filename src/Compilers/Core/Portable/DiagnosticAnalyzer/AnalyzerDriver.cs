@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazyCompilationEventQueue = eventQueue;
                     _lazyQueueRegistration = default(CancellationTokenRegistration);
 
-                    await ExecutePrimaryAnalysisTaskAsync(analysisScope, analysisState, usingPrePopulatedEventQueue: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    await ExecutePrimaryAnalysisTaskAsync(analysisScope, analysisState, usingPrePopulatedEventQueue: true, cancellationToken).ConfigureAwait(false);
 
                     _lazyPrimaryTask = Task.FromResult(true);
                 }
@@ -652,9 +652,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="eventQueue">Compilation events to analyze.</param>
         /// <param name="analysisScope">Scope of analysis.</param>
+        /// <param name="usingPrePopulatedEventQueue">Boolean flag indicating whether we should only process the already populated events or wait for <see cref="CompilationCompletedEvent"/>.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
         /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, ConcurrentSet{string}, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
-        internal void AttachQueueAndStartProcessingEvents(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, CancellationToken cancellationToken)
+        internal void AttachQueueAndStartProcessingEvents(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, bool usingPrePopulatedEventQueue, CancellationToken cancellationToken)
         {
             try
             {
@@ -667,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         this.DiagnosticQueue.TryComplete();
                     });
 
-                    _lazyPrimaryTask = ExecutePrimaryAnalysisTaskAsync(analysisScope, analysisState: null, usingPrePopulatedEventQueue: false, cancellationToken: cancellationToken)
+                    _lazyPrimaryTask = ExecutePrimaryAnalysisTaskAsync(analysisScope, analysisState: null, usingPrePopulatedEventQueue, cancellationToken)
                         .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                 }
             }
@@ -872,7 +873,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), categorizeDiagnostics, trackSuppressedDiagnosticIds, cancellationToken);
 
             var analysisScope = new AnalysisScope(newCompilation, options, analyzers, hasAllAnalyzers: true, concurrentAnalysis: newCompilation.Options.ConcurrentBuild, categorizeDiagnostics: categorizeDiagnostics);
-            analyzerDriver.AttachQueueAndStartProcessingEvents(newCompilation.EventQueue!, analysisScope, cancellationToken: cancellationToken);
+            analyzerDriver.AttachQueueAndStartProcessingEvents(newCompilation.EventQueue!, analysisScope, usingPrePopulatedEventQueue: false, cancellationToken);
             return analyzerDriver;
         }
 
@@ -1332,10 +1333,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var hasUnsuppressedDiagnostic = false;
                 foreach (var descriptor in descriptors)
                 {
-                    _ = options.TryGetGlobalDiagnosticValue(descriptor.Id, AnalyzerExecutor.CancellationToken, out var configuredSeverity);
-                    if (options.TryGetDiagnosticValue(tree, descriptor.Id, AnalyzerExecutor.CancellationToken, out var diagnosticSeverity))
+                    var configuredSeverity = descriptor.GetEffectiveSeverity(AnalyzerExecutor.Compilation.Options);
+                    if (options.TryGetDiagnosticValue(tree, descriptor.Id, AnalyzerExecutor.CancellationToken, out var severityFromOptions) ||
+                        options.TryGetGlobalDiagnosticValue(descriptor.Id, AnalyzerExecutor.CancellationToken, out severityFromOptions))
                     {
-                        configuredSeverity = diagnosticSeverity;
+                        configuredSeverity = severityFromOptions;
                     }
 
                     // Disabled by default descriptor with default configured severity is equivalent to suppressed.

@@ -8616,11 +8616,15 @@ class B<X, Y> : A<int
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void TestExtraneousColonInBaseList()
         {
-            var tree = UsingNode(@"
+            var text = @"
 class A : B : C
 {
 }
-", TestOptions.Regular7_3,
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (2,11): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 11),
                 // (2,13): error CS1514: { expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
@@ -8630,11 +8634,42 @@ class A : B : C
                 // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
+                // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
+{
+").WithLocation(2, 15),
                 // (2,15): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"C
 {
 ").WithArguments("top-level statements", "9.0").WithLocation(2, 15),
+                // (2,15): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(2, 15),
+                // (2,16): error CS1001: Identifier expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
+                // (2,16): error CS1003: Syntax error, ',' expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
+                // (3,2): error CS1002: ; expected
+                // {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+
+            var tree = UsingNode(text, TestOptions.Regular7_3,
+                // (2,13): error CS1514: { expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1513: } expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
                 // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
@@ -8651,8 +8686,7 @@ class A : B : C
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-                );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
 
             N(SyntaxKind.CompilationUnit);
             {

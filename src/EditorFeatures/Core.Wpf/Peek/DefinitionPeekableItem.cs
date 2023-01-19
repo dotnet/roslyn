@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             _threadingContext = threadingContext;
         }
 
-        public override IEnumerable<IPeekRelationship> Relationships =>
-            SpecializedCollections.SingletonEnumerable(PredefinedPeekRelationships.Definitions);
+        public override IEnumerable<IPeekRelationship> Relationships
+            => SpecializedCollections.SingletonEnumerable(PredefinedPeekRelationships.Definitions);
 
         public override IPeekResultSource GetOrCreateResultSource(string relationshipName)
             => new ResultSource(this);

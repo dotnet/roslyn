@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source,
             string expectedOutput = null,
             CSharpCompilationOptions options = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             return CompileAndVerify(
                 source,
@@ -2404,13 +2404,9 @@ class Program
                 // (6,14): error CS8059: Feature 'ref for-loop variables' is not available in C# 6. Please use language version 7.3 or greater.
                 //         for (ref int a = ref d; ;) { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("ref for-loop variables", "7.3").WithLocation(6, 14),
-                // (6,14): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
-                //         for (ref int a = ref d; ;) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(6, 14),
                 // (6,26): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         for (ref int a = ref d; ;) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(6, 26)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(6, 26));
         }
 
         [Fact]

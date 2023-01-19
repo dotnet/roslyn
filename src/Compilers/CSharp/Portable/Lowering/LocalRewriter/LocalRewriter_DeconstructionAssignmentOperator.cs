@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitExpression(conditional.Condition),
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Consequence, isUsed: true)!,
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true)!,
-                    conditional.ConstantValue,
+                    conditional.ConstantValueOpt,
                     leftType,
                     wasTargetTyped: true,
                     leftType);
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (leftTarget.Kind != BoundKind.DiscardExpression)
                     {
                         effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart, leftTarget.Type,
-                            used: true, isChecked: false, isCompoundAssignment: false));
+                            used: false, isChecked: false, isCompoundAssignment: false));
                     }
                 }
                 Debug.Assert(builder is null || resultPart is { });
@@ -459,7 +459,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         Debug.Assert(variable.Type is { });
-                        var temp = this.TransformCompoundAssignmentLHS(variable, effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
+                        var temp = this.TransformCompoundAssignmentLHS(variable, isRegularCompoundAssignment: false,
+                                                                       effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
                         assignmentTargets.Add(new Binder.DeconstructionVariable(temp, variable.Syntax));
                         break;
                 }

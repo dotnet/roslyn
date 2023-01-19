@@ -9,12 +9,17 @@
       </trans-unit>
       <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">允许在构造函数初始值设定项中的冒号后面使用空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">在箭头表达式子句中允许标记后的空行</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
         <source>Allow blank line after token in conditional expression</source>
-        <target state="new">Allow blank line after token in conditional expression</target>
+        <target state="translated">在条件表达式中允许标记后的空行</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -109,12 +114,12 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
         <source>Insert space between called method name and its opening parenthesis</source>
-        <target state="new">Insert space between called method name and its opening parenthesis</target>
+        <target state="translated">在调用的方法名称与其左括号之间插入空格</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <target state="translated">在方法名称与其左括号之间插入空格</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">

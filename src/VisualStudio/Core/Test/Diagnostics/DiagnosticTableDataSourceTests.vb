@@ -692,7 +692,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.IsEnabledByDefault,
                             diagnostic1.WarningLevel,
                             diagnostic1.CustomTags,
-                            diagnostic1.Properties,
+                            diagnostic1.Properties.AddRange(DiagnosticData.PropertiesForBuildDiagnostic),
                             diagnostic1.ProjectId,
                             New DiagnosticDataLocation(
                                 diagnostic1.DataLocation.UnmappedFileSpan,
@@ -716,7 +716,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.IsEnabledByDefault,
                             diagnostic2.WarningLevel,
                             diagnostic2.CustomTags,
-                            diagnostic2.Properties,
+                            diagnostic2.Properties.AddRange(DiagnosticData.PropertiesForBuildDiagnostic),
                             diagnostic2.ProjectId,
                             New DiagnosticDataLocation(
                                 diagnostic2.DataLocation.UnmappedFileSpan,
@@ -801,7 +801,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetPushDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPushDiagnosticsAsync
+            Public Function GetDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetDiagnosticsAsync
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
             End Function
 
@@ -829,7 +829,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
+            Public Function GetDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetDiagnosticBuckets
                 Return GetDiagnosticsBuckets(workspace, projectId, documentId)
             End Function
 

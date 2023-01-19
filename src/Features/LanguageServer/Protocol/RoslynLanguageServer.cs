@@ -16,7 +16,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider
+    internal sealed class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
@@ -49,11 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
-            var handlerProvider = GetHandlerProvider();
-            var queue = new RoslynRequestExecutionQueue(this, _logger, handlerProvider);
-
-            queue.Start();
-            return queue;
+            var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
+            return provider.CreateRequestExecutionQueue(this, _logger, GetHandlerProvider());
         }
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(

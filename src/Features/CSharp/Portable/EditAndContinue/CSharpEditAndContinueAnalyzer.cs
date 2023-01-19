@@ -1250,32 +1250,39 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
             CancellationToken cancellationToken)
         {
-            if (editKind == EditKind.Reorder &&
-                oldNode is not ParameterSyntax &&
-                newNode is not ParameterSyntax)
-            {
-                // Other than parameters, we don't do any semantic checks for reordering
-                // and we don't need to report them to the compiler either.
-                // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
-
-                // Consider: Reordering of fields is not allowed since it changes the layout of the type.
-                // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
-                // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
-                Debug.Assert(!IsDeclarationWithInitializer(oldNode!) && !IsDeclarationWithInitializer(newNode!));
-                return OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty;
-            }
-
             var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, oldModel!, cancellationToken) : null;
             var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, newModel, cancellationToken) : null;
 
             switch (editKind)
             {
                 case EditKind.Reorder:
-                    Debug.Assert(oldSymbol is IParameterSymbol);
-                    Debug.Assert(newSymbol is IParameterSymbol);
+                    Contract.ThrowIfNull(oldNode);
 
-                    // When parameters are reordered, we issue an update edit for the containing method
-                    return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update));
+                    if (oldNode is ParameterSyntax)
+                    {
+                        Debug.Assert(oldSymbol is IParameterSymbol);
+                        Debug.Assert(newSymbol is IParameterSymbol);
+
+                        // When parameters are reordered, we issue an update edit for the containing method
+                        return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update));
+                    }
+                    else if (IsGlobalStatement(oldNode))
+                    {
+                        // When global statements are reordered, we issue an update edit for the synthesized main method, which is what
+                        // oldSymbol and newSymbol will point to
+                        return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol, newSymbol, EditKind.Update));
+                    }
+
+                    // Otherwise, we don't do any semantic checks for reordering
+                    // and we don't need to report them to the compiler either.
+                    // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
+
+                    // Consider: Reordering of fields is not allowed since it changes the layout of the type.
+                    // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
+                    // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
+                    Debug.Assert(!IsDeclarationWithInitializer(oldNode!) && !IsDeclarationWithInitializer(newNode!));
+                    return OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty;
+
                 case EditKind.Update:
                     Contract.ThrowIfNull(oldNode);
                     Contract.ThrowIfNull(newNode);

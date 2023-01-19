@@ -819,10 +819,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         protected override bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
             => compilation.ClassifyConversion(sourceType, targetType).IsReference;
 
-        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
-            model.ClassifyConversion(expression, targetType);
+        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType)
+            => model.ClassifyConversion(expression, targetType);
 
-        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
-            model.Compilation.ClassifyConversion(originalType, targetType);
+        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType)
+            => model.Compilation.ClassifyConversion(originalType, targetType);
     }
 }

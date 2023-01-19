@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,8 +24,7 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly Func<string?, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
 
-        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
-            new();
+        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap = new();
 
         // properties inherited from the containing project:
         private readonly HostLanguageServices _languageServices;
@@ -81,8 +81,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public ValueSource<TreeAndVersion>? TreeSource => _treeSource;
+
         [MemberNotNullWhen(true, nameof(_treeSource))]
+        [MemberNotNullWhen(true, nameof(TreeSource))]
         [MemberNotNullWhen(true, nameof(_options))]
+        [MemberNotNullWhen(true, nameof(ParseOptions))]
         internal bool SupportsSyntaxTree
             => _treeSource != null;
 
@@ -124,17 +128,7 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = await newTextSource.GetValueAsync(loadTextOptions, cancellationToken).ConfigureAwait(false);
-                var treeAndVersion = CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
-
-                // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
-                // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
-                // storage after the first time GetRoot (or GetRootAsync) is called. Since we know we are creating a
-                // RecoverableSyntaxTree for the purpose of avoiding problematic memory overhead, we call GetRoot
-                // immediately to force the object to weakly hold its data from the start.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1307180
-                await treeAndVersion.Tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-                return treeAndVersion;
+                return CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
             }
         }
 
@@ -150,17 +144,7 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = newTextSource.GetValue(loadTextOptions, cancellationToken);
-                var treeAndVersion = CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
-
-                // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
-                // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
-                // storage after the first time GetRoot (or GetRootAsync) is called. Since we know we are creating a
-                // RecoverableSyntaxTree for the purpose of avoiding problematic memory overhead, we call GetRoot
-                // immediately to force the object to weakly hold its data from the start.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1307180
-                treeAndVersion.Tree.GetRoot(cancellationToken);
-
-                return treeAndVersion;
+                return CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
             }
         }
 
@@ -370,8 +354,11 @@ namespace Microsoft.CodeAnalysis
 
             ValueSource<TreeAndVersion>? newTreeSource = null;
 
-            // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree and it didn't have
-            // any, we can avoid a reparse since the tree will be parsed the same.
+            // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree
+            // and it didn't have any, we can avoid a reparse since the tree will be parsed the same.
+            //
+            // We only need to care about `#if` directives as those are the only sorts of directives that can affect how
+            // a tree is parsed.
             if (onlyPreprocessorDirectiveChange &&
                 _treeSource.TryGetValue(out var existingTreeAndVersion))
             {
@@ -379,7 +366,8 @@ namespace Microsoft.CodeAnalysis
 
                 SyntaxTree? newTree = null;
 
-                if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirectives)
+                var syntaxKinds = _languageServices.GetRequiredService<ISyntaxKindsService>();
+                if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
                 {
                     var treeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                     newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);

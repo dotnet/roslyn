@@ -159,12 +159,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(whenFalse, ExpressionSyntax))
         End Function
 
-        Public Overrides Function LiteralExpression(value As Object) As SyntaxNode
-            Return ExpressionGenerator.GenerateNonEnumValueExpression(Nothing, value, canUseFieldReference:=True)
-        End Function
-
         Public Overrides Function TypedConstantExpression(value As TypedConstant) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(value)
+        End Function
+
+        Private Protected Overrides Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As SyntaxNode
+            Return ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference)
         End Function
 
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
@@ -891,10 +891,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return If(parameters IsNot Nothing, SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast(Of ParameterSyntax)())), SyntaxFactory.ParameterList())
         End Function
 
-        Public Overrides Function ParameterDeclaration(name As String, Optional type As SyntaxNode = Nothing, Optional initializer As SyntaxNode = Nothing, Optional refKind As RefKind = Nothing) As SyntaxNode
+        Private Protected Overrides Function ParameterDeclaration(
+                name As String,
+                type As SyntaxNode,
+                initializer As SyntaxNode,
+                refKind As RefKind,
+                isExtension As Boolean,
+                isParams As Boolean) As SyntaxNode
+
+            Dim modifiers = GetParameterModifiers(refKind, initializer)
+            If isParams Then
+                modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.ParamArrayKeyword))
+            End If
+
+            ' isExtension not used in vb.  instead, an attribute is added at the method level.
+
             Return SyntaxFactory.Parameter(
                 attributeLists:=Nothing,
-                modifiers:=GetParameterModifiers(refKind, initializer),
+                modifiers:=modifiers,
                 identifier:=name.ToModifiedIdentifier(),
                 asClause:=If(type IsNot Nothing, SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)), Nothing),
                 [default]:=If(initializer IsNot Nothing, SyntaxFactory.EqualsValue(DirectCast(initializer, ExpressionSyntax)), Nothing))

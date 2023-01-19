@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
 {
@@ -56,8 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         private void ProcessConditionalExpression(
             SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConditionalExpressionSyntax conditionalExpression)
         {
-            // Don't bother analyzing nodes that have syntax errors in them.
-            if (conditionalExpression.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
+            // Don't bother analyzing nodes whose parent have syntax errors in them.
+            if (conditionalExpression.GetRequiredParent().GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
             // Only if both tokens are not ok do we report an error.  For example, the following is legal:

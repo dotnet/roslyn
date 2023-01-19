@@ -20,6 +20,7 @@ dotnet_diagnostic.IDE0170.severity = suggestion
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = true:none
 csharp_style_var_elsewhere = false:none
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
 
 # XML files
 [*.xml]

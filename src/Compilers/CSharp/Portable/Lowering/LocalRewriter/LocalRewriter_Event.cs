@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.IsUsableAsField);
 
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            return MakeEventAccess(node.Syntax, rewrittenReceiver, node.EventSymbol, node.ConstantValue, node.ResultKind, node.Type);
+            return MakeEventAccess(node.Syntax, rewrittenReceiver, node.EventSymbol, node.ConstantValueOpt, node.ResultKind, node.Type);
         }
 
         private BoundExpression MakeEventAccess(

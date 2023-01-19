@@ -1848,6 +1848,146 @@ class C
         }
 
         [Fact]
+        public void SynthesizedDelegates_03()
+        {
+            // This test checks that lambdas between source0 and source1 are not the same,
+            // as they differ in default parameter value or `params` modifier.
+            var source0 = """
+                class C
+                {
+                    unsafe static void F()
+                    {
+                        var _1 = (int a, int b = 1) => a;
+                        var _2 = (int* x, int[] c) => c;
+                        var _3 = (int* x, int b) => b;
+                    }
+                }
+                """;
+            var source1 = """
+                class C
+                {
+                    unsafe static void F()
+                    {
+                        var _1 = (int a, int b = 2) => a;
+                        var _2 = (int* x, params int[] c) => c;
+                        var _3 = (int* x, int b = 1) => b;
+                    }
+                }
+                """;
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.UnsafeDebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll);
+
+            var peRef0 = compilation0.EmitToImageReference();
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
+
+            var reader0 = peModule0.Module.MetadataReader;
+            var decoder0 = new MetadataDecoder(peModule0);
+
+            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out _, out var anonymousDelegates0);
+            Assert.Equal(3, anonymousDelegates0.Count);
+            Assert.Equal("<>f__AnonymousDelegate0<T1, T2, TResult>", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
+            Assert.Equal("<>f__AnonymousDelegate1", anonymousDelegates0["<>f__AnonymousDelegate1"].Type.ToString());
+            Assert.Equal("<>f__AnonymousDelegate2", anonymousDelegates0["<>f__AnonymousDelegate2"].Type.ToString());
+
+            var testData = new CompilationTestData();
+            compilation1.EmitToArray(testData: testData);
+            var peAssemblyBuilder = (PEAssemblyBuilder)testData.Module;
+
+            var c = compilation1.GetMember<NamedTypeSymbol>("C");
+            var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
+            Assert.Equal("<>c", displayClass.Name);
+
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+
+            var fields = displayClass.GetFields(emitContext).ToArray();
+            var field1 = fields[1];
+            var field2 = fields[2];
+            var field3 = fields[3];
+            Assert.Equal("<>9__0_0", field1.Name);
+            Assert.Equal("<>9__0_1", field2.Name);
+            Assert.Equal("<>9__0_2", field3.Name);
+
+            var matcher = new CSharpSymbolMatcher(null, null, anonymousDelegates0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+
+            Assert.Null(matcher.MapDefinition(field1));
+            Assert.Null(matcher.MapDefinition(field2));
+            Assert.Null(matcher.MapDefinition(field3));
+        }
+
+        [Fact]
+        public void SynthesizedDelegates_04()
+        {
+            var source0 = """
+                class C
+                {
+                    unsafe static void F()
+                    {
+                        var _1 = (int a, int b = 1) => a;
+                        var _2 = (int* x, params int[] c) => c;
+                        var _3 = (int* x, int b) => b;
+                    }
+                }
+                """;
+            var source1 = """
+                class C
+                {
+                    unsafe static void F()
+                    {
+                        var _1 = (int m, int n = 1) => m;
+                        var _2 = (int* y, params int[] p) => p;
+                        var _3 = (int* y, int c) => c;
+                    }
+                }
+                """;
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.UnsafeDebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll);
+
+            var peRef0 = compilation0.EmitToImageReference();
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
+
+            var reader0 = peModule0.Module.MetadataReader;
+            var decoder0 = new MetadataDecoder(peModule0);
+
+            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out _, out var anonymousDelegates0);
+            Assert.Equal(3, anonymousDelegates0.Count);
+            Assert.Equal("<>f__AnonymousDelegate0<T1, T2, TResult>", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
+            Assert.Equal("<>f__AnonymousDelegate1", anonymousDelegates0["<>f__AnonymousDelegate1"].Type.ToString());
+            Assert.Equal("<>f__AnonymousDelegate2", anonymousDelegates0["<>f__AnonymousDelegate2"].Type.ToString());
+
+            var testData = new CompilationTestData();
+            compilation1.EmitToArray(testData: testData);
+            var peAssemblyBuilder = (PEAssemblyBuilder)testData.Module;
+
+            var c = compilation1.GetMember<NamedTypeSymbol>("C");
+            var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
+            Assert.Equal("<>c", displayClass.Name);
+
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+
+            var fields = displayClass.GetFields(emitContext).ToArray();
+            var field1 = fields[1];
+            var field2 = fields[2];
+            var field3 = fields[3];
+            Assert.Equal("<>9__0_0", field1.Name);
+            Assert.Equal("<>9__0_1", field2.Name);
+            Assert.Equal("<>9__0_2", field3.Name);
+
+            var matcher = new CSharpSymbolMatcher(null, null, anonymousDelegates0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+
+            var mappedField1 = (Cci.IFieldDefinition)matcher.MapDefinition(field1);
+            var mappedField2 = (Cci.IFieldDefinition)matcher.MapDefinition(field2);
+            var mappedField3 = (Cci.IFieldDefinition)matcher.MapDefinition(field3);
+
+            Assert.Equal("<>9__0_0", mappedField1.Name);
+            Assert.Equal("<>9__0_1", mappedField2.Name);
+            Assert.Equal("<>9__0_2", mappedField3.Name);
+        }
+
+        [Fact]
         public void CheckedUserDefinedOperators_01()
         {
             const string source =
