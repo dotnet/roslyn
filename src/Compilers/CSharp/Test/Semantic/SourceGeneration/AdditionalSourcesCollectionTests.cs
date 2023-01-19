@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var sources = asc.ToImmutableAndFree();
             var source = Assert.Single(sources);
             Assert.True(source.HintName.EndsWith(".cs"));
-            Assert.True(source.HintName.EndsWith(expectedName));
+            Assert.Equal(expectedName, source.HintName, StringComparer.OrdinalIgnoreCase);
         }
 
         [Theory]
