@@ -12,11 +12,6 @@ Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.D
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentExtensions.set -> void
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentKinds.get -> string[]
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentKinds.set -> void
-Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsFile.get -> bool
-Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-*REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
-Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.SolutionServices services) -> void
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LiteralExpression(object value) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ParameterDeclaration(string name, Microsoft.CodeAnalysis.SyntaxNode type = null, Microsoft.CodeAnalysis.SyntaxNode initializer = null, Microsoft.CodeAnalysis.RefKind refKind = Microsoft.CodeAnalysis.RefKind.None) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Host.HostLanguageServices.LanguageServices.get -> Microsoft.CodeAnalysis.Host.LanguageServices
@@ -51,6 +46,7 @@ Microsoft.CodeAnalysis.LoadTextOptions.ChecksumAlgorithm.get -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.LoadTextOptions.Equals(Microsoft.CodeAnalysis.LoadTextOptions other) -> bool
 Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions() -> void
 Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions(Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm) -> void
+override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.LoadTextOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.LoadTextOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.LoadTextOptions.ToString() -> string
