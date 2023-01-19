@@ -15,16 +15,11 @@ namespace Roslyn.VisualStudio.NewIntegrationTests
             public const string Wasm = "Microsoft.Web.Blazor.Wasm";
         }
 
-        protected AbstractWebApplicationTest(string solutionName, string groupId = GroupIds.Server)
+        protected AbstractWebApplicationTest(string solutionName)
             : base(solutionName,
                   projectTemplate: WellKnownProjectTemplates.Blazor,
-                  projectTemplateAdditionalParameters: ConstructProjectTemplateParameters(groupId))
+                  templateGroupId: GroupIds.Server)
         {
-        }
-
-        private static string ConstructProjectTemplateParameters(string groupId)
-        {
-            return $"$groupid$={groupId}";
         }
     }
 }

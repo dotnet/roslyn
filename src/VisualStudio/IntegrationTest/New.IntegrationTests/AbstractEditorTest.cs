@@ -16,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         private readonly string? _solutionName;
         private readonly string? _projectTemplate;
-        private readonly string? _projectTemplateAdditionalParameters;
+        private readonly string? _templateGroupId;
 
         protected AbstractEditorTest()
         {
@@ -27,11 +27,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
         }
 
-        protected AbstractEditorTest(string solutionName, string projectTemplate, string projectTemplateAdditionalParameters = "")
+        protected AbstractEditorTest(string solutionName, string projectTemplate, string? templateGroupId = null)
         {
             _solutionName = solutionName;
             _projectTemplate = projectTemplate;
-            _projectTemplateAdditionalParameters = projectTemplateAdditionalParameters;
+            _templateGroupId = templateGroupId;
         }
 
         protected abstract string LanguageName { get; }
@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 RoslynDebug.AssertNotNull(_projectTemplate);
 
                 await TestServices.SolutionExplorer.CreateSolutionAsync(_solutionName, HangMitigatingCancellationToken);
-                await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, _projectTemplateAdditionalParameters!, LanguageName, HangMitigatingCancellationToken);
+                await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, _templateGroupId, LanguageName, HangMitigatingCancellationToken);
                 await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, HangMitigatingCancellationToken);
 
                 // Winforms and XAML do not open text files on creation
