@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">Leere Zeile nach Doppelpunkt in Konstruktorinitialisierer zulassen</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

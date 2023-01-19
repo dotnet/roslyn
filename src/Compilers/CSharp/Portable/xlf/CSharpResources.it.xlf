@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</target>
+        <target state="translated">Non è possibile applicare UnscopedRefAttribute a questo elemento perché è senza ambito per impostazione predefinita.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -5238,7 +5238,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="new">A property or indexer may not be passed as an out or ref parameter</target>
+        <target state="translated">Una proprietà o un indicizzatore non può essere passato come parametro out o ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8446,7 +8446,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="new">Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</target>
+        <target state="translated">Poiché si tratta di un metodo asincrono, l'espressione restituita deve essere di tipo '{0}' e non 'Task&lt;{0}&gt;'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9609,7 +9609,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
         <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="new">Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</target>
+        <target state="translated">Poiché '{0}' è un metodo asincrono che restituisce 'Task', una parola chiave restituita non deve essere seguita da un'espressione di oggetto. Si intendeva restituire 'Task&lt;T&gt;'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11039,7 +11039,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
         <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="new">Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</target>
+        <target state="translated">L'espressione lambda asincrona convertita in un elemento 'Task' che restituisce il delegato non può restituire un valore. Si intendeva restituire 'Task&lt;T&gt;'?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">
