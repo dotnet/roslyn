@@ -7,6 +7,7 @@ using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -40,16 +41,22 @@ var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(new VisualStudi
 MSBuildLocator.RegisterInstance(msbuildInstances.First());
 
 var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync().ConfigureAwait(false);
-var hostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
+
+// Immediately set the logger factory, so that way it'll be available for the rest of the composition
+exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
+
+var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
 
 using (var workspace = await LanguageServerWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, hostServices, loggerFactory).ConfigureAwait(false))
 {
-    var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, hostServices, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
+    var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
 
     server.Start();
     await server.WaitForExitAsync().ConfigureAwait(false);
 }
 
+// Dispose of our container, so parts can cleanly shut themselves down
+exportProvider.Dispose();
 loggerFactory.Dispose();
 
 return;
