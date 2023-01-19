@@ -3248,17 +3248,23 @@ public class C<T>
         public void TypedReference_Field()
         {
             var libSrc = @"
-public class C
+public ref struct C
 {
     public System.TypedReference field;
+    public ref System.TypedReference field2;
 }
 ";
-            var comp = CreateCompilation(libSrc);
-            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            var comp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
                 // (4,12): error CS0610: Field or property cannot be of type 'TypedReference'
                 //     public System.TypedReference field;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 12),
+                // (5,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref System.TypedReference field2;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref System.TypedReference").WithLocation(5, 12),
+                // (5,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     public ref System.TypedReference field2;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ref System.TypedReference").WithArguments("System.TypedReference").WithLocation(5, 12)
                 );
         }
 
