@@ -48,10 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitComplexConditionalReceiverAddress((BoundComplexConditionalReceiver)expression);
                     break;
 
-                case BoundKind.ComplexReceiver:
-                    EmitComplexReceiverAddress((BoundComplexReceiver)expression);
-                    break;
-
                 case BoundKind.Parameter:
                     return EmitParameterAddress((BoundParameter)expression, addressKind);
 

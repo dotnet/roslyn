@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -53,14 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return null; }
         }
 
-        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(
-            SynthesizedLocalKind kind, SyntaxNode syntax
-#if DEBUG
-            ,
-            [CallerLineNumber] int createdAtLineNumber = 0,
-            [CallerFilePath] string createdAtFilePath = null
-#endif
-            )
+        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
             throw ExceptionUtilities.Unreachable();
         }

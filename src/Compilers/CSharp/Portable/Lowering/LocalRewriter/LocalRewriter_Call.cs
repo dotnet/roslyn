@@ -694,23 +694,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps.Add(intermediateRef.LocalSymbol);
                 extraRefInitialization = assignmentToTemp.Update(intermediateRef, assignmentToTemp.Right, assignmentToTemp.IsRef, assignmentToTemp.Type);
 
+                // If condition `(object)default(T) != null` is true at execution time,
+                // the T is a value type. And it is a reference type otherwise.
+                var isValueTypeCheck = _factory.ObjectNotEqual(
+                                            _factory.Convert(_factory.SpecialType(SpecialType.System_Object), _factory.Default(receiverType)),
+                                            _factory.Null(_factory.SpecialType(SpecialType.System_Object)));
+
                 // `receiverTemp` initialization is adjusted as follows:
                 // If we are dealing with a value type, use value of the intermediate ref.
                 // Otherwise, use an address of a temp where we store the underlying reference type instance.
                 assignmentToTemp =
                     assignmentToTemp.Update(
                         assignmentToTemp.Left,
-#pragma warning disable format
-                        new BoundComplexReceiver(receiverTemp.Syntax,
-                                                 intermediateRef,
-                                                 _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, intermediateRef) }, cache),
-                                                 receiverType) { WasCompilerGenerated = true },
-#pragma warning restore format
+                        _factory.Conditional(
+                            isValueTypeCheck,
+                            intermediateRef,
+                            _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, intermediateRef) }, cache),
+                            receiverType,
+                            isRef: true),
                         assignmentToTemp.IsRef,
                         assignmentToTemp.Type);
 
                 // SpillSequenceSpiller should be able to recognize this node in order to handle its spilling. 
-                Debug.Assert(SpillSequenceSpiller.IsComplexConditionalInitializationOfReceiverRef(assignmentToTemp, out _, out _, out _, out _));
+                Debug.Assert(SpillSequenceSpiller.IsComplexConditionalInitializationOfReceiverRef(assignmentToTemp, out _, out _, out _, out _, out _));
             }
             else
             {

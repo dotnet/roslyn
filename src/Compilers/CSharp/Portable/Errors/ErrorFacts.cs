@@ -2276,6 +2276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget:
                 case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
                 case ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion:
+                case ErrorCode.ERR_BadSpecialByRefUsing:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

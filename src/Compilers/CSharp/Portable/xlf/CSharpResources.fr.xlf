@@ -222,6 +222,11 @@
         <target state="translated">Le membre d'enregistrement '{0}' doit être une propriété d'instance our champ lisible de type '{1}' pour correspondre au paramètre positionnel '{2}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Erreur de syntaxe de ligne de commande : '{0}' est une valeur non valide pour l'option '{1}'. La valeur doit se présenter sous la forme '{2}'.</target>
@@ -663,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">L'utilisation d'un type de pointeur de fonction dans un 'typeof' au sein d'un attribut n'est pas prise en charge.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">L'utilisation d'un type de pointeur de fonction dans un 'typeof' au sein d'un attribut n'est pas prise en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
