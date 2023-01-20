@@ -84,9 +84,9 @@
         <target state="new">The hintName '{0}' contains an invalid segment '{1}' at position {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
-      <trans-unit id="HintNameNotRelative">
-        <source>The hintName '{0}' is not relative.</source>
-        <target state="new">The hintName '{0}' is not relative.</target>
+      <trans-unit id="HintNameNotWithinCurrentDirectory">
+        <source>The hintName '{0}' is not within the current directory.</source>
+        <target state="new">The hintName '{0}' is not within the current directory.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
