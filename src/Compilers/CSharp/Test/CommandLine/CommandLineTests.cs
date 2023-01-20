@@ -13462,14 +13462,15 @@ class C
         [Theory]
         [InlineData("subdir")]
         [InlineData("a/b/c")]
-        [InlineData("a\\b\\c")]
+        [InlineData("a\\b\\c", "a/b/c")]
         [InlineData(" subdir")]
         [InlineData(" a/ b/ c")]
-        [InlineData(" a\\ b/ c")]
+        [InlineData(" a\\ b/ c", " a/ b/ c")]
         [InlineData("abc/")]
-        [InlineData("abc\\")]
-        public void SourceGenerators_WriteGeneratedSources_WithDirectories(string subdir)
+        public void SourceGenerators_WriteGeneratedSources_WithDirectories(string subdir, string expectedDir = null)
         {
+            expectedDir ??= subdir;
+
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText("""
                 class C
@@ -13488,7 +13489,7 @@ class C
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             ValidateWrittenSources(new()
             {
-                { Path.Combine(generatedDir.Path, generatorPrefix, subdir), new() { { generatedFileName, generatedSource } } }
+                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { generatedFileName, generatedSource } } }
             });
 
             // Clean up temp files
