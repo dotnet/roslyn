@@ -332,6 +332,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             _alreadyReported = BitVector.Empty;           // no variables yet reported unassigned
             this.regionPlace = RegionPlace.Before;
             EnterParameters(methodParameters);               // with parameters assigned
+
+            if (_symbol is (not SynthesizedPrimaryConstructor) and { ContainingSymbol: SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } })
+            {
+                // All primary constructor parameters are definitely assigned outside of the primary constructor
+                foreach (var parameter in primaryConstructor.Parameters)
+                {
+                    int slot = GetOrCreateSlot(parameter);
+                    if (slot > 0)
+                    {
+                        SetSlotState(slot, true);
+                    }
+                }
+            }
+
             if ((object)methodThisParameter != null)
             {
                 EnterParameter(methodThisParameter);
@@ -637,7 +651,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (Symbol captured in _capturedVariables)
                 {
                     Location location;
-                    if (_unsafeAddressTakenVariables.TryGetValue(captured, out location))
+                    if (_unsafeAddressTakenVariables.TryGetValue(captured, out location) &&
+                        !(captured is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter &&
+                         primaryConstructor.GetCapturedParameters().ContainsKey(parameter))) // Primary constructor parameter captured by the type itself is not hoisted into a closure
                     {
                         Debug.Assert(captured.Kind == SymbolKind.Parameter || captured.Kind == SymbolKind.Local || captured.Kind == SymbolKind.RangeVariable);
                         diagnostics.Add(ErrorCode.ERR_LocalCantBeFixedAndHoisted, location, captured.Name);

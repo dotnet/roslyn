@@ -2926,6 +2926,49 @@ public " + keyword + @" Test2(
 
         [Theory]
         [CombinatorialData]
+        public void AttributesOnPrimaryConstructorParameters_03([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+public " + keyword + @" Test1(
+    [field: A]
+    int P1)
+{
+    int M1() => P1;
+}
+
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+public " + keyword + @" Test2(
+    [C]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(8, 6),
+                // (20,6): error CS0592: Attribute 'C' is not valid on this declaration type. It is only valid on 'field' declarations.
+                //     [C]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "C").WithArguments("C", "field").WithLocation(20, 6)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("Test1").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single().Parameters[0].GetAttributes());
+            Assert.Equal(1, comp.GetTypeByMetadataName("Test2").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single().Parameters[0].GetAttributes().Count());
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void AttributesOnPrimaryConstructorParameters_09_CallerMemberName([CombinatorialValues("class ", "struct")] string keyword)
         {
             string source = @"
@@ -11697,6 +11740,1122 @@ class Base
 
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_080_NullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+class C1(string? p1, string p2)
+{
+    void M1()
+    {
+#line 2000
+        p1.ToString();
+        p1 = """";
+        p1.ToString();
+    }
+
+    void M2()
+    {
+        p2.ToString();
+    }
+
+    void M3()
+    {
+#line 4000
+        p1.ToString();
+        p1 = """";
+        p1.ToString();
+    }
+
+    void M4()
+    {
+        p1 = """";
+        p1.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2000,9): warning CS8602: Dereference of a possibly null reference.
+                //         p1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "p1").WithLocation(2000, 9),
+                // (4000,9): warning CS8602: Dereference of a possibly null reference.
+                //         p1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "p1").WithLocation(4000, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_081_AddressOfFixedSizeBuffer([CombinatorialValues("class", "struct")] string keyword)
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe " + keyword + @" C(S s)
+{
+    S s_f;
+    void M()
+    {
+        fixed (int* a = &s.Buf) {}
+        fixed (int* b = &s_f.Buf) {}
+        int* c = &s.Buf;
+        int* d = &s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+                // (12,26): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         fixed (int* a = &s.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s.Buf").WithLocation(12, 26),
+                // (13,26): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         fixed (int* b = &s_f.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 26),
+                // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* c = &s.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s.Buf").WithLocation(14, 19),
+                // (15,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* d = &s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(15, 19)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_082_FixedFixedSizeBuffer([CombinatorialValues("class", "struct")] string keyword)
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe " + keyword + @" C(S s)
+{
+    S s_f;
+    void M()
+    {
+        int* c = s.Buf;
+        int* d = s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+                // (12,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* c = s.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s.Buf").WithLocation(12, 18),
+                // (13,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* d = s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 18)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_083_FixedFixedSizeBuffer([CombinatorialValues("class", "struct")] string keyword)
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe " + keyword + @" C(S s)
+{
+    S s_f;
+    void M()
+    {
+        fixed (int* a = s.Buf) {}
+        fixed (int* b = s_f.Buf) {}
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+                // PROTOTYPE(PrimaryConstructors): The warning is unexpected - https://github.com/dotnet/roslyn/issues/66487
+                // (9,7): warning CS0169: The field 'C.s_f' is never used
+                //     S s_f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "s_f").WithArguments("C.s_f").WithLocation(9, 7)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_084_NoPointerDerefMoveableFixedSizeBuffer([CombinatorialValues("class", "struct")] string keyword)
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe " + keyword + @" C(S s)
+{
+    S s_f;
+    void M()
+    {
+        int x = *s.Buf;
+        int y = *s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+                // (12,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int x = *s.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s.Buf").WithLocation(12, 18),
+                // (13,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int y = *s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 18)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_085_AddressOfVariablesThatRequireFixing([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var text = @"
+unsafe " + keyword + @" C(int s)
+{
+    int s_f;
+    void M()
+    {
+        int* c = &s;
+        int* d = &s_f;
+    }
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (7,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* c = &s;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s").WithLocation(7, 18),
+                // (8,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* d = &s_f;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s_f").WithLocation(8, 18)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_086_AddressOfVariablesThatRequireFixing([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var text = @"
+unsafe " + keyword + @" C(int s)
+{
+    int s_f;
+    void M()
+    {
+        fixed (int* a = &s) {}
+        fixed (int* b = &s_f) {}
+    }
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AddressOfParameters_01([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            var text = @"
+unsafe " + keyword + @" C1(int x, S s)
+{
+    int* p1 = &x;
+    int* p2 = &s.f;
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // PROTOTYPE(PrimaryConstructors): Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // (2,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe class  C1(int x, S s)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 22),
+                // (2,27): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe class  C1(int x, S s)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(2, 27)
+                );
+        }
+
+        [Fact]
+        public void AddressOfParameters_02()
+        {
+            var text = @"
+unsafe class Base
+{
+    public Base(int* x, int* y) {}
+}
+
+unsafe class C1(int x, S s) : Base(&x, &s.f);
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // PROTOTYPE(PrimaryConstructors): Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // (7,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe class C1(int x, S s) : Base(&x, &s.f);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(7, 21),
+                // (7,26): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe class C1(int x, S s) : Base(&x, &s.f);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(7, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_087_AddressOfParameters([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var text = @"
+unsafe " + keyword + @" C1(int x, S s)
+{
+    int* p1 = &x;
+    int* p2 = &s.f;
+
+    void M()
+    {
+        _ = x + s.f;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (4,15): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(4, 15),
+                // (5,15): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s.f").WithLocation(5, 15)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_088_AddressOfParameters()
+        {
+            var text = @"
+unsafe class Base
+{
+    public Base(int* x, int* y) {}
+}
+
+unsafe class C1(int x, S s) : Base(&x, &s.f)
+{
+    void M()
+    {
+        _ = x + s.f;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (7,36): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // unsafe class C1(int x, S s) : Base(&x, &s.f)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(7, 36),
+                // (7,40): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // unsafe class C1(int x, S s) : Base(&x, &s.f)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s.f").WithLocation(7, 40)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AddressOfCapturedParameters_InLambdaOnly_01([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            var text = @"
+unsafe " + keyword + @" C1(int x, S s)
+{
+    int y = M(() => 
+              {
+                  int* p1 = &x;
+                  int* p2 = &s.f;
+              });
+
+    static int M(System.Action a)
+    {
+        return 0;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (6,29): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //                   int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x").WithLocation(6, 29),
+                // (7,29): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //                   int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(7, 29),
+
+                // PROTOTYPE(PrimaryConstructors): The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // (2,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe class  C1(int x, S s)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 22),
+                // (2,27): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe class  C1(int x, S s)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(2, 27)
+                );
+        }
+
+        [Fact]
+        public void AddressOfCapturedParameters_InLambdaOnly_02()
+        {
+            var text = @"
+class Base(System.Action a)
+{
+    System.Action aa = a;
+}
+
+unsafe class C1(int x, S s) : Base(() => 
+                                   {
+                                       int* p1 = &x;
+                                       int* p2 = &s.f;
+                                   });
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (9,50): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //                                        int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x").WithLocation(9, 50),
+                // (10,50): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //                                        int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(10, 50),
+
+                // PROTOTYPE(PrimaryConstructors): The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // (7,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe class C1(int x, S s) : Base(() => 
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(7, 21),
+                // (7,26): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe class C1(int x, S s) : Base(() => 
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(7, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AddressOfCapturedParameters_InLambdaOnly_03([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var text = @"
+unsafe " + keyword + @" C1(int x, S s)
+{
+    int* p1 = &x;
+    int* p2 = &s.f;
+
+    int y = M(() => 
+              {
+                  _ = x + s.f;
+              });
+
+    static int M(System.Action a)
+    {
+        return 0;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (4,15): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //     int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x").WithLocation(4, 15),
+                // (5,15): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //     int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(5, 15)
+                );
+        }
+
+        [Fact]
+        public void AddressOfCapturedParameters_InLambdaOnly_04()
+        {
+            var text = @"
+class Base(System.Action a)
+{
+    System.Action aa = a;
+}
+
+unsafe class C1(int x, S s) : Base(() => 
+                                   {
+                                       _ = x + s.f;
+                                   })
+{
+    int* p1 = &x;
+    int* p2 = &s.f;
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (12,15): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //     int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x").WithLocation(12, 15),
+                // (13,15): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //     int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void AddressOfCapturedParameters_InLambdaOnly_05()
+        {
+            var text = @"
+unsafe class Base
+{
+    public Base(int* x, int* y) {}
+}
+
+unsafe class C1(int x, S s) : Base(&x, &s.f)
+{
+    int y = M(() => 
+              {
+                  _ = x + s.f;
+              });
+
+    static int M(System.Action a)
+    {
+        return 0;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (7,36): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                // unsafe class C1(int x, S s) : Base(&x, &s.f)
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x").WithLocation(7, 36),
+                // (7,40): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                // unsafe class C1(int x, S s) : Base(&x, &s.f)
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(7, 40)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_089_AddressOfCapturedParameters([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var text = @"
+unsafe " + keyword + @" C1(int x, S s)
+{
+    int y = M(() => 
+              {
+                  int* p1 = &x;
+                  int* p2 = &s.f;
+              });
+
+    static int M(System.Action a)
+    {
+        return 0;
+    }
+
+    void M1()
+    {
+        _ = x + s.f;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            var expected = new[] {
+                // (6,29): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //                   int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(6, 29),
+                // (7,29): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //                   int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s.f").WithLocation(7, 29)
+                };
+
+            if (keyword == "struct")
+            {
+                expected = expected.Concat(
+                    // (6,30): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    //                   int* p1 = &x;
+                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(6, 30)
+                    ).Concat(
+                    // (7,30): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    //                   int* p2 = &s.f;
+                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "s").WithLocation(7, 30)
+                    ).ToArray();
+            }
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_090_AddressOfCapturedParameters()
+        {
+            var text = @"
+class Base(System.Action a)
+{
+    System.Action aa = a;
+}
+
+unsafe class C1(int x, S s) : Base(() => 
+                                   {
+                                       int* p1 = &x;
+                                       int* p2 = &s.f;
+                                   })
+{
+
+    void M1()
+    {
+        _ = x + s.f;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (9,50): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //                                        int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(9, 50),
+                // (10,50): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //                                        int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s.f").WithLocation(10, 50)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterCapturing_091_AddressOfCapturedParameters([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var text = @"
+unsafe " + keyword + @" C1(int x, S s)
+{
+    int* p1 = &x;
+    int* p2 = &s.f;
+
+    int y = M(() => 
+              {
+                  _ = x + s.f;
+              });
+
+    static int M(System.Action a)
+    {
+        return 0;
+    }
+
+    void M1()
+    {
+        _ = x + s.f;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            var expected = new[] {
+                // (4,15): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(4, 15),
+                // (5,15): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s.f").WithLocation(5, 15)
+                };
+
+            if (keyword == "struct")
+            {
+                expected = expected.Concat(
+                    // (9,23): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    //                   _ = x + s.f;
+                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(9, 23)
+                    ).Concat(
+                    // (9,27): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    //                   _ = x + s.f;
+                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "s").WithLocation(9, 27)
+                    ).ToArray();
+            }
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ParameterCapturing_092_AddressOfCapturedParameters()
+        {
+            var text = @"
+class Base(System.Action a)
+{
+    System.Action aa = a;
+}
+
+unsafe class C1(int x, S s) : Base(() => 
+                                   {
+                                       _ = x + s.f;
+                                   })
+{
+    int* p1 = &x;
+    int* p2 = &s.f;
+
+    void M1()
+    {
+        _ = x + s.f;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (12,15): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     int* p1 = &x;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(12, 15),
+                // (13,15): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     int* p2 = &s.f;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s.f").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_093_AddressOfCapturedParameters()
+        {
+            var text = @"
+unsafe class Base
+{
+    public Base(int* x, int* y) {}
+}
+
+unsafe class C1(int x, S s) : Base(&x, &s.f)
+{
+    int y = M(() => 
+              {
+                  _ = x + s.f;
+              });
+
+    static int M(System.Action a)
+    {
+        return 0;
+    }
+
+    void M1()
+    {
+        _ = x + s.f;
+    }
+}
+
+struct S
+{
+    public int f;    
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+                // (7,36): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // unsafe class C1(int x, S s) : Base(&x, &s.f)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(7, 36),
+                // (7,40): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // unsafe class C1(int x, S s) : Base(&x, &s.f)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s.f").WithLocation(7, 40)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_094_DefiniteAssignment()
+        {
+            var text = @"
+class C1(int x, S s, string y)
+{
+    void M1()
+    {
+        _ = x + s.f + y.Length;
+    }
+
+    void M2()
+    {
+        _ = s.f + y.Length + x;
+    }
+
+    void M3()
+    {
+        _ = y.Length + x + s.f;
+    }
+
+    void M4()
+    {
+        _ = x;
+    }
+
+    void M5()
+    {
+        _ = s.f;
+    }
+
+    void M6()
+    {
+        _ = y.Length;
+    }
+}
+
+struct S
+{
+    public int f;    
+    public S(int x) => f = x; 
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_095_DefiniteAssignment()
+        {
+            var text = @"
+class C1(out int x, out S s, out string y)
+{
+    void M1()
+    {
+        _ = x + s.f + y.Length;
+    }
+
+    void M2()
+    {
+        _ = s.f + y.Length + x;
+    }
+
+    void M3()
+    {
+        _ = y.Length + x + s.f;
+    }
+
+    void M4()
+    {
+        _ = x;
+    }
+
+    void M5()
+    {
+        _ = s.f;
+    }
+
+    void M6()
+    {
+        _ = y.Length;
+    }
+}
+
+struct S
+{
+    public int f;    
+    public S(int x) => f = x; 
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (2,7): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("x").WithLocation(2, 7),
+                // (2,7): error CS0177: The out parameter 's' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("s").WithLocation(2, 7),
+                // (2,7): error CS0177: The out parameter 'y' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("y").WithLocation(2, 7),
+                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_01()
+        {
+            var text = @"
+class C1(out int x, out S s, out string y)
+{
+    int f1 = x + s.f + y.Length;
+    int f2 = s.f + y.Length + x;
+    int f3 = y.Length + x + s.f;
+    int f4 = x;
+    int f5 = s.f;
+    int f6 = y.Length;
+}
+
+struct S
+{
+    public int f;    
+    public S(int x) => f = x; 
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (2,7): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("x").WithLocation(2, 7),
+                // (2,7): error CS0177: The out parameter 's' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("s").WithLocation(2, 7),
+                // (2,7): error CS0177: The out parameter 'y' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("y").WithLocation(2, 7),
+                // (4,14): error CS0269: Use of unassigned out parameter 'x'
+                //     int f1 = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x").WithArguments("x").WithLocation(4, 14),
+                // (4,18): error CS0170: Use of possibly unassigned field 'f'
+                //     int f1 = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.f").WithArguments("f").WithLocation(4, 18),
+                // (4,24): error CS0269: Use of unassigned out parameter 'y'
+                //     int f1 = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "y").WithArguments("y").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_02()
+        {
+            var text = @"
+class C1(out int x, out S s, out string y)
+{
+    int xx = x = 1;
+    S ss = s = default;
+    string yy = y = """";
+
+    int f1 = x + s.f + y.Length;
+    int f2 = s.f + y.Length + x;
+    int f3 = y.Length + x + s.f;
+    int f4 = x;
+    int f5 = s.f;
+    int f6 = y.Length;
+}
+
+struct S
+{
+    public int f;    
+    public S(int x) => f = x; 
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_03()
+        {
+            var text = @"
+class C1(out int x, out int y)
+{
+    int f1 = y;
+    int xx = x = 1;
+    int f2 = x;
+    int yy = y = 1;
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (4,14): error CS0269: Use of unassigned out parameter 'y'
+                //     int f1 = y;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "y").WithArguments("y").WithLocation(4, 14)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_04()
+        {
+            var text = @"
+class Base
+{
+    public Base(int x, int y, int z) {}
+}
+
+class C1(out int x, out S s, out string y) : Base(x, s.f, y.Length);
+
+struct S
+{
+    public int f;    
+    public S(int x) => f = x; 
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (7,7): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y) : Base(x, s.f, y.Length);
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("x").WithLocation(7, 7),
+                // (7,7): error CS0177: The out parameter 's' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y) : Base(x, s.f, y.Length);
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("s").WithLocation(7, 7),
+                // (7,7): error CS0177: The out parameter 'y' must be assigned to before control leaves the current method
+                // class C1(out int x, out S s, out string y) : Base(x, s.f, y.Length);
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("y").WithLocation(7, 7),
+                // (7,51): error CS0269: Use of unassigned out parameter 'x'
+                // class C1(out int x, out S s, out string y) : Base(x, s.f, y.Length);
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x").WithArguments("x").WithLocation(7, 51),
+                // (7,54): error CS0170: Use of possibly unassigned field 'f'
+                // class C1(out int x, out S s, out string y) : Base(x, s.f, y.Length);
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.f").WithArguments("f").WithLocation(7, 54),
+                // (7,59): error CS0269: Use of unassigned out parameter 'y'
+                // class C1(out int x, out S s, out string y) : Base(x, s.f, y.Length);
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "y").WithArguments("y").WithLocation(7, 59)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment_05()
+        {
+            var text = @"
+class Base
+{
+    public Base(int x, int y, int z) {}
+}
+
+partial class C1(out int x, out S s, out string y) : Base(x, s.f, y.Length);
+
+partial class C1
+{
+    int xx = x = 1;
+    S ss = s = default;
+    string yy = y = """";
+}
+
+struct S
+{
+    public int f;    
+    public S(int x) => f = x; 
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_06()
+        {
+            var text = @"
+class Base
+{
+    public Base(int x) {}
+}
+
+class C1(out int x) : Base(x = 1);
+";
+            CreateCompilation(text).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_096_NullableAnalysis_LocalFunction()
+        {
+            var source =
+@"
+#nullable enable
+
+class C(string? x)
+{
+    void F1()
+    {
+        x = """";
+        f();
+        x = """";
+        g();
+        void f()
+        {
+            x.ToString(); // warn
+            x = null;
+            f();
+        }
+        void g()
+        {
+            x.ToString();
+            x = null;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_097_NullableAnalysis_LocalFunction()
+        {
+            var source =
+@"
+#nullable enable
+
+class C(string? x)
+{
+    void F1()
+    {
+        x = """";
+        f();
+        h();
+        void f()
+        {
+            x.ToString();
+        }
+        void g()
+        {
+            x.ToString(); // warn
+        }
+        void h()
+        {
+            x = null;
+            g();
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (17,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(17, 13)
+                );
         }
 
         [Fact]
