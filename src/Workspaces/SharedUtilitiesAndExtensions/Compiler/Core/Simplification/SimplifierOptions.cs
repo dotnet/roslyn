@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = DefaultPreferPredefinedTypeKeyword;
         }
 
+        [DataMember]
         public CommonOptions Common { get; init; } = CommonOptions.Default;
 
         public CodeStyleOption2<bool> QualifyFieldAccess => Common.QualifyFieldAccess;
