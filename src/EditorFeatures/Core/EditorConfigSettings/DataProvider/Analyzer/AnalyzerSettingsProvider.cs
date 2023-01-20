@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
                         var selectedDiagnostic = g.First();
                         var isEditorconfig = selectedDiagnostic.IsDefinedInEditorConfig(editorConfigOptions);
                         var settingLocation = new SettingLocation(isEditorconfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, FileName);
-                        var severity = selectedDiagnostic.GetEffectiveSeverity(editorConfigOptions);
+                        var severity = selectedDiagnostic.GetEffectiveSeverity(editorConfigOptions, providerAndTree: null);
                         return new AnalyzerSetting(selectedDiagnostic, severity, SettingsUpdater, language, settingLocation);
                     });
             }
