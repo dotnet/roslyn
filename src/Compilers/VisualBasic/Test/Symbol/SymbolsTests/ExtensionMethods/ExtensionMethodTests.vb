@@ -2553,9 +2553,7 @@ End Module
 ]]></file>
 </compilation>, {Net40.SystemCore})
 
-            Dim tree = compilation.SyntaxTrees.Single()
             Dim extensionMethod = DirectCast(compilation.GetSymbolsWithName("ExtMethod", SymbolFilter.Member).Single(), IMethodSymbol)
-
             Assert.NotNull(extensionMethod)
 
             Dim reducedMethodOnC = extensionMethod.ReduceExtensionMethod(compilation.GetTypeByMetadataName("C"))
