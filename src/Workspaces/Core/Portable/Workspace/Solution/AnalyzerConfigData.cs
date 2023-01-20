@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -18,8 +19,27 @@ internal readonly struct AnalyzerConfigData
 
     public AnalyzerConfigData(AnalyzerConfigOptionsResult result)
     {
-        ConfigOptions = StructuredAnalyzerConfigOptions.Create(result.AnalyzerOptions);
+        ConfigOptions = StructuredAnalyzerConfigOptions.Create(GetAggregatedOptions(result));
         AnalyzerOptions = result.AnalyzerOptions;
         TreeOptions = result.TreeOptions;
+    }
+
+    private static ImmutableDictionary<string, string> GetAggregatedOptions(AnalyzerConfigOptionsResult result)
+    {
+        if (result.TreeOptions.IsEmpty)
+            return result.AnalyzerOptions;
+
+        var builder = ImmutableDictionary.CreateBuilder<string, string>(result.AnalyzerOptions.KeyComparer, result.AnalyzerOptions.ValueComparer);
+        builder.AddRange(result.AnalyzerOptions);
+
+        foreach (var (id, severity) in result.TreeOptions)
+        {
+            var key = $"dotnet_diagnostic.{id}.severity";
+            var value = severity.ToEditorConfigString();
+            builder.Add(key, value);
+        }
+
+        return builder.ToImmutable();
+
     }
 }

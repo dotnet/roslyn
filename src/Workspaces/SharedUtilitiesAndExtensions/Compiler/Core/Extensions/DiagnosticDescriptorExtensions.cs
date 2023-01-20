@@ -55,6 +55,41 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return effectiveSeverity;
         }
 
+        /// <summary>
+        /// Gets document-level effective severity of the given <paramref name="descriptor"/> accounting for severity configurations from both the following sources:
+        /// 1. Compilation options from ruleset file, if any, and command line options such as /nowarn, /warnaserror, etc.
+        /// 2. Analyzer config documents at the document root directory or in ancestor directories.
+        /// </summary>
+        public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions compilationOptions, SyntaxTree tree, AnalyzerOptions analyzerOptions)
+        {
+            var effectiveSeverity = descriptor.GetEffectiveSeverity(compilationOptions);
+
+            // Apply analyzer config options, unless configured with a non-default value in compilation options.
+            // Note that compilation options (/nowarn, /warnaserror) override analyzer config options.
+            if (!compilationOptions.SpecificDiagnosticOptions.TryGetValue(descriptor.Id, out var reportDiagnostic) ||
+                reportDiagnostic == ReportDiagnostic.Default)
+            {
+                // First check for tree-level analyzer config options.
+                var analyzerConfigOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
+                var severityInEditorConfig = descriptor.GetEffectiveSeverity(analyzerConfigOptions);
+                if (severityInEditorConfig != ReportDiagnostic.Default)
+                {
+                    effectiveSeverity = severityInEditorConfig;
+                }
+                else
+                {
+                    // If not found, check for global analyzer config options.
+                    var severityInGlobalConfig = descriptor.GetEffectiveSeverity(analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions);
+                    if (severityInGlobalConfig != ReportDiagnostic.Default)
+                    {
+                        effectiveSeverity = severityInGlobalConfig;
+                    }
+                }
+            }
+
+            return effectiveSeverity;
+        }
+
         public static bool IsDefinedInEditorConfig(this DiagnosticDescriptor descriptor, AnalyzerConfigOptions analyzerConfigOptions)
         {
             // Check if the option is defined explicitly in the editorconfig
