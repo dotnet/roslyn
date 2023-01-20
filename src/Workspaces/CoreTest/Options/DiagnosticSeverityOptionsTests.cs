@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -43,12 +44,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             workspace.TryApplyChanges(project.Solution);
 
             var document = project.Documents.Single();
-            var tree = await document.GetSyntaxTreeAsync();
+            var tree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
             var optionsProvider = project.AnalyzerOptions.AnalyzerConfigOptionsProvider;
             var analyzerConfigOptions = testGlobalConfig ? optionsProvider.GlobalOptions : optionsProvider.GetOptions(tree);
             Assert.Equal(ReportDiagnostic.Error, descriptor.GetEffectiveSeverity(analyzerConfigOptions));
 
-            var compilation = await project.GetCompilationAsync();
+            var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(ReportDiagnostic.Error, descriptor.GetEffectiveSeverity(compilation.Options, tree, project.AnalyzerOptions));
         }
     }
