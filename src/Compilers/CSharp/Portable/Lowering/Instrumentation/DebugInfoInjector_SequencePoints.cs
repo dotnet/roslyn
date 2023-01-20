@@ -164,13 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
 
+            Debug.Assert(declarationSyntax.Parent != null);
+
             // The first token may be a modifier (like public) or using or await
             int start = firstToken?.SpanStart ?? declarationSyntax.SpanStart;
 
             int end;
             if (declarationSyntax.Variables.Count == 1)
             {
-                Debug.Assert(declarationSyntax.Parent != null);
 
                 // [|int x = 1;|]
                 // [|public static int x = 1;|]
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             part = TextSpan.FromBounds(start, end);
-            node = declarationSyntax.Parent!;
+            node = declarationSyntax.Parent;
         }
 
         private static BoundExpression AddConditionSequencePoint(BoundExpression condition, SyntaxNode synthesizedVariableSyntax, SyntheticBoundNodeFactory factory)
