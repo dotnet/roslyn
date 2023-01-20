@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis
         public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText);
 
         /// <summary>
-        /// Adds a <see cref="Diagnostic"/> to the users compilation 
+        /// Adds a <see cref="Diagnostic"/> to the users compilation
         /// </summary>
         /// <param name="diagnostic">The diagnostic that should be added to the compilation</param>
         /// <remarks>
