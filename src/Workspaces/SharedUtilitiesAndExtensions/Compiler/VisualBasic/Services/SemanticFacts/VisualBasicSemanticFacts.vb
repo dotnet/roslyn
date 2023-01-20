@@ -85,6 +85,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If VisualBasicSyntaxFacts.Instance.IsExecutableStatement(ancestor) Then
                         Return Nothing
                     End If
+
+                    If VisualBasicSyntaxFacts.Instance.IsIdentifierContainerPreprocessorDirectiveTrivia(ancestor) Then
+                        Return semanticModel.Compilation.CreatePreprocessingSymbol(token.Text)
+                    End If
                 End If
             Next
 
