@@ -1771,8 +1771,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_CannotInheritFromTypeWithRequiredMembers = 37322
         ERR_RequiredMembersInvalid = 37323
         ERR_NewConstraintCannotHaveRequiredMembers = 37324
+        ERR_DoNotUseRequiredMember = 37325
 
-        ERR_NextAvailable = 37325
+        ERR_NextAvailable = 37326
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

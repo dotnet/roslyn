@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
 
-        Public MustOverride ReadOnly Property IsRequired As Boolean Implements IPropertySymbol.IsRequired
+        Public MustOverride ReadOnly Property IsRequired As Boolean
 
 #Region "IPropertySymbol"
 
@@ -570,6 +570,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_SetMethod As IMethodSymbol Implements IPropertySymbol.SetMethod
             Get
                 Return Me.SetMethod
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_IsRequired As Boolean Implements IPropertySymbol.IsRequired
+            Get
+                Return Me.IsRequired
             End Get
         End Property
 

@@ -4,6 +4,8 @@
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Moq
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -324,6 +326,36 @@ End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageRefere
             comp.AssertNoDiagnostics()
         End Sub
 
+        <Theory>
+        <CombinatorialData>
+        Public Sub EnforcedRequiredMembers_ThroughMetadataAndSource(<CombinatorialValues("As New Derived()", " = new Derived()")> constructor As String)
+            Dim originalVbComp = CreateCompilation("
+Public Class Base
+End Class", targetFramework:=TargetFramework.Net70)
+
+            originalVbComp.AssertNoDiagnostics()
+
+            Dim csharpComp = CreateCSharpCompilation("
+public class Derived : Base
+{
+    public required int Prop { get; set; }
+}", referencedAssemblies:=DirectCast(Basic.Reference.Assemblies.Net70.All, IEnumerable(Of MetadataReference)).Append(originalVbComp.EmitToImageReference()))
+
+            Dim comp = CreateCompilation($"
+Module M
+    Sub Main()
+        Dim derived {constructor}
+    End Sub
+End Module", {originalVbComp.ToMetadataReference(), csharpComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute arguments.
+        Dim derived <%= constructor %>
+                           ~~~~~~~
+                                        </expected>
+            )
+        End Sub
+
         Private Function GetDerivedOverrideDefinition(hasSetsRequiredMembers As Boolean) As String
             Return $"
 using System.Diagnostics.CodeAnalysis;
@@ -397,29 +429,127 @@ End Module"
 
         <Fact>
         Public Sub EnforcedRequiredMembers_ShadowedFromMetadata_01()
-            Dim malformedDefinition = CreateCompilation("
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+            ' Equivalent to
+            ' public class Base
+            ' {
+            '     public required int P { get; set; }
+            ' }
+            ' public class Derived
+            ' {
+            '     public new required int P { get; set; }
+            '     public Derived() {}
+            '     [SetsRequiredMembers] public Derived(int unused) {}
+            ' }
+            Dim il = "
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-", targetFramework:=TargetFramework.Net70)
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}"
+
+            Dim ilRef = CompileIL(il)
 
             Dim comp = CreateCompilation("
 Module M
@@ -427,7 +557,7 @@ Module M
         Dim d1 = New Derived()
         Dim d2 = New Derived(1)
     End Sub
-End Module", {malformedDefinition.EmitToImageReference()})
+End Module", {ilRef}, targetFramework:=TargetFramework.Net70)
 
             comp.AssertTheseDiagnostics(<expected>
 BC37323: The required members list for 'Derived' is malformed and cannot be interpreted.
@@ -438,28 +568,124 @@ BC37323: The required members list for 'Derived' is malformed and cannot be inte
 
         <Fact>
         Public Sub EnforcedRequiredMembers_ShadowedFromMetadata_02()
-            Dim malformedDefinition = CreateCompilation("
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+            ' Equivalent to
+            ' public class Base
+            ' {
+            '     public required int P { get; set; }
+            ' }
+            ' [RequiredMember] public class Derived
+            ' {
+            '     public new int P { get; set; }
+            '     public Derived() {}
+            '     [SetsRequiredMembers] public Derived(int unused) {}
+            ' }
+            Dim il = "
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-", targetFramework:=TargetFramework.Net70)
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}"
+
+            Dim ilRef = CompileIL(il)
 
             Dim comp = CreateCompilation("
 Module M
@@ -467,7 +693,7 @@ Module M
         Dim d1 = New Derived()
         Dim d2 = New Derived(1)
     End Sub
-End Module", {malformedDefinition.EmitToImageReference()})
+End Module", {ilRef}, targetFramework:=TargetFramework.Net70)
 
             comp.AssertTheseDiagnostics(<expected>
 BC37323: The required members list for 'Derived' is malformed and cannot be interpreted.
@@ -478,27 +704,121 @@ BC37323: The required members list for 'Derived' is malformed and cannot be inte
 
         <Fact>
         Public Sub EnforcedRequiredMembers_ShadowedFromMetadata_03()
-            Dim malformedDefinition = CreateCompilation("
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+            ' Equivalent to
+            ' public class Base
+            ' {
+            '     public required int P { get; set; }
+            ' }
+            ' public class Derived
+            ' {
+            '     public new int P { get; set; }
+            '     public Derived() {}
+            '     [SetsRequiredMembers] public Derived(int unused) {}
+            ' }
+            Dim il = "
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-", targetFramework:=TargetFramework.Net70)
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}"
+
+            Dim ilRef = CompileIL(il)
 
             Dim comp = CreateCompilation("
 Module M
@@ -506,7 +826,7 @@ Module M
         Dim d1 = New Derived()
         Dim d2 = New Derived(1)
     End Sub
-End Module", {malformedDefinition.EmitToImageReference()})
+End Module", {ilRef}, targetFramework:=TargetFramework.Net70)
 
             comp.AssertTheseDiagnostics(<expected>
 BC37323: The required members list for 'Derived' is malformed and cannot be interpreted.
@@ -736,6 +1056,36 @@ End Module"
         End Sub
 
         <Fact>
+        Public Sub GenericSubstitution_Inheritance_NoneSet()
+            Dim cDef = "
+public class C<T>
+{
+    public required T Prop { get; set; }
+    public required T Field;
+}
+public class D : C<int> {}"
+
+            Dim cComp = CreateCSharpCompilationWithRequiredMembers(cDef)
+
+            Dim vbCode = "
+Module M
+    Sub Main()
+        Dim d = New D()
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<expected>
+BC37321: Required member 'Public Field As Integer' must be set in the object initializer or attribute arguments.
+        Dim d = New D()
+                    ~
+BC37321: Required member 'Public Overloads Property Prop As Integer' must be set in the object initializer or attribute arguments.
+        Dim d = New D()
+                    ~
+                                        </expected>)
+        End Sub
+
+        <Fact>
         Public Sub ProtectedParameterlessConstructorInStruct()
             ' Equivalent to
             ' public struct S
@@ -816,6 +1166,118 @@ BC37321: Required member 'Public Overloads Property Prop As Integer' must be set
         Dim s = New S()
                     ~
                                         </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub RequiredMemberAttributeDisallowedInSource()
+            Dim comp = CreateCompilation("
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class C
+    <RequiredMember>
+    Public Property P As Integer
+
+    <RequiredMember>
+    Public F As Integer
+End Class", targetFramework:=TargetFramework.Net70)
+
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC37325: 'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.
+<RequiredMember>
+ ~~~~~~~~~~~~~~
+BC37325: 'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.
+    <RequiredMember>
+     ~~~~~~~~~~~~~~
+BC37325: 'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.
+    <RequiredMember>
+     ~~~~~~~~~~~~~~]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleWithRequiredFields()
+            Dim csharpComp = CreateCSharpCompilation("
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public required T1 Item1;
+        public required T2 Item2;
+        public required int AnotherField;
+        public required int Property { get; set; }
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static bool operator ==(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => throw null;
+        public static bool operator !=(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => throw null;
+
+        public override bool Equals(object o)
+            => throw null;
+        public override int GetHashCode()
+            => throw null;
+    }
+
+    namespace Runtime.CompilerServices
+    {
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+        public sealed class RequiredMemberAttribute : Attribute
+        {
+            public RequiredMemberAttribute()
+            {
+            }
+        }
+
+        [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+        public sealed class CompilerFeatureRequiredAttribute : Attribute
+        {
+            public CompilerFeatureRequiredAttribute(string featureName)
+            {
+                FeatureName = featureName;
+            }
+            public string FeatureName { get; }
+            public bool IsOptional { get; set; }
+        }
+    }
+    namespace Diagnostics.CodeAnalysis
+    {
+        [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
+        public sealed class SetsRequiredMembersAttribute : Attribute
+        {
+            public SetsRequiredMembersAttribute()
+            {
+            }
+        }
+    }
+}
+", referencedAssemblies:=Basic.Reference.Assemblies.Net461.All)
+
+            ' Using Net461 to get a framework without ValueTuple
+
+            Dim comp = CreateCompilation("
+Class C
+    Sub Main()
+        Dim t = (1, 2)
+    End Sub
+End Class", {csharpComp.EmitToImageReference()}, targetFramework:=TargetFramework.Mscorlib461)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim tuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim tupleType = DirectCast(model.GetTypeInfo(tuple).Type, TupleTypeSymbol)
+
+            Assert.True(tupleType.HasAnyDeclaredRequiredMembers)
+            AssertEx.Equal(
+                {"AnotherField", "Item1", "Item2", "Property"},
+                tupleType.AllRequiredMembers.Select(Function(kvp) kvp.Key).OrderBy(StringComparer.InvariantCulture))
+            Assert.All(tupleType.TupleElements, Function(field) field.IsRequired)
+            Assert.True(tupleType.GetMember(Of PropertySymbol)("Property").IsRequired)
         End Sub
     End Class
 End Namespace

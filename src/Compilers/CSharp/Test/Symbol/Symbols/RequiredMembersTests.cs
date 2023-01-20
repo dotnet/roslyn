@@ -18,25 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
 [CompilerTrait(CompilerFeature.RequiredMembers)]
 public class RequiredMembersTests : CSharpTestBase
 {
-    private const string RequiredMemberAttributeVB = @"
-Namespace System.Runtime.CompilerServices
-    <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Field Or AttributeTargets.Property, Inherited := false, AllowMultiple := false)>
-    Public Class RequiredMemberAttribute
-        Inherits Attribute
-    End Class
-End Namespace
-Namespace System.Diagnostics.CodeAnalysis
-    <AttributeUsage(AttributeTargets.Constructor, Inherited := false, AllowMultiple := false)>
-    Public Class SetsRequiredMembersAttribute
-        Inherits Attribute
-    End Class
-End Namespace";
-
     private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null, TargetFramework targetFramework = TargetFramework.Standard)
         => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
-
-    private Compilation CreateVisualBasicCompilationWithRequiredMembers(string source)
-        => CreateVisualBasicCompilation(new[] { source, RequiredMemberAttributeVB });
 
     private static Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths, string expectedAttributeLayout)
     {
@@ -1759,26 +1742,59 @@ public class C
     [Fact]
     public void EnforcedRequiredMembers_NoInheritance_Unsettable_FromMetadata()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
+        // Equivalent to:
+        // public class C
+        // {
+        //     public required readonly int Field1;
+        //     public required int Prop1 { get; }
+        // }
+        var il = @"
+.class public auto ansi C
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _Prop1
+    .field public initonly int32 Field1
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
 
-<RequiredMember>
-Public Class C
-    <RequiredMember>
-    Public Readonly Property Prop1 As Integer
-    <RequiredMember>
-    Public Readonly Field1 As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        vbComp.VerifyEmitDiagnostics();
+    .method public specialname 
+        instance int32 get_Prop1 () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 C::_Prop1
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .property instance int32 Prop1()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 C::get_Prop1()
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = @"
 var c = new C();
 c = new C() { Prop1 = 1, Field1 = 1 };
 ";
-        var comp = CreateCompilation(new[] { c }, references: new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(new[] { c }, references: new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (2,13): error CS9035: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // var c = new C();
@@ -2443,6 +2459,88 @@ public class Derived : Base
     }
 
     [Fact]
+    public void EnforcedRequiredMembers_Override_DiffersByModreq_NoneSet()
+    {
+        // Equivalent to 
+        // class Base
+        // {
+        //     public required modopt(object) int Prop1 { get; set; }
+        // }
+        var @base = @"
+.class public auto ansi beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 '<Prop1>k__BackingField'
+
+    .method public hidebysig specialname newslot virtual 
+        instance int32 get_Prop1 () cil managed 
+    {
+        ldarg.0
+        ldfld int32 Base::'<Prop1>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void set_Prop1 (
+            int32 'value'
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::'<Prop1>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+            01 00 5f 43 6f 6e 73 74 72 75 63 74 6f 72 73 20
+            6f 66 20 74 79 70 65 73 20 77 69 74 68 20 72 65
+            71 75 69 72 65 64 20 6d 65 6d 62 65 72 73 20 61
+            72 65 20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64
+            20 69 6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e
+            20 6f 66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65
+            72 2e 01 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 0f 52 65 71 75 69 72 65 64 4d 65 6d 62 65
+            72 73 00 00
+        )
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+
+    .property instance int32 modopt([mscorlib]System.Object) Prop1()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_Prop1()
+        .set instance void Base::set_Prop1(int32)
+    }
+}";
+
+        var code = @"
+_ = new Derived() { Prop1 = 1 };
+
+public class Derived : Base
+{
+    public override required int Prop1 { get; set; }
+}
+";
+
+        var baseRef = CompileIL(@base);
+
+        var comp = CreateCompilation(code, new[] { baseRef }, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void EnforcedRequiredMembers_OverrideRetargeted_AllSet()
     {
         var retargetedCode = @"public class C {}";
@@ -2508,28 +2606,118 @@ public class Derived : Base
         Assert.IsType<RetargetingNamedTypeSymbol>(comp.GetTypeByMetadataName("Base"));
     }
 
+    /// <summary>
+    /// Equivalent to
+    /// <code>
+    /// public class Base
+    /// {
+    ///     public required int P { get; set; }
+    /// }
+    /// public class Derived
+    /// {
+    ///     public new required int P { get; set; }
+    /// }
+    /// </code>
+    /// </summary>
+    private const string ShadowingBaseAndDerivedIL = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_01()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
-
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
-End Class
-";
-
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
-
         var c = @"
 _ = new Derived2();
 _ = new Derived3();
@@ -2541,7 +2729,9 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var ilRef = CompileIL(ShadowingBaseAndDerivedIL);
+
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -2558,24 +2748,7 @@ class Derived3 : Derived { }";
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_01_HasSetsRequiredMembers()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
-
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
-End Class
-";
-
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+        var ilRef = CompileIL(ShadowingBaseAndDerivedIL);
 
         var c = @"
 using System.Diagnostics.CodeAnalysis;
@@ -2589,30 +2762,117 @@ class Derived2 : Derived
     public Derived2(int x) {}
 }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
     }
 
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_02()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // [RequiredMember]public class Derived
+        // {
+        //     public new int P { get; set; }
+        // }
+        // </code>
+        string il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = @"
 _ = new Derived2();
@@ -2624,7 +2884,7 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -2638,22 +2898,105 @@ class Derived3 : Derived { }";
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_03()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived
+        // {
+        //     public new int P { get; set; }
+        // }
+        // </code>
+        string il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
 
         var c = @"
 _ = new Derived2();
@@ -2665,7 +3008,9 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var ilRef = CompileIL(il);
+
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -3071,38 +3416,133 @@ record DerivedDerived1 : Derived
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_01()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived
+        // {
+        //     public new required int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
@@ -3113,37 +3553,130 @@ End Class
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_02()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // [RequiredMember] public class Derived
+        // {
+        //     public new int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
@@ -3154,36 +3687,127 @@ End Class
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_03()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived
+        // {
+        //     public new int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();

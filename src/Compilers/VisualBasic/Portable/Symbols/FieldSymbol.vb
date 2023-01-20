@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
 
-        Public MustOverride ReadOnly Property IsRequired As Boolean Implements IFieldSymbol.IsRequired
+        Public MustOverride ReadOnly Property IsRequired As Boolean
 
         ''' <summary>
         ''' If this variable serves as a backing variable for an automatically generated
@@ -416,6 +416,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IFieldSymbol_IsVolatile As Boolean Implements IFieldSymbol.IsVolatile, IFieldSymbolInternal.IsVolatile
             Get
                 Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbol_IsRequired As Boolean Implements IFieldSymbol.IsRequired
+            Get
+                Return Me.IsRequired
             End Get
         End Property
 

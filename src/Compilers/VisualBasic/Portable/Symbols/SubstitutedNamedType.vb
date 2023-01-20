@@ -590,26 +590,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-        Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
             Get
-                Dim originalRequiredMembers = OriginalDefinition.AllRequiredMembers
-                If originalRequiredMembers.IsEmpty OrElse originalRequiredMembers = s_requiredMembersErrorSentinel Then
-                    Return originalRequiredMembers
-                End If
-
-                Dim members = GetMembersUnordered()
-                Dim builder = originalRequiredMembers.ToBuilder()
-                For Each kvp In originalRequiredMembers
-                    builder(kvp.Key) = SubstituteTypeParametersInMember(kvp.Value)
-                Next
-
-                Return builder.ToImmutable()
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
-            Get
-                Return OriginalDefinition.HasRequiredMembersError
+                Return OriginalDefinition.HasAnyDeclaredRequiredMembers
             End Get
         End Property
 

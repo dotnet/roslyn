@@ -4055,6 +4055,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
     Friend Class EqualsIgnoringComparer

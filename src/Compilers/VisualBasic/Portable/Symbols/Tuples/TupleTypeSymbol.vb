@@ -1125,15 +1125,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Sub
 
-        Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
             Get
-                Return _underlyingType.AllRequiredMembers
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
-            Get
-                Return _underlyingType.HasRequiredMembersError
+                Return _underlyingType.HasAnyDeclaredRequiredMembers
             End Get
         End Property
     End Class

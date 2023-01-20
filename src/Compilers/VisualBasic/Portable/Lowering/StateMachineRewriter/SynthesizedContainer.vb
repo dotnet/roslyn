@@ -333,5 +333,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace
