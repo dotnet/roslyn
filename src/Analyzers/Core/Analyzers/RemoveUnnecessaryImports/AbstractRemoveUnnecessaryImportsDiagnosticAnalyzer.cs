@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // for us appropriately.
                 var mergedImports = MergeImports(unnecessaryImports);
 
-                var contiguousSpans = GetContiguousSpans(mergedImports);
                 var descriptor = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
                     ? _generatedCodeClassificationIdDescriptor
                     : _classificationIdDescriptor;
+                var contiguousSpans = GetContiguousSpans(mergedImports);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
                     CreateFixableDiagnostics(mergedImports, tree, cancellationToken));
