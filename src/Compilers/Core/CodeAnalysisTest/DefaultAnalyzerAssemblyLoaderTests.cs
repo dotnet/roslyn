@@ -30,20 +30,11 @@ using Roslyn.Test.Utilities.Desktop;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    [CollectionDefinition(Name)]
-    public class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
-    {
-        public const string Name = nameof(AssemblyLoadTestFixtureCollection);
-        private AssemblyLoadTestFixtureCollection() { }
-    }
-
 #if NETCOREAPP
-    public class InvokeUtil
-    {
-        internal virtual DefaultAnalyzerAssemblyLoader Create(AssemblyLoadContext alc) =>
-            new DefaultAnalyzerAssemblyLoader(alc);
 
-        public void Exec(AssemblyLoadContext alc, string typeName, string methodName)
+    public sealed class InvokeUtil
+    {
+        public void Exec(AssemblyLoadContext alc, bool shadowLoad, string typeName, string methodName)
         {
             // Ensure that the test did not load any of the test fixture assemblies into 
             // the default load context. That should never happen. Assemblies should either 
@@ -54,7 +45,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             try
             {
                 using var fixture = new AssemblyLoadTestFixture();
-                var loader = Create(alc);
+                var loader = shadowLoad
+                    ? new ShadowCopyAnalyzerAssemblyLoader(alc)
+                    : new DefaultAnalyzerAssemblyLoader(alc);
                 DefaultAnalyzerAssemblyLoaderTestsBase.InvokeTestCode(loader, fixture, typeName, methodName);
             }
             finally
@@ -64,25 +57,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 
-    public sealed class ShadowInvokeUtil : InvokeUtil
-    {
-        internal override DefaultAnalyzerAssemblyLoader Create(AssemblyLoadContext alc) =>
-            new ShadowCopyAnalyzerAssemblyLoader(compilerLoadContext: alc);
-    }
-
 #else
 
-    public class InvokeUtil : MarshalByRefObject
+    public sealed class InvokeUtil : MarshalByRefObject
     {
-        internal virtual DefaultAnalyzerAssemblyLoader Create() =>
-            new DefaultAnalyzerAssemblyLoader();
-
-        public void Exec(string typeName, string methodName)
+        public void Exec(bool shadowLoad, string typeName, string methodName)
         {
             try
             {
-                var loader = Create();
                 using var fixture = new AssemblyLoadTestFixture();
+                var loader = shadowLoad
+                    ? new ShadowCopyAnalyzerAssemblyLoader()
+                    : new DefaultAnalyzerAssemblyLoader();
                 DefaultAnalyzerAssemblyLoaderTestsBase.InvokeTestCode(loader, fixture, typeName, methodName);
             }
             catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
@@ -93,41 +79,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 
-    public sealed class ShadowInvokeUtil : InvokeUtil
-    {
-        internal override DefaultAnalyzerAssemblyLoader Create() =>
-            new ShadowCopyAnalyzerAssemblyLoader();
-    }
 #endif
 
-    public class DefaultAnalyzerAssemblyLoaderTests : DefaultAnalyzerAssemblyLoaderTestsBase<InvokeUtil>
+    public sealed class DefaultAnalyzerAssemblyLoaderTestsBase : TestBase
     {
-    }
+        public DefaultAnalyzerAssemblyLoaderTestsBase()
+        {
+        }
 
-    public class ShadowCopyDefaultAnalyzerAssemblyLoaderTests : DefaultAnalyzerAssemblyLoaderTestsBase<ShadowInvokeUtil>
-    {
-    }
-
-    public abstract class DefaultAnalyzerAssemblyLoaderTestsBase<T> : DefaultAnalyzerAssemblyLoaderTestsBase
-        where T : InvokeUtil
-    {
-        internal override void Run(Action<DefaultAnalyzerAssemblyLoader, AssemblyLoadTestFixture> action, [CallerMemberName] string? memberName = null)
+        private void Run(bool shadowLoad, Action<DefaultAnalyzerAssemblyLoader, AssemblyLoadTestFixture> action, [CallerMemberName] string? memberName = null)
         {
 #if NETCOREAPP
             var alc = AssemblyLoadContextUtils.Create($"Test {memberName}");
             var assembly = alc.LoadFromAssemblyName(typeof(InvokeUtil).Assembly.GetName());
             var util = assembly.CreateInstance(typeof(InvokeUtil).FullName)!;
             var method = util.GetType().GetMethod("Exec", BindingFlags.Public | BindingFlags.Instance)!;
-            method.Invoke(util, new object[] { alc, action.Method.DeclaringType!.FullName!, action.Method.Name });
+            method.Invoke(util, new object[] { alc, shadowLoad, action.Method.DeclaringType!.FullName!, action.Method.Name });
 
 #else
             AppDomain? appDomain = null;
             try
             {
                 appDomain = AppDomainUtils.Create($"Test {memberName}");
-                var type = typeof(T);
+                var type = typeof(InvokeUtil);
                 var util = (InvokeUtil)appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
-                util.Exec(action.Method.DeclaringType.FullName, action.Method.Name);
+                util.Exec(shadowLoad, action.Method.DeclaringType.FullName, action.Method.Name);
             }
             finally
             {
@@ -135,15 +111,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 #endif
         }
-    }
-
-    public abstract class DefaultAnalyzerAssemblyLoaderTestsBase : TestBase
-    {
-        public DefaultAnalyzerAssemblyLoaderTestsBase()
-        {
-        }
-
-        internal abstract void Run(Action<DefaultAnalyzerAssemblyLoader, AssemblyLoadTestFixture> action, [CallerMemberName] string? memberName = null);
 
         /// <summary>
         /// This is called from our newly created AppDomain or AssemblyLoadContext and needs to get 
@@ -164,11 +131,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             member.Invoke(obj, new object[] { loader, fixture });
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
-        public void LoadWithDependency()
+        public void LoadWithDependency(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var analyzerDependencyFile = testFixture.AnalyzerDependency;
                 var analyzerMainFile = testFixture.AnalyzerWithDependency;
@@ -189,30 +157,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        [Fact]
-        public void AddDependencyLocationThrowsOnNull()
+        [Theory]
+        [CombinatorialData]
+        public void AddDependencyLocationThrowsOnNull(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null!));
                 Assert.Throws<ArgumentException>("fullPath", () => loader.AddDependencyLocation("a"));
             });
         }
 
-        [Fact]
-        public void ThrowsForMissingFile()
+        [Theory]
+        [CombinatorialData]
+        public void ThrowsForMissingFile(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dll");
                 Assert.ThrowsAny<Exception>(() => loader.LoadFromPath(path));
             });
         }
 
-        [Fact]
-        public void BasicLoad()
+        [Theory]
+        [CombinatorialData]
+        public void BasicLoad(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 loader.AddDependencyLocation(testFixture.Alpha.Path);
                 Assembly alpha = loader.LoadFromPath(testFixture.Alpha.Path);
@@ -221,10 +192,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_Multiple()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_Multiple(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -259,10 +231,11 @@ Delta: Gamma: Beta: Test B
         /// is strong suspicion it's to delay loading of analyzers until absolutely necessary. As such we're
         /// enshrining the behavior here so it is not _accidentally_ changed.
         /// </summary>
-        [Fact]
-        public void AssemblyLoading_OverwriteBeforeLoad()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_OverwriteBeforeLoad(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 loader.AddDependencyLocation(testFixture.Delta1.Path);
                 testFixture.Delta1.WriteAllBytes(testFixture.Delta2.ReadAllBytes());
@@ -273,10 +246,11 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_AssemblyLocationNotAdded()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_AssemblyLocationNotAdded(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 loader.AddDependencyLocation(testFixture.Gamma.Path);
                 loader.AddDependencyLocation(testFixture.Delta1.Path);
@@ -284,10 +258,11 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_DependencyLocationNotAdded()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_DependencyLocationNotAdded(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -397,10 +372,11 @@ Delta: Gamma: Beta: Test B
             VerifyAssemblies(loader, loadedAssemblies, data);
         }
 
-        [Fact]
-        public void AssemblyLoading_Simple()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_Simple(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -424,10 +400,11 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_DependencyInDifferentDirectory()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_DependencyInDifferentDirectory(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -458,10 +435,11 @@ Delta: Gamma: Beta: Test B
         /// Similar to <see cref="AssemblyLoading_DependencyInDifferentDirectory"/> except want to validate
         /// a dependency in the same directory is preferred over one in a different directory.
         /// </summary>
-        [Fact]
-        public void AssemblyLoading_DependencyInDifferentDirectory2()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_DependencyInDifferentDirectory2(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -496,10 +474,11 @@ Delta: Gamma: Beta: Test B
         /// that we ensure the code does not prefer a dependency in the same directory if it's 
         /// unregistered
         /// </summary>
-        [Fact]
-        public void AssemblyLoading_DependencyInDifferentDirectory3()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_DependencyInDifferentDirectory3(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -526,36 +505,42 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
-        public void AssemblyLoading_DependencyInDifferentDirectory4()
+        public void AssemblyLoading_DependencyInDifferentDirectory4(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var analyzerDependencyFile = testFixture.AnalyzerDependency;
                 var analyzerMainFile = testFixture.AnalyzerWithDependency;
-                loader.AddDependencyLocation(analyzerDependencyFile.Path);
 
                 var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile.Path, loader);
                 analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
                 var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile.Path, loader);
                 analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
 
+                Assert.True(loader.IsAnalyzerDependencyPath(analyzerMainFile.Path));
+                Assert.True(loader.IsAnalyzerDependencyPath(analyzerDependencyFile.Path));
+
                 var analyzers = analyzerMainReference.GetAnalyzersForAllLanguages();
                 Assert.Equal(1, analyzers.Length);
                 Assert.Equal("TestAnalyzer", analyzers[0].ToString());
                 Assert.Equal(0, analyzerDependencyReference.GetAnalyzersForAllLanguages().Length);
                 Assert.NotNull(analyzerDependencyReference.GetAssembly());
+
                 VerifyDependencyAssemblies(
                     loader,
+                    testFixture.AnalyzerWithDependency.Path,
                     testFixture.AnalyzerDependency.Path);
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_MultipleVersions()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -610,10 +595,11 @@ Delta: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_MultipleVersions_NoExactMatch()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions_NoExactMatch(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -661,10 +647,11 @@ Delta: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_MultipleVersions_MultipleEqualMatches()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions_MultipleEqualMatches(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -709,10 +696,11 @@ Delta: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -741,10 +729,11 @@ Delta: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -790,10 +779,11 @@ Delta: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_MultipleVersions_WorseMatchInSameDirectory()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions_WorseMatchInSameDirectory(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -845,10 +835,11 @@ Delta: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_MultipleVersions_MultipleLoaders()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions_MultipleLoaders(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader1, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader1, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -907,10 +898,11 @@ Delta: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_MultipleVersions_MissingVersion()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions_MissingVersion(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -935,10 +927,11 @@ Delta: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_UnifyToHighest()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_UnifyToHighest(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var sb = new StringBuilder();
 
@@ -969,10 +962,11 @@ Delta.2: Epsilon: Test E
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_CanLoadDifferentVersionsDirectly()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_CanLoadDifferentVersionsDirectly(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var sb = new StringBuilder();
 
@@ -998,10 +992,11 @@ Delta.2: Test D2
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -1024,10 +1019,11 @@ Delta.2: Test D2
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_02()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_02(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -1041,10 +1037,11 @@ Delta.2: Test D2
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_CompilerDependencyDuplicated()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_CompilerDependencyDuplicated(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var assembly = typeof(ImmutableArray<int>).Assembly;
 
@@ -1061,10 +1058,11 @@ Delta.2: Test D2
             });
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
-        public void AssemblyLoading_NativeDependency()
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [CombinatorialData]
+        public void AssemblyLoading_NativeDependency(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 const int INVALID_FILE_ATTRIBUTES = -1;
                 loader.AddDependencyLocation(testFixture.AnalyzerWithNativeDependency.Path);
@@ -1077,10 +1075,11 @@ Delta.2: Test D2
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_DeleteAfterLoad1()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_DeleteAfterLoad1(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -1098,10 +1097,11 @@ Delta.2: Test D2
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_DeleteAfterLoad2()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_DeleteAfterLoad2(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -1128,10 +1128,11 @@ Delta.2: Test D2
             });
         }
 
-        [Fact]
-        public void AssemblyLoading_DeleteAfterLoad3()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_DeleteAfterLoad3(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var sb = new StringBuilder();
@@ -1162,16 +1163,17 @@ Delta.2: Test D2
 
                 var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
-    ", actual);
+", actual);
             });
         }
 
 #if NETCOREAPP
 
-        [Fact]
-        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable()
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable(bool shadowLoad)
         {
-            Run(static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 // Create a separate ALC as the compiler context, load the compiler assembly and a modified version of S.C.I into it,
                 // then use that to load and run `AssemblyLoadingInNonDefaultContextHelper1` below. We expect the analyzer running in

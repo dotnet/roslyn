@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         protected abstract Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath);
 
-        protected bool IsAnalyzerDependencyPath(string fullPath)
+        internal bool IsAnalyzerDependencyPath(string fullPath)
         {
             lock (_guard)
             {
