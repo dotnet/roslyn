@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
             var referenceBindings = ArrayBuilder<AssemblyReferenceBinding[]>.GetInstance();
             try
             {
-                var explicitAssembliesMap = new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(AssemblyIdentityComparer.SimpleNameComparer);
+                var explicitAssembliesMap = new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(explicitAssemblies.Length, AssemblyIdentityComparer.SimpleNameComparer);
 
                 for (int i = 0; i < explicitAssemblies.Length; i++)
                 {
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis
 
                 // We only need to resolve against implicitly resolved assemblies,
                 // since we already resolved against explicitly specified ones.
-                var implicitAssembliesMap = new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(AssemblyIdentityComparer.SimpleNameComparer);
+                var implicitAssembliesMap = new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(implicitAssemblies.Count, AssemblyIdentityComparer.SimpleNameComparer);
 
                 for (int i = 0; i < implicitAssemblies.Count; i++)
                 {
