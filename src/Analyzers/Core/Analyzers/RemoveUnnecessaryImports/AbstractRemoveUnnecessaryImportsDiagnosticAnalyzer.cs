@@ -91,7 +91,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 var mergedImports = MergeImports(unnecessaryImports);
 
                 var contiguousSpans = GetContiguousSpans(mergedImports);
-                var descriptor = GetDescriptor(tree, cancellationToken);
+                var descriptor = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
+                    ? _generatedCodeClassificationIdDescriptor
+                    : _classificationIdDescriptor;
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
                     CreateFixableDiagnostics(mergedImports, tree, cancellationToken));
@@ -112,22 +114,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             // in their project file to enable IDE0005 on build.
 
             var compilation = context.Compilation;
-            var tree = compilation.SyntaxTrees.FirstOrDefault();
+            var tree = compilation.SyntaxTrees.FirstOrDefault(tree => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, context.CancellationToken));
             if (tree is null || tree.Options.DocumentationMode != DocumentationMode.None)
                 return;
 
-            var descriptor = GetDescriptor(tree, context.CancellationToken);
-            var effectiveSeverity = descriptor.GetEffectiveSeverity(compilation.Options, tree, context.Options);
+            var effectiveSeverity = _classificationIdDescriptor.GetEffectiveSeverity(compilation.Options, tree, context.Options);
             if (effectiveSeverity is ReportDiagnostic.Warn or ReportDiagnostic.Error)
             {
                 context.ReportDiagnostic(Diagnostic.Create(s_enableGenerateDocumentationFileIdDescriptor, Location.None));
             }
         }
-
-        private DiagnosticDescriptor GetDescriptor(SyntaxTree tree, CancellationToken cancellationToken)
-            => GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
-                ? _generatedCodeClassificationIdDescriptor
-                : _classificationIdDescriptor;
 
         private IEnumerable<TextSpan> GetContiguousSpans(ImmutableArray<SyntaxNode> nodes)
         {
