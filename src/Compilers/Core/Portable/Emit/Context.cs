@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Emit
     internal readonly struct EmitContext
     {
         public readonly CommonPEModuleBuilder Module;
-        public readonly SyntaxReference? SyntaxReference;
+        public readonly SyntaxNode? SyntaxNode;
         public readonly RebuildData? RebuildData;
         public readonly DiagnosticBag Diagnostics;
         private readonly Flags _flags;
@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Emit
         public bool MetadataOnly => (_flags & Flags.MetadataOnly) != 0;
         public bool IsRefAssembly => MetadataOnly && !IncludePrivateMembers;
 
-        public EmitContext(CommonPEModuleBuilder module, SyntaxReference? syntaxReference, DiagnosticBag diagnostics, bool metadataOnly, bool includePrivateMembers)
-            : this(module, diagnostics, metadataOnly, includePrivateMembers, syntaxReference, rebuildData: null)
+        public EmitContext(CommonPEModuleBuilder module, SyntaxNode? syntaxNode, DiagnosticBag diagnostics, bool metadataOnly, bool includePrivateMembers)
+            : this(module, diagnostics, metadataOnly, includePrivateMembers, syntaxNode, rebuildData: null)
         {
         }
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DiagnosticBag diagnostics,
             bool metadataOnly,
             bool includePrivateMembers,
-            SyntaxReference? syntaxReference = null,
+            SyntaxNode? syntaxNode = null,
             RebuildData? rebuildData = null)
         {
             Debug.Assert(rebuildData is null || !metadataOnly);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(includePrivateMembers || metadataOnly);
 
             Module = module;
-            SyntaxReference = syntaxReference;
+            SyntaxNode = syntaxNode;
             RebuildData = rebuildData;
             Diagnostics = diagnostics;
 

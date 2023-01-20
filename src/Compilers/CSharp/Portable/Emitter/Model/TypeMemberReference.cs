@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public virtual Cci.ITypeReference GetContainingType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(UnderlyingSymbol.ContainingType, (CSharpSyntaxNode)context.SyntaxReference?.GetSyntax(), context.Diagnostics);
+            return moduleBeingBuilt.Translate(UnderlyingSymbol.ContainingType, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics);
         }
 
         string Cci.INamedEntity.Name
