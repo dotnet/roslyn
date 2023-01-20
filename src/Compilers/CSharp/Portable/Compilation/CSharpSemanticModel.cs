@@ -506,6 +506,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the SymbolInfo for the preprocessing symbol defined in a #define directive trivia, if any.
+        /// </summary>
+        public SymbolInfo GetSymbolInfo(DefineDirectiveTriviaSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(node);
+            var preprocessingSymbol = CreatePreprocessingSymbol(node.Name);
+            return new(preprocessingSymbol);
+        }
+
+        /// <summary>
+        /// Gets the SymbolInfo for the preprocessing symbol defined in an #undef directive trivia, if any.
+        /// </summary>
+        public SymbolInfo GetSymbolInfo(UndefDirectiveTriviaSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(node);
+            var preprocessingSymbol = CreatePreprocessingSymbol(node.Name);
+            return new(preprocessingSymbol);
+        }
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
@@ -4996,6 +5016,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(orderingSyntax, cancellationToken);
                 case PositionalPatternClauseSyntax ppcSyntax:
                     return this.GetSymbolInfo(ppcSyntax, cancellationToken);
+                case DefineDirectiveTriviaSyntax defineSyntax:
+                    return this.GetSymbolInfo(defineSyntax, cancellationToken);
+                case UndefDirectiveTriviaSyntax undefSyntax:
+                    return this.GetSymbolInfo(undefSyntax, cancellationToken);
             }
 
             return SymbolInfo.None;

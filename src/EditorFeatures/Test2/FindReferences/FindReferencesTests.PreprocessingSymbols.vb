@@ -242,5 +242,33 @@ class Class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestPreprocessingSymbolHoverDefine(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+#define [|PREPROC$$ESSING_SYMBOL|]
+#undef [|PREPROCESSING_SYMBOL|]
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestPreprocessingSymbolHoverUndef(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+#define [|PREPROCESSING_SYMBOL|]
+#undef [|PRE$$PROCESSING_SYMBOL|]
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
