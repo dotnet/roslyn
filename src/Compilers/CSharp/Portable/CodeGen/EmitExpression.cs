@@ -569,13 +569,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        /// <summary>
+        /// We must use a temp when there is a chance that evaluation of the call arguments
+        /// could actually modify value of the reference type reciever. The call must use
+        /// the original (unmodified) receiver.
+        /// </summary>
         private sealed class IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private readonly BoundLoweredConditionalAccess _conditionalAccess;
             private bool? _result;
 
             private IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker(BoundLoweredConditionalAccess conditionalAccess)
-                : base()
             {
                 _conditionalAccess = conditionalAccess;
             }
