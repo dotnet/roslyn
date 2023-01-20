@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -120,25 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalVariable.GetConstantValueDiagnostics(boundInitValue);
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
-            SynthesizedLocalKind kind, SyntaxNode syntax
-#if DEBUG
-            ,
-            [CallerLineNumber] int createdAtLineNumber = 0,
-            [CallerFilePath] string createdAtFilePath = null
-#endif
-            )
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
             var origSynthesized = (SynthesizedLocal)_originalVariable;
             return new TypeSubstitutedLocalSymbol(
-                    origSynthesized.WithSynthesizedLocalKindAndSyntax(
-                        kind, syntax
-#if DEBUG
-                        ,
-                        createdAtLineNumber,
-                        createdAtFilePath
-#endif
-                        ),
+                    origSynthesized.WithSynthesizedLocalKindAndSyntax(kind, syntax),
                     _type,
                     _containingSymbol
                 );
