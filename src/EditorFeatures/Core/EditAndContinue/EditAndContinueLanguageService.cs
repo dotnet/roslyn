@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
@@ -145,8 +146,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // Start tracking after we entered break state so that break-state session is active.
-            // This is potentially costly operation but entering break state is non-blocking so it should be ok to await.
-            await GetActiveStatementTrackingService().StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
+            // This is potentially costly operation as source generators might get invoked in OOP
+            // to determine the spans of all active statements.
+            // We start the operation but do not wait for it to complete.
+            // The tracking session is cancelled when we exit the break state.
+
+            GetActiveStatementTrackingService().StartTracking(solution, session);
         }
 
         public async ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
