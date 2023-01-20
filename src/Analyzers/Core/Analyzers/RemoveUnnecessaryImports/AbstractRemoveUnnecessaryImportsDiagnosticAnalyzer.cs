@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+            context.RegisterCompilationAction(AnalyzeCompilation);
         }
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var language = context.SemanticModel.Language;
 
             var unnecessaryImports = UnnecessaryImportsProvider.GetUnnecessaryImports(context.SemanticModel, cancellationToken);
             if (unnecessaryImports.Any())
@@ -90,10 +90,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // for us appropriately.
                 var mergedImports = MergeImports(unnecessaryImports);
 
-                var descriptor = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
-                    ? _generatedCodeClassificationIdDescriptor
-                    : _classificationIdDescriptor;
                 var contiguousSpans = GetContiguousSpans(mergedImports);
+                var descriptor = GetDescriptor(tree, cancellationToken);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
                     CreateFixableDiagnostics(mergedImports, tree, cancellationToken));
@@ -102,22 +100,34 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 {
                     context.ReportDiagnostic(diagnostic);
                 }
-
-                // Due to https://github.com/dotnet/roslyn/issues/41640, enabling this analyzer (IDE0005) on build requires users
-                // to enable generation of XML documentation comments. We detect if generation of XML documentation comments
-                // is disabled for this tree and IDE0005 diagnostics are being reported with effective severity "Warning" or "Error".
-                // If so, we report a special diagnostic that recommends the users to set "GenerateDocumentationFile" to "true"
-                // in their project file to enable IDE0005 on build.
-                if (tree.Options.DocumentationMode == DocumentationMode.Parse)
-                {
-                    var effectiveSeverity = descriptor.GetEffectiveSeverity(context.SemanticModel.Compilation.Options, tree, context.Options);
-                    if (effectiveSeverity is ReportDiagnostic.Warn or ReportDiagnostic.Error)
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(s_enableGenerateDocumentationFileIdDescriptor, diagnostics.First().Location));
-                    }
-                }
             }
         }
+
+        private void AnalyzeCompilation(CompilationAnalysisContext context)
+        {
+            // Due to https://github.com/dotnet/roslyn/issues/41640, enabling this analyzer (IDE0005) on build requires users
+            // to enable generation of XML documentation comments. We detect if generation of XML documentation comments
+            // is disabled for this tree and IDE0005 diagnostics are being reported with effective severity "Warning" or "Error".
+            // If so, we report a special diagnostic that recommends the users to set "GenerateDocumentationFile" to "true"
+            // in their project file to enable IDE0005 on build.
+
+            var compilation = context.Compilation;
+            var tree = compilation.SyntaxTrees.FirstOrDefault();
+            if (tree is null || tree.Options.DocumentationMode != DocumentationMode.None)
+                return;
+
+            var descriptor = GetDescriptor(tree, context.CancellationToken);
+            var effectiveSeverity = descriptor.GetEffectiveSeverity(compilation.Options, tree, context.Options);
+            if (effectiveSeverity is ReportDiagnostic.Warn or ReportDiagnostic.Error)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(s_enableGenerateDocumentationFileIdDescriptor, Location.None));
+            }
+        }
+
+        private DiagnosticDescriptor GetDescriptor(SyntaxTree tree, CancellationToken cancellationToken)
+            => GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
+                ? _generatedCodeClassificationIdDescriptor
+                : _classificationIdDescriptor;
 
         private IEnumerable<TextSpan> GetContiguousSpans(ImmutableArray<SyntaxNode> nodes)
         {

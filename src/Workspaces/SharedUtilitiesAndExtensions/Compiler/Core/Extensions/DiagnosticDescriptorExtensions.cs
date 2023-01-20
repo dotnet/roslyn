@@ -72,7 +72,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // First check for tree-level analyzer config options.
                 var analyzerConfigOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                var severityInEditorConfig = descriptor.GetEffectiveSeverity(analyzerConfigOptions);
+                var providerAndTree = compilationOptions.SyntaxTreeOptionsProvider != null
+                    ? (compilationOptions.SyntaxTreeOptionsProvider, tree)
+                    : default;
+                var severityInEditorConfig = descriptor.GetEffectiveSeverity(analyzerConfigOptions, providerAndTree);
                 if (severityInEditorConfig != ReportDiagnostic.Default)
                 {
                     effectiveSeverity = severityInEditorConfig;
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 else
                 {
                     // If not found, check for global analyzer config options.
-                    var severityInGlobalConfig = descriptor.GetEffectiveSeverity(analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions);
+                    var severityInGlobalConfig = descriptor.GetEffectiveSeverity(analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions, providerAndTree);
                     if (severityInGlobalConfig != ReportDiagnostic.Default)
                     {
                         effectiveSeverity = severityInGlobalConfig;
@@ -133,14 +136,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, AnalyzerConfigOptions analyzerConfigOptions)
+        public static ReportDiagnostic GetEffectiveSeverity(
+            this DiagnosticDescriptor descriptor,
+            AnalyzerConfigOptions analyzerConfigOptions,
+            (SyntaxTreeOptionsProvider provider, SyntaxTree tree)? providerAndTree)
         {
+            ReportDiagnostic severity;
+            string? value;
+
             // Check if the option is defined explicitly in the editorconfig
-            var diagnosticKey = $"{DotnetDiagnosticPrefix}.{descriptor.Id}.{SeveritySuffix}";
-            if (analyzerConfigOptions.TryGetValue(diagnosticKey, out var value) &&
-                EditorConfigSeverityStrings.TryParse(value, out var severity))
+            if (providerAndTree.HasValue)
             {
-                return severity;
+                var provider = providerAndTree.Value.provider;
+                var tree = providerAndTree.Value.tree;
+                if (provider.TryGetDiagnosticValue(tree, descriptor.Id, CancellationToken.None, out severity) ||
+                    provider.TryGetGlobalDiagnosticValue(descriptor.Id, CancellationToken.None, out severity))
+                {
+                    return severity;
+                }
+            }
+            else
+            {
+                var diagnosticKey = $"{DotnetDiagnosticPrefix}.{descriptor.Id}.{SeveritySuffix}";
+                if (analyzerConfigOptions.TryGetValue(diagnosticKey, out value) &&
+                    EditorConfigSeverityStrings.TryParse(value, out severity))
+                {
+                    return severity;
+                }
             }
 
             // Check if the option is defined as part of a bulk configuration
