@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 
         // VS doesn't currently support multi-line tokens, so we want to verify that we aren't
         // returning any in the tokens array.
-        private protected static async Task VerifyNoMultiLineTokens(TestLspServer testLspServer, int[] tokens)
+        private protected static async Task VerifyBasicInvariantsAndNoMultiLineTokens(TestLspServer testLspServer, int[] tokens)
         {
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var text = await document.GetTextAsync().ConfigureAwait(false);
@@ -64,9 +64,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 // i + 2: token length
 
                 // Gets the current absolute line index
+                Assert.True(tokens[i] >= 0, "The line offset should never be negative.");
                 currentLine += tokens[i];
 
                 // Gets the character # relative to the start of the line
+                Assert.True(tokens[i + 1] >= 0, "The character offset should never be negative.");
+
                 if (tokens[i] != 0)
                 {
                     currentChar = tokens[i + 1];
@@ -74,16 +77,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 else
                 {
                     currentChar += tokens[i + 1];
+                    Assert.True(currentChar >= 0, "The first token on the line can't be a negative position, but applying an offset took us there.");
                 }
 
                 // Gets the length of the token
                 var tokenLength = tokens[i + 2];
+                Assert.True(tokenLength >= 0, "The token cannot have a negative length.");
 
-                var lineLength = text.Lines[currentLine].Span.Length;
+                var lineLength = text.Lines[currentLine].SpanIncludingLineBreak.Length;
 
                 // If this assertion fails, we didn't break up a multi-line token properly.
+                var kind = SemanticTokensHelpers.TokenTypeToIndex.Where(kvp => kvp.Value == tokens[i + 3]).Single().Key;
+
                 Assert.True(currentChar + tokenLength <= lineLength,
-                    $"Multi-line token found on line {currentLine} at character index {currentChar}. " +
+                    $"Multi-line token of type {kind} found on line {currentLine} at character index {currentChar}. " +
                     $"The token ends at index {currentChar + tokenLength}, which exceeds the line length of {lineLength}.");
             }
         }

@@ -78,7 +78,7 @@ static class C { }
                 },
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
+            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results);
         }
 
@@ -111,12 +111,12 @@ static class C { }
                 },
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
+            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results);
         }
 
         [Fact]
-        public async Task TestGetSemanticTokensRange_MultiLineComment_RazorAsync()
+        public async Task TestGetSemanticTokensRange_MultiLineComment_IncludeSyntacticClassificationsAsync()
         {
             // Testing as a Razor doc so we get both syntactic + semantic results; otherwise the results would be empty.
             var markup =
@@ -148,7 +148,7 @@ three */ }
                 },
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
+            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results);
         }
 
@@ -181,7 +181,7 @@ three"";
                 },
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
+            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results.Data);
         }
 
@@ -234,7 +234,7 @@ three"";
                 },
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
+            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             AssertEx.Equal(expectedResults.Data, results);
         }
 
@@ -300,7 +300,7 @@ class C
                 }
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
+            await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
             AssertEx.Equal(expectedResults.Data, results);
         }
 
