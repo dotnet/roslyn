@@ -299,8 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsWithinIdentifierContainerDirectiveTrivia(CSharpSyntaxNode node)
         {
             return node is IdentifierNameSyntax
-                && node.FirstAncestorOrSelf<CSharpSyntaxNode>(IsIdentifierContainerDirectiveTrivia)
-                is not null;
+                && node.FirstAncestorOrSelf<CSharpSyntaxNode>(IsIdentifierContainerDirectiveTrivia) is not null;
         }
         private static bool IsIdentifierContainerDirectiveTrivia(CSharpSyntaxNode node)
         {
