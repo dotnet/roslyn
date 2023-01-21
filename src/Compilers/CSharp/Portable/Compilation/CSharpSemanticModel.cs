@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the SymbolInfo for the preprocessing symbol defined in a #define directive trivia, if any.
         /// </summary>
-        public SymbolInfo GetSymbolInfo(DefineDirectiveTriviaSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        public SymbolInfo GetSymbolInfo(DefineDirectiveTriviaSyntax node)
         {
             CheckSyntaxNode(node);
             var preprocessingSymbol = CreatePreprocessingSymbol(node.Name);
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the SymbolInfo for the preprocessing symbol defined in an #undef directive trivia, if any.
         /// </summary>
-        public SymbolInfo GetSymbolInfo(UndefDirectiveTriviaSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        public SymbolInfo GetSymbolInfo(UndefDirectiveTriviaSyntax node)
         {
             CheckSyntaxNode(node);
             var preprocessingSymbol = CreatePreprocessingSymbol(node.Name);
@@ -5017,9 +5017,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case PositionalPatternClauseSyntax ppcSyntax:
                     return this.GetSymbolInfo(ppcSyntax, cancellationToken);
                 case DefineDirectiveTriviaSyntax defineSyntax:
-                    return this.GetSymbolInfo(defineSyntax, cancellationToken);
+                    return this.GetSymbolInfo(defineSyntax);
                 case UndefDirectiveTriviaSyntax undefSyntax:
-                    return this.GetSymbolInfo(undefSyntax, cancellationToken);
+                    return this.GetSymbolInfo(undefSyntax);
             }
 
             return SymbolInfo.None;
