@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 // Since VS doesn't support multi-line spans/tokens, we need to break the span up into single-line spans.
                 if (startLine != endLine)
                 {
-                    spanIndex = ConvertToSingleLineSpan(
-                        text, classifiedSpans, updatedClassifiedSpans, spanIndex, span.ClassificationType,
+                    ConvertToSingleLineSpan(
+                        text, classifiedSpans, updatedClassifiedSpans, ref spanIndex, span.ClassificationType,
                         startLine, startOffset, endLine, endOffSet);
                 }
                 else
@@ -168,11 +168,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             return updatedClassifiedSpans.ToArray();
 
-            static int ConvertToSingleLineSpan(
+            static void ConvertToSingleLineSpan(
                 SourceText text,
                 ClassifiedSpan[] originalClassifiedSpans,
                 ArrayBuilder<ClassifiedSpan> updatedClassifiedSpans,
-                int spanIndex,
+                ref int spanIndex,
                 string classificationType,
                 int startLine,
                 int startOffset,
@@ -181,8 +181,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             {
                 var numLinesInSpan = endLine - startLine + 1;
                 Contract.ThrowIfTrue(numLinesInSpan < 1);
-
-                var updatedSpanIndex = spanIndex;
 
                 for (var currentLine = 0; currentLine < numLinesInSpan; currentLine++)
                 {
@@ -220,15 +218,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     //     var x = @"one ""
                     //               two";
                     // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
-                    while (updatedSpanIndex + 1 < originalClassifiedSpans.Length &&
-                        textSpan.Contains(originalClassifiedSpans[updatedSpanIndex + 1].TextSpan))
+                    while (spanIndex + 1 < originalClassifiedSpans.Length &&
+                        textSpan.Contains(originalClassifiedSpans[spanIndex + 1].TextSpan))
                     {
-                        updatedClassifiedSpans.Add(originalClassifiedSpans[updatedSpanIndex + 1]);
-                        updatedSpanIndex++;
+                        updatedClassifiedSpans.Add(originalClassifiedSpans[spanIndex + 1]);
+                        spanIndex++;
                     }
                 }
-
-                return updatedSpanIndex;
             }
         }
 
