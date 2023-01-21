@@ -364,6 +364,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Message = diagnosticData.Message,
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Tags = ConvertTags(diagnosticData),
+                    DiagnosticRank = ConvertRank(diagnosticData),
                 };
 
                 diagnostic.Range = GetRange(diagnosticData.DataLocation);
@@ -416,6 +417,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     }
                 };
             }
+        }
+
+        private static VSDiagnosticRank? ConvertRank(DiagnosticData diagnosticData)
+        {
+            if (diagnosticData.Properties.TryGetValue(PullDiagnosticConstants.Priority, out var priority))
+            {
+                return priority switch
+                {
+                    PullDiagnosticConstants.Low => VSDiagnosticRank.Low,
+                    PullDiagnosticConstants.Medium => VSDiagnosticRank.Default,
+                    PullDiagnosticConstants.High => VSDiagnosticRank.High,
+                    _ => null,
+                };
+            }
+
+            return null;
         }
 
         private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)

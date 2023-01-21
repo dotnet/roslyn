@@ -3148,5 +3148,244 @@ class N
                     );
             }
         }
+
+        [Fact, WorkItem(45679, "https://github.com/dotnet/roslyn/issues/45679")]
+        public void IsExpression_SwitchDispatch_Numeric()
+        {
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(
+              Test(0) == false
+            & Test(1)
+            & Test(2)
+            & Test(3)
+            & Test(4)
+            & Test(5)
+            & Test(6)
+            & Test(7)
+            & Test(8)
+        );
+    }  
+    public static bool Test(int a)
+    {
+        return (a is 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8);
+    }
+}
+""";
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
+            compilation.VerifyIL("C.Test", """
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  ldc.i4.7
+  IL_0004:  bgt.un.s   IL_000a
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000c
+  IL_000a:  ldc.i4.0
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(45679, "https://github.com/dotnet/roslyn/issues/45679")]
+        public void IsExpression_SwitchDispatch_SwitchIL()
+        {
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(
+              Test(1, null) == false
+            & Test(1, default(int))
+            & Test(2, default(bool))
+            & Test(3, default(double))
+            & Test(4, default(long))
+            & Test(5, default(long)) == false
+        );
+    }
+    public static bool Test(int a, object b)
+    {
+        return (a, b) is 
+                (1, int) or
+                (2, bool) or
+                (3, double) or
+                (4, long);
+    }
+}
+""";
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
+            compilation.VerifyIL("C.Test", """
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  switch    (
+        IL_001a,
+        IL_0024,
+        IL_002e,
+        IL_0038)
+  IL_0018:  br.s       IL_0044
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     "int"
+  IL_0020:  brtrue.s   IL_0040
+  IL_0022:  br.s       IL_0044
+  IL_0024:  ldarg.1
+  IL_0025:  isinst     "bool"
+  IL_002a:  brtrue.s   IL_0040
+  IL_002c:  br.s       IL_0044
+  IL_002e:  ldarg.1
+  IL_002f:  isinst     "double"
+  IL_0034:  brtrue.s   IL_0040
+  IL_0036:  br.s       IL_0044
+  IL_0038:  ldarg.1
+  IL_0039:  isinst     "long"
+  IL_003e:  brfalse.s  IL_0044
+  IL_0040:  ldc.i4.1
+  IL_0041:  stloc.0
+  IL_0042:  br.s       IL_0046
+  IL_0044:  ldc.i4.0
+  IL_0045:  stloc.0
+  IL_0046:  ldloc.0
+  IL_0047:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(45679, "https://github.com/dotnet/roslyn/issues/45679")]
+        public void IsExpression_SwitchDispatch_String()
+        {
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(
+              Test("0") == false
+            & Test("1")
+            & Test("2")
+            & Test("3")
+            & Test("4")
+            & Test("5")
+            & Test("6")
+            & Test("7")
+            & Test("8")
+        );
+    }  
+    public static bool Test(string a)
+    {
+        return (a is "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8");
+    }
+}
+""";
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
+            compilation.VerifyIL("C.Test", """
+{
+  // Code size      244 (0xf4)
+  .maxstack  2
+  .locals init (bool V_0,
+                uint V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "ComputeStringHash"
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4     0x330ca589
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4     0x310ca263
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4     0x300ca0d0
+  IL_001d:  beq        IL_00b2
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4     0x310ca263
+  IL_0028:  beq.s      IL_00a3
+  IL_002a:  br         IL_00f0
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4     0x320ca3f6
+  IL_0035:  beq        IL_00d0
+  IL_003a:  ldloc.1
+  IL_003b:  ldc.i4     0x330ca589
+  IL_0040:  beq.s      IL_00c1
+  IL_0042:  br         IL_00f0
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4     0x360caa42
+  IL_004d:  bgt.un.s   IL_0064
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4     0x340ca71c
+  IL_0055:  beq.s      IL_0076
+  IL_0057:  ldloc.1
+  IL_0058:  ldc.i4     0x360caa42
+  IL_005d:  beq.s      IL_0094
+  IL_005f:  br         IL_00f0
+  IL_0064:  ldloc.1
+  IL_0065:  ldc.i4     0x370cabd5
+  IL_006a:  beq.s      IL_0085
+  IL_006c:  ldloc.1
+  IL_006d:  ldc.i4     0x3d0cb547
+  IL_0072:  beq.s      IL_00df
+  IL_0074:  br.s       IL_00f0
+  IL_0076:  ldarg.0
+  IL_0077:  ldstr      "1"
+  IL_007c:  call       "bool string.op_Equality(string, string)"
+  IL_0081:  brtrue.s   IL_00ec
+  IL_0083:  br.s       IL_00f0
+  IL_0085:  ldarg.0
+  IL_0086:  ldstr      "2"
+  IL_008b:  call       "bool string.op_Equality(string, string)"
+  IL_0090:  brtrue.s   IL_00ec
+  IL_0092:  br.s       IL_00f0
+  IL_0094:  ldarg.0
+  IL_0095:  ldstr      "3"
+  IL_009a:  call       "bool string.op_Equality(string, string)"
+  IL_009f:  brtrue.s   IL_00ec
+  IL_00a1:  br.s       IL_00f0
+  IL_00a3:  ldarg.0
+  IL_00a4:  ldstr      "4"
+  IL_00a9:  call       "bool string.op_Equality(string, string)"
+  IL_00ae:  brtrue.s   IL_00ec
+  IL_00b0:  br.s       IL_00f0
+  IL_00b2:  ldarg.0
+  IL_00b3:  ldstr      "5"
+  IL_00b8:  call       "bool string.op_Equality(string, string)"
+  IL_00bd:  brtrue.s   IL_00ec
+  IL_00bf:  br.s       IL_00f0
+  IL_00c1:  ldarg.0
+  IL_00c2:  ldstr      "6"
+  IL_00c7:  call       "bool string.op_Equality(string, string)"
+  IL_00cc:  brtrue.s   IL_00ec
+  IL_00ce:  br.s       IL_00f0
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      "7"
+  IL_00d6:  call       "bool string.op_Equality(string, string)"
+  IL_00db:  brtrue.s   IL_00ec
+  IL_00dd:  br.s       IL_00f0
+  IL_00df:  ldarg.0
+  IL_00e0:  ldstr      "8"
+  IL_00e5:  call       "bool string.op_Equality(string, string)"
+  IL_00ea:  brfalse.s  IL_00f0
+  IL_00ec:  ldc.i4.1
+  IL_00ed:  stloc.0
+  IL_00ee:  br.s       IL_00f2
+  IL_00f0:  ldc.i4.0
+  IL_00f1:  stloc.0
+  IL_00f2:  ldloc.0
+  IL_00f3:  ret
+}
+""");
+        }
     }
 }

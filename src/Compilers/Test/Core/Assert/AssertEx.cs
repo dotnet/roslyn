@@ -37,7 +37,7 @@ namespace Roslyn.Test.Utilities
 
         private class AssertEqualityComparer<T> : IEqualityComparer<T>
         {
-            private static readonly IEqualityComparer<T> s_instance = new AssertEqualityComparer<T>();
+            public static readonly IEqualityComparer<T> Instance = new AssertEqualityComparer<T>();
 
             private static bool CanBeNull()
             {
@@ -58,7 +58,7 @@ namespace Roslyn.Test.Utilities
 
             public static bool Equals(T left, T right)
             {
-                return s_instance.Equals(left, right);
+                return Instance.Equals(left, right);
             }
 
             bool IEqualityComparer<T>.Equals(T x, T y)
@@ -141,23 +141,30 @@ namespace Roslyn.Test.Utilities
 
             if (expected == null)
             {
-                Fail("expected was null, but actual wasn't\r\n" + message);
+                Fail("expected was null, but actual wasn't" + Environment.NewLine + message);
             }
             else if (actual == null)
             {
-                Fail("actual was null, but expected wasn't\r\n" + message);
+                Fail("actual was null, but expected wasn't" + Environment.NewLine + message);
             }
-            else
+            else if (!(comparer ?? AssertEqualityComparer<T>.Instance).Equals(expected, actual))
             {
-                if (!(comparer != null ?
-                    comparer.Equals(expected, actual) :
-                    AssertEqualityComparer<T>.Equals(expected, actual)))
+                string expectedAndActual;
+                if (expected is IEnumerable expectedEnumerable && actual is IEnumerable actualEnumerable)
                 {
-                    Fail("Expected and actual were different.\r\n" +
-                         "Expected:\r\n" + expected + "\r\n" +
-                         "Actual:\r\n" + actual + "\r\n" +
-                         message);
+                    expectedAndActual = GetAssertMessage(expectedEnumerable.OfType<object>(), actualEnumerable.OfType<object>(), comparer: null);
                 }
+                else
+                {
+                    expectedAndActual = $"""
+                        Expected:
+                        {expected}
+                        Actual:
+                        {actual}
+                        """;
+                }
+
+                Fail(message + Environment.NewLine + expectedAndActual);
             }
         }
 
