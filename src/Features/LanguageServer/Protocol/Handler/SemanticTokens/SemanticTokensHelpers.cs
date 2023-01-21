@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -185,30 +186,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
                 for (var currentLine = 0; currentLine < numLinesInSpan; currentLine++)
                 {
-                    TextSpan? textSpan;
+                    TextSpan textSpan;
+                    var line = text.Lines[startLine + currentLine];
 
                     // Case 1: First line of span
                     if (currentLine == 0)
                     {
-                        var absoluteStartOffset = text.Lines[startLine].Start + startOffset;
-                        var spanLength = text.Lines[startLine].End - absoluteStartOffset;
+                        var absoluteStartOffset = line.Start + startOffset;
+                        var spanLength = line.End - absoluteStartOffset;
                         textSpan = new TextSpan(absoluteStartOffset, spanLength);
                     }
                     // Case 2: Any of the span's middle lines
                     else if (currentLine != numLinesInSpan - 1)
                     {
-                        textSpan = text.Lines[startLine + currentLine].Span;
+                        textSpan = line.Span;
                     }
                     // Case 3: Last line of span
                     else
                     {
-                        textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
+                        textSpan = new TextSpan(line.Start, endOffSet);
                     }
 
                     // Omit 0-length spans created in this fashion.
-                    if (textSpan.Value.Length > 0)
+                    if (textSpan.Length > 0)
                     {
-                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
+                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan, classificationType);
                         updatedClassifiedSpans.Add(updatedClassifiedSpan);
                     }
 
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     //               two";
                     // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
                     while (updatedSpanIndex + 1 < originalClassifiedSpans.Length &&
-                        textSpan.Value.Contains(originalClassifiedSpans[updatedSpanIndex + 1].TextSpan))
+                        textSpan.Contains(originalClassifiedSpans[updatedSpanIndex + 1].TextSpan))
                     {
                         updatedClassifiedSpans.Add(originalClassifiedSpans[updatedSpanIndex + 1]);
                         updatedSpanIndex++;
