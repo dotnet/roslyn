@@ -190,9 +190,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     // Case 1: First line of span
                     if (currentLine == 0)
                     {
-                        var absoluteStartOffset = line.Start + startOffset;
-                        var spanLength = line.End - absoluteStartOffset;
-                        textSpan = new TextSpan(absoluteStartOffset, spanLength);
+                        var absoluteStart = line.Start + startOffset;
+
+                        // This start could be past the regular end of the line if it's within the newline character if we have a CRLF newline. In that case, just skip emitting a span for the LF.
+                        // One example where this could happen is an embedded regular expression that we're classifying; regular expression comments contained within a multi-line string
+                        // contain the carriage return but not the linefeed, so the linefeed could be the start of the next classification.
+                        textSpan = TextSpan.FromBounds(Math.Min(absoluteStart, line.End), line.End);
                     }
                     // Case 2: Any of the span's middle lines
                     else if (currentLine != numLinesInSpan - 1)
