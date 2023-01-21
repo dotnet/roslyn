@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
-                    var loadPath = _loader.PreparePathToLoad(assemblyPath);
+                    (_, var loadPath) = _loader.GetAssemblyInfoForPath(assemblyPath);
                     return LoadFromAssemblyPath(loadPath);
                 }
 
@@ -102,10 +102,9 @@ namespace Microsoft.CodeAnalysis
                 // be necessary but msbuild target defaults have caused a number of customers to 
                 // fall into this path. See discussion here for where it comes up
                 // https://github.com/dotnet/roslyn/issues/56442
-                if (_loader.GetBestPath(assemblyName) is string otherPath)
+                if (_loader.GetBestPath(assemblyName) is string bestRealPath)
                 {
-                    var loadPath = _loader.PreparePathToLoad(otherPath);
-                    return LoadFromAssemblyPath(loadPath);
+                    return LoadFromAssemblyPath(bestRealPath);
                 }
 
                 // No analyzer registered this dependency. Time to fail
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis
                 var assemblyPath = Path.Combine(Directory, unmanagedDllName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
-                    var loadPath = _loader.PreparePathToLoad(assemblyPath);
+                    (_, var loadPath) = _loader.GetAssemblyInfoForPath(assemblyPath);
                     return LoadUnmanagedDllFromPath(loadPath);
                 }
 

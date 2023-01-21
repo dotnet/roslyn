@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         {
             CompilerPathUtilities.RequireAbsolutePath(originalAnalyzerPath, nameof(originalAnalyzerPath));
 
-            (AssemblyName? assemblyName, string realPath) = GetAssemblyInfoForPath(originalAnalyzerPath);
+            (AssemblyName? assemblyName, string _) = GetAssemblyInfoForPath(originalAnalyzerPath);
 
             // Not a managed assembly, nothing else to do
             if (assemblyName is null)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                return Load(assemblyName, realPath);
+                return Load(assemblyName, originalAnalyzerPath);
             }
             catch (Exception ex)
             {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
         /// because we only want information for registered paths. Using unregistered paths inside the
         /// implementation should result in errors.
         /// </remarks>
-        private (AssemblyName? AssemblyName, string RealAssemblyPath) GetAssemblyInfoForPath(string originalAnalyzerPath)
+        protected (AssemblyName? AssemblyName, string RealAssemblyPath) GetAssemblyInfoForPath(string originalAnalyzerPath)
         {
             AssemblyName? assemblyName;
             string realPath;

@@ -313,6 +313,18 @@ Delta: Gamma: Beta: Test B
                     .ToArray());
         }
 
+        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, params string[] assemblyPaths)
+        {
+            var data = assemblyPaths
+                .Select(x =>
+                {
+                    var name = AssemblyName.GetAssemblyName(x);
+                    return (name.Name!, name.Version?.ToString() ?? "", x);
+                })
+                .ToArray();
+            VerifyAssemblies(loader, assemblies, data);
+        }
+
         /// <summary>
         /// Verify the set of assemblies loaded as analyzer dependencies are the specified assembly paths
         /// </summary>
@@ -361,15 +373,7 @@ Delta: Gamma: Beta: Test B
             }
 
 #endif
-            var data = assemblyPaths
-                .Select(x =>
-                {
-                    var name = AssemblyName.GetAssemblyName(x);
-                    return (name.Name!, name.Version?.ToString() ?? "", x);
-                })
-                .ToArray();
-
-            VerifyAssemblies(loader, loadedAssemblies, data);
+            VerifyAssemblies(loader, loadedAssemblies, assemblyPaths);
         }
 
         [Theory]
@@ -462,10 +466,22 @@ Delta: Gamma: Beta: Test B
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
 
-                VerifyDependencyAssemblies(
-                    loader,
-                    deltaFile2.Path,
-                    gammaFile.Path);
+                if (ExecutionConditionUtil.IsDesktop && loader is ShadowCopyAnalyzerAssemblyLoader)
+                {
+                    // In desktop + shadow we lose the ability to related dlls in the same directory
+                    VerifyDependencyAssemblies(
+                        loader,
+                        deltaFile1.Path,
+                        gammaFile.Path);
+                }
+                else
+                {
+                    VerifyDependencyAssemblies(
+                        loader,
+                        deltaFile2.Path,
+                        gammaFile.Path);
+
+                }
             });
         }
 
@@ -562,7 +578,7 @@ Delta: Gamma: Beta: Test B
                 Assert.Equal(2, alcs.Length);
 
                 VerifyAssemblies(
-                    loader, 
+                    loader,
                     alcs[0].Assemblies,
                     ("Delta", "1.0.0.0", testFixture.Delta1.Path),
                     ("Gamma", "0.0.0.0", testFixture.Gamma.Path)
@@ -663,10 +679,11 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-                if (loader is ShadowCopyAnalyzerAssemblyLoader)
+                if (ExecutionConditionUtil.IsDesktop && loader is ShadowCopyAnalyzerAssemblyLoader)
                 {
-                    // Delta2B and Delta2 have the same version, but we prefer Delta2B because it was added first. In 
-                    // shadow copy they're not co-located so that tie breaker doesn't work.
+                    // Delta2B and Delta2 have the same version, but we prefer Delta2B because it's added first and 
+                    // in shadow loader we can't fall back to same directory because the runtime doesn't provide
+                    // context for who requested the load. Just have to go to best version.
                     VerifyDependencyAssemblies(
                         loader,
                         testFixture.Delta2B.Path,
@@ -691,7 +708,6 @@ Delta: Epsilon: Test E
     @"Delta.2: Epsilon: Test E
 ",
                         actual);
-
                 }
             });
         }
@@ -716,8 +732,8 @@ Delta: Epsilon: Test E
 
                 // On Core, we're able to load both of these into separate AssemblyLoadContexts.
                 Assert.NotEqual(delta2B.Location, delta2.Location);
-                Assert.Equal(testFixture.Delta2.Path, delta2.Location);
-                Assert.Equal(testFixture.Delta2B.Path, delta2B.Location);
+                Assert.Equal(loader.GetRealLoadPath(testFixture.Delta2.Path), delta2.Location);
+                Assert.Equal(loader.GetRealLoadPath(testFixture.Delta2B.Path), delta2B.Location);
 
 #else
 
@@ -800,11 +816,12 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-                if (loader is ShadowCopyAnalyzerAssemblyLoader)
+                if (ExecutionConditionUtil.IsDesktop && loader is ShadowCopyAnalyzerAssemblyLoader)
                 {
+                    // In desktop + shadow load the dependencies are in different directories with 
+                    // no context available when the load for Delta comes in. So we pick the best 
+                    // option.
                     // Epsilon wants Delta2, but since Delta1 is in the same directory, we prefer Delta1 over Delta2.
-                    // This is because the CLR will see it first and load it, without giving us any chance to redirect
-                    // in the AssemblyResolve hook.
                     VerifyDependencyAssemblies(
                         loader,
                         testFixture.Delta2.Path,
@@ -819,8 +836,6 @@ Delta: Epsilon: Test E
                 else
                 {
                     // Epsilon wants Delta2, but since Delta1 is in the same directory, we prefer Delta1 over Delta2.
-                    // This is because the CLR will see it first and load it, without giving us any chance to redirect
-                    // in the AssemblyResolve hook.
                     VerifyDependencyAssemblies(
                         loader,
                         delta1File.Path,
