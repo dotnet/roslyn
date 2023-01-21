@@ -726,7 +726,7 @@ static record struct S9;
 sealed record struct S10;
 ";
 
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,24): error CS0106: The modifier 'abstract' is not valid for this item
                 // abstract record struct S1;

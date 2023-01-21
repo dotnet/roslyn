@@ -1436,7 +1436,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(8, 9)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1492,7 +1492,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(8, 9)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1539,7 +1539,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "i1").WithArguments("Program.i1").WithLocation(4, 9)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1597,7 +1597,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "i1").WithArguments("Program.i1").WithLocation(4, 9)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1642,7 +1642,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "i1").WithArguments("Program.i1").WithLocation(4, 9)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1696,7 +1696,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "i1").WithArguments("Program.i1").WithLocation(4, 9)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1754,7 +1754,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "i2").WithArguments("Program.i2").WithLocation(4, 13)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [Fact]
@@ -1824,7 +1824,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "p1 = null").WithLocation(9, 64)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         #endregion

@@ -294,7 +294,7 @@ class C
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (6,9): error CS1629: Unsafe code may not appear in iterators
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "unsafe"));
         }
@@ -358,7 +358,7 @@ unsafe class C
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (10,32): warning CS0067: The event 'C.Event' is never used
                 //     unsafe event System.Action Event;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event").WithArguments("C.Event"));
@@ -1067,7 +1067,7 @@ class C : I
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(544417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544417")]
@@ -8565,7 +8565,7 @@ class C<T>
     unsafe E* ptr;
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (5,15): warning CS0169: The field 'C<T>.ptr' is never used
                 //     unsafe E* ptr;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "ptr").WithArguments("C<T>.ptr"));
@@ -9167,7 +9167,7 @@ public class Test
     {
         int* pointer = &p;
     }
-}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+}").VerifyDiagnostics(
                 // (6,24): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* pointer = &p;
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&p").WithLocation(6, 24)
@@ -9282,7 +9282,7 @@ unsafe class C
         int* e = &(s.Buf[0]);
         int* f = &(s_f.Buf[0]);
     }
-}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+}").VerifyDiagnostics(
                 // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* a = &s.Buf[0]) { }
                 Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&s.Buf[0]").WithLocation(12, 25),
@@ -9311,7 +9311,7 @@ namespace Interop
         public PROPVARIANT* pElems;
     }
 }";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
         }
     }

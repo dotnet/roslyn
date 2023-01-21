@@ -1441,7 +1441,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
             Assert.Empty(comp.GetDeclarationDiagnostics());
             comp.VerifyDiagnostics(
                 // (8,23): error CS0227: Unsafe code may only appear if compiling with /unsafe

@@ -915,7 +915,7 @@ namespace System.Diagnostics.CodeAnalysis
             TargetFramework targetFramework = TargetFramework.Standard,
             Verification verify = default)
         {
-            options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
+            options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatementsAndUnsafe(source.GetSyntaxTrees(parseOptions)));
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
             return CompileAndVerify(
                 compilation,
@@ -1215,7 +1215,7 @@ namespace System.Diagnostics.CodeAnalysis
         {
             var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName);
 
-            options ??= CheckForTopLevelStatements(syntaxTrees);
+            options ??= CheckForTopLevelStatementsAndUnsafe(syntaxTrees);
 
             // Using single-threaded build if debugger attached, to simplify debugging.
             if (Debugger.IsAttached)
@@ -1250,12 +1250,19 @@ namespace System.Diagnostics.CodeAnalysis
             return compilation;
         }
 
-        private static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
+        private static CSharpCompilationOptions CheckForTopLevelStatementsAndUnsafe(SyntaxTree[] syntaxTrees)
         {
             bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
 
             var options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
+            options = options.WithAllowUnsafe(syntaxTrees.Any(containsUnsafe));
+
             return options;
+
+            static bool containsUnsafe(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantTokens().Any(t => t.IsKind(SyntaxKind.UnsafeKeyword));
+            }
         }
 
         private static void ValidateCompilation(Func<CSharpCompilation> createCompilationLambda)

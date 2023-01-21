@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             type = "unsafe class C { delegate*<void> x; }";
 
-            CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+            CreateCompilation(type, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class C { delegate*<void> x; }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // unsafe class C { delegate*<void> x; }
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
 
-            CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(type, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class C { delegate*<void> x; }
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),

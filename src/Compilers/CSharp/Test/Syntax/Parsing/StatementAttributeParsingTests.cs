@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -1677,7 +1678,7 @@ class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(test, options: TestOptions.ReleaseDll).GetDiagnostics().Verify(
                 // (4,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     unsafe void Goo(int[] vals)
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo").WithLocation(4, 17),
@@ -1960,7 +1961,7 @@ class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(test, options: TestOptions.ReleaseDll).GetDiagnostics().Verify(
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]unsafe { }
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),

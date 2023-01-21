@@ -490,7 +490,7 @@ IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*x')
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(4, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -525,7 +525,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDe
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 24)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -740,7 +740,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: 'stackalloc int[
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 24)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.ReleaseDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
