@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,6 +94,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                     $"Multi-line token of type {kind} found on line {currentLine} at character index {currentChar}. " +
                     $"The token ends at index {currentChar + tokenLength}, which exceeds the line length of {lineLength}.");
             }
+        }
+
+        /// <summary>
+        /// This converts the raw array form back to a slightly more readable form for the purposes of understanding the diff should a test
+        /// fail. This groups rows by five (so that way the diff can't desynced from the start of a new token), and also replaces the token index
+        /// back with the string again.
+        /// </summary>
+        protected static ImmutableArray<string> ConvertToReadableFormat(int[] data)
+        {
+            var convertedStringsBuilder = ImmutableArray.CreateBuilder<string>(data.Length / 5);
+
+            for (var i = 0; i < data.Length; i += 5)
+            {
+                var kind = SemanticTokensHelpers.TokenTypeToIndex.Single(kvp => kvp.Value == data[i + 3]).Key;
+
+                convertedStringsBuilder.Add($"{data[i]}, {data[i + 1]}, {data[i + 2]}, {kind}, {data[i + 4]}");
+            }
+
+            return convertedStringsBuilder.MoveToImmutable();
         }
     }
 }

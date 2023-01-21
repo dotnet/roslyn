@@ -79,7 +79,7 @@ static class C { }
             };
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            Assert.Equal(expectedResults.Data, results);
+            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
         [Fact]
@@ -112,7 +112,7 @@ static class C { }
             };
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            Assert.Equal(expectedResults.Data, results);
+            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
         [Fact]
@@ -149,7 +149,7 @@ three */ }
             };
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            Assert.Equal(expectedResults.Data, results);
+            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
         [Fact]
@@ -182,7 +182,7 @@ three"";
             };
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
-            Assert.Equal(expectedResults.Data, results.Data);
+            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results.Data));
         }
 
         [Fact]
@@ -235,7 +235,7 @@ three"";
             };
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            AssertEx.Equal(expectedResults.Data, results);
+            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
         [Fact]
@@ -301,7 +301,7 @@ class C
             };
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            AssertEx.Equal(expectedResults.Data, results);
+            AssertEx.Equal(ConvertToReadableFormat(expectedResults.Data), ConvertToReadableFormat(results));
         }
 
         [Theory, MemberData(nameof(ClassificationTypeNamesToMatch))]
