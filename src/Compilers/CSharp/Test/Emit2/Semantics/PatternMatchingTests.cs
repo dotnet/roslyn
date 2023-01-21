@@ -7665,7 +7665,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+                parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
             compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -7982,7 +7982,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+                parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
             compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -9262,7 +9262,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+                parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
             compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -9580,7 +9580,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+                parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
             compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1

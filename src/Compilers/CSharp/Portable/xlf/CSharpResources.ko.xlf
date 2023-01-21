@@ -1727,11 +1727,6 @@
         <target state="translated">비동기 메서드 빌더 재정의</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_DisableLengthBasedSwitch">
-        <source>disable-length-based-switch</source>
-        <target state="new">disable-length-based-switch</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">자동 기본 구조체 필드</target>

@@ -262,7 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Missing = MessageBase + 12830,
         IDS_FeatureLambdaOptionalParameters = MessageBase + 12831,
         IDS_FeatureLambdaParamsArray = MessageBase + 12832,
-        IDS_DisableLengthBasedSwitch = MessageBase + 12833,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -307,8 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for current experimental features, if any, in the current branch.
             switch (feature)
             {
-                case MessageID.IDS_DisableLengthBasedSwitch:
-                    return "disable-length-based-switch";
                 default:
                     return null;
             }

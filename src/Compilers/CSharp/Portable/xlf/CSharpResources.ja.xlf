@@ -1727,11 +1727,6 @@
         <target state="translated">非同期メソッド ビルダーのオーバーライド</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_DisableLengthBasedSwitch">
-        <source>disable-length-based-switch</source>
-        <target state="new">disable-length-based-switch</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">自動既定の構造体フィールド</target>

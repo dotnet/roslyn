@@ -2897,7 +2897,7 @@ class Test
     }
 }";
             var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"),
-                parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch), expectedOutput: "True");
+                parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch(), expectedOutput: "True");
 
             compVerifier.VerifyIL("Test.M", @"
 {
@@ -3346,7 +3346,7 @@ class Test
     }
 }";
             var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"),
-                parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch), expectedOutput: "PASS");
+                parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch(), expectedOutput: "PASS");
 
             compVerifier.VerifyIL("Test.Switcheroo", @"
 {
@@ -4029,7 +4029,7 @@ class Goo
   }
 }         
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1", parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+            var compVerifier = CompileAndVerify(text, expectedOutput: "1", parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
             // Verify string hash synthesized method for hash table switch
             VerifySynthesizedStringHashMethod(compVerifier, expected: true);
 
@@ -7158,7 +7158,7 @@ public class Test
         }
     }
 }";
-            var compVerifier = CompileAndVerify(text, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch), expectedOutput: "3");
+            var compVerifier = CompileAndVerify(text, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch(), expectedOutput: "3");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size      368 (0x170)
@@ -7849,7 +7849,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch),
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch(),
                 options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
@@ -8089,7 +8089,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch),
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch(),
                 options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             // With special members available, we use a hashtable approach.
@@ -8220,7 +8220,7 @@ public class Test
   IL_0132:  ret
 }");
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
             comp.MakeMemberMissing(SpecialMember.System_String__Chars);
 
             // Can't use the hash version when String.Chars is unavailable.

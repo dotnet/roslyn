@@ -849,11 +849,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool hasLengthBasedDispatchRequiredMembers(StringPatternInput stringPatternInput)
                 {
+                    var compilation = _localRewriter._compilation;
                     var lengthMember = stringPatternInput switch
                     {
-                        StringPatternInput.String => _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Length),
-                        StringPatternInput.SpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Length),
-                        StringPatternInput.ReadOnlySpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Length),
+                        StringPatternInput.String => compilation.GetSpecialTypeMember(SpecialMember.System_String__Length),
+                        StringPatternInput.SpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Length),
+                        StringPatternInput.ReadOnlySpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Length),
                         _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
                     };
 
@@ -864,9 +865,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var charsMember = stringPatternInput switch
                     {
-                        StringPatternInput.String => _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars),
-                        StringPatternInput.SpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item),
-                        StringPatternInput.ReadOnlySpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item),
+                        StringPatternInput.String => compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars),
+                        StringPatternInput.SpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item),
+                        StringPatternInput.ReadOnlySpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item),
                         _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
                     };
 

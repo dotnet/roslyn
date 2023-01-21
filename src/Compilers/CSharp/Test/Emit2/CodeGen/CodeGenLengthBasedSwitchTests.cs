@@ -35,6 +35,7 @@ assert("words");
 assert("not", "default");
 assert("other", "default");
 assert("y", "default");
+assert("longer example", "default");
 System.Console.Write("RAN");
 
 void assert(string input, string expected = null)
@@ -79,25 +80,25 @@ public class C
         verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
         verifier.VerifyIL("C.M", """
 {
-  // Code size      584 (0x248)
+  // Code size      647 (0x287)
   .maxstack  2
   .locals init (string V_0,
                 int V_1,
                 char V_2)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse    IL_0240
+  IL_0001:  brfalse    IL_027f
   IL_0006:  ldarg.0
   IL_0007:  call       "int string.Length.get"
   IL_000c:  stloc.1
   IL_000d:  ldloc.1
   IL_000e:  switch    (
-        IL_01b5,
+        IL_01f4,
         IL_0030,
-        IL_00ae,
-        IL_00c3,
-        IL_00d8,
+        IL_00ed,
+        IL_0102,
+        IL_0117,
         IL_0052)
-  IL_002b:  br         IL_0240
+  IL_002b:  br         IL_027f
   IL_0030:  ldarg.0
   IL_0031:  ldc.i4.0
   IL_0032:  call       "char string.this[int].get"
@@ -106,10 +107,10 @@ public class C
   IL_0039:  ldc.i4.s   97
   IL_003b:  sub
   IL_003c:  switch    (
-        IL_01c0,
-        IL_01c8,
-        IL_01d0)
-  IL_004d:  br         IL_0240
+        IL_00ae,
+        IL_00c3,
+        IL_00d8)
+  IL_004d:  br         IL_027f
   IL_0052:  ldarg.0
   IL_0053:  ldc.i4.0
   IL_0054:  call       "char string.this[int].get"
@@ -119,151 +120,166 @@ public class C
   IL_005d:  bgt.un.s   IL_007c
   IL_005f:  ldloc.2
   IL_0060:  ldc.i4.s   97
-  IL_0062:  beq        IL_00ed
+  IL_0062:  beq        IL_012c
   IL_0067:  ldloc.2
   IL_0068:  ldc.i4.s   98
-  IL_006a:  beq        IL_0102
+  IL_006a:  beq        IL_0141
   IL_006f:  ldloc.2
   IL_0070:  ldc.i4.s   104
-  IL_0072:  beq        IL_0117
-  IL_0077:  br         IL_0240
+  IL_0072:  beq        IL_0156
+  IL_0077:  br         IL_027f
   IL_007c:  ldloc.2
   IL_007d:  ldc.i4.s   108
-  IL_007f:  beq        IL_012c
+  IL_007f:  beq        IL_016b
   IL_0084:  ldloc.2
   IL_0085:  ldc.i4.s   110
-  IL_0087:  beq        IL_0161
+  IL_0087:  beq        IL_01a0
   IL_008c:  ldloc.2
   IL_008d:  ldc.i4.s   115
   IL_008f:  sub
   IL_0090:  switch    (
-        IL_0176,
-        IL_018b,
-        IL_0240,
-        IL_0240,
-        IL_01a0)
-  IL_00a9:  br         IL_0240
+        IL_01b5,
+        IL_01ca,
+        IL_027f,
+        IL_027f,
+        IL_01df)
+  IL_00a9:  br         IL_027f
   IL_00ae:  ldarg.0
-  IL_00af:  ldstr      "no"
+  IL_00af:  ldstr      "a"
   IL_00b4:  call       "bool string.op_Equality(string, string)"
-  IL_00b9:  brtrue     IL_01d8
-  IL_00be:  br         IL_0240
+  IL_00b9:  brtrue     IL_01ff
+  IL_00be:  br         IL_027f
   IL_00c3:  ldarg.0
-  IL_00c4:  ldstr      "yes"
+  IL_00c4:  ldstr      "b"
   IL_00c9:  call       "bool string.op_Equality(string, string)"
-  IL_00ce:  brtrue     IL_01e0
-  IL_00d3:  br         IL_0240
+  IL_00ce:  brtrue     IL_0207
+  IL_00d3:  br         IL_027f
   IL_00d8:  ldarg.0
-  IL_00d9:  ldstr      "four"
+  IL_00d9:  ldstr      "c"
   IL_00de:  call       "bool string.op_Equality(string, string)"
-  IL_00e3:  brtrue     IL_01e8
-  IL_00e8:  br         IL_0240
+  IL_00e3:  brtrue     IL_020f
+  IL_00e8:  br         IL_027f
   IL_00ed:  ldarg.0
-  IL_00ee:  ldstr      "alice"
+  IL_00ee:  ldstr      "no"
   IL_00f3:  call       "bool string.op_Equality(string, string)"
-  IL_00f8:  brtrue     IL_01f0
-  IL_00fd:  br         IL_0240
+  IL_00f8:  brtrue     IL_0217
+  IL_00fd:  br         IL_027f
   IL_0102:  ldarg.0
-  IL_0103:  ldstr      "blurb"
+  IL_0103:  ldstr      "yes"
   IL_0108:  call       "bool string.op_Equality(string, string)"
-  IL_010d:  brtrue     IL_01f8
-  IL_0112:  br         IL_0240
+  IL_010d:  brtrue     IL_021f
+  IL_0112:  br         IL_027f
   IL_0117:  ldarg.0
-  IL_0118:  ldstr      "hello"
+  IL_0118:  ldstr      "four"
   IL_011d:  call       "bool string.op_Equality(string, string)"
-  IL_0122:  brtrue     IL_0200
-  IL_0127:  br         IL_0240
+  IL_0122:  brtrue     IL_0227
+  IL_0127:  br         IL_027f
   IL_012c:  ldarg.0
-  IL_012d:  ldstr      "lamps"
+  IL_012d:  ldstr      "alice"
   IL_0132:  call       "bool string.op_Equality(string, string)"
-  IL_0137:  brtrue     IL_0208
-  IL_013c:  ldarg.0
-  IL_013d:  ldstr      "lambs"
-  IL_0142:  call       "bool string.op_Equality(string, string)"
-  IL_0147:  brtrue     IL_0210
-  IL_014c:  ldarg.0
-  IL_014d:  ldstr      "lower"
-  IL_0152:  call       "bool string.op_Equality(string, string)"
-  IL_0157:  brtrue     IL_0218
-  IL_015c:  br         IL_0240
-  IL_0161:  ldarg.0
-  IL_0162:  ldstr      "names"
-  IL_0167:  call       "bool string.op_Equality(string, string)"
-  IL_016c:  brtrue     IL_0220
-  IL_0171:  br         IL_0240
-  IL_0176:  ldarg.0
-  IL_0177:  ldstr      "slurp"
-  IL_017c:  call       "bool string.op_Equality(string, string)"
-  IL_0181:  brtrue     IL_0228
-  IL_0186:  br         IL_0240
+  IL_0137:  brtrue     IL_022f
+  IL_013c:  br         IL_027f
+  IL_0141:  ldarg.0
+  IL_0142:  ldstr      "blurb"
+  IL_0147:  call       "bool string.op_Equality(string, string)"
+  IL_014c:  brtrue     IL_0237
+  IL_0151:  br         IL_027f
+  IL_0156:  ldarg.0
+  IL_0157:  ldstr      "hello"
+  IL_015c:  call       "bool string.op_Equality(string, string)"
+  IL_0161:  brtrue     IL_023f
+  IL_0166:  br         IL_027f
+  IL_016b:  ldarg.0
+  IL_016c:  ldstr      "lamps"
+  IL_0171:  call       "bool string.op_Equality(string, string)"
+  IL_0176:  brtrue     IL_0247
+  IL_017b:  ldarg.0
+  IL_017c:  ldstr      "lambs"
+  IL_0181:  call       "bool string.op_Equality(string, string)"
+  IL_0186:  brtrue     IL_024f
   IL_018b:  ldarg.0
-  IL_018c:  ldstr      "towed"
+  IL_018c:  ldstr      "lower"
   IL_0191:  call       "bool string.op_Equality(string, string)"
-  IL_0196:  brtrue     IL_0230
-  IL_019b:  br         IL_0240
+  IL_0196:  brtrue     IL_0257
+  IL_019b:  br         IL_027f
   IL_01a0:  ldarg.0
-  IL_01a1:  ldstr      "words"
+  IL_01a1:  ldstr      "names"
   IL_01a6:  call       "bool string.op_Equality(string, string)"
-  IL_01ab:  brtrue     IL_0238
-  IL_01b0:  br         IL_0240
-  IL_01b5:  ldstr      "blank"
-  IL_01ba:  stloc.0
-  IL_01bb:  br         IL_0246
-  IL_01c0:  ldstr      "a"
-  IL_01c5:  stloc.0
-  IL_01c6:  br.s       IL_0246
-  IL_01c8:  ldstr      "b"
-  IL_01cd:  stloc.0
-  IL_01ce:  br.s       IL_0246
-  IL_01d0:  ldstr      "c"
-  IL_01d5:  stloc.0
-  IL_01d6:  br.s       IL_0246
-  IL_01d8:  ldstr      "no"
-  IL_01dd:  stloc.0
-  IL_01de:  br.s       IL_0246
-  IL_01e0:  ldstr      "yes"
-  IL_01e5:  stloc.0
-  IL_01e6:  br.s       IL_0246
-  IL_01e8:  ldstr      "four"
-  IL_01ed:  stloc.0
-  IL_01ee:  br.s       IL_0246
-  IL_01f0:  ldstr      "alice"
-  IL_01f5:  stloc.0
-  IL_01f6:  br.s       IL_0246
-  IL_01f8:  ldstr      "blurb"
-  IL_01fd:  stloc.0
-  IL_01fe:  br.s       IL_0246
-  IL_0200:  ldstr      "hello"
-  IL_0205:  stloc.0
-  IL_0206:  br.s       IL_0246
-  IL_0208:  ldstr      "lamps"
-  IL_020d:  stloc.0
-  IL_020e:  br.s       IL_0246
-  IL_0210:  ldstr      "lambs"
-  IL_0215:  stloc.0
-  IL_0216:  br.s       IL_0246
-  IL_0218:  ldstr      "lower"
-  IL_021d:  stloc.0
-  IL_021e:  br.s       IL_0246
-  IL_0220:  ldstr      "names"
-  IL_0225:  stloc.0
-  IL_0226:  br.s       IL_0246
-  IL_0228:  ldstr      "slurp"
-  IL_022d:  stloc.0
-  IL_022e:  br.s       IL_0246
-  IL_0230:  ldstr      "towed"
-  IL_0235:  stloc.0
-  IL_0236:  br.s       IL_0246
-  IL_0238:  ldstr      "words"
-  IL_023d:  stloc.0
-  IL_023e:  br.s       IL_0246
-  IL_0240:  ldstr      "default"
-  IL_0245:  stloc.0
-  IL_0246:  ldloc.0
-  IL_0247:  ret
+  IL_01ab:  brtrue     IL_025f
+  IL_01b0:  br         IL_027f
+  IL_01b5:  ldarg.0
+  IL_01b6:  ldstr      "slurp"
+  IL_01bb:  call       "bool string.op_Equality(string, string)"
+  IL_01c0:  brtrue     IL_0267
+  IL_01c5:  br         IL_027f
+  IL_01ca:  ldarg.0
+  IL_01cb:  ldstr      "towed"
+  IL_01d0:  call       "bool string.op_Equality(string, string)"
+  IL_01d5:  brtrue     IL_026f
+  IL_01da:  br         IL_027f
+  IL_01df:  ldarg.0
+  IL_01e0:  ldstr      "words"
+  IL_01e5:  call       "bool string.op_Equality(string, string)"
+  IL_01ea:  brtrue     IL_0277
+  IL_01ef:  br         IL_027f
+  IL_01f4:  ldstr      "blank"
+  IL_01f9:  stloc.0
+  IL_01fa:  br         IL_0285
+  IL_01ff:  ldstr      "a"
+  IL_0204:  stloc.0
+  IL_0205:  br.s       IL_0285
+  IL_0207:  ldstr      "b"
+  IL_020c:  stloc.0
+  IL_020d:  br.s       IL_0285
+  IL_020f:  ldstr      "c"
+  IL_0214:  stloc.0
+  IL_0215:  br.s       IL_0285
+  IL_0217:  ldstr      "no"
+  IL_021c:  stloc.0
+  IL_021d:  br.s       IL_0285
+  IL_021f:  ldstr      "yes"
+  IL_0224:  stloc.0
+  IL_0225:  br.s       IL_0285
+  IL_0227:  ldstr      "four"
+  IL_022c:  stloc.0
+  IL_022d:  br.s       IL_0285
+  IL_022f:  ldstr      "alice"
+  IL_0234:  stloc.0
+  IL_0235:  br.s       IL_0285
+  IL_0237:  ldstr      "blurb"
+  IL_023c:  stloc.0
+  IL_023d:  br.s       IL_0285
+  IL_023f:  ldstr      "hello"
+  IL_0244:  stloc.0
+  IL_0245:  br.s       IL_0285
+  IL_0247:  ldstr      "lamps"
+  IL_024c:  stloc.0
+  IL_024d:  br.s       IL_0285
+  IL_024f:  ldstr      "lambs"
+  IL_0254:  stloc.0
+  IL_0255:  br.s       IL_0285
+  IL_0257:  ldstr      "lower"
+  IL_025c:  stloc.0
+  IL_025d:  br.s       IL_0285
+  IL_025f:  ldstr      "names"
+  IL_0264:  stloc.0
+  IL_0265:  br.s       IL_0285
+  IL_0267:  ldstr      "slurp"
+  IL_026c:  stloc.0
+  IL_026d:  br.s       IL_0285
+  IL_026f:  ldstr      "towed"
+  IL_0274:  stloc.0
+  IL_0275:  br.s       IL_0285
+  IL_0277:  ldstr      "words"
+  IL_027c:  stloc.0
+  IL_027d:  br.s       IL_0285
+  IL_027f:  ldstr      "default"
+  IL_0284:  stloc.0
+  IL_0285:  ldloc.0
+  IL_0286:  ret
 }
 """);
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: true);
@@ -526,6 +542,7 @@ assert("words");
 assert("not", "default");
 assert("other", "default");
 assert("y", "default");
+assert("longer example", "default");
 System.Console.Write("RAN");
 
 void assert(string input, string expected = null)
@@ -573,7 +590,7 @@ public class C
         verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
         verifier.VerifyIL("C.M", $$"""
 {
-  // Code size      648 (0x288)
+  // Code size      726 (0x2d6)
   .maxstack  2
   .locals init (string V_0,
                 int V_1,
@@ -583,13 +600,13 @@ public class C
   IL_0007:  stloc.1
   IL_0008:  ldloc.1
   IL_0009:  switch    (
-        IL_01f5,
+        IL_0243,
         IL_002b,
-        IL_00ad,
-        IL_00c7,
-        IL_00e1,
+        IL_00fb,
+        IL_0115,
+        IL_012f,
         IL_004f)
-  IL_0026:  br         IL_0280
+  IL_0026:  br         IL_02ce
   IL_002b:  ldarga.s   V_0
   IL_002d:  ldc.i4.0
   IL_002e:  call       "{{indexer}}"
@@ -599,10 +616,10 @@ public class C
   IL_0036:  ldc.i4.s   97
   IL_0038:  sub
   IL_0039:  switch    (
-        IL_0200,
-        IL_0208,
-        IL_0210)
-  IL_004a:  br         IL_0280
+        IL_00ad,
+        IL_00c7,
+        IL_00e1)
+  IL_004a:  br         IL_02ce
   IL_004f:  ldarga.s   V_0
   IL_0051:  ldc.i4.0
   IL_0052:  call       "{{indexer}}"
@@ -613,165 +630,183 @@ public class C
   IL_005c:  bgt.un.s   IL_007b
   IL_005e:  ldloc.2
   IL_005f:  ldc.i4.s   97
-  IL_0061:  beq        IL_00fb
+  IL_0061:  beq        IL_0149
   IL_0066:  ldloc.2
   IL_0067:  ldc.i4.s   98
-  IL_0069:  beq        IL_0115
+  IL_0069:  beq        IL_0163
   IL_006e:  ldloc.2
   IL_006f:  ldc.i4.s   104
-  IL_0071:  beq        IL_012f
-  IL_0076:  br         IL_0280
+  IL_0071:  beq        IL_017d
+  IL_0076:  br         IL_02ce
   IL_007b:  ldloc.2
   IL_007c:  ldc.i4.s   108
-  IL_007e:  beq        IL_0149
+  IL_007e:  beq        IL_0197
   IL_0083:  ldloc.2
   IL_0084:  ldc.i4.s   110
-  IL_0086:  beq        IL_018d
+  IL_0086:  beq        IL_01db
   IL_008b:  ldloc.2
   IL_008c:  ldc.i4.s   115
   IL_008e:  sub
   IL_008f:  switch    (
-        IL_01a7,
-        IL_01c1,
-        IL_0280,
-        IL_0280,
-        IL_01db)
-  IL_00a8:  br         IL_0280
+        IL_01f5,
+        IL_020f,
+        IL_02ce,
+        IL_02ce,
+        IL_0229)
+  IL_00a8:  br         IL_02ce
   IL_00ad:  ldarg.0
-  IL_00ae:  ldstr      "no"
+  IL_00ae:  ldstr      "a"
   IL_00b3:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_00b8:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_00bd:  brtrue     IL_0218
-  IL_00c2:  br         IL_0280
+  IL_00bd:  brtrue     IL_024e
+  IL_00c2:  br         IL_02ce
   IL_00c7:  ldarg.0
-  IL_00c8:  ldstr      "yes"
+  IL_00c8:  ldstr      "b"
   IL_00cd:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_00d2:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_00d7:  brtrue     IL_0220
-  IL_00dc:  br         IL_0280
+  IL_00d7:  brtrue     IL_0256
+  IL_00dc:  br         IL_02ce
   IL_00e1:  ldarg.0
-  IL_00e2:  ldstr      "four"
+  IL_00e2:  ldstr      "c"
   IL_00e7:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_00ec:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_00f1:  brtrue     IL_0228
-  IL_00f6:  br         IL_0280
+  IL_00f1:  brtrue     IL_025e
+  IL_00f6:  br         IL_02ce
   IL_00fb:  ldarg.0
-  IL_00fc:  ldstr      "alice"
+  IL_00fc:  ldstr      "no"
   IL_0101:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_0106:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_010b:  brtrue     IL_0230
-  IL_0110:  br         IL_0280
+  IL_010b:  brtrue     IL_0266
+  IL_0110:  br         IL_02ce
   IL_0115:  ldarg.0
-  IL_0116:  ldstr      "blurb"
+  IL_0116:  ldstr      "yes"
   IL_011b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_0120:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_0125:  brtrue     IL_0238
-  IL_012a:  br         IL_0280
+  IL_0125:  brtrue     IL_026e
+  IL_012a:  br         IL_02ce
   IL_012f:  ldarg.0
-  IL_0130:  ldstr      "hello"
+  IL_0130:  ldstr      "four"
   IL_0135:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_013a:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_013f:  brtrue     IL_0240
-  IL_0144:  br         IL_0280
+  IL_013f:  brtrue     IL_0276
+  IL_0144:  br         IL_02ce
   IL_0149:  ldarg.0
-  IL_014a:  ldstr      "lamps"
+  IL_014a:  ldstr      "alice"
   IL_014f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_0154:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_0159:  brtrue     IL_0248
-  IL_015e:  ldarg.0
-  IL_015f:  ldstr      "lambs"
-  IL_0164:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_0169:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_016e:  brtrue     IL_0250
-  IL_0173:  ldarg.0
-  IL_0174:  ldstr      "lower"
-  IL_0179:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_017e:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_0183:  brtrue     IL_0258
-  IL_0188:  br         IL_0280
-  IL_018d:  ldarg.0
-  IL_018e:  ldstr      "names"
-  IL_0193:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_0198:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_019d:  brtrue     IL_0260
-  IL_01a2:  br         IL_0280
-  IL_01a7:  ldarg.0
-  IL_01a8:  ldstr      "slurp"
-  IL_01ad:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_01b2:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_01b7:  brtrue     IL_0268
-  IL_01bc:  br         IL_0280
+  IL_0159:  brtrue     IL_027e
+  IL_015e:  br         IL_02ce
+  IL_0163:  ldarg.0
+  IL_0164:  ldstr      "blurb"
+  IL_0169:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_016e:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_0173:  brtrue     IL_0286
+  IL_0178:  br         IL_02ce
+  IL_017d:  ldarg.0
+  IL_017e:  ldstr      "hello"
+  IL_0183:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0188:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_018d:  brtrue     IL_028e
+  IL_0192:  br         IL_02ce
+  IL_0197:  ldarg.0
+  IL_0198:  ldstr      "lamps"
+  IL_019d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_01a2:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_01a7:  brtrue     IL_0296
+  IL_01ac:  ldarg.0
+  IL_01ad:  ldstr      "lambs"
+  IL_01b2:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_01b7:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_01bc:  brtrue     IL_029e
   IL_01c1:  ldarg.0
-  IL_01c2:  ldstr      "towed"
+  IL_01c2:  ldstr      "lower"
   IL_01c7:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_01cc:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_01d1:  brtrue     IL_0270
-  IL_01d6:  br         IL_0280
+  IL_01d1:  brtrue     IL_02a6
+  IL_01d6:  br         IL_02ce
   IL_01db:  ldarg.0
-  IL_01dc:  ldstr      "words"
+  IL_01dc:  ldstr      "names"
   IL_01e1:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_01e6:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
-  IL_01eb:  brtrue     IL_0278
-  IL_01f0:  br         IL_0280
-  IL_01f5:  ldstr      "blank"
-  IL_01fa:  stloc.0
-  IL_01fb:  br         IL_0286
-  IL_0200:  ldstr      "a"
-  IL_0205:  stloc.0
-  IL_0206:  br.s       IL_0286
-  IL_0208:  ldstr      "b"
-  IL_020d:  stloc.0
-  IL_020e:  br.s       IL_0286
-  IL_0210:  ldstr      "c"
-  IL_0215:  stloc.0
-  IL_0216:  br.s       IL_0286
-  IL_0218:  ldstr      "no"
-  IL_021d:  stloc.0
-  IL_021e:  br.s       IL_0286
-  IL_0220:  ldstr      "yes"
-  IL_0225:  stloc.0
-  IL_0226:  br.s       IL_0286
-  IL_0228:  ldstr      "four"
-  IL_022d:  stloc.0
-  IL_022e:  br.s       IL_0286
-  IL_0230:  ldstr      "alice"
-  IL_0235:  stloc.0
-  IL_0236:  br.s       IL_0286
-  IL_0238:  ldstr      "blurb"
-  IL_023d:  stloc.0
-  IL_023e:  br.s       IL_0286
-  IL_0240:  ldstr      "hello"
-  IL_0245:  stloc.0
-  IL_0246:  br.s       IL_0286
-  IL_0248:  ldstr      "lamps"
-  IL_024d:  stloc.0
-  IL_024e:  br.s       IL_0286
-  IL_0250:  ldstr      "lambs"
-  IL_0255:  stloc.0
-  IL_0256:  br.s       IL_0286
-  IL_0258:  ldstr      "lower"
-  IL_025d:  stloc.0
-  IL_025e:  br.s       IL_0286
-  IL_0260:  ldstr      "names"
-  IL_0265:  stloc.0
-  IL_0266:  br.s       IL_0286
-  IL_0268:  ldstr      "slurp"
-  IL_026d:  stloc.0
-  IL_026e:  br.s       IL_0286
-  IL_0270:  ldstr      "towed"
-  IL_0275:  stloc.0
-  IL_0276:  br.s       IL_0286
-  IL_0278:  ldstr      "words"
-  IL_027d:  stloc.0
-  IL_027e:  br.s       IL_0286
-  IL_0280:  ldstr      "default"
-  IL_0285:  stloc.0
-  IL_0286:  ldloc.0
-  IL_0287:  ret
+  IL_01eb:  brtrue     IL_02ae
+  IL_01f0:  br         IL_02ce
+  IL_01f5:  ldarg.0
+  IL_01f6:  ldstr      "slurp"
+  IL_01fb:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0200:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_0205:  brtrue     IL_02b6
+  IL_020a:  br         IL_02ce
+  IL_020f:  ldarg.0
+  IL_0210:  ldstr      "towed"
+  IL_0215:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_021a:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_021f:  brtrue     IL_02be
+  IL_0224:  br         IL_02ce
+  IL_0229:  ldarg.0
+  IL_022a:  ldstr      "words"
+  IL_022f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0234:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_0239:  brtrue     IL_02c6
+  IL_023e:  br         IL_02ce
+  IL_0243:  ldstr      "blank"
+  IL_0248:  stloc.0
+  IL_0249:  br         IL_02d4
+  IL_024e:  ldstr      "a"
+  IL_0253:  stloc.0
+  IL_0254:  br.s       IL_02d4
+  IL_0256:  ldstr      "b"
+  IL_025b:  stloc.0
+  IL_025c:  br.s       IL_02d4
+  IL_025e:  ldstr      "c"
+  IL_0263:  stloc.0
+  IL_0264:  br.s       IL_02d4
+  IL_0266:  ldstr      "no"
+  IL_026b:  stloc.0
+  IL_026c:  br.s       IL_02d4
+  IL_026e:  ldstr      "yes"
+  IL_0273:  stloc.0
+  IL_0274:  br.s       IL_02d4
+  IL_0276:  ldstr      "four"
+  IL_027b:  stloc.0
+  IL_027c:  br.s       IL_02d4
+  IL_027e:  ldstr      "alice"
+  IL_0283:  stloc.0
+  IL_0284:  br.s       IL_02d4
+  IL_0286:  ldstr      "blurb"
+  IL_028b:  stloc.0
+  IL_028c:  br.s       IL_02d4
+  IL_028e:  ldstr      "hello"
+  IL_0293:  stloc.0
+  IL_0294:  br.s       IL_02d4
+  IL_0296:  ldstr      "lamps"
+  IL_029b:  stloc.0
+  IL_029c:  br.s       IL_02d4
+  IL_029e:  ldstr      "lambs"
+  IL_02a3:  stloc.0
+  IL_02a4:  br.s       IL_02d4
+  IL_02a6:  ldstr      "lower"
+  IL_02ab:  stloc.0
+  IL_02ac:  br.s       IL_02d4
+  IL_02ae:  ldstr      "names"
+  IL_02b3:  stloc.0
+  IL_02b4:  br.s       IL_02d4
+  IL_02b6:  ldstr      "slurp"
+  IL_02bb:  stloc.0
+  IL_02bc:  br.s       IL_02d4
+  IL_02be:  ldstr      "towed"
+  IL_02c3:  stloc.0
+  IL_02c4:  br.s       IL_02d4
+  IL_02c6:  ldstr      "words"
+  IL_02cb:  stloc.0
+  IL_02cc:  br.s       IL_02d4
+  IL_02ce:  ldstr      "default"
+  IL_02d3:  stloc.0
+  IL_02d4:  ldloc.0
+  IL_02d5:  ret
 }
 """);
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         var helper = useReadonly ? "ComputeReadOnlySpanHash" : "ComputeSpanHash";
@@ -1036,6 +1071,16 @@ public class C
         {
             null => "null1",
             null => "null2",
+            "" => "blank",
+            "a" => "a",
+            "b" => "b",
+            "c" => "c",
+            "no" => "no",
+            "yes" => "yes",
+            "four" => "four",
+            "alice" => "alice",
+            "blurb" => "blurb",
+            "hello" => "hello",
             _ => "default"
         };
     }
@@ -1056,6 +1101,7 @@ public class C
 assert(null, "default");
 assert("", "default");
 assert("a");
+assert("b", "default");
 assert("ab");
 assert("abc");
 assert("abcd");
@@ -1098,7 +1144,7 @@ public class C
         verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
         verifier.VerifyIL("C.M", """
 {
-  // Code size      254 (0xfe)
+  // Code size      272 (0x110)
   .maxstack  2
   .locals init (string V_0,
                 string V_1,
@@ -1108,9 +1154,9 @@ public class C
   IL_0001:  isinst     "string"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  brfalse    IL_00f6
+  IL_0008:  brfalse    IL_0108
   IL_000d:  ldloc.1
-  IL_000e:  brfalse    IL_00f6
+  IL_000e:  brfalse    IL_0108
   IL_0013:  ldloc.1
   IL_0014:  call       "int string.Length.get"
   IL_0019:  stloc.2
@@ -1118,82 +1164,87 @@ public class C
   IL_001b:  ldc.i4.1
   IL_001c:  sub
   IL_001d:  switch    (
-        IL_00b6,
         IL_0047,
         IL_0059,
         IL_006b,
-        IL_007a,
-        IL_0089,
-        IL_0098,
-        IL_00a7)
-  IL_0042:  br         IL_00f6
+        IL_007d,
+        IL_008c,
+        IL_009b,
+        IL_00aa,
+        IL_00b9)
+  IL_0042:  br         IL_0108
   IL_0047:  ldloc.1
-  IL_0048:  ldstr      "ab"
+  IL_0048:  ldstr      "a"
   IL_004d:  call       "bool string.op_Equality(string, string)"
-  IL_0052:  brtrue.s   IL_00be
-  IL_0054:  br         IL_00f6
+  IL_0052:  brtrue.s   IL_00c8
+  IL_0054:  br         IL_0108
   IL_0059:  ldloc.1
-  IL_005a:  ldstr      "abc"
+  IL_005a:  ldstr      "ab"
   IL_005f:  call       "bool string.op_Equality(string, string)"
-  IL_0064:  brtrue.s   IL_00c6
-  IL_0066:  br         IL_00f6
+  IL_0064:  brtrue.s   IL_00d0
+  IL_0066:  br         IL_0108
   IL_006b:  ldloc.1
-  IL_006c:  ldstr      "abcd"
+  IL_006c:  ldstr      "abc"
   IL_0071:  call       "bool string.op_Equality(string, string)"
-  IL_0076:  brtrue.s   IL_00ce
-  IL_0078:  br.s       IL_00f6
-  IL_007a:  ldloc.1
-  IL_007b:  ldstr      "abcde"
-  IL_0080:  call       "bool string.op_Equality(string, string)"
-  IL_0085:  brtrue.s   IL_00d6
-  IL_0087:  br.s       IL_00f6
-  IL_0089:  ldloc.1
-  IL_008a:  ldstr      "abcdef"
-  IL_008f:  call       "bool string.op_Equality(string, string)"
-  IL_0094:  brtrue.s   IL_00de
-  IL_0096:  br.s       IL_00f6
-  IL_0098:  ldloc.1
-  IL_0099:  ldstr      "abcdefg"
-  IL_009e:  call       "bool string.op_Equality(string, string)"
-  IL_00a3:  brtrue.s   IL_00e6
-  IL_00a5:  br.s       IL_00f6
-  IL_00a7:  ldloc.1
-  IL_00a8:  ldstr      "abcdefgh"
-  IL_00ad:  call       "bool string.op_Equality(string, string)"
-  IL_00b2:  brtrue.s   IL_00ee
-  IL_00b4:  br.s       IL_00f6
-  IL_00b6:  ldstr      "a"
-  IL_00bb:  stloc.0
-  IL_00bc:  br.s       IL_00fc
-  IL_00be:  ldstr      "ab"
-  IL_00c3:  stloc.0
-  IL_00c4:  br.s       IL_00fc
-  IL_00c6:  ldstr      "abc"
-  IL_00cb:  stloc.0
-  IL_00cc:  br.s       IL_00fc
-  IL_00ce:  ldstr      "abcd"
-  IL_00d3:  stloc.0
-  IL_00d4:  br.s       IL_00fc
-  IL_00d6:  ldstr      "abcde"
-  IL_00db:  stloc.0
-  IL_00dc:  br.s       IL_00fc
-  IL_00de:  ldstr      "abcdef"
-  IL_00e3:  stloc.0
-  IL_00e4:  br.s       IL_00fc
-  IL_00e6:  ldstr      "abcdefg"
-  IL_00eb:  stloc.0
-  IL_00ec:  br.s       IL_00fc
-  IL_00ee:  ldstr      "abcdefgh"
-  IL_00f3:  stloc.0
-  IL_00f4:  br.s       IL_00fc
-  IL_00f6:  ldstr      "default"
-  IL_00fb:  stloc.0
-  IL_00fc:  ldloc.0
-  IL_00fd:  ret
+  IL_0076:  brtrue.s   IL_00d8
+  IL_0078:  br         IL_0108
+  IL_007d:  ldloc.1
+  IL_007e:  ldstr      "abcd"
+  IL_0083:  call       "bool string.op_Equality(string, string)"
+  IL_0088:  brtrue.s   IL_00e0
+  IL_008a:  br.s       IL_0108
+  IL_008c:  ldloc.1
+  IL_008d:  ldstr      "abcde"
+  IL_0092:  call       "bool string.op_Equality(string, string)"
+  IL_0097:  brtrue.s   IL_00e8
+  IL_0099:  br.s       IL_0108
+  IL_009b:  ldloc.1
+  IL_009c:  ldstr      "abcdef"
+  IL_00a1:  call       "bool string.op_Equality(string, string)"
+  IL_00a6:  brtrue.s   IL_00f0
+  IL_00a8:  br.s       IL_0108
+  IL_00aa:  ldloc.1
+  IL_00ab:  ldstr      "abcdefg"
+  IL_00b0:  call       "bool string.op_Equality(string, string)"
+  IL_00b5:  brtrue.s   IL_00f8
+  IL_00b7:  br.s       IL_0108
+  IL_00b9:  ldloc.1
+  IL_00ba:  ldstr      "abcdefgh"
+  IL_00bf:  call       "bool string.op_Equality(string, string)"
+  IL_00c4:  brtrue.s   IL_0100
+  IL_00c6:  br.s       IL_0108
+  IL_00c8:  ldstr      "a"
+  IL_00cd:  stloc.0
+  IL_00ce:  br.s       IL_010e
+  IL_00d0:  ldstr      "ab"
+  IL_00d5:  stloc.0
+  IL_00d6:  br.s       IL_010e
+  IL_00d8:  ldstr      "abc"
+  IL_00dd:  stloc.0
+  IL_00de:  br.s       IL_010e
+  IL_00e0:  ldstr      "abcd"
+  IL_00e5:  stloc.0
+  IL_00e6:  br.s       IL_010e
+  IL_00e8:  ldstr      "abcde"
+  IL_00ed:  stloc.0
+  IL_00ee:  br.s       IL_010e
+  IL_00f0:  ldstr      "abcdef"
+  IL_00f5:  stloc.0
+  IL_00f6:  br.s       IL_010e
+  IL_00f8:  ldstr      "abcdefg"
+  IL_00fd:  stloc.0
+  IL_00fe:  br.s       IL_010e
+  IL_0100:  ldstr      "abcdefgh"
+  IL_0105:  stloc.0
+  IL_0106:  br.s       IL_010e
+  IL_0108:  ldstr      "default"
+  IL_010d:  stloc.0
+  IL_010e:  ldloc.0
+  IL_010f:  ret
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: true);
@@ -1322,6 +1373,170 @@ public class C
     }
 
     [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    public void BucketSizeOne_WithIntValues()
+    {
+        var source = """
+assert(null, "default");
+assert("", "default");
+assert("a");
+assert("b", "default");
+assert("ab");
+assert("abc");
+assert("abcd");
+assert("abcde");
+assert("abcdef");
+assert("not", "default");
+assert("other", "default");
+assert(0, "0");
+assert(1, "default");
+System.Console.Write("RAN");
+
+void assert(object input, string expected = null)
+{
+    if (C.M(input) != (expected ?? input.ToString()))
+    {
+        throw new System.Exception($"{input} produced {C.M(input)}");
+    }
+}
+
+public class C
+{
+    public static string M(object o)
+    {
+        return o switch
+        {
+            "a" => "a",
+            "ab" => "ab",
+            "abc" => "abc",
+            "abcd" => "abcd",
+            "abcde" => "abcde",
+            "abcdef" => "abcdef",
+            "abcdefg" => "abcdefg",
+            "abcdefgh" => "abcdefgh",
+            0 => "0",
+            _ => "default"
+        };
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
+        verifier.VerifyIL("C.M", """
+{
+  // Code size      310 (0x136)
+  .maxstack  2
+  .locals init (string V_0,
+                string V_1,
+                int V_2,
+                char V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     "string"
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  brfalse    IL_00d4
+  IL_000d:  ldloc.1
+  IL_000e:  brfalse    IL_012e
+  IL_0013:  ldloc.1
+  IL_0014:  call       "int string.Length.get"
+  IL_0019:  stloc.2
+  IL_001a:  ldloc.2
+  IL_001b:  ldc.i4.1
+  IL_001c:  sub
+  IL_001d:  switch    (
+        IL_0047,
+        IL_005c,
+        IL_0071,
+        IL_0083,
+        IL_0095,
+        IL_00a7,
+        IL_00b6,
+        IL_00c5)
+  IL_0042:  br         IL_012e
+  IL_0047:  ldloc.1
+  IL_0048:  ldstr      "a"
+  IL_004d:  call       "bool string.op_Equality(string, string)"
+  IL_0052:  brtrue     IL_00e6
+  IL_0057:  br         IL_012e
+  IL_005c:  ldloc.1
+  IL_005d:  ldstr      "ab"
+  IL_0062:  call       "bool string.op_Equality(string, string)"
+  IL_0067:  brtrue     IL_00ee
+  IL_006c:  br         IL_012e
+  IL_0071:  ldloc.1
+  IL_0072:  ldstr      "abc"
+  IL_0077:  call       "bool string.op_Equality(string, string)"
+  IL_007c:  brtrue.s   IL_00f6
+  IL_007e:  br         IL_012e
+  IL_0083:  ldloc.1
+  IL_0084:  ldstr      "abcd"
+  IL_0089:  call       "bool string.op_Equality(string, string)"
+  IL_008e:  brtrue.s   IL_00fe
+  IL_0090:  br         IL_012e
+  IL_0095:  ldloc.1
+  IL_0096:  ldstr      "abcde"
+  IL_009b:  call       "bool string.op_Equality(string, string)"
+  IL_00a0:  brtrue.s   IL_0106
+  IL_00a2:  br         IL_012e
+  IL_00a7:  ldloc.1
+  IL_00a8:  ldstr      "abcdef"
+  IL_00ad:  call       "bool string.op_Equality(string, string)"
+  IL_00b2:  brtrue.s   IL_010e
+  IL_00b4:  br.s       IL_012e
+  IL_00b6:  ldloc.1
+  IL_00b7:  ldstr      "abcdefg"
+  IL_00bc:  call       "bool string.op_Equality(string, string)"
+  IL_00c1:  brtrue.s   IL_0116
+  IL_00c3:  br.s       IL_012e
+  IL_00c5:  ldloc.1
+  IL_00c6:  ldstr      "abcdefgh"
+  IL_00cb:  call       "bool string.op_Equality(string, string)"
+  IL_00d0:  brtrue.s   IL_011e
+  IL_00d2:  br.s       IL_012e
+  IL_00d4:  ldarg.0
+  IL_00d5:  isinst     "int"
+  IL_00da:  brfalse.s  IL_012e
+  IL_00dc:  ldarg.0
+  IL_00dd:  unbox.any  "int"
+  IL_00e2:  brfalse.s  IL_0126
+  IL_00e4:  br.s       IL_012e
+  IL_00e6:  ldstr      "a"
+  IL_00eb:  stloc.0
+  IL_00ec:  br.s       IL_0134
+  IL_00ee:  ldstr      "ab"
+  IL_00f3:  stloc.0
+  IL_00f4:  br.s       IL_0134
+  IL_00f6:  ldstr      "abc"
+  IL_00fb:  stloc.0
+  IL_00fc:  br.s       IL_0134
+  IL_00fe:  ldstr      "abcd"
+  IL_0103:  stloc.0
+  IL_0104:  br.s       IL_0134
+  IL_0106:  ldstr      "abcde"
+  IL_010b:  stloc.0
+  IL_010c:  br.s       IL_0134
+  IL_010e:  ldstr      "abcdef"
+  IL_0113:  stloc.0
+  IL_0114:  br.s       IL_0134
+  IL_0116:  ldstr      "abcdefg"
+  IL_011b:  stloc.0
+  IL_011c:  br.s       IL_0134
+  IL_011e:  ldstr      "abcdefgh"
+  IL_0123:  stloc.0
+  IL_0124:  br.s       IL_0134
+  IL_0126:  ldstr      "0"
+  IL_012b:  stloc.0
+  IL_012c:  br.s       IL_0134
+  IL_012e:  ldstr      "default"
+  IL_0133:  stloc.0
+  IL_0134:  ldloc.0
+  IL_0135:  ret
+}
+""");
+    }
+
+    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
     internal void BucketSizeOne_MissingStringLength()
     {
         var source = """
@@ -1352,7 +1567,7 @@ public class C
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "").WithArguments("System.String", "get_Length").WithLocation(1, 1)
             );
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.MakeMemberMissing(SpecialMember.System_String__Length);
         comp.VerifyEmitDiagnostics(
             // error CS0656: Missing compiler required member 'System.String.get_Length'
@@ -1543,7 +1758,7 @@ public class C
         var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
         verifier.VerifyIL("C.M", """
 {
-  // Code size      277 (0x115)
+  // Code size      303 (0x12f)
   .maxstack  2
   .locals init (string V_0,
                 int V_1,
@@ -1555,85 +1770,91 @@ public class C
   IL_0009:  ldc.i4.1
   IL_000a:  sub
   IL_000b:  switch    (
-        IL_00cd,
         IL_0035,
         IL_004f,
-        IL_0066,
-        IL_007d,
-        IL_0091,
-        IL_00a5,
-        IL_00b9)
-  IL_0030:  br         IL_010d
+        IL_0069,
+        IL_0080,
+        IL_0097,
+        IL_00ab,
+        IL_00bf,
+        IL_00d3)
+  IL_0030:  br         IL_0127
   IL_0035:  ldarg.0
-  IL_0036:  ldstr      "ab"
+  IL_0036:  ldstr      "a"
   IL_003b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_0040:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0045:  brtrue     IL_00d5
-  IL_004a:  br         IL_010d
+  IL_0045:  brtrue     IL_00e7
+  IL_004a:  br         IL_0127
   IL_004f:  ldarg.0
-  IL_0050:  ldstr      "abc"
+  IL_0050:  ldstr      "ab"
   IL_0055:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
   IL_005a:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_005f:  brtrue.s   IL_00dd
-  IL_0061:  br         IL_010d
-  IL_0066:  ldarg.0
-  IL_0067:  ldstr      "abcd"
-  IL_006c:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_0071:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0076:  brtrue.s   IL_00e5
-  IL_0078:  br         IL_010d
-  IL_007d:  ldarg.0
-  IL_007e:  ldstr      "abcde"
-  IL_0083:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_0088:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_008d:  brtrue.s   IL_00ed
-  IL_008f:  br.s       IL_010d
-  IL_0091:  ldarg.0
-  IL_0092:  ldstr      "abcdef"
-  IL_0097:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_009c:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_00a1:  brtrue.s   IL_00f5
-  IL_00a3:  br.s       IL_010d
-  IL_00a5:  ldarg.0
-  IL_00a6:  ldstr      "abcdefg"
-  IL_00ab:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_00b0:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_00b5:  brtrue.s   IL_00fd
-  IL_00b7:  br.s       IL_010d
-  IL_00b9:  ldarg.0
-  IL_00ba:  ldstr      "abcdefgh"
-  IL_00bf:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_00c4:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_00c9:  brtrue.s   IL_0105
-  IL_00cb:  br.s       IL_010d
-  IL_00cd:  ldstr      "a"
-  IL_00d2:  stloc.0
-  IL_00d3:  br.s       IL_0113
-  IL_00d5:  ldstr      "ab"
-  IL_00da:  stloc.0
-  IL_00db:  br.s       IL_0113
-  IL_00dd:  ldstr      "abc"
-  IL_00e2:  stloc.0
-  IL_00e3:  br.s       IL_0113
-  IL_00e5:  ldstr      "abcd"
-  IL_00ea:  stloc.0
-  IL_00eb:  br.s       IL_0113
-  IL_00ed:  ldstr      "abcde"
-  IL_00f2:  stloc.0
-  IL_00f3:  br.s       IL_0113
-  IL_00f5:  ldstr      "abcdef"
-  IL_00fa:  stloc.0
-  IL_00fb:  br.s       IL_0113
-  IL_00fd:  ldstr      "abcdefg"
-  IL_0102:  stloc.0
-  IL_0103:  br.s       IL_0113
-  IL_0105:  ldstr      "abcdefgh"
-  IL_010a:  stloc.0
-  IL_010b:  br.s       IL_0113
-  IL_010d:  ldstr      "default"
-  IL_0112:  stloc.0
-  IL_0113:  ldloc.0
-  IL_0114:  ret
+  IL_005f:  brtrue     IL_00ef
+  IL_0064:  br         IL_0127
+  IL_0069:  ldarg.0
+  IL_006a:  ldstr      "abc"
+  IL_006f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0074:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0079:  brtrue.s   IL_00f7
+  IL_007b:  br         IL_0127
+  IL_0080:  ldarg.0
+  IL_0081:  ldstr      "abcd"
+  IL_0086:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_008b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0090:  brtrue.s   IL_00ff
+  IL_0092:  br         IL_0127
+  IL_0097:  ldarg.0
+  IL_0098:  ldstr      "abcde"
+  IL_009d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_00a2:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_00a7:  brtrue.s   IL_0107
+  IL_00a9:  br.s       IL_0127
+  IL_00ab:  ldarg.0
+  IL_00ac:  ldstr      "abcdef"
+  IL_00b1:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_00b6:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_00bb:  brtrue.s   IL_010f
+  IL_00bd:  br.s       IL_0127
+  IL_00bf:  ldarg.0
+  IL_00c0:  ldstr      "abcdefg"
+  IL_00c5:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_00ca:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_00cf:  brtrue.s   IL_0117
+  IL_00d1:  br.s       IL_0127
+  IL_00d3:  ldarg.0
+  IL_00d4:  ldstr      "abcdefgh"
+  IL_00d9:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_00de:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_00e3:  brtrue.s   IL_011f
+  IL_00e5:  br.s       IL_0127
+  IL_00e7:  ldstr      "a"
+  IL_00ec:  stloc.0
+  IL_00ed:  br.s       IL_012d
+  IL_00ef:  ldstr      "ab"
+  IL_00f4:  stloc.0
+  IL_00f5:  br.s       IL_012d
+  IL_00f7:  ldstr      "abc"
+  IL_00fc:  stloc.0
+  IL_00fd:  br.s       IL_012d
+  IL_00ff:  ldstr      "abcd"
+  IL_0104:  stloc.0
+  IL_0105:  br.s       IL_012d
+  IL_0107:  ldstr      "abcde"
+  IL_010c:  stloc.0
+  IL_010d:  br.s       IL_012d
+  IL_010f:  ldstr      "abcdef"
+  IL_0114:  stloc.0
+  IL_0115:  br.s       IL_012d
+  IL_0117:  ldstr      "abcdefg"
+  IL_011c:  stloc.0
+  IL_011d:  br.s       IL_012d
+  IL_011f:  ldstr      "abcdefgh"
+  IL_0124:  stloc.0
+  IL_0125:  br.s       IL_012d
+  IL_0127:  ldstr      "default"
+  IL_012c:  stloc.0
+  IL_012d:  ldloc.0
+  IL_012e:  ret
 }
 """);
     }
@@ -1794,7 +2015,7 @@ public class C
         verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
         verifier.VerifyIL("C.M", """
 {
-  // Code size      270 (0x10e)
+  // Code size      288 (0x120)
   .maxstack  2
   .locals init (string V_0,
                 string V_1,
@@ -1804,9 +2025,9 @@ public class C
   IL_0001:  isinst     "string"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  brfalse    IL_00b9
+  IL_0008:  brfalse    IL_00cb
   IL_000d:  ldloc.1
-  IL_000e:  brfalse    IL_0106
+  IL_000e:  brfalse    IL_0118
   IL_0013:  ldloc.1
   IL_0014:  call       "int string.Length.get"
   IL_0019:  stloc.2
@@ -1814,88 +2035,93 @@ public class C
   IL_001b:  ldc.i4.1
   IL_001c:  sub
   IL_001d:  switch    (
-        IL_00be,
         IL_0047,
         IL_0059,
         IL_006b,
         IL_007d,
-        IL_008c,
-        IL_009b,
-        IL_00aa)
-  IL_0042:  br         IL_0106
+        IL_008f,
+        IL_009e,
+        IL_00ad,
+        IL_00bc)
+  IL_0042:  br         IL_0118
   IL_0047:  ldloc.1
-  IL_0048:  ldstr      "ab"
+  IL_0048:  ldstr      "a"
   IL_004d:  call       "bool string.op_Equality(string, string)"
-  IL_0052:  brtrue.s   IL_00c6
-  IL_0054:  br         IL_0106
+  IL_0052:  brtrue.s   IL_00d0
+  IL_0054:  br         IL_0118
   IL_0059:  ldloc.1
-  IL_005a:  ldstr      "abc"
+  IL_005a:  ldstr      "ab"
   IL_005f:  call       "bool string.op_Equality(string, string)"
-  IL_0064:  brtrue.s   IL_00ce
-  IL_0066:  br         IL_0106
+  IL_0064:  brtrue.s   IL_00d8
+  IL_0066:  br         IL_0118
   IL_006b:  ldloc.1
-  IL_006c:  ldstr      "abcd"
+  IL_006c:  ldstr      "abc"
   IL_0071:  call       "bool string.op_Equality(string, string)"
-  IL_0076:  brtrue.s   IL_00d6
-  IL_0078:  br         IL_0106
+  IL_0076:  brtrue.s   IL_00e0
+  IL_0078:  br         IL_0118
   IL_007d:  ldloc.1
-  IL_007e:  ldstr      "abcde"
+  IL_007e:  ldstr      "abcd"
   IL_0083:  call       "bool string.op_Equality(string, string)"
-  IL_0088:  brtrue.s   IL_00de
-  IL_008a:  br.s       IL_0106
-  IL_008c:  ldloc.1
-  IL_008d:  ldstr      "abcdef"
-  IL_0092:  call       "bool string.op_Equality(string, string)"
-  IL_0097:  brtrue.s   IL_00e6
-  IL_0099:  br.s       IL_0106
-  IL_009b:  ldloc.1
-  IL_009c:  ldstr      "abcdefg"
-  IL_00a1:  call       "bool string.op_Equality(string, string)"
-  IL_00a6:  brtrue.s   IL_00ee
-  IL_00a8:  br.s       IL_0106
-  IL_00aa:  ldloc.1
-  IL_00ab:  ldstr      "abcdefgh"
-  IL_00b0:  call       "bool string.op_Equality(string, string)"
-  IL_00b5:  brtrue.s   IL_00f6
-  IL_00b7:  br.s       IL_0106
-  IL_00b9:  ldarg.0
-  IL_00ba:  brfalse.s  IL_00fe
-  IL_00bc:  br.s       IL_0106
-  IL_00be:  ldstr      "a"
-  IL_00c3:  stloc.0
-  IL_00c4:  br.s       IL_010c
-  IL_00c6:  ldstr      "ab"
-  IL_00cb:  stloc.0
-  IL_00cc:  br.s       IL_010c
-  IL_00ce:  ldstr      "abc"
-  IL_00d3:  stloc.0
-  IL_00d4:  br.s       IL_010c
-  IL_00d6:  ldstr      "abcd"
-  IL_00db:  stloc.0
-  IL_00dc:  br.s       IL_010c
-  IL_00de:  ldstr      "abcde"
-  IL_00e3:  stloc.0
-  IL_00e4:  br.s       IL_010c
-  IL_00e6:  ldstr      "abcdef"
-  IL_00eb:  stloc.0
-  IL_00ec:  br.s       IL_010c
-  IL_00ee:  ldstr      "abcdefg"
-  IL_00f3:  stloc.0
-  IL_00f4:  br.s       IL_010c
-  IL_00f6:  ldstr      "abcdefgh"
-  IL_00fb:  stloc.0
-  IL_00fc:  br.s       IL_010c
-  IL_00fe:  ldstr      "null"
-  IL_0103:  stloc.0
-  IL_0104:  br.s       IL_010c
-  IL_0106:  ldstr      "default"
-  IL_010b:  stloc.0
-  IL_010c:  ldloc.0
-  IL_010d:  ret
+  IL_0088:  brtrue.s   IL_00e8
+  IL_008a:  br         IL_0118
+  IL_008f:  ldloc.1
+  IL_0090:  ldstr      "abcde"
+  IL_0095:  call       "bool string.op_Equality(string, string)"
+  IL_009a:  brtrue.s   IL_00f0
+  IL_009c:  br.s       IL_0118
+  IL_009e:  ldloc.1
+  IL_009f:  ldstr      "abcdef"
+  IL_00a4:  call       "bool string.op_Equality(string, string)"
+  IL_00a9:  brtrue.s   IL_00f8
+  IL_00ab:  br.s       IL_0118
+  IL_00ad:  ldloc.1
+  IL_00ae:  ldstr      "abcdefg"
+  IL_00b3:  call       "bool string.op_Equality(string, string)"
+  IL_00b8:  brtrue.s   IL_0100
+  IL_00ba:  br.s       IL_0118
+  IL_00bc:  ldloc.1
+  IL_00bd:  ldstr      "abcdefgh"
+  IL_00c2:  call       "bool string.op_Equality(string, string)"
+  IL_00c7:  brtrue.s   IL_0108
+  IL_00c9:  br.s       IL_0118
+  IL_00cb:  ldarg.0
+  IL_00cc:  brfalse.s  IL_0110
+  IL_00ce:  br.s       IL_0118
+  IL_00d0:  ldstr      "a"
+  IL_00d5:  stloc.0
+  IL_00d6:  br.s       IL_011e
+  IL_00d8:  ldstr      "ab"
+  IL_00dd:  stloc.0
+  IL_00de:  br.s       IL_011e
+  IL_00e0:  ldstr      "abc"
+  IL_00e5:  stloc.0
+  IL_00e6:  br.s       IL_011e
+  IL_00e8:  ldstr      "abcd"
+  IL_00ed:  stloc.0
+  IL_00ee:  br.s       IL_011e
+  IL_00f0:  ldstr      "abcde"
+  IL_00f5:  stloc.0
+  IL_00f6:  br.s       IL_011e
+  IL_00f8:  ldstr      "abcdef"
+  IL_00fd:  stloc.0
+  IL_00fe:  br.s       IL_011e
+  IL_0100:  ldstr      "abcdefg"
+  IL_0105:  stloc.0
+  IL_0106:  br.s       IL_011e
+  IL_0108:  ldstr      "abcdefgh"
+  IL_010d:  stloc.0
+  IL_010e:  br.s       IL_011e
+  IL_0110:  ldstr      "null"
+  IL_0115:  stloc.0
+  IL_0116:  br.s       IL_011e
+  IL_0118:  ldstr      "default"
+  IL_011d:  stloc.0
+  IL_011e:  ldloc.0
+  IL_011f:  ret
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: true);
@@ -2329,7 +2555,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -7226,7 +7452,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -8649,7 +8875,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -9046,7 +9272,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -9807,7 +10033,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -10271,13 +10497,13 @@ public class C
         var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
 {
-  // Code size      757 (0x2f5)
+  // Code size     1282 (0x502)
   .maxstack  2
   .locals init (string V_0,
                 int V_1,
                 char V_2)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse    IL_02ed
+  IL_0001:  brfalse    IL_04fa
   IL_0006:  ldarg.0
   IL_0007:  call       "int string.Length.get"
   IL_000c:  stloc.1
@@ -10288,7 +10514,7 @@ public class C
         IL_0026,
         IL_00de,
         IL_00a4)
-  IL_0021:  br         IL_02ed
+  IL_0021:  br         IL_04fa
   IL_0026:  ldarg.0
   IL_0027:  ldc.i4.0
   IL_0028:  call       "char string.this[int].get"
@@ -10297,33 +10523,33 @@ public class C
   IL_002f:  ldc.i4.s   65
   IL_0031:  sub
   IL_0032:  switch    (
-        IL_01bd,
-        IL_01c8,
-        IL_01d3,
-        IL_01de,
-        IL_01f4,
-        IL_0215,
-        IL_0236,
-        IL_0257,
+        IL_0108,
+        IL_011d,
+        IL_0132,
+        IL_0147,
+        IL_015c,
+        IL_0171,
+        IL_0186,
+        IL_019b,
+        IL_01b0,
+        IL_04fa,
+        IL_01c5,
+        IL_01da,
+        IL_01ef,
+        IL_0204,
+        IL_0219,
+        IL_022e,
+        IL_0243,
+        IL_0258,
         IL_026d,
-        IL_02ed,
-        IL_0275,
-        IL_027d,
-        IL_0285,
-        IL_028d,
-        IL_0295,
-        IL_029d,
-        IL_02a5,
-        IL_02ad,
-        IL_02b5,
-        IL_02bd,
-        IL_02c5,
-        IL_02cd,
-        IL_02d5,
-        IL_02dd,
-        IL_02e5,
-        IL_01a7)
-  IL_009f:  br         IL_02ed
+        IL_0282,
+        IL_0297,
+        IL_02ac,
+        IL_02c1,
+        IL_02d6,
+        IL_02eb,
+        IL_00f3)
+  IL_009f:  br         IL_04fa
   IL_00a4:  ldarg.0
   IL_00a5:  ldc.i4.0
   IL_00a6:  call       "char string.this[int].get"
@@ -10332,173 +10558,298 @@ public class C
   IL_00ad:  ldc.i4.s   67
   IL_00af:  sub
   IL_00b0:  switch    (
-        IL_012d,
-        IL_02ed,
-        IL_0108,
-        IL_02ed,
-        IL_00f3)
+        IL_033a,
+        IL_04fa,
+        IL_0315,
+        IL_04fa,
+        IL_0300)
   IL_00c9:  ldloc.2
   IL_00ca:  ldc.i4.s   77
-  IL_00cc:  beq        IL_0152
+  IL_00cc:  beq        IL_035f
   IL_00d1:  ldloc.2
   IL_00d2:  ldc.i4.s   80
-  IL_00d4:  beq        IL_0177
-  IL_00d9:  br         IL_02ed
+  IL_00d4:  beq        IL_0384
+  IL_00d9:  br         IL_04fa
   IL_00de:  ldarg.0
   IL_00df:  ldstr      "UT"
   IL_00e4:  call       "bool string.op_Equality(string, string)"
-  IL_00e9:  brtrue     IL_019c
-  IL_00ee:  br         IL_02ed
+  IL_00e9:  brtrue     IL_03a9
+  IL_00ee:  br         IL_04fa
   IL_00f3:  ldarg.0
-  IL_00f4:  ldstr      "GMT"
+  IL_00f4:  ldstr      "Z"
   IL_00f9:  call       "bool string.op_Equality(string, string)"
-  IL_00fe:  brtrue     IL_01b2
-  IL_0103:  br         IL_02ed
+  IL_00fe:  brtrue     IL_03b4
+  IL_0103:  br         IL_04fa
   IL_0108:  ldarg.0
-  IL_0109:  ldstr      "EDT"
+  IL_0109:  ldstr      "A"
   IL_010e:  call       "bool string.op_Equality(string, string)"
-  IL_0113:  brtrue     IL_01e9
-  IL_0118:  ldarg.0
-  IL_0119:  ldstr      "EST"
-  IL_011e:  call       "bool string.op_Equality(string, string)"
-  IL_0123:  brtrue     IL_01ff
-  IL_0128:  br         IL_02ed
-  IL_012d:  ldarg.0
-  IL_012e:  ldstr      "CDT"
-  IL_0133:  call       "bool string.op_Equality(string, string)"
-  IL_0138:  brtrue     IL_020a
-  IL_013d:  ldarg.0
-  IL_013e:  ldstr      "CST"
-  IL_0143:  call       "bool string.op_Equality(string, string)"
-  IL_0148:  brtrue     IL_0220
-  IL_014d:  br         IL_02ed
-  IL_0152:  ldarg.0
-  IL_0153:  ldstr      "MDT"
-  IL_0158:  call       "bool string.op_Equality(string, string)"
-  IL_015d:  brtrue     IL_022b
-  IL_0162:  ldarg.0
-  IL_0163:  ldstr      "MST"
-  IL_0168:  call       "bool string.op_Equality(string, string)"
-  IL_016d:  brtrue     IL_0241
-  IL_0172:  br         IL_02ed
-  IL_0177:  ldarg.0
-  IL_0178:  ldstr      "PDT"
-  IL_017d:  call       "bool string.op_Equality(string, string)"
-  IL_0182:  brtrue     IL_024c
-  IL_0187:  ldarg.0
-  IL_0188:  ldstr      "PST"
-  IL_018d:  call       "bool string.op_Equality(string, string)"
-  IL_0192:  brtrue     IL_0262
-  IL_0197:  br         IL_02ed
-  IL_019c:  ldstr      "UT"
-  IL_01a1:  stloc.0
-  IL_01a2:  br         IL_02f3
-  IL_01a7:  ldstr      "Z"
-  IL_01ac:  stloc.0
-  IL_01ad:  br         IL_02f3
-  IL_01b2:  ldstr      "GMT"
-  IL_01b7:  stloc.0
-  IL_01b8:  br         IL_02f3
-  IL_01bd:  ldstr      "A"
-  IL_01c2:  stloc.0
-  IL_01c3:  br         IL_02f3
-  IL_01c8:  ldstr      "B"
-  IL_01cd:  stloc.0
-  IL_01ce:  br         IL_02f3
-  IL_01d3:  ldstr      "C"
-  IL_01d8:  stloc.0
-  IL_01d9:  br         IL_02f3
-  IL_01de:  ldstr      "D"
-  IL_01e3:  stloc.0
-  IL_01e4:  br         IL_02f3
-  IL_01e9:  ldstr      "EDT"
-  IL_01ee:  stloc.0
-  IL_01ef:  br         IL_02f3
-  IL_01f4:  ldstr      "E"
-  IL_01f9:  stloc.0
-  IL_01fa:  br         IL_02f3
-  IL_01ff:  ldstr      "EST"
-  IL_0204:  stloc.0
-  IL_0205:  br         IL_02f3
-  IL_020a:  ldstr      "CDT"
-  IL_020f:  stloc.0
-  IL_0210:  br         IL_02f3
-  IL_0215:  ldstr      "F"
-  IL_021a:  stloc.0
-  IL_021b:  br         IL_02f3
-  IL_0220:  ldstr      "CST"
-  IL_0225:  stloc.0
-  IL_0226:  br         IL_02f3
-  IL_022b:  ldstr      "MDT"
-  IL_0230:  stloc.0
-  IL_0231:  br         IL_02f3
-  IL_0236:  ldstr      "G"
-  IL_023b:  stloc.0
-  IL_023c:  br         IL_02f3
-  IL_0241:  ldstr      "MST"
-  IL_0246:  stloc.0
-  IL_0247:  br         IL_02f3
-  IL_024c:  ldstr      "PDT"
-  IL_0251:  stloc.0
-  IL_0252:  br         IL_02f3
-  IL_0257:  ldstr      "H"
-  IL_025c:  stloc.0
-  IL_025d:  br         IL_02f3
-  IL_0262:  ldstr      "PST"
-  IL_0267:  stloc.0
-  IL_0268:  br         IL_02f3
-  IL_026d:  ldstr      "I"
-  IL_0272:  stloc.0
-  IL_0273:  br.s       IL_02f3
-  IL_0275:  ldstr      "K"
-  IL_027a:  stloc.0
-  IL_027b:  br.s       IL_02f3
-  IL_027d:  ldstr      "L"
-  IL_0282:  stloc.0
-  IL_0283:  br.s       IL_02f3
-  IL_0285:  ldstr      "M"
-  IL_028a:  stloc.0
-  IL_028b:  br.s       IL_02f3
-  IL_028d:  ldstr      "N"
-  IL_0292:  stloc.0
-  IL_0293:  br.s       IL_02f3
-  IL_0295:  ldstr      "O"
-  IL_029a:  stloc.0
-  IL_029b:  br.s       IL_02f3
-  IL_029d:  ldstr      "P"
-  IL_02a2:  stloc.0
-  IL_02a3:  br.s       IL_02f3
-  IL_02a5:  ldstr      "Q"
-  IL_02aa:  stloc.0
-  IL_02ab:  br.s       IL_02f3
-  IL_02ad:  ldstr      "R"
-  IL_02b2:  stloc.0
-  IL_02b3:  br.s       IL_02f3
-  IL_02b5:  ldstr      "S"
-  IL_02ba:  stloc.0
-  IL_02bb:  br.s       IL_02f3
-  IL_02bd:  ldstr      "T"
-  IL_02c2:  stloc.0
-  IL_02c3:  br.s       IL_02f3
-  IL_02c5:  ldstr      "U"
-  IL_02ca:  stloc.0
-  IL_02cb:  br.s       IL_02f3
-  IL_02cd:  ldstr      "V"
-  IL_02d2:  stloc.0
-  IL_02d3:  br.s       IL_02f3
-  IL_02d5:  ldstr      "W"
-  IL_02da:  stloc.0
-  IL_02db:  br.s       IL_02f3
-  IL_02dd:  ldstr      "X"
-  IL_02e2:  stloc.0
-  IL_02e3:  br.s       IL_02f3
-  IL_02e5:  ldstr      "Y"
-  IL_02ea:  stloc.0
-  IL_02eb:  br.s       IL_02f3
-  IL_02ed:  ldstr      "default"
-  IL_02f2:  stloc.0
-  IL_02f3:  ldloc.0
-  IL_02f4:  ret
+  IL_0113:  brtrue     IL_03ca
+  IL_0118:  br         IL_04fa
+  IL_011d:  ldarg.0
+  IL_011e:  ldstr      "B"
+  IL_0123:  call       "bool string.op_Equality(string, string)"
+  IL_0128:  brtrue     IL_03d5
+  IL_012d:  br         IL_04fa
+  IL_0132:  ldarg.0
+  IL_0133:  ldstr      "C"
+  IL_0138:  call       "bool string.op_Equality(string, string)"
+  IL_013d:  brtrue     IL_03e0
+  IL_0142:  br         IL_04fa
+  IL_0147:  ldarg.0
+  IL_0148:  ldstr      "D"
+  IL_014d:  call       "bool string.op_Equality(string, string)"
+  IL_0152:  brtrue     IL_03eb
+  IL_0157:  br         IL_04fa
+  IL_015c:  ldarg.0
+  IL_015d:  ldstr      "E"
+  IL_0162:  call       "bool string.op_Equality(string, string)"
+  IL_0167:  brtrue     IL_0401
+  IL_016c:  br         IL_04fa
+  IL_0171:  ldarg.0
+  IL_0172:  ldstr      "F"
+  IL_0177:  call       "bool string.op_Equality(string, string)"
+  IL_017c:  brtrue     IL_0422
+  IL_0181:  br         IL_04fa
+  IL_0186:  ldarg.0
+  IL_0187:  ldstr      "G"
+  IL_018c:  call       "bool string.op_Equality(string, string)"
+  IL_0191:  brtrue     IL_0443
+  IL_0196:  br         IL_04fa
+  IL_019b:  ldarg.0
+  IL_019c:  ldstr      "H"
+  IL_01a1:  call       "bool string.op_Equality(string, string)"
+  IL_01a6:  brtrue     IL_0464
+  IL_01ab:  br         IL_04fa
+  IL_01b0:  ldarg.0
+  IL_01b1:  ldstr      "I"
+  IL_01b6:  call       "bool string.op_Equality(string, string)"
+  IL_01bb:  brtrue     IL_047a
+  IL_01c0:  br         IL_04fa
+  IL_01c5:  ldarg.0
+  IL_01c6:  ldstr      "K"
+  IL_01cb:  call       "bool string.op_Equality(string, string)"
+  IL_01d0:  brtrue     IL_0482
+  IL_01d5:  br         IL_04fa
+  IL_01da:  ldarg.0
+  IL_01db:  ldstr      "L"
+  IL_01e0:  call       "bool string.op_Equality(string, string)"
+  IL_01e5:  brtrue     IL_048a
+  IL_01ea:  br         IL_04fa
+  IL_01ef:  ldarg.0
+  IL_01f0:  ldstr      "M"
+  IL_01f5:  call       "bool string.op_Equality(string, string)"
+  IL_01fa:  brtrue     IL_0492
+  IL_01ff:  br         IL_04fa
+  IL_0204:  ldarg.0
+  IL_0205:  ldstr      "N"
+  IL_020a:  call       "bool string.op_Equality(string, string)"
+  IL_020f:  brtrue     IL_049a
+  IL_0214:  br         IL_04fa
+  IL_0219:  ldarg.0
+  IL_021a:  ldstr      "O"
+  IL_021f:  call       "bool string.op_Equality(string, string)"
+  IL_0224:  brtrue     IL_04a2
+  IL_0229:  br         IL_04fa
+  IL_022e:  ldarg.0
+  IL_022f:  ldstr      "P"
+  IL_0234:  call       "bool string.op_Equality(string, string)"
+  IL_0239:  brtrue     IL_04aa
+  IL_023e:  br         IL_04fa
+  IL_0243:  ldarg.0
+  IL_0244:  ldstr      "Q"
+  IL_0249:  call       "bool string.op_Equality(string, string)"
+  IL_024e:  brtrue     IL_04b2
+  IL_0253:  br         IL_04fa
+  IL_0258:  ldarg.0
+  IL_0259:  ldstr      "R"
+  IL_025e:  call       "bool string.op_Equality(string, string)"
+  IL_0263:  brtrue     IL_04ba
+  IL_0268:  br         IL_04fa
+  IL_026d:  ldarg.0
+  IL_026e:  ldstr      "S"
+  IL_0273:  call       "bool string.op_Equality(string, string)"
+  IL_0278:  brtrue     IL_04c2
+  IL_027d:  br         IL_04fa
+  IL_0282:  ldarg.0
+  IL_0283:  ldstr      "T"
+  IL_0288:  call       "bool string.op_Equality(string, string)"
+  IL_028d:  brtrue     IL_04ca
+  IL_0292:  br         IL_04fa
+  IL_0297:  ldarg.0
+  IL_0298:  ldstr      "U"
+  IL_029d:  call       "bool string.op_Equality(string, string)"
+  IL_02a2:  brtrue     IL_04d2
+  IL_02a7:  br         IL_04fa
+  IL_02ac:  ldarg.0
+  IL_02ad:  ldstr      "V"
+  IL_02b2:  call       "bool string.op_Equality(string, string)"
+  IL_02b7:  brtrue     IL_04da
+  IL_02bc:  br         IL_04fa
+  IL_02c1:  ldarg.0
+  IL_02c2:  ldstr      "W"
+  IL_02c7:  call       "bool string.op_Equality(string, string)"
+  IL_02cc:  brtrue     IL_04e2
+  IL_02d1:  br         IL_04fa
+  IL_02d6:  ldarg.0
+  IL_02d7:  ldstr      "X"
+  IL_02dc:  call       "bool string.op_Equality(string, string)"
+  IL_02e1:  brtrue     IL_04ea
+  IL_02e6:  br         IL_04fa
+  IL_02eb:  ldarg.0
+  IL_02ec:  ldstr      "Y"
+  IL_02f1:  call       "bool string.op_Equality(string, string)"
+  IL_02f6:  brtrue     IL_04f2
+  IL_02fb:  br         IL_04fa
+  IL_0300:  ldarg.0
+  IL_0301:  ldstr      "GMT"
+  IL_0306:  call       "bool string.op_Equality(string, string)"
+  IL_030b:  brtrue     IL_03bf
+  IL_0310:  br         IL_04fa
+  IL_0315:  ldarg.0
+  IL_0316:  ldstr      "EDT"
+  IL_031b:  call       "bool string.op_Equality(string, string)"
+  IL_0320:  brtrue     IL_03f6
+  IL_0325:  ldarg.0
+  IL_0326:  ldstr      "EST"
+  IL_032b:  call       "bool string.op_Equality(string, string)"
+  IL_0330:  brtrue     IL_040c
+  IL_0335:  br         IL_04fa
+  IL_033a:  ldarg.0
+  IL_033b:  ldstr      "CDT"
+  IL_0340:  call       "bool string.op_Equality(string, string)"
+  IL_0345:  brtrue     IL_0417
+  IL_034a:  ldarg.0
+  IL_034b:  ldstr      "CST"
+  IL_0350:  call       "bool string.op_Equality(string, string)"
+  IL_0355:  brtrue     IL_042d
+  IL_035a:  br         IL_04fa
+  IL_035f:  ldarg.0
+  IL_0360:  ldstr      "MDT"
+  IL_0365:  call       "bool string.op_Equality(string, string)"
+  IL_036a:  brtrue     IL_0438
+  IL_036f:  ldarg.0
+  IL_0370:  ldstr      "MST"
+  IL_0375:  call       "bool string.op_Equality(string, string)"
+  IL_037a:  brtrue     IL_044e
+  IL_037f:  br         IL_04fa
+  IL_0384:  ldarg.0
+  IL_0385:  ldstr      "PDT"
+  IL_038a:  call       "bool string.op_Equality(string, string)"
+  IL_038f:  brtrue     IL_0459
+  IL_0394:  ldarg.0
+  IL_0395:  ldstr      "PST"
+  IL_039a:  call       "bool string.op_Equality(string, string)"
+  IL_039f:  brtrue     IL_046f
+  IL_03a4:  br         IL_04fa
+  IL_03a9:  ldstr      "UT"
+  IL_03ae:  stloc.0
+  IL_03af:  br         IL_0500
+  IL_03b4:  ldstr      "Z"
+  IL_03b9:  stloc.0
+  IL_03ba:  br         IL_0500
+  IL_03bf:  ldstr      "GMT"
+  IL_03c4:  stloc.0
+  IL_03c5:  br         IL_0500
+  IL_03ca:  ldstr      "A"
+  IL_03cf:  stloc.0
+  IL_03d0:  br         IL_0500
+  IL_03d5:  ldstr      "B"
+  IL_03da:  stloc.0
+  IL_03db:  br         IL_0500
+  IL_03e0:  ldstr      "C"
+  IL_03e5:  stloc.0
+  IL_03e6:  br         IL_0500
+  IL_03eb:  ldstr      "D"
+  IL_03f0:  stloc.0
+  IL_03f1:  br         IL_0500
+  IL_03f6:  ldstr      "EDT"
+  IL_03fb:  stloc.0
+  IL_03fc:  br         IL_0500
+  IL_0401:  ldstr      "E"
+  IL_0406:  stloc.0
+  IL_0407:  br         IL_0500
+  IL_040c:  ldstr      "EST"
+  IL_0411:  stloc.0
+  IL_0412:  br         IL_0500
+  IL_0417:  ldstr      "CDT"
+  IL_041c:  stloc.0
+  IL_041d:  br         IL_0500
+  IL_0422:  ldstr      "F"
+  IL_0427:  stloc.0
+  IL_0428:  br         IL_0500
+  IL_042d:  ldstr      "CST"
+  IL_0432:  stloc.0
+  IL_0433:  br         IL_0500
+  IL_0438:  ldstr      "MDT"
+  IL_043d:  stloc.0
+  IL_043e:  br         IL_0500
+  IL_0443:  ldstr      "G"
+  IL_0448:  stloc.0
+  IL_0449:  br         IL_0500
+  IL_044e:  ldstr      "MST"
+  IL_0453:  stloc.0
+  IL_0454:  br         IL_0500
+  IL_0459:  ldstr      "PDT"
+  IL_045e:  stloc.0
+  IL_045f:  br         IL_0500
+  IL_0464:  ldstr      "H"
+  IL_0469:  stloc.0
+  IL_046a:  br         IL_0500
+  IL_046f:  ldstr      "PST"
+  IL_0474:  stloc.0
+  IL_0475:  br         IL_0500
+  IL_047a:  ldstr      "I"
+  IL_047f:  stloc.0
+  IL_0480:  br.s       IL_0500
+  IL_0482:  ldstr      "K"
+  IL_0487:  stloc.0
+  IL_0488:  br.s       IL_0500
+  IL_048a:  ldstr      "L"
+  IL_048f:  stloc.0
+  IL_0490:  br.s       IL_0500
+  IL_0492:  ldstr      "M"
+  IL_0497:  stloc.0
+  IL_0498:  br.s       IL_0500
+  IL_049a:  ldstr      "N"
+  IL_049f:  stloc.0
+  IL_04a0:  br.s       IL_0500
+  IL_04a2:  ldstr      "O"
+  IL_04a7:  stloc.0
+  IL_04a8:  br.s       IL_0500
+  IL_04aa:  ldstr      "P"
+  IL_04af:  stloc.0
+  IL_04b0:  br.s       IL_0500
+  IL_04b2:  ldstr      "Q"
+  IL_04b7:  stloc.0
+  IL_04b8:  br.s       IL_0500
+  IL_04ba:  ldstr      "R"
+  IL_04bf:  stloc.0
+  IL_04c0:  br.s       IL_0500
+  IL_04c2:  ldstr      "S"
+  IL_04c7:  stloc.0
+  IL_04c8:  br.s       IL_0500
+  IL_04ca:  ldstr      "T"
+  IL_04cf:  stloc.0
+  IL_04d0:  br.s       IL_0500
+  IL_04d2:  ldstr      "U"
+  IL_04d7:  stloc.0
+  IL_04d8:  br.s       IL_0500
+  IL_04da:  ldstr      "V"
+  IL_04df:  stloc.0
+  IL_04e0:  br.s       IL_0500
+  IL_04e2:  ldstr      "W"
+  IL_04e7:  stloc.0
+  IL_04e8:  br.s       IL_0500
+  IL_04ea:  ldstr      "X"
+  IL_04ef:  stloc.0
+  IL_04f0:  br.s       IL_0500
+  IL_04f2:  ldstr      "Y"
+  IL_04f7:  stloc.0
+  IL_04f8:  br.s       IL_0500
+  IL_04fa:  ldstr      "default"
+  IL_04ff:  stloc.0
+  IL_0500:  ldloc.0
+  IL_0501:  ret
 }
 """);
     }
@@ -11106,7 +11457,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -12110,7 +12461,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -12571,7 +12922,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -13048,7 +13399,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """
@@ -13483,7 +13834,7 @@ public class C
 }
 """);
 
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithExperimental(MessageID.IDS_DisableLengthBasedSwitch));
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         verifier.VerifyIL("C.M", """

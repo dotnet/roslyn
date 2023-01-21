@@ -1727,11 +1727,6 @@
         <target state="translated">异步方法生成器替代</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_DisableLengthBasedSwitch">
-        <source>disable-length-based-switch</source>
-        <target state="new">disable-length-based-switch</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">自动默认结构字段</target>

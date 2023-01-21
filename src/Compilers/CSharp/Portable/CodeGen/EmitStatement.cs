@@ -1263,7 +1263,7 @@ oneMoreTime:
                     // if (keyTemp is null)
                     //   goto nullCaseLabel; OR goto fallThroughLabel;
                     _builder.EmitLoad(keyTemp);
-                    _builder.EmitBranch(ILOpCode.Brfalse, lengthBasedSwitchInfo._lengthJumpTable.nullCaseLabel ?? fallThroughLabel, ILOpCode.Brtrue);
+                    _builder.EmitBranch(ILOpCode.Brfalse, lengthBasedSwitchInfo.LengthBasedJumpTable.nullCaseLabel ?? fallThroughLabel, ILOpCode.Brtrue);
                 }
 
                 // var stringLength = keyTemp.Length;
@@ -1284,7 +1284,7 @@ oneMoreTime:
                 // switch dispatch on lengthTemp using fallThroughLabel and cases:
                 //   lengthConstant -> corresponding label
                 _builder.EmitIntegerSwitchJumpTable(
-                    lengthBasedSwitchInfo._lengthJumpTable.lengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                    lengthBasedSwitchInfo.LengthBasedJumpTable.lengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
                     fallThroughLabel, stringLength, int32Type.PrimitiveTypeCode);
 
                 FreeTemp(stringLength);
@@ -1295,7 +1295,7 @@ oneMoreTime:
                 var charType = Binder.GetSpecialType(_module.Compilation, SpecialType.System_Char, syntaxNode, _diagnostics);
                 var charTemp = AllocateTemp(charType, syntaxNode);
 
-                foreach (var charJumpTable in lengthBasedSwitchInfo._charJumpTables)
+                foreach (var charJumpTable in lengthBasedSwitchInfo.CharBasedJumpTables)
                 {
                     // label for CharJumpTable:
                     _builder.MarkLabel(charJumpTable.label);
@@ -1330,7 +1330,7 @@ oneMoreTime:
 
             void emitFinalDispatches(LengthBasedStringSwitchData lengthBasedSwitchInfo, LocalOrParameter keyTemp, TypeSymbol keyType, LabelSymbol fallThroughLabel, SyntaxNode syntaxNode)
             {
-                foreach (var stringJumpTable in lengthBasedSwitchInfo._stringJumpTables)
+                foreach (var stringJumpTable in lengthBasedSwitchInfo.StringBasedJumpTables)
                 {
                     // label for StringJumpTable:
                     _builder.MarkLabel(stringJumpTable.label);
@@ -1819,8 +1819,9 @@ oneMoreTime:
             /// </summary>
             public static BoundBlock MakeFinallyClone(BoundTryStatement node)
             {
-                var cloner = new FinallyCloner();
-                return (BoundBlock)cloner.Visit(node.FinallyBlockOpt);
+                return node.FinallyBlockOpt;
+                //var cloner = new FinallyCloner();
+                //return (BoundBlock)cloner.Visit(node.FinallyBlockOpt);
             }
 
             public override BoundNode VisitLabelStatement(BoundLabelStatement node)
@@ -1867,16 +1868,16 @@ oneMoreTime:
                 {
                     Debug.Assert(false, "This is unreachable at the moment");
 
-                    var oldLengthJumpTable = lengthBasedSwitchData._lengthJumpTable;
+                    var oldLengthJumpTable = lengthBasedSwitchData.LengthBasedJumpTable;
                     var lengthJumpTable = new LengthBasedStringSwitchData.LengthJumpTable(
                         oldLengthJumpTable.nullCaseLabel is { } oldNullCaseLabel ? GetLabelClone(oldNullCaseLabel) : null,
                         cloneCases(oldLengthJumpTable.lengthCaseLabels));
 
-                    var charJumpTables = lengthBasedSwitchData._charJumpTables
+                    var charJumpTables = lengthBasedSwitchData.CharBasedJumpTables
                         .SelectAsArray(t => new LengthBasedStringSwitchData.CharJumpTable(GetLabelClone(t.label), t.selectedCharPosition, cloneCases(t.charCaseLabels)));
 
-                    var oldSringJumpTables = lengthBasedSwitchData._stringJumpTables;
-                    var stringJumpTables = lengthBasedSwitchData._stringJumpTables
+                    var oldSringJumpTables = lengthBasedSwitchData.StringBasedJumpTables;
+                    var stringJumpTables = lengthBasedSwitchData.StringBasedJumpTables
                         .SelectAsArray(t => new LengthBasedStringSwitchData.StringJumpTable(GetLabelClone(t.label), cloneCases(t.stringCaseLabels)));
 
                     lengthBasedSwitchData = new LengthBasedStringSwitchData(lengthJumpTable, charJumpTables, stringJumpTables);

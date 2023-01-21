@@ -7418,7 +7418,4 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
     <value>Parameter has params modifier in lambda but not in target delegate type.</value>
   </data>
-  <data name="IDS_DisableLengthBasedSwitch" xml:space="preserve">
-    <value>disable-length-based-switch</value>
-  </data>
 </root>

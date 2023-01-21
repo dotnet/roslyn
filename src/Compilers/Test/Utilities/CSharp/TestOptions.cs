@@ -132,6 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeature("noRefSafetyRulesAttribute");
         }
 
+        public static CSharpParseOptions WithDisableLengthBasedSwitch(this CSharpParseOptions options)
+        {
+            return options.WithFeature("disable-length-based-switch");
+        }
+
+
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
