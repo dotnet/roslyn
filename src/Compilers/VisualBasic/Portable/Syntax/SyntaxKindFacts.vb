@@ -877,8 +877,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Public Shared Function IsIdentifierContainerDirectiveTrivia(token As SyntaxKind) As Boolean
-            Select Case token
+        Public Shared Function IsIdentifierContainerDirectiveTrivia(kind As SyntaxKind) As Boolean
+            Select Case kind
 
                 Case SyntaxKind.IfDirectiveTrivia,
                      SyntaxKind.ElseIfDirectiveTrivia,

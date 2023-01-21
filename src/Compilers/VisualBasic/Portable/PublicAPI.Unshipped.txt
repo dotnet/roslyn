@@ -1,2 +1,2 @@
 Microsoft.CodeAnalysis.VisualBasicExtensions.ContainsDirective(node As Microsoft.CodeAnalysis.SyntaxNode, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsIdentifierContainerDirectiveTrivia(token As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsIdentifierContainerDirectiveTrivia(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
