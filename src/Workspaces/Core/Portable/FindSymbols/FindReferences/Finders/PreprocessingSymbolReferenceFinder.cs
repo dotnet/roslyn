@@ -45,7 +45,26 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
             if (parentKind == syntaxFacts.SyntaxKinds.UndefDirectiveTrivia)
                 return true;
 
-            // Only inside an #if or #elif directive are preprocessing symbols used
+            // In VB, a #Const directive assigns a value that can also
+            // derive from preprocessing symbols
+            if (state.Document.Project.Language is LanguageNames.VisualBasic)
+            {
+                var extendedTokenParent = tokenParent;
+                while (true)
+                {
+                    extendedTokenParent = extendedTokenParent.Parent;
+
+                    if (extendedTokenParent is null)
+                        break;
+
+                    if (extendedTokenParent.RawKind == syntaxFacts.SyntaxKinds.DefineDirectiveTrivia)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // Otherwise, only inside an #if or #elif directive are preprocessing symbols used
             return syntaxFacts.SpansIfOrElseIfPreprocessorDirective(tokenParent);
         }
     }

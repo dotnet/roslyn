@@ -270,5 +270,40 @@ class Class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestPreprocessingSymbolHoverConst(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+#Const [|PREPROCESS$$ING_SYMBOL|] = True
+
+#If [|PREPROCESSING_SYMBOL|] Then
+' Some code
+#End If
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestPreprocessingSymbolHoverAssignedConst(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+#Const [|PREPROCESSING_SYMBOL|] = True
+#Const OTHER = [|PREPROCES$$SING_SYMBOL|]
+
+#If [|PREPROCESSING_SYMBOL|] Then
+' Some code
+#End If
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
