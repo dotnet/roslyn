@@ -5946,6 +5946,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return bindDictionaryElementInitializer(syntax, implicitReceiver, key, value, diagnostics);
                     }
 
+                case SpreadElementSyntax spreadElementSyntax:
+                    {
+                        var elementSyntax = spreadElementSyntax.Expression;
+                        var element = BindValue(elementSyntax, diagnostics, BindValueKind.RValue);
+
+                        // PROTOTYPE: What is the required type of the spread element? Is it either IEnumerable<T>
+                        // or a type that implements the "IEnumerable<T> pattern"? What about IEnumerable?
+
+                        var builder = new ForEachEnumeratorInfo.Builder();
+                        GetEnumeratorInfoAndInferCollectionElementType(spreadElementSyntax, elementSyntax, ref builder, ref element, isAsync: false, diagnostics, out _);
+                        var enumeratorInfo = builder.Build(default);
+                        var enumeratorElementType = enumeratorInfo.ElementType;
+                        if (enumeratorElementType.IsKeyValuePair())
+                        {
+                            // PROTOTYPE: Handle.
+                            throw ExceptionUtilities.UnexpectedValue(enumeratorElementType);
+                        }
+                        else
+                        {
+                            var collectionType = enumeratorInfo.CollectionType;
+                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                            var conversion = Conversions.ClassifyConversionFromExpression(element, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                            diagnostics.Add(elementSyntax, useSiteInfo);
+                            bool hasErrors = !conversion.Exists || !conversion.IsImplicit;
+                            if (hasErrors)
+                            {
+                                GenerateImplicitConversionError(diagnostics, syntax, conversion, element, collectionType);
+                            }
+                            element = ConvertForEachCollection(element, conversion, collectionType, diagnostics);
+                            var addElementPlaceholder = new BoundValuePlaceholder(elementSyntax, enumeratorInfo.ElementType);
+
+                            var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
+                                elementSyntax,
+                                implicitReceiver,
+                                methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                                args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
+                                diagnostics: diagnostics);
+                            return new BoundCollectionLiteralSpreadElement(
+                                spreadElementSyntax,
+                                element,
+                                enumeratorInfo,
+                                elementPlaceholder: null, // PROTOTYPE: ...
+                                elementConversion: null, // PROTOTYPE: ...
+                                addElementPlaceholder: addElementPlaceholder,
+                                addMethodInvocation: addMethodInvocation,
+                                type: enumeratorInfo.CollectionType) { WasCompilerGenerated = true };
+                        }
+                    }
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
@@ -5999,7 +6048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: Handle static property, inaccessible property, ref returning property, wrong number of args, etc.
                 key = createConversion(key, indexer.Parameters[0].Type, diagnostics);
                 value = createConversion(value, indexer.Type, diagnostics);
-                return new BoundDictionaryElementInitializer(syntax, indexer, key, value, resultKind, indexer.Type) { WasCompilerGenerated = true };
+                return new BoundCollectionLiteralDictionaryElement(syntax, indexer, key, value, resultKind, indexer.Type) { WasCompilerGenerated = true };
             }
 
             BoundExpression createConversion(
@@ -6008,7 +6057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindingDiagnosticBag diagnostics)
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = Conversions.ClassifyConversionFromExpression(source, destinationType, isChecked: false, ref useSiteInfo);
+                var conversion = Conversions.ClassifyConversionFromExpression(source, destinationType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(source.Syntax, useSiteInfo);
                 bool hasErrors = !conversion.Exists || !conversion.IsImplicit;
                 if (hasErrors)

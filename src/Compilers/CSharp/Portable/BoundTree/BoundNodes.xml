@@ -1975,13 +1975,24 @@
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
   </Node>
 
-  <Node Name="BoundDictionaryElementInitializer" Base="BoundExpression">
+  <Node Name="BoundCollectionLiteralDictionaryElement" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Key" Type="BoundExpression"/>
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+  </Node>
+
+  <Node Name="BoundCollectionLiteralSpreadElement" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
+    <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <Field Name="ElementConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <Field Name="AddElementPlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true" Null="disallow"/>
+    <Field Name="AddMethodInvocation" Type="BoundExpression"/>
   </Node>
 
   <Node Name="BoundImplicitReceiver" Base="BoundExpression">

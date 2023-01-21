@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement RewriteWhileStatement(
-            BoundLoopStatement loop,
+            BoundNode loop,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenBody,
             GeneratedLabelSymbol breakLabel,
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
-            Debug.Assert(loop.Kind == BoundKind.WhileStatement || loop.Kind == BoundKind.ForEachStatement);
+            Debug.Assert(loop.Kind is BoundKind.WhileStatement or BoundKind.ForEachStatement or BoundKind.CollectionLiteralSpreadElement);
 
             // while (condition) 
             //   body;
@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.Instrument && !loop.WasCompilerGenerated)
             {
+                // PROTOTYPE: Test with spread operator.
                 switch (loop.Kind)
                 {
                     case BoundKind.WhileStatement:

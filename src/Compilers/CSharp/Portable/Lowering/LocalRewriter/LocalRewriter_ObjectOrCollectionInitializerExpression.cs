@@ -103,10 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundDynamicCollectionElementInitializer dynamicInitializer:
                         Debug.Assert(!_inExpressionLambda);
-                        rewrittenInitializer = MakeDynamicCollectionInitializer(rewrittenReceiver, dynamicInitializer);
+                        rewrittenInitializer = MakeDynamicCollectionInitializer(rewrittenReceiver!, dynamicInitializer);
                         break;
-                    case BoundDictionaryElementInitializer dictionaryElementInitializer:
-                        rewrittenInitializer = MakeDictionaryElementInitializer(rewrittenReceiver, dictionaryElementInitializer);
+                    case BoundCollectionLiteralDictionaryElement dictionaryElement:
+                        rewrittenInitializer = MakeCollectionLiteralDictionaryElement(rewrittenReceiver, dictionaryElement);
+                        break;
+                    case BoundCollectionLiteralSpreadElement spreadElement:
+                        rewrittenInitializer = MakeCollectionLiteralSpreadElement(rewrittenReceiver, spreadElement);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
@@ -209,9 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
         }
 
-        private BoundExpression MakeDictionaryElementInitializer(BoundExpression? rewrittenReceiver, BoundDictionaryElementInitializer initializer)
+        private BoundExpression MakeCollectionLiteralDictionaryElement(BoundExpression? rewrittenReceiver, BoundCollectionLiteralDictionaryElement initializer)
         {
-            Debug.Assert(rewrittenReceiver != null || _inExpressionLambda); // PROTOTYPE: Test in expression tree. Is rewrittenReceiver null in that case?
+            Debug.Assert(rewrittenReceiver != null); // PROTOTYPE: Test in expression tree. Is rewrittenReceiver null in that case?
 
             var syntax = initializer.Syntax;
             var indexer = initializer.Indexer;
@@ -241,6 +244,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 used: false,
                 isChecked: false,
                 isCompoundAssignment: false);
+        }
+
+        private BoundExpression MakeCollectionLiteralSpreadElement(BoundExpression? rewrittenReceiver, BoundCollectionLiteralSpreadElement initializer)
+        {
+            Debug.Assert(rewrittenReceiver != null); // PROTOTYPE: Test in expression tree. Is rewrittenReceiver null in that case?
+
+            var enumeratorInfo = initializer.EnumeratorInfoOpt;
+            Debug.Assert(enumeratorInfo is { });
+
+            var syntax = initializer.Syntax;
+            var iterationVariable = _factory.SynthesizedLocal(enumeratorInfo.ElementType, syntax);
+
+            AddPlaceholderReplacement(initializer.AddElementPlaceholder, _factory.Local(iterationVariable));
+            var rewrittenBody = _factory.ExpressionStatement(VisitExpression(initializer.AddMethodInvocation));
+            RemovePlaceholderReplacement(initializer.AddElementPlaceholder);
+
+            var statement = RewriteForEachEnumerator(
+                initializer,
+                (BoundConversion)initializer.Expression,
+                enumeratorInfo,
+                initializer.ElementPlaceholder,
+                initializer.ElementConversion,
+                iterationVariables: ImmutableArray.Create(iterationVariable),
+                deconstruction: null,
+                awaitableInfo: null,
+                breakLabel: new GeneratedLabelSymbol("break"), // PROTOTYPE: Is this needed?
+                continueLabel: new GeneratedLabelSymbol("continue"), // PROTOTYPE: Is this needed?
+                rewrittenBody: rewrittenBody);
+
+            var result = _factory.Literal(0); // PROTOTYPE: This result is unused. Can we avoid creating it entirely?
+            _needsSpilling = true;
+            return _factory.SpillSequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(statement), result);
         }
 
         private BoundExpression VisitObjectInitializerMember(BoundObjectInitializerMember node, ref BoundExpression rewrittenReceiver, ArrayBuilder<BoundExpression> sideEffects, ref ArrayBuilder<LocalSymbol>? temps)

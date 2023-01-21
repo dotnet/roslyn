@@ -3438,7 +3438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
+        public override BoundNode? VisitCollectionLiteralDictionaryElement(BoundCollectionLiteralDictionaryElement node)
         {
             VisitRvalue(node.Key);
             VisitRvalue(node.Value);
