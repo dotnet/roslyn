@@ -83,6 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we hit an executable statement syntax and didn't find anything yet, we can just stop now -- anything higher would be a member declaration which won't be defined by something inside a statement.
                 if (CSharpSyntaxFacts.Instance.IsExecutableStatement(ancestor))
                     return null;
+
+                if (CSharpSyntaxFacts.Instance.IsIdentifierContainerPreprocessorDirectiveTrivia(ancestor))
+                    return semanticModel.Compilation.CreatePreprocessingSymbol(token.ValueText);
             }
 
             return null;

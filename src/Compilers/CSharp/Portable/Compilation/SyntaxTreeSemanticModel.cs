@@ -273,18 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int adjustedPosition = GetAdjustedNodePosition(crefSyntax);
                 result = GetCrefSymbolInfo(adjustedPosition, crefSyntax, options, HasParameterList(crefSyntax));
             }
-            else if (IsWithinIdentifierContainerDirectiveTrivia(node))
-            {
-                var identifierName = node as IdentifierNameSyntax;
-
-                result = SymbolInfo.None;
-
-                var info = this.GetPreprocessingSymbolInfo(node);
-                if (info.Symbol is not null)
-                {
-                    result = new SymbolInfo(info.Symbol);
-                }
-            }
             else
             {
                 // if expression is not part of a member context then caller may really just have a
@@ -294,16 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
-        }
-
-        private static bool IsWithinIdentifierContainerDirectiveTrivia(CSharpSyntaxNode node)
-        {
-            return node is IdentifierNameSyntax
-                && node.FirstAncestorOrSelf<CSharpSyntaxNode>(IsIdentifierContainerDirectiveTrivia) is not null;
-        }
-        private static bool IsIdentifierContainerDirectiveTrivia(CSharpSyntaxNode node)
-        {
-            return SyntaxFacts.IsIdentifierContainerDirectiveTrivia(node.Kind());
         }
 
         internal override SymbolInfo GetCollectionInitializerSymbolInfoWorker(InitializerExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
