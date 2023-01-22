@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
             private ElementHost? _documentOutlineViewHost;
-            private DocumentOutlineView? _documentOutlineControl;
+            private DocumentOutlineView? _documentOutlineView;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -253,16 +253,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
 
                 // Assert that the previous Document Outline Control and host have been freed. 
-                Contract.ThrowIfFalse(_documentOutlineControl is null);
+                Contract.ThrowIfFalse(_documentOutlineView is null);
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
-                _documentOutlineControl = DocumentOutlineViewFactory.CreateView(
+                _documentOutlineView = DocumentOutlineViewFactory.CreateView(
                     languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
 
                 _documentOutlineViewHost = new ElementHost
                 {
                     Dock = DockStyle.Fill,
-                    Child = _documentOutlineControl
+                    Child = _documentOutlineView
                 };
 
                 phwnd = _documentOutlineViewHost.Handle;
@@ -278,12 +278,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
-                if (_documentOutlineControl is not null &&
+                if (_documentOutlineView is not null &&
                     _documentOutlineViewHost is not null)
                 {
                     _documentOutlineViewHost.SuspendLayout();
-                    _documentOutlineControl.Dispose();
-                    _documentOutlineControl = null;
+                    _documentOutlineView.Dispose();
+                    _documentOutlineView = null;
                     _documentOutlineViewHost.Child = null;
                     _documentOutlineViewHost.Parent = null;
                     _documentOutlineViewHost.Dispose();
