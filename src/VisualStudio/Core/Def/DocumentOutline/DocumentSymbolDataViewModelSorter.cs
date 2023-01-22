@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal class DocumentSymbolDataViewModelSorter : MarkupExtension, IMultiValueConverter
     {
+        private DocumentSymbolDataViewModelSorter() { }
+
         public static DocumentSymbolDataViewModelSorter Instance { get; } = new();
 
         public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
