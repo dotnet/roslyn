@@ -198,9 +198,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         var uri = textDocumentIdentifier.Uri;
         // Add the document to our loose files workspace if its open.
-        if (_trackedDocuments.ContainsKey(uri))
+        if (_trackedDocuments.TryGetValue(uri, out var documentText))
         {
-            var miscDocument = _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger);
+            var miscDocument = _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(uri, documentText, _logger);
             if (miscDocument is not null)
                 return (_lspMiscellaneousFilesWorkspace, miscDocument.Project.Solution, miscDocument);
         }

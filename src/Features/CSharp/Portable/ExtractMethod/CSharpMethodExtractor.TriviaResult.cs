@@ -118,8 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                 }
 
-                var previousTriviaPair = triviaMap.ContainsKey(tokenPair.PreviousToken) ? triviaMap[tokenPair.PreviousToken] : default;
-                var nextTriviaPair = triviaMap.ContainsKey(tokenPair.NextToken) ? triviaMap[tokenPair.NextToken] : default;
+                if (!triviaMap.TryGetValue(tokenPair.PreviousToken, out var previousTriviaPair))
+                    previousTriviaPair = default;
+
+                if (!triviaMap.TryGetValue(tokenPair.NextToken, out var nextTriviaPair)) 
+                    nextTriviaPair = default;
 
                 var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
                 var leadingTrivia = nextTriviaPair.LeadingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();

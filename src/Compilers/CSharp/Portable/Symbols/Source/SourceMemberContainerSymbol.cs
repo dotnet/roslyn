@@ -2144,10 +2144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Locations.Length == 1 || IsPartial)
                 {
-                    if (membersByName.ContainsKey(indexerName))
+                    if (membersByName.TryGetValue(indexerName, out var symbol))
                     {
                         // The name of the indexer is reserved - it can only be used by other indexers.
-                        Debug.Assert(!membersByName[indexerName].Any(SymbolExtensions.IsIndexer));
+                        Debug.Assert(!symbol.Any(SymbolExtensions.IsIndexer));
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.Locations[0], this, indexerName);
                     }
                 }

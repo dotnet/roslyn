@@ -1502,11 +1502,11 @@ REPARSE:
                         continue;
                 }
 
-                if (displayClassVariablesBuilder.ContainsKey(variableName))
+                if (displayClassVariablesBuilder.TryGetValue(variableName, out var displayClassVariable))
                 {
                     // Only expecting duplicates for async state machine
                     // fields (that should be at the top-level).
-                    Debug.Assert(displayClassVariablesBuilder[variableName].DisplayClassFields.Count() == 1);
+                    Debug.Assert(displayClassVariable.DisplayClassFields.Count() == 1);
 
                     if (!instance.Fields.Any())
                     {

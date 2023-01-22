@@ -618,13 +618,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var member in GetMembersUnordered())
                 {
-                    if (requiredMembersBuilder.ContainsKey(member.Name))
+                    if (requiredMembersBuilder.TryGetValue(member.Name, out var existingMember))
                     {
                         // This is only permitted if the member is an override of a required member from a base type, and is required itself.
                         if (!member.IsRequired()
                             || member.Kind == SymbolKind.Field
                             || member.GetOverriddenMember() is not { } overriddenMember
-                            || !overriddenMember.Equals(requiredMembersBuilder[member.Name], TypeCompareKind.ConsiderEverything))
+                            || !overriddenMember.Equals(existingMember, TypeCompareKind.ConsiderEverything))
                         {
                             return false;
                         }

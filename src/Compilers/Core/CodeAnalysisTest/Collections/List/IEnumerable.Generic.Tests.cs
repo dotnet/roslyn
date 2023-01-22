@@ -584,9 +584,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Dictionary<T, int> firstValues = new Dictionary<T, int>(count);
             Dictionary<T, int> secondValues = new Dictionary<T, int>(count);
             foreach (T item in enumerable)
-                firstValues[item] = firstValues.ContainsKey(item) ? firstValues[item]++ : 1;
+                firstValues[item] = firstValues.TryGetValue(item, out var counter) ? ++counter : 1;
             foreach (T item in enumerable)
-                secondValues[item] = secondValues.ContainsKey(item) ? secondValues[item]++ : 1;
+                secondValues[item] = secondValues.TryGetValue(item, out int counter) ? ++counter : 1;
             Assert.Equal(firstValues.Count, secondValues.Count);
             foreach (T key in firstValues.Keys)
                 Assert.Equal(firstValues[key], secondValues[key]);
