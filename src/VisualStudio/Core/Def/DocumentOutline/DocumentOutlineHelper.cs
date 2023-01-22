@@ -202,12 +202,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 var children = GetDocumentSymbolItemViewModels(documentSymbol.Children);
                 var documentSymbolItem = new DocumentSymbolDataViewModel(
-                    documentSymbol.Name,
+                    documentSymbol,
                     children,
-                    documentSymbol.RangeSpan,
-                    documentSymbol.SelectionRangeSpan,
-                    documentSymbol.SymbolKind,
-                    documentSymbol.SymbolKind.GetImageMoniker(),
                     isExpanded: true,
                     isSelected: false);
                 documentSymbolItems.Add(documentSymbolItem);

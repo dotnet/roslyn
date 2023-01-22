@@ -21,22 +21,24 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolDataViewModel>
     {
-        public string Name { get; }
-        public ImmutableArray<DocumentSymbolDataViewModel> Children { get; }
+        private readonly DocumentSymbolData _data;
+
+        public string Name => _data.Name;
+        public ImmutableArray<DocumentSymbolDataViewModel> Children { get; init; }
         public int StartPosition => RangeSpan.Start;
 
         /// <summary>
         /// The total range of the symbol including leading/trailing trivia
         /// </summary>
-        public SnapshotSpan RangeSpan { get; }
+        public SnapshotSpan RangeSpan => _data.RangeSpan;
 
         /// <summary>
         /// The range that represents what should be selected in the editor for this item.
         /// Typically, this is the identifier name for the symbol
         /// </summary>
-        public SnapshotSpan SelectionRangeSpan { get; }
-        public SymbolKind SymbolKind { get; }
-        public ImageMoniker ImageMoniker { get; }
+        public SnapshotSpan SelectionRangeSpan => _data.SelectionRangeSpan;
+        public SymbolKind SymbolKind => _data.SymbolKind;
+        public ImageMoniker ImageMoniker => _data.SymbolKind.GetImageMoniker();
 
         private bool _isExpanded;
         public bool IsExpanded
@@ -46,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private bool _isSelected;
+
         public bool IsSelected
         {
             get => _isSelected;
@@ -53,23 +56,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         public DocumentSymbolDataViewModel(
-            string name,
+            DocumentSymbolData data,
             ImmutableArray<DocumentSymbolDataViewModel> children,
-            SnapshotSpan rangeSpan,
-            SnapshotSpan selectionRangeSpan,
-            SymbolKind symbolKind,
-            ImageMoniker imageMoniker,
             bool isExpanded,
             bool isSelected)
         {
-            Name = name;
+            _data = data;
             Children = children;
-            SymbolKind = symbolKind;
-            ImageMoniker = imageMoniker;
             _isExpanded = isExpanded;
             _isSelected = isSelected;
-            RangeSpan = rangeSpan;
-            SelectionRangeSpan = selectionRangeSpan;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -102,8 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public bool Equals(DocumentSymbolDataViewModel? other)
             => (object)this == other ||
                  (other is not null &&
-                   (RangeSpan.Span.Start, RangeSpan.Span.End, Name, SymbolKind) ==
-                   (other.RangeSpan.Span.Start, other.RangeSpan.Span.End, other.Name, other.SymbolKind));
+                   (RangeSpan.Span, Name, SymbolKind) ==
+                   (other.RangeSpan.Span, other.Name, other.SymbolKind));
 
         public override int GetHashCode()
             => (RangeSpan.Span.Start, RangeSpan.Span.End, Name, SymbolKind).GetHashCode();

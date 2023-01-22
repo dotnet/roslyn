@@ -101,7 +101,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 => (ImmutableArray<DocumentSymbolDataViewModel>)DocumentSymbolDataViewModelSorter.Instance.Convert(new object[] { items, sortOption }, typeof(ImmutableArray<DocumentSymbolDataViewModel>), parameter: null, CultureInfo.CurrentCulture);
 
             static DocumentSymbolDataViewModel ReplaceChildren(DocumentSymbolDataViewModel symbolToUpdate, ImmutableArray<DocumentSymbolDataViewModel> newChildren)
-                => new(symbolToUpdate.Name, newChildren, symbolToUpdate.RangeSpan, symbolToUpdate.SelectionRangeSpan, symbolToUpdate.SymbolKind, symbolToUpdate.ImageMoniker, symbolToUpdate.IsExpanded, symbolToUpdate.IsSelected);
+            {
+                var symbolData = new DocumentSymbolData(symbolToUpdate.Name, symbolToUpdate.SymbolKind, symbolToUpdate.RangeSpan, symbolToUpdate.SelectionRangeSpan, ImmutableArray<DocumentSymbolData>.Empty);
+                return new DocumentSymbolDataViewModel(symbolData, newChildren, symbolToUpdate.IsExpanded, symbolToUpdate.IsSelected);
+            }
 
             static void CheckSortedSymbols(ImmutableArray<DocumentSymbolDataViewModel> sortedSymbols, SortOption sortOption)
             {
