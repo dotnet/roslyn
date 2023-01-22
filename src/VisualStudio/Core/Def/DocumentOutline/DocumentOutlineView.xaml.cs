@@ -33,9 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly ComEventSink _codeWindowEventsSink;
         private readonly ICollectionView _collectionView;
 
-        // Used to suspend all event handlers for caret movement while we navigate the cursor
-        // Should only be written to within the SymbolTree_MouseDown method which always
-        // is called by WPF on the UI thread.
+        /// <summary>
+        /// Used to suspend all event handlers for caret movement while we navigate the cursor
+        /// Should only be written to within the SymbolTree_MouseDown method which always
+        /// is called by WPF on the UI thread.
+        /// </summary>
         private bool _isNavigating;
 
         public DocumentOutlineView(
@@ -138,13 +140,19 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolDataViewModel symbol)
             {
                 _isNavigating = true;
-                _codeWindow.GetLastActiveView(out var textView);
-                Assumes.NotNull(textView);
-                var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
-                Assumes.NotNull(wpfTextView);
-                wpfTextView.TryMoveCaretToAndEnsureVisible(
-                    symbol.SelectionRangeSpan.Start.TranslateTo(wpfTextView.TextSnapshot, PointTrackingMode.Negative));
-                _isNavigating = false;
+                try
+                {
+                    _codeWindow.GetLastActiveView(out var textView);
+                    Assumes.NotNull(textView);
+                    var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
+                    Assumes.NotNull(wpfTextView);
+                    wpfTextView.TryMoveCaretToAndEnsureVisible(
+                        symbol.SelectionRangeSpan.TranslateTo(wpfTextView.TextSnapshot, SpanTrackingMode.EdgeNegative).Start);
+                }
+                finally
+                {
+                    _isNavigating = false;
+                }
             }
         }
 
