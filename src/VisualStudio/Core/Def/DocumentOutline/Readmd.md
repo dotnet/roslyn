@@ -36,30 +36,57 @@ We subscribe to text update events and, for each one, attempt to gather data fro
 
 We have two queues that we use in document outline: `_documentSymbolQueue` and `_updateViewModelStateQueue`.
 
-Each time the text document is updated the following flow happens:
+These queues batch all updates so each time new data is added to process the timer it is configured with is reset. This ensures that if the user is typing or a large batch of updates from the workspace are coming in we don't waste time computing results that are just going to be thrown away.
+
+For the `_documentSymbolQueue` our input is workspace changes (such as the from the user typing) and our output is a `DocumentSymbolDataModel`. This queue operates on a 250ms delay and a typical execution look like this:
 
 ```mermaid
 sequenceDiagram
+    participant Workspace Events
     participant LSP Server
     participant documentSymbolQueue
     participant updateViewModelStateQueue
-    participant User Interface
-    documentSymbolQueue->>LSP Server: Document symbols requested
-    LSP Server->>documentSymbolQueue: Document symbols returned
+    Workspace Events->>documentSymbolQueue: Queue data model update
+    documentSymbolQueue->>documentSymbolQueue: Batch work to only run after 250ms 
+    documentSymbolQueue->>LSP Server: Document symbols requested 
+    LSP Server->>documentSymbolQueue: Document symbols returned 
+    documentSymbolQueue->>updateViewModelStateQueue: Queue UI update 
+```
+
+At the end we always queue a UI update to the `updateViewModelStateQueue`.  If the user interact with the UI in a way we cannot hand off to WPF (such as filtering) we also queue a UI update. `updateViewModelStateQueue` also batches up its operations to only occur every 50ms at the most frequent.
+
+```mermaid
+sequenceDiagram
+    participant documentSymbolQueue
+    participant updateViewModelStateQueue
     documentSymbolQueue->>updateViewModelStateQueue: Queue updating state
-    updateViewModelStateQueue->>updateViewModelStateQueue: Delay by 250ms
+    updateViewModelStateQueue->>updateViewModelStateQueue: Batch work to only run after 50ms
     updateViewModelStateQueue->>documentSymbolQueue: Get latest model and set properties
+    updateViewModelStateQueue->>updateViewModelStateQueue: Update internal state
     updateViewModelStateQueue->>User Interface: Send property changed notification
 ```
 
-For cases where the user has queues up UI events the following flow is expected to happen:
+Here is the same operation initiated by user interaction instead of a model update.
+
+```mermaid
+sequenceDiagram
+    participant documentSymbolQueue
+    participant updateViewModelStateQueue
+    User Interface->>updateViewModelStateQueue: Queue updating state
+    updateViewModelStateQueue->>updateViewModelStateQueue: Batch work to only run after 50ms
+    updateViewModelStateQueue->>documentSymbolQueue: Get latest model and set properties
+    updateViewModelStateQueue->>updateViewModelStateQueue: Update internal state
+    updateViewModelStateQueue->>User Interface: Send property changed notification
+```
+
+In summary, we expect the following flow for updates:
 
 ```mermaid
 flowchart LR
-A[Text Change] -->X(LSP Request)
-B[Compilation Change] -->X(LSP Request)
-X(LSP Request) -->Z(Update View Model)
-D[Expand Node] -->Z(Update View Model)
-E[Filter Data] -->Z(Update View Model)
-Z(Update View Model) -->|Notify Property Changed| Y[WPF TreeView]
+A[Text Change] -->X(documentSymbolQueue)
+B[Compilation Change] -->X(documentSymbolQueue)
+X(documentSymbolQueue) -->Z(updateViewModelStateQueue)
+D[Expand Node] -->Z(updateViewModelStateQueue)
+E[Filter Data] -->Z(updateViewModelStateQueue)
+Z(updateViewModelStateQueue) -->|Notify Property Changed| Y[WPF TreeView]
 ```
