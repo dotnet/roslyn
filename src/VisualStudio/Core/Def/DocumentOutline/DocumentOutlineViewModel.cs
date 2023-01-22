@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal partial class DocumentOutlineViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
-        private readonly CompilationAvailableTaggerEventSource _textViewEventSource;
+        private readonly ITaggerEventSource _taggerEventSource;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly ITextBuffer _textBuffer;
 
@@ -38,12 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public DocumentOutlineViewModel(
             ILanguageServiceBroker2 languageServiceBroker,
             IAsynchronousOperationListener asyncListener,
-            CompilationAvailableTaggerEventSource textViewEventSource,
+            ITaggerEventSource taggerEventSource,
             ITextBuffer textBuffer,
             IThreadingContext threadingContext)
         {
             _languageServiceBroker = languageServiceBroker;
-            _textViewEventSource = textViewEventSource;
+            _taggerEventSource = taggerEventSource;
             _textBuffer = textBuffer;
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(threadingContext.DisposalToken);
 
@@ -61,8 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 CancellationToken);
 
-            _textViewEventSource.Changed += OnEventSourceChanged;
-            _textViewEventSource.Connect();
+            _taggerEventSource.Changed += OnEventSourceChanged;
+            _taggerEventSource.Connect();
 
             // queue initial model update
             _documentSymbolQueue.AddWork(cancelExistingWork: true);
@@ -108,8 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         public void Dispose()
         {
-            _textViewEventSource.Changed -= OnEventSourceChanged;
-            _textViewEventSource.Disconnect();
+            _taggerEventSource.Changed -= OnEventSourceChanged;
+            _taggerEventSource.Disconnect();
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
         }
