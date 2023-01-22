@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (!triviaMap.TryGetValue(tokenPair.PreviousToken, out var previousTriviaPair))
                     previousTriviaPair = default;
 
-                if (!triviaMap.TryGetValue(tokenPair.NextToken, out var nextTriviaPair)) 
+                if (!triviaMap.TryGetValue(tokenPair.NextToken, out var nextTriviaPair))
                     nextTriviaPair = default;
 
                 var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();

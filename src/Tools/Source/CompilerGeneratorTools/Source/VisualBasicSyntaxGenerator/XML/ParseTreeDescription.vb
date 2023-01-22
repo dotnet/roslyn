@@ -196,7 +196,7 @@ Public Class ParseTree
 
         If typeString.StartsWith("@", StringComparison.Ordinal) Then
             Dim nodeTypeString = typeString.Substring(1)
-            Dim nodeStructure As ParseNodeStructure
+            Dim nodeStructure As ParseNodeStructure = Nothing
             If Not NodeStructures.TryGetValue(nodeTypeString, nodeStructure) Then
                 ReportError(referencingNode, "Unknown structure '@{0}'", nodeTypeString)
                 Return Nothing
@@ -205,7 +205,7 @@ Public Class ParseTree
             Return nodeStructure.GetAllKinds()
         End If
 
-        Dim nodeKindAlias As ParseNodeKindAlias
+        Dim nodeKindAlias As ParseNodeKindAlias = Nothing
         If Aliases.TryGetValue(typeString, nodeKindAlias) Then
             Return ParseNodeKind(nodeKindAlias.AliasKinds, referencingNode)
         End If
@@ -261,7 +261,7 @@ Public Class ParseNodeStructure
             If String.IsNullOrEmpty(ParentStructureId) Then
                 Return Nothing
             Else
-                Dim nodeStructure As ParseNodeStructure
+                Dim nodeStructure As ParseNodeStructure = Nothing
                 If Not ParseTree.NodeStructures.TryGetValue(ParentStructureId, nodeStructure) Then
                     ParseTree.ReportError(Element, "Unknown parent structure '{0}' for node-structure '{1}'", ParentStructureId, Name)
                     Return Nothing
@@ -380,7 +380,7 @@ Public Class ParseNodeKind
             If String.IsNullOrEmpty(StructureId) Then
                 Return Nothing
             Else
-                Dim parseNodeStructure As ParseNodeStructure
+                Dim parseNodeStructure As ParseNodeStructure = Nothing
                 If Not ParseTree.NodeStructures.TryGetValue(StructureId, parseNodeStructure) Then
                     ParseTree.ReportError(Element, "Unknown structure '{0}' for node-kind '{1}'", StructureId, Name)
                     Return Nothing

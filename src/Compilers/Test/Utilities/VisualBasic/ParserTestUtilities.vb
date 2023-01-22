@@ -1026,7 +1026,7 @@ Public Module VerificationHelpers
         Public Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
             _Items.Add(Node)
 
-            Dim count As Integer
+            Dim count As Integer = Nothing
             If _Dict.TryGetValue(NodeKey, count) Then
                 _Dict(NodeKey) = count + 1 'Increment Count
             Else
@@ -1035,7 +1035,7 @@ Public Module VerificationHelpers
         End Sub
 
         Public Function GetCount(Node As String) As Integer
-            Dim count As Integer
+            Dim count As Integer = Nothing
             If _Dict.TryGetValue(Node, count) Then
                 Return count
             Else

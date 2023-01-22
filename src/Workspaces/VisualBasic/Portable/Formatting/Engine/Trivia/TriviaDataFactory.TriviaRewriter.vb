@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim leadingTrivia = token.LeadingTrivia
                 Dim trailingTrivia = token.TrailingTrivia
 
-                Dim triviaList As SyntaxTriviaList
+                Dim triviaList As SyntaxTriviaList = Nothing
                 If _trailingTriviaMap.TryGetValue(token, triviaList) Then
                     ' okay, we have this situation
                     ' token|trivia

@@ -76,14 +76,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                      Dim token = n
 
                                                      ' replace token if needed
-                                                     Dim remappedToken As SyntaxToken
+                                                     Dim remappedToken As SyntaxToken = Nothing
                                                      If _tokens.TryGetValue(token, remappedToken) Then
                                                          token = remappedToken
                                                      End If
 
                                                      ' replace leading trivia if needed
                                                      Dim current = token
-                                                     Dim triviaList As SyntaxTriviaList
+                                                     Dim triviaList As SyntaxTriviaList = Nothing
                                                      If _leading.TryGetValue(token, triviaList) Then
                                                          current = current.WithLeadingTrivia(triviaList)
                                                      End If

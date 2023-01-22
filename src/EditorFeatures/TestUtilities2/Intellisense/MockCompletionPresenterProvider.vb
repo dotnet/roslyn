@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Property
 
         Public Function GetOrCreate(textView As ITextView) As ICompletionPresenter Implements ICompletionPresenterProvider.GetOrCreate
-            Dim presenter As ICompletionPresenter
+            Dim presenter As ICompletionPresenter = Nothing
             If Not _presenters.TryGetValue(textView, presenter) Then
                 presenter = New MockCompletionPresenter(textView)
                 _presenters(textView) = presenter
