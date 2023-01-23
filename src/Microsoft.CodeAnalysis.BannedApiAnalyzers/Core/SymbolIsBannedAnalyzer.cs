@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 where sourceText != null
                 from line in sourceText.Lines
                 let text = line.ToString()
-                where !string.IsNullOrWhiteSpace(text)
                 let commentIndex = text.IndexOf("//", StringComparison.Ordinal)
                 let textWithoutComment = commentIndex == -1 ? text : text[..commentIndex]
                 where !string.IsNullOrWhiteSpace(textWithoutComment)
