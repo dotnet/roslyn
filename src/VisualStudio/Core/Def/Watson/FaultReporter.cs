@@ -158,6 +158,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             {
                 FailFast.OnFatalException(e);
             }
+
+            Debug.Fail($"Fatal error reported: {exception.Message}");
         }
 
         private static string GetDescription(Exception exception)
