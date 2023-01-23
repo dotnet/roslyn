@@ -173,7 +173,6 @@ namespace Microsoft.CodeAnalysis
             if (assemblyName.Name is null)
             {
                 return null;
-
             }
 
             ImmutableHashSet<string>? paths;

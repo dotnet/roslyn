@@ -50,18 +50,15 @@ namespace Microsoft.CodeAnalysis
             return loadContext.LoadFromAssemblyName(assemblyName);
         }
 
-        internal static class TestAccessor
+        internal DirectoryLoadContext[] GetDirectoryLoadContextsSnapshot()
         {
-            public static AssemblyLoadContext[] GetOrderedLoadContexts(DefaultAnalyzerAssemblyLoader loader)
+            lock (_guard)
             {
-                lock (loader._guard)
-                {
-                    return loader._loadContextByDirectory.Values.OrderBy(v => v.Directory).ToArray();
-                }
+                return _loadContextByDirectory.Values.OrderBy(v => v.Directory).ToArray();
             }
         }
 
-        private sealed class DirectoryLoadContext : AssemblyLoadContext
+        internal sealed class DirectoryLoadContext : AssemblyLoadContext
         {
             internal string Directory { get; }
             private readonly DefaultAnalyzerAssemblyLoader _loader;

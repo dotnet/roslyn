@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil
     {
-        public void Exec(AssemblyLoadContext alc, bool shadowLoad, string typeName, string methodName)
+        public void Exec(Action<string> testOutputHelper, AssemblyLoadContext alc, bool shadowLoad, string typeName, string methodName)
         {
             // Ensure that the test did not load any of the test fixture assemblies into 
             // the default load context. That should never happen. Assemblies should either 
@@ -42,16 +42,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
             //
             // Not only is this bad behavior it also pollutes future test results.
             var count = AssemblyLoadContext.Default.Assemblies.Count();
+            using var fixture = new AssemblyLoadTestFixture();
+            using var tempRoot = new TempRoot();
+            var loader = shadowLoad
+                ? new ShadowCopyAnalyzerAssemblyLoader(alc, tempRoot.CreateDirectory().Path)
+                : new DefaultAnalyzerAssemblyLoader(alc);
             try
             {
-                using var fixture = new AssemblyLoadTestFixture();
-                var loader = shadowLoad
-                    ? new ShadowCopyAnalyzerAssemblyLoader(alc)
-                    : new DefaultAnalyzerAssemblyLoader(alc);
-                DefaultAnalyzerAssemblyLoaderTestsBase.InvokeTestCode(loader, fixture, typeName, methodName);
+                DefaultAnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
             }
             finally
             {
+                testOutputHelper($"Test fixture root: {fixture.TempDirectory.Path}");
+
+                foreach (var context in loader.GetDirectoryLoadContextsSnapshot())
+                {
+                    testOutputHelper($"Directory context: {context.Directory}");
+                    foreach (var assembly in context.Assemblies)
+                    {
+                        testOutputHelper($"\t{assembly.FullName}");
+                    }
+                }
+
+                if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)
+                {
+                    testOutputHelper($"Shadow loader: {shadowLoader.BaseDirectory}");
+                    foreach (var pair in shadowLoader.GetPathMapSnapshot())
+                    {
+                        testOutputHelper($"\t{pair.Key} -> {pair.Value}");
+                    }
+                }
+
                 Assert.Equal(count, AssemblyLoadContext.Default.Assemblies.Count());
             }
         }
@@ -61,15 +82,39 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil : MarshalByRefObject
     {
-        public void Exec(bool shadowLoad, string typeName, string methodName)
+        public void Exec(ITestOutputHelper testOutputHelper, bool shadowLoad, string typeName, string methodName)
         {
             try
             {
                 using var fixture = new AssemblyLoadTestFixture();
+                using var tempRoot = new TempRoot();
                 var loader = shadowLoad
-                    ? new ShadowCopyAnalyzerAssemblyLoader()
+                    ? new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path)
                     : new DefaultAnalyzerAssemblyLoader();
-                DefaultAnalyzerAssemblyLoaderTestsBase.InvokeTestCode(loader, fixture, typeName, methodName);
+
+                try
+                {
+                    DefaultAnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
+                }
+                finally
+                {
+                    testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory.Path}");
+
+                    testOutputHelper.WriteLine($"Loaded Assemblies");
+                    foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName))
+                    {
+                        testOutputHelper.WriteLine($"\t{assembly.FullName} -> {assembly.Location}");
+                    }
+
+                    if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)
+                    {
+                        testOutputHelper.WriteLine($"Shadow loader: {shadowLoader.BaseDirectory}");
+                        foreach (var pair in shadowLoader.GetPathMapSnapshot())
+                        {
+                            testOutputHelper.WriteLine($"\t{pair.Key} -> {pair.Value}");
+                        }
+                    }
+                }
             }
             catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
             {
@@ -81,10 +126,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
 #endif
 
-    public sealed class DefaultAnalyzerAssemblyLoaderTestsBase : TestBase
+    public sealed class DefaultAnalyzerAssemblyLoaderTests : TestBase
     {
-        public DefaultAnalyzerAssemblyLoaderTestsBase()
+        public ITestOutputHelper TestOutputHelper { get; }
+
+        public DefaultAnalyzerAssemblyLoaderTests(ITestOutputHelper testOutputHelper)
         {
+            TestOutputHelper = testOutputHelper;
         }
 
         private void Run(bool shadowLoad, Action<DefaultAnalyzerAssemblyLoader, AssemblyLoadTestFixture> action, [CallerMemberName] string? memberName = null)
@@ -94,16 +142,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var assembly = alc.LoadFromAssemblyName(typeof(InvokeUtil).Assembly.GetName());
             var util = assembly.CreateInstance(typeof(InvokeUtil).FullName)!;
             var method = util.GetType().GetMethod("Exec", BindingFlags.Public | BindingFlags.Instance)!;
-            method.Invoke(util, new object[] { alc, shadowLoad, action.Method.DeclaringType!.FullName!, action.Method.Name });
+            var outputHelper = (string msg) => TestOutputHelper.WriteLine(msg);
+            method.Invoke(util, new object[] { outputHelper, alc, shadowLoad, action.Method.DeclaringType!.FullName!, action.Method.Name });
 
 #else
             AppDomain? appDomain = null;
             try
             {
                 appDomain = AppDomainUtils.Create($"Test {memberName}");
+                var testOutputHelper = new AppDomainTestOutputHelper(TestOutputHelper);
                 var type = typeof(InvokeUtil);
                 var util = (InvokeUtil)appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
-                util.Exec(shadowLoad, action.Method.DeclaringType.FullName, action.Method.Name);
+                util.Exec(testOutputHelper, shadowLoad, action.Method.DeclaringType.FullName, action.Method.Name);
             }
             finally
             {
@@ -119,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// </summary>
         internal static void InvokeTestCode(DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture fixture, string typeName, string methodName)
         {
-            var type = typeof(DefaultAnalyzerAssemblyLoaderTestsBase).Assembly.GetType(typeName, throwOnError: false)!;
+            var type = typeof(DefaultAnalyzerAssemblyLoaderTests).Assembly.GetType(typeName, throwOnError: false)!;
             var member = type.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)!;
 
             // A static lambda will still be an instance method so we need to create the closure
@@ -334,7 +384,7 @@ Delta: Gamma: Beta: Test B
 
 #if NETCOREAPP
             // This verify only works where there is a single load context.
-            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            var alcs = loader.GetDirectoryLoadContextsSnapshot();
             Assert.Equal(1, alcs.Length);
 
             loadedAssemblies = alcs[0].Assemblies;
@@ -446,18 +496,22 @@ Delta: Gamma: Beta: Test B
             Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
-                StringBuilder sb = new StringBuilder();
-
-                var deltaFile1 = temp.CreateDirectory().CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
                 var tempDir = temp.CreateDirectory();
-                var gammaFile = tempDir.CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma.Path);
-                var deltaFile2 = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+
+                // It's important that we create these directories in a deterministic order so that 
+                // our test has reliably output. Part of our resolution code will search the registered
+                // paths in a sorted order.
+                var deltaFile1 = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                var tempSubDir = tempDir.CreateDirectory("b");
+                var gammaFile = tempSubDir.CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma.Path);
+                var deltaFile2 = tempSubDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
 
                 loader.AddDependencyLocation(deltaFile1.Path);
                 loader.AddDependencyLocation(deltaFile2.Path);
                 loader.AddDependencyLocation(gammaFile.Path);
                 Assembly gamma = loader.LoadFromPath(gammaFile.Path);
 
+                StringBuilder sb = new StringBuilder();
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
                 writeMethod.Invoke(b, new object[] { sb, "Test G" });
@@ -574,7 +628,7 @@ Delta: Gamma: Beta: Test B
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
 #if NETCOREAPP
-                var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+                var alcs = loader.GetDirectoryLoadContextsSnapshot();
                 Assert.Equal(2, alcs.Length);
 
                 VerifyAssemblies(
@@ -874,7 +928,7 @@ Delta: Epsilon: Test E
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
 #if NETCOREAPP
-                var alcs1 = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader1);
+                var alcs1 = loader1.GetDirectoryLoadContextsSnapshot();
                 Assert.Equal(1, alcs1.Length);
 
                 VerifyAssemblies(
@@ -883,7 +937,7 @@ Delta: Epsilon: Test E
                     ("Delta", "1.0.0.0", testFixture.Delta1.Path),
                     ("Gamma", "0.0.0.0", testFixture.Gamma.Path));
 
-                var alcs2 = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader2);
+                var alcs2 = loader2.GetDirectoryLoadContextsSnapshot();
                 Assert.Equal(1, alcs2.Length);
 
                 VerifyAssemblies(
@@ -1101,7 +1155,7 @@ Delta.2: Test D2
                 loader.AddDependencyLocation(testFixture.Delta1.Path);
                 _ = loader.LoadFromPath(testFixture.Delta1.Path);
 
-                if (loader is ShadowCopyAnalyzerAssemblyLoader)
+                if (loader is ShadowCopyAnalyzerAssemblyLoader || !ExecutionConditionUtil.IsWindows)
                 {
                     File.Delete(testFixture.Delta1.Path);
                 }

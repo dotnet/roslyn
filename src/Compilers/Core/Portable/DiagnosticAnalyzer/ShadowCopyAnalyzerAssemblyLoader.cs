@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,6 +44,8 @@ namespace Microsoft.CodeAnalysis
         /// Used to generate unique names for per-assembly directories. Should be updated with <see cref="Interlocked.Increment(ref int)"/>.
         /// </summary>
         private int _assemblyDirectoryId;
+
+        internal string BaseDirectory => _baseDirectory;
 
 #if NETCOREAPP
         public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
@@ -128,11 +131,13 @@ namespace Microsoft.CodeAnalysis
         {
             if (!_pathMap.TryGetValue(originalFullPath, out var loadPath))
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Invalid path {originalFullPath}");
             }
 
             return loadPath;
         }
+
+        internal KeyValuePair<string, string>[] GetPathMapSnapshot() => _pathMap.ToArray();
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
         {
