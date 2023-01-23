@@ -17,7 +17,7 @@
 
     <MajorVersion>4</MajorVersion>
     <MinorVersion>4</MinorVersion>
-    <PatchVersion>1</PatchVersion>
+    <PatchVersion>0</PatchVersion>
 
    -->
     <!-- The PreReleaseVersionLabel property must be non-empty otherwise a random suffix is generated instead of 'preview'. -->
