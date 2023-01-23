@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -21,12 +22,26 @@ namespace Microsoft.CodeAnalysis.Options
             serializeValue: value => value ? "true" : "false");
 
         private static readonly EditorConfigValueSerializer<int> s_int32 = new(
-            parseValue: str => int.TryParse(str, out var result) ? result : new Optional<int>(),
+            parseValue:  str => int.TryParse(str, out var result) ? result : new Optional<int>(),
             serializeValue: StringExtensions.GetNumeral);
 
         private static readonly EditorConfigValueSerializer<string> s_string = new(
             parseValue: str => EscapeLineBreaks(str),
             serializeValue: UnescapeLineBreaks);
+
+        private static readonly EditorConfigValueSerializer<bool?> s_nullableBoolean = new(
+            parseValue: ParseNullableBoolean,
+            serializeValue: nullableBoolean => nullableBoolean.ToString());
+
+        private static Optional<bool?> ParseNullableBoolean(string str)
+        {
+            if (bool.TryParse(str, out var booleanValue))
+            {
+                return new Optional<bool?>(booleanValue);
+            }
+
+            return str == "null" ? new Optional<bool?>(null) : new Optional<bool?>();
+        }
 
         public static EditorConfigValueSerializer<T> Default<T>()
         {
@@ -38,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Options
 
             if (typeof(T) == typeof(string))
                 return (EditorConfigValueSerializer<T>)(object)s_string;
+
+            if (typeof(T) == typeof(bool?))
+                return (EditorConfigValueSerializer<T>)(object)s_nullableBoolean;
 
             // TODO: https://github.com/dotnet/roslyn/issues/65787
             // Once all global options define a serializer this should be changed to:
