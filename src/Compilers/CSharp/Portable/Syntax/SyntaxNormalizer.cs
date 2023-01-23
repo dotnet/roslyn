@@ -376,13 +376,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return 0;
             }
 
-            // If we are at the end of a single-line property followed by another property
+            // If we are at the end of a single-line property followed by another single-line property
             // group them together by having only 1 line break.
             // The current token here is a closing brace of an accessor list:
             // public int Prop { get; } <-- this one
-            if (currentTokenParent?.Parent is PropertyDeclarationSyntax property &&
-                IsSingleLineProperty(property) &&
-                nextToken.Parent is PropertyDeclarationSyntax)
+            if (currentTokenParent?.Parent is PropertyDeclarationSyntax property && IsSingleLineProperty(property) &&
+                nextToken.Parent is PropertyDeclarationSyntax nextProperty && IsSingleLineProperty(nextProperty))
             {
                 return 1;
             }
@@ -449,7 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 Debug.Assert(((PropertyDeclarationSyntax)currentToken.Parent).SemicolonToken == currentToken);
 
                 if (IsSingleLineProperty(property) &&
-                    nextToken.Parent is PropertyDeclarationSyntax)
+                    nextToken.Parent is PropertyDeclarationSyntax nextProperty &&
+                    IsSingleLineProperty(nextProperty))
                 {
                     return 1;
                 }

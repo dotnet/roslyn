@@ -1795,11 +1795,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             TestNormalizeDeclaration(
+                "class A{public string Prop{get;}public int Prop2{get{}}}", """
+                class A
+                {
+                  public string Prop { get; }
+
+                  public int Prop2
+                  {
+                    get
+                    {
+                    }
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
                 """class A{public string Prop{get;}="xyz";public int Prop2{get;set;}}""", """
                 class A
                 {
                   public string Prop { get; } = "xyz";
                   public int Prop2 { get; set; }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;}="xyz";public int Prop2{get{}}}""", """
+                class A
+                {
+                  public string Prop { get; } = "xyz";
+
+                  public int Prop2
+                  {
+                    get
+                    {
+                    }
+                  }
                 }
                 """);
             TestNormalizeDeclaration(
@@ -1811,11 +1839,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             TestNormalizeDeclaration(
+                "class A{public string Prop{get;set;}public int Prop2{get{}}}", """
+                class A
+                {
+                  public string Prop { get; set; }
+
+                  public int Prop2
+                  {
+                    get
+                    {
+                    }
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
                 """class A{public string Prop{get;set;}="xyz";public int Prop2{get;set;}}""", """
                 class A
                 {
                   public string Prop { get; set; } = "xyz";
                   public int Prop2 { get; set; }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get;set;}="xyz";public int Prop2{get{}}}""", """
+                class A
+                {
+                  public string Prop { get; set; } = "xyz";
+
+                  public int Prop2
+                  {
+                    get
+                    {
+                    }
+                  }
                 }
                 """);
             TestNormalizeDeclaration(
@@ -1833,6 +1889,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             TestNormalizeDeclaration(
+                "class A{public string Prop{get{}}public int Prop2{get{}}}", """
+                class A
+                {
+                  public string Prop
+                  {
+                    get
+                    {
+                    }
+                  }
+
+                  public int Prop2
+                  {
+                    get
+                    {
+                    }
+                  }
+                }
+                """);
+            TestNormalizeDeclaration(
                 """class A{public string Prop{get{}}="xyz";public int Prop2{get;set;}}""", """
                 class A
                 {
@@ -1844,6 +1919,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   } = "xyz";
 
                   public int Prop2 { get; set; }
+                }
+                """);
+            TestNormalizeDeclaration(
+                """class A{public string Prop{get{}}="xyz";public int Prop2{get{}}}""", """
+                class A
+                {
+                  public string Prop
+                  {
+                    get
+                    {
+                    }
+                  } = "xyz";
+
+                  public int Prop2
+                  {
+                    get
+                    {
+                    }
+                  }
                 }
                 """);
             TestNormalizeDeclaration(
