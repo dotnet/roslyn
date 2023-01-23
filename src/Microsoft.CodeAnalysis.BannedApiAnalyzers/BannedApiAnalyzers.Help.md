@@ -22,7 +22,7 @@ To add a symbol to the banned list, just add an entry in the format below to one
 {Documentation Comment ID string for the symbol}[;Description Text]
 ```
 
-Lines beginning with a `#` character will be treated as comment lines and ignored.
+Comments can be indicated with `//`, in the same way that they work in C#.
 
 For details on ID string format, please refer to ["ID string format"](https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/documentation-comments.md#d42-id-string-format).
 
