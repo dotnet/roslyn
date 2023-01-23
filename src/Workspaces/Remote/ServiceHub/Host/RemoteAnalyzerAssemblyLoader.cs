@@ -26,8 +26,5 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var fixedPath = Path.GetFullPath(Path.Combine(_baseDirectory, Path.GetFileName(fullPath)));
             return File.Exists(fixedPath) ? fixedPath : fullPath;
         }
-
-        internal override string GetRealLoadPath(string originalFullPath) =>
-            PreparePathToLoad(originalFullPath);
     }
 }
