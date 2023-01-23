@@ -26,7 +26,7 @@ internal static class SolutionCrawlerOptionsStorage
     /// Option to configure compiler diagnostics scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
-        "SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", defaultValue: CompilerDiagnosticsScope.OpenFiles);
+        "SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", defaultValue: CompilerDiagnosticsScope.OpenFiles, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
 
     public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
         "ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false);
