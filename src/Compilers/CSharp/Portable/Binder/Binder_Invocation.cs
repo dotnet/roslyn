@@ -562,6 +562,82 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+#nullable enable
+        private MethodSymbol? LookupInterceptor(SyntaxNode syntax)
+        {
+            var span = syntax.Location.GetMappedLineSpan();
+            var filePath = span.Path;
+            var (line, col) = (span.StartLinePosition.Line, span.StartLinePosition.Character);
+
+            var matchingSymbol = new InterceptorVisitor(filePath, line, col).Visit(Compilation.GlobalNamespace);
+            return matchingSymbol;
+        }
+
+        // PROTOTYPE: this is very obviously not the way we want this to work in practice.
+        // maybe we can add a phase where we gather up InterceptsLocationAttribute and throw the locations in a table or something
+        private class InterceptorVisitor : CSharpSymbolVisitor<MethodSymbol?>
+        {
+            private readonly string _filePath;
+            private readonly int _line;
+            private readonly int _col;
+
+            public InterceptorVisitor(string filePath, int line, int col)
+            {
+                _filePath = filePath;
+                _line = line;
+                _col = col;
+            }
+
+            public override MethodSymbol? VisitNamespace(NamespaceSymbol symbol)
+            {
+                foreach (var child in symbol.GetMembers())
+                {
+                    if (child is not (SourceNamespaceSymbol or SourceNamedTypeSymbol))
+                    {
+                        continue;
+                    }
+                    if (Visit(child) is MethodSymbol match)
+                    {
+                        return match;
+                    }
+                }
+
+                return null;
+            }
+
+            public override MethodSymbol? VisitNamedType(NamedTypeSymbol symbol)
+            {
+                foreach (var child in symbol.GetMembers())
+                {
+                    if (Visit(child) is MethodSymbol match)
+                    {
+                        return match;
+                    }
+                }
+
+                return null;
+            }
+
+            public override MethodSymbol? VisitMethod(MethodSymbol symbol)
+            {
+                var attrs = symbol.GetAttributes();
+                var interceptsLocation = attrs.FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == "System.Runtime.CompilerServices.InterceptsLocationAttribute");
+                if (interceptsLocation is null)
+                {
+                    return null;
+                }
+
+                var arguments = interceptsLocation.CommonConstructorArguments;
+                var filePath = (string)arguments[0].Value!;
+                var line = (int)arguments[1].Value!;
+                var col = (int)arguments[2].Value!;
+
+                var isMatch = filePath == _filePath && line == _line && col == _col;
+                return isMatch ? symbol : null;
+            }
+        }
+#nullable disable
+
         private BoundExpression BindMethodGroupInvocation(
             SyntaxNode syntax,
             SyntaxNode expression,
@@ -575,6 +651,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression result;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+            // PROTOTYPE: properly handle the case where the original method is an extension and the interceptor is not.
+
+            // PROTOTYPE: do an overload resolution pass to decide if the method we're calling is interceptable.
+            // Only then should we actually look up an interceptor.
+            // Also, we will probably want to have both the original and interceptor methods in the bound tree.
+            var interceptor = this.LookupInterceptor(methodGroup.NameSyntax);
+            if (interceptor is not null)
+            {
+                // PROTOTYPE: why is this still treating like an non-extension method call
+                var result1 = OverloadResolutionResult<MethodSymbol>.GetInstance();
+
+                var methodGroup1 = MethodGroup.GetInstance();
+                if (interceptor.IsExtensionMethod)
+                {
+                    var methods = ArrayBuilder<Symbol>.GetInstance();
+                    methods.Add(interceptor);
+                    methodGroup1.PopulateWithExtensionMethods(methodGroup.ReceiverOpt, methods, methodGroup.TypeArgumentsOpt);
+
+                    // Create a set of arguments for overload resolution of the
+                    // extension methods that includes the "this" parameter.
+                    var actualArguments = AnalyzedArguments.GetInstance();
+                    CombineExtensionMethodArguments(methodGroup.ReceiverOpt, analyzedArguments, actualArguments);
+                    analyzedArguments = actualArguments;
+                }
+                else
+                {
+                    // TODO: does this do the right thing if the interceptor is generic?
+                    methodGroup1.PopulateWithSingleMethod(methodGroup.ReceiverOpt, interceptor);
+                }
+
+                var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                if (!methodGroup.TypeArgumentsOpt.IsDefault) typeArguments.AddRange(methodGroup.TypeArgumentsOpt);
+
+                OverloadResolution.MethodInvocationOverloadResolution(methodGroup1.Methods, typeArguments, methodGroup.ReceiverOpt, analyzedArguments, result1, ref useSiteInfo, isMethodGroupConversion: false, allowUnexpandedForm: false);
+                anyApplicableCandidates = result1.HasAnyApplicableMember;
+                return BindInvocationExpressionContinued(syntax, expression, methodName, result1, analyzedArguments, methodGroup1, delegateTypeOpt: null, diagnostics);
+            }
+
             var resolution = this.ResolveMethodGroup(
                 methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
                 useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);

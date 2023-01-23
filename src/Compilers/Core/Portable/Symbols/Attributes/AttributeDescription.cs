@@ -190,6 +190,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_Type = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.SystemType };
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_String = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, String };
 
+        private static readonly byte[] s_signature_HasThis_Void_String_Int32_Int32 = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, String, Int32, Int32 };
+
         private static readonly byte[][] s_signatures_HasThis_Void_Only = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signatures_HasThis_Void_String_Only = { s_signature_HasThis_Void_String };
         private static readonly byte[][] s_signatures_HasThis_Void_Type_Only = { s_signature_HasThis_Void_Type };
@@ -335,6 +337,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfNativeIntegerAttribute = { s_signature_HasThis_Void, s_signature_HasThis_Void_SzArray_Boolean };
         private static readonly byte[][] s_signaturesOfRefSafetyRulesAttribute = { s_signature_HasThis_Void_Int32 };
         private static readonly byte[][] s_signaturesOfInterpolatedStringArgumentAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_SzArray_String };
+        private static readonly byte[][] s_signaturesOfInterceptsLocationAttribute = { s_signature_HasThis_Void_String_Int32_Int32 };
 
         // early decoded attributes:
         internal static readonly AttributeDescription OptionalAttribute = new AttributeDescription("System.Runtime.InteropServices", "OptionalAttribute", s_signatures_HasThis_Void_Only);
@@ -479,5 +482,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription SetsRequiredMembersAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "SetsRequiredMembersAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription CompilerFeatureRequiredAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilerFeatureRequiredAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription UnscopedRefAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "UnscopedRefAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription InterceptsLocationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterceptsLocationAttribute", s_signaturesOfInterceptsLocationAttribute);
     }
 }
