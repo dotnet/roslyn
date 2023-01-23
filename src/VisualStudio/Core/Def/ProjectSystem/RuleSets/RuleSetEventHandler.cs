@@ -60,7 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
             {
                 var trackProjectDocuments = (IVsTrackProjectDocuments2)_serviceProvider.GetService(typeof(SVsTrackProjectDocuments));
 
-                if (ErrorHandler.Succeeded(trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(_cookie)))
+                // Null check, because sometimes during shutdown the IVsTrackProjectDocuments2 is cleaned up before we get told to unregister
+                if (trackProjectDocuments is null || ErrorHandler.Succeeded(trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(_cookie)))
                 {
                     _eventsHookedUp = false;
                     _cookie = 0;

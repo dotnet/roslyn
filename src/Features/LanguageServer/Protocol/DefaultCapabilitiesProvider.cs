@@ -16,14 +16,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [Export(typeof(DefaultCapabilitiesProvider)), Shared]
-    internal class DefaultCapabilitiesProvider : ICapabilitiesProvider
+    [Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
+    internal class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
     {
         private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultCapabilitiesProvider(
+        public ExperimentalCapabilitiesProvider(
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
             _completionProviders = completionProviders
@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }
-                ? GetVSServerCapabilities()
-                : new ServerCapabilities();
+            var supportsVsExtensions = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true };
+            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
             var triggerCharacters = _completionProviders.SelectMany(
@@ -95,6 +94,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             };
 
+            if (!supportsVsExtensions)
+            {
+                capabilities.DiagnosticOptions = new DiagnosticOptions
+                {
+                    InterFileDependencies = true,
+                    WorkDoneProgress = true,
+                    WorkspaceDiagnostics = true,
+                };
+            }
+
             return capabilities;
         }
 
@@ -105,7 +114,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 DocumentHighlightProvider = true,
                 ProjectContextProvider = true,
                 BreakableRangeProvider = true,
-                SpellCheckingProvider = true,
 
                 // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
                 SupportsDiagnosticRequests = false,

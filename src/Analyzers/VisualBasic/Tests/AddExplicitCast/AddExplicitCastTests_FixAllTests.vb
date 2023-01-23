@@ -3,9 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AddExplicitCast
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
     Partial Public Class AddExplicitCastTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact>
         Public Async Function TestFixAllInDocumentBC30512() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -378,7 +379,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact>
         Public Async Function TestFixAllInProjectBC30512() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -753,7 +754,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact>
         Public Async Function TestFixAllInSolutionBC30512() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1128,7 +1129,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact>
         Public Async Function TestFixAllInDocumentBC30519() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1333,7 +1334,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact>
         Public Async Function TestFixAllInProjectBC30519() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1538,7 +1539,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact>
         Public Async Function TestFixAllInSolutionBC30519() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
@@ -85,12 +86,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             SVsServiceProvider serviceProvider,
             IDiagnosticService diagnosticService,
             ITableManagerProvider tableManagerProvider,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(globalOptions, threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -146,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// this means that the remote workpace roots have also changed and need to be updated.
         /// This will not be called concurrently.
         /// </summary>
-        private async Task OnActiveWorkspaceChangedAsync(object sender, EventArgs args)
+        private async Task OnActiveWorkspaceChangedAsync(object? sender, EventArgs args)
         {
             if (IsRemoteSession)
             {
@@ -329,17 +331,28 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var project = CurrentSolution.Projects.FirstOrDefault(p => p.Name == projectName && p.Language == language);
             if (project == null)
             {
-                var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), projectName, projectName, language);
+                var projectInfo = ProjectInfo.Create(
+                    new ProjectInfo.ProjectAttributes(
+                        ProjectId.CreateNewId(),
+                        VersionStamp.Create(),
+                        name: projectName,
+                        assemblyName: projectName,
+                        language,
+                        compilationOutputFilePaths: default,
+                        checksumAlgorithm: SourceHashAlgorithms.Default));
+
                 OnProjectAdded(projectInfo);
                 project = CurrentSolution.GetRequiredProject(projectInfo.Id);
             }
 
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(project.Id),
-                                                  name: Path.GetFileName(filePath),
-                                                  loader: new FileTextLoader(filePath, null),
-                                                  filePath: filePath);
+            var docInfo = DocumentInfo.Create(
+                DocumentId.CreateNewId(project.Id),
+                name: Path.GetFileName(filePath),
+                loader: new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null),
+                filePath: filePath);
+
             OnDocumentAdded(docInfo);
-            return CurrentSolution.GetDocument(docInfo.Id)!;
+            return CurrentSolution.GetRequiredDocument(docInfo.Id);
         }
 
         private static string? GetLanguage(string filePath)
@@ -370,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
                 {
-                    OnDocumentClosed(id, new FileTextLoaderNoException(moniker, null));
+                    OnDocumentClosed(id, new WorkspaceFileTextLoaderNoException(Services.SolutionServices, moniker, defaultEncoding: null));
                     _openedDocs = _openedDocs.Remove(moniker);
                 }
             }
@@ -528,9 +541,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private void StartSolutionCrawler()
         {
             if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
-            }
+                DiagnosticProvider.Enable(this);
         }
 
         private void StopSolutionCrawler()

@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyThisOrMe
                     New VisualBasicSimplifyThisOrMeCodeFixProvider())
         End Function
 
-        <WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)>
+        <WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
         Public Async Function TestSimplifyDiagnosticId() As Task
             Dim source =
         <Code>
@@ -34,13 +34,13 @@ End Module
 
             Dim parameters3 As New TestParameters()
             Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters3)
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)>
         <WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)>
         Public Async Function TestMeWithNoType() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -62,7 +62,7 @@ End Class")
             Await TestDiagnosticInfoAsync(
                 "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
                 options:=New OptionsCollection(GetLanguage()) From {{CodeStyleOptions2.QualifyPropertyAccess, False, NotificationOption2.Error}},
-                diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                diagnosticId:=IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)
         End Function
 

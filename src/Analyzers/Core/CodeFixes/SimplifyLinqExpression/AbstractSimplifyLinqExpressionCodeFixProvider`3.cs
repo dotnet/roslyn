@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
         protected override Task FixAllAsync(Document document,
                                             ImmutableArray<Diagnostic> diagnostics,
                                             SyntaxEditor editor,
-                                            CodeActionOptionsProvider options, CancellationToken cancellationToken)
+                                            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
             var expressionsToReWrite = diagnostics.Select(d => GetInvocation(root, d)).OrderByDescending(i => i.SpanStart);

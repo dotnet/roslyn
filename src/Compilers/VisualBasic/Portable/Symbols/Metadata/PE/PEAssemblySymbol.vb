@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -64,6 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyMightContainExtensionMethods As Byte = ThreeState.Unknown
 
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+
+        Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
         Friend Sub New(assembly As PEAssembly, documentationProvider As DocumentationProvider,
                        isLinked As Boolean, importOptions As MetadataImportOptions)
@@ -195,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                     End If
 
-                    Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                    Return forwardedToAssemblies.FirstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies)
                 End If
             End If
 
@@ -257,5 +260,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return _assembly.GetNonDisposableMetadata()
         End Function
+
+        Friend Function GetCompilerFeatureRequiredDiagnosticInfo() As DiagnosticInfo
+            If _lazyCachedCompilerFeatureRequiredDiagnosticInfo Is ErrorFactory.EmptyDiagnosticInfo Then
+                Interlocked.CompareExchange(
+                    _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, PrimaryModule, _assembly.Handle, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(PrimaryModule)),
+                    ErrorFactory.EmptyDiagnosticInfo)
+            End If
+
+            Return _lazyCachedCompilerFeatureRequiredDiagnosticInfo
+        End Function
+
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+            Get
+                Dim info = GetCompilerFeatureRequiredDiagnosticInfo()
+                If info IsNot Nothing Then
+                    Return info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer) OrElse MyBase.HasUnsupportedMetadata
+                End If
+
+                Return MyBase.HasUnsupportedMetadata
+            End Get
+        End Property
     End Class
 End Namespace

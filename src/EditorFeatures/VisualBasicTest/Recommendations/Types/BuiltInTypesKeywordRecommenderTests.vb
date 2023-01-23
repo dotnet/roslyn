@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Types
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class BuiltInTypesKeywordRecommenderTests
         Inherits RecommenderTests
 
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
             "UShort"
         }
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NumericTypesAfterEnumAs()
             VerifyRecommendationsAreExactly(<File>Enum Goo As |</File>, "Byte",
                                                                         "SByte",
@@ -39,23 +40,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
                                                                         "ULong")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllTypesAfterMethodBody()
             VerifyRecommendationsContain(<MethodBody>Dim goo As |</MethodBody>, _keywordList)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoTypesAreInTypeConstraint()
             VerifyRecommendationsMissing(<File>Class Goo(Of String As |</File>, _keywordList)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoTypesAfterImports()
             VerifyRecommendationsMissing(<File>Imports |</File>, _keywordList)
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NoTypesInDelegateCreation()
             Dim code =
 <File>
@@ -75,7 +75,7 @@ End Module
             VerifyRecommendationsMissing(code, _keywordList)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoTypesInInheritsStatement()
             Dim code =
 <File>
@@ -87,7 +87,7 @@ End Class
             VerifyRecommendationsMissing(code, _keywordList)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoTypesInImplementsStatement()
             Dim code =
 <File>
@@ -99,7 +99,7 @@ End Class
             VerifyRecommendationsMissing(code, _keywordList)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub Preselection()
             Dim code =
 <File>

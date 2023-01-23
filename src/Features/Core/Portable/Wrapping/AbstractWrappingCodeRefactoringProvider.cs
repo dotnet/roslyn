@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             _wrappers = wrappers;
         }
 
-        protected abstract SyntaxWrappingOptions GetWrappingOptions(AnalyzerConfigOptions options, CodeActionOptions ideOptions);
+        protected abstract SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var token = root.FindToken(position);
 
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var options = GetWrappingOptions(configOptions, context.Options(document.Project.LanguageServices));
+            var options = GetWrappingOptions(configOptions, context.Options.GetOptions(document.Project.Services));
 
             foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
             {

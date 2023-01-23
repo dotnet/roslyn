@@ -13,13 +13,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseDefaultLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
                    EnforceOnBuildValues.UseDefaultLiteral,
                    CSharpCodeStyleOptions.PreferSimpleDefaultExpression,
-                   LanguageNames.CSharp,
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_default_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.default_expression_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
         {
             var cancellationToken = context.CancellationToken;
             var syntaxTree = context.Node.SyntaxTree;
-            var preference = context.Options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, syntaxTree, cancellationToken);
+            var preference = context.GetCSharpAnalyzerOptions().PreferSimpleDefaultExpression;
 
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -47,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         public override SimplifierOptions DefaultOptions
             => CSharpSimplifierOptions.Default;
 
-        public override SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions)
-            => CSharpSimplifierOptions.Create(options, (CSharpSimplifierOptions?)fallbackOptions);
+        public override SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions)
+            => options.GetCSharpSimplifierOptions((CSharpSimplifierOptions?)fallbackOptions);
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation? annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool>? expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {

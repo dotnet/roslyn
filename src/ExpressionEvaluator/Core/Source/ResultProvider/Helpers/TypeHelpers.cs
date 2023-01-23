@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static MethodInfo GetNonIndexerGetMethod(PropertyInfo property)
         {
-            return (property.GetIndexParameters().Length == 0) ?
-                property.GetGetMethod(nonPublic: true) :
-                null;
+            return (property.GetIndexParameters().Length == 0)
+                ? property.GetGetMethod(nonPublic: true)
+                : null;
         }
 
         internal static bool IsBoolean(this Type type)
@@ -557,10 +557,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                if (result == null)
-                {
-                    result = new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
-                }
+                result ??= new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
 
                 // There can be multiple same attributes for derived classes.
                 // Debugger provides attributes starting from derived classes and then up to base ones.
@@ -636,7 +633,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         visualizerAttribute.UISideVisualizerAssemblyName,
                         visualizerAttribute.UISideVisualizerAssemblyLocation,
                         visualizerAttribute.DebuggeeSideVisualizerTypeName,
-                        visualizerAttribute.DebuggeeSideVisualizerAssemblyName));
+                        visualizerAttribute.DebuggeeSideVisualizerAssemblyName,
+                        visualizerAttribute.ExtensionPartId));
                 }
 
                 underlyingType = underlyingType.GetBaseTypeOrNull(appDomain, out type);
@@ -785,11 +783,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
-        private static bool IsMscorlib(this Assembly assembly)
-        {
-            return assembly.GetReferencedAssemblies().Length == 0;
-        }
-
         private static bool IsMscorlibType(this Type type, string @namespace, string name)
         {
             // Ignore IsMscorlib for now since type.Assembly returns
@@ -861,7 +854,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal static Type GetInterfaceListEntry(this Type interfaceType, Type declaration)

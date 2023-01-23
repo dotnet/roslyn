@@ -15,12 +15,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class NamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(NamedParameterCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -40,7 +41,7 @@ class Goo
             await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CommitCharacterTest()
         {
             const string markup = @"
@@ -58,7 +59,7 @@ class Goo
             await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InObjectCreation()
         {
             var markup = @"
@@ -76,7 +77,7 @@ class Goo
             await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InBaseConstructor()
         {
             var markup = @"
@@ -95,7 +96,7 @@ class DogBed : Goo
             await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvocationExpression()
         {
             var markup = @"
@@ -111,7 +112,7 @@ class Goo
             await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvocationExpressionAfterComma()
         {
             var markup = @"
@@ -127,7 +128,7 @@ class Goo
             await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ElementAccessExpression()
         {
             var markup = @"
@@ -160,7 +161,7 @@ class Program
             await VerifyItemExistsAsync(markup, "i", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PartialMethods()
         {
             var markup = @"
@@ -181,7 +182,7 @@ partial class PartialClass
             await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExtendedPartialMethods()
         {
             var markup = @"
@@ -202,7 +203,7 @@ partial class PartialClass
             await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotAfterColon()
         {
             var markup = @"
@@ -218,8 +219,7 @@ class Goo
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(544292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544292")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544292")]
         public async Task NotInCollectionInitializers()
         {
             var markup = @"
@@ -236,8 +236,7 @@ class Goo
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
         public async Task FilteringOverloadsByCallSite()
         {
             var markup = @"
@@ -260,7 +259,7 @@ class Class1
             await VerifyItemIsAbsentAsync(markup, "character", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DontFilterYet()
         {
             var markup = @"
@@ -283,8 +282,7 @@ class Class1
             await VerifyItemExistsAsync(markup, "character", displayTextSuffix: ":");
         }
 
-        [WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
         public async Task FilteringOverloadsByCallSiteComplex()
         {
             var markup = @"
@@ -317,7 +315,7 @@ class Bar { }
             await VerifyItemIsAbsentAsync(markup, "dbl", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task MethodOverloads()
         {
             var markup = @"
@@ -345,7 +343,7 @@ class Goo
             await VerifyItemExistsAsync(markup, "b", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExistingNamedParamsAreFilteredOut()
         {
             var markup = @"
@@ -377,8 +375,7 @@ class Goo
             await VerifyItemIsAbsentAsync(markup, "str", displayTextSuffix: ":");
         }
 
-        [WorkItem(529369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(529369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
         public async Task VerbatimIdentifierNotAKeyword()
         {
             var markup = @"
@@ -393,8 +390,7 @@ class Program
             await VerifyItemExistsAsync(markup, "integer", displayTextSuffix: ":");
         }
 
-        [WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
         public async Task DescriptionStringInMethodOverloads()
         {
             var markup = @"
@@ -416,7 +412,7 @@ class Class1
                 expectedDescriptionOrNull: $"({FeaturesResources.parameter}) Class1 obj = default(Class1)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InDelegates()
         {
             var markup = @"
@@ -438,7 +434,7 @@ class Program
             await VerifyItemExistsAsync(markup, "message", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InDelegateInvokeSyntax()
         {
             var markup = @"
@@ -460,7 +456,7 @@ class Program
             await VerifyItemExistsAsync(markup, "message", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotInComment()
         {
             var markup = @"
@@ -477,7 +473,7 @@ static void M(int x, int y) { }
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CommitWithColonWordFullyTyped()
         {
             var markup = @"
@@ -502,7 +498,7 @@ class Program
             await VerifyProviderCommitAsync(markup, "args:", expected, ':');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CommitWithColonWordPartiallyTyped()
         {
             var markup = @"

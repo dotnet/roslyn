@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             for (var current = method; current != null; current = current.OverriddenMethod)
             {
-                if (current.Locations.Any(loc => loc.IsInMetadata))
+                if (current.Locations.Any(static loc => loc.IsInMetadata))
                 {
                     return true;
                 }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             finalLeadingTrivia.AddRange(
                 setMethodDeclaration.GetLeadingTrivia()
-                                    .SkipWhile(t => syntaxFacts.IsEndOfLineTrivia(t))
+                                    .SkipWhile(syntaxFacts.IsEndOfLineTrivia)
                                     .Where(t => !t.IsDirective));
 
             //If there is a comment on the same line as the method it is contained in trailing trivia for the parameter list
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             if (paramList != null)
             {
                 var trailingTrivia = paramList.GetTrailingTrivia();
-                if (trailingTrivia.Any(t => syntaxFacts.IsRegularComment(t)))
+                if (trailingTrivia.Any(syntaxFacts.IsRegularComment))
                 {
                     // we have a meaningful comment on the parameter list so add it to the trivia list
                     finalLeadingTrivia.AddRange(trailingTrivia);

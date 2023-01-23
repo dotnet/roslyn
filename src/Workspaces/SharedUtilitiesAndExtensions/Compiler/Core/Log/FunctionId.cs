@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VisualBasic_Interactive_Window = 268,
 
         NonFatalWatson = 269,
-        GlobalOperationRegistration = 270,
+        // GlobalOperationRegistration = 270, No longer fired.
         CommandHandler_FindAllReference = 271,
 
         CodefixInfobar_Enable = 272,
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LiveTableDataSource_OnDiagnosticsUpdated = 333,
         Experiment_KeybindingsReset = 334,
         Diagnostics_GeneratePerformaceReport = 335,
-        Diagnostics_BadAnalyzer = 336,
+        // obsolete: Diagnostics_BadAnalyzer = 336,
         CodeAnalysisService_ReportAnalyzerPerformance = 337,
         PerformanceTrackerService_AddSnapshot = 338,
         // obsolete: AbstractProject_SetIntelliSenseBuild = 339,
@@ -541,5 +541,56 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         StackTraceToolWindow_ShowOnActivated = 540,
 
         CodeModel_FileCodeModel_Create = 550,
+
+        Refactoring_FixAllOccurrencesSession = 560,
+        Refactoring_FixAllOccurrencesContext = 561,
+        Refactoring_FixAllOccurrencesComputation = 562,
+        Refactoring_FixAllOccurrencesPreviewChanges = 563,
+
+        LSP_UsedForkedSolution = 571,
+
+        DocumentOutline_WindowOpen = 572,
+        DocumentOutline_SortByName = 573,
+        DocumentOutline_SortByOrder = 574,
+        DocumentOutline_SortByType = 575,
+
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded = 580,
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed = 581,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded = 582,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleSolutionChange = 583,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleProjectChange = 584,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument = 585,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoTextChange = 586,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved = 587,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict = 588,
+
+        Completion_SemanticSnippets = 589,
+        // please leave the range up through 600 free in case we need to add more items to learn more about ApplyChangesOperation results.
+
+        SpellCheckFixer_CouldNotFindDocument = 600,
+        SpellCheckFixer_LanguageDoesNotSupportRename = 601,
+        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 602,
+        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 603,
+        SpellCheckFixer_ReplacementTextInvalid = 604,
+        SpellCheckFixer_TryApplyChangesFailure = 605,
+
+        SourceGenerator_SolutionStatistics = 620,
+        SourceGenerator_OtherWorkspaceSessionStatistics = 621,
+
+        // 630-650 for sqlite errors.
+        SQLite_SqlException = 630,
+        SQLite_StorageDisabled = 631,
+
+        // 650-660 for diagnostic/fix related ids.
+        Diagnostics_AnalyzerPerformanceInfo = 651,
+
+        // 660-670 for semantic model reuse service.
+        SemanticModelReuseLanguageService_TryGetSpeculativeSemanticModelAsync_Equivalent = 660,
+
+        // 670-680 for newer rename ids
+        Rename_TryApplyRename_WorkspaceChanged = 670,
+
+        // 680-690 LSP Initialization info ids.
+        LSP_Initialize = 680,
     }
 }

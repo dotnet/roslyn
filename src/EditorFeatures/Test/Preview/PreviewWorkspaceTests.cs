@@ -30,16 +30,17 @@ using Microsoft.CodeAnalysis.Storage;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
     [UseExportProvider]
+    [Trait(Traits.Editor, Traits.Editors.Preview), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class PreviewWorkspaceTests
     {
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact]
         public void TestPreviewCreationDefault()
         {
             using var previewWorkspace = new PreviewWorkspace();
             Assert.NotNull(previewWorkspace.CurrentSolution);
         }
 
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact]
         public void TestPreviewCreationWithExplicitHostServices()
         {
             var hostServices = FeaturesTestCompositions.Features.GetHostServices();
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.NotNull(previewWorkspace.CurrentSolution);
         }
 
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact]
         public void TestPreviewCreationWithSolution()
         {
             using var custom = new AdhocWorkspace();
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.NotNull(previewWorkspace.CurrentSolution);
         }
 
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact]
         public void TestPreviewAddRemoveProject()
         {
             using var previewWorkspace = new PreviewWorkspace();
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, previewWorkspace.CurrentSolution.ProjectIds.Count);
         }
 
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact]
         public void TestPreviewProjectChanges()
         {
             using var previewWorkspace = new PreviewWorkspace();
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [WorkItem(923121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [WpfFact]
         public void TestPreviewOpenCloseFile()
         {
             using var previewWorkspace = new PreviewWorkspace();
@@ -119,21 +120,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.False(previewWorkspace.IsDocumentOpen(document.Id));
         }
 
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact]
         public async Task TestPreviewServices()
         {
             using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
 
-            var persistentService = previewWorkspace.Services.GetPersistentStorageService();
+            var persistentService = previewWorkspace.Services.SolutionServices.GetPersistentStorageService();
 
             await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
         [WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [WpfFact]
         public async Task TestPreviewDiagnostic()
         {
             var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(taskSource.Task.IsCompleted);
 
             var args = taskSource.Task.Result;
-            Assert.True(args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Length > 0);
+            Assert.True(args.Diagnostics.Length > 0);
         }
 
         [WpfFact]
@@ -246,9 +247,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, rightSpans.Count);
         }
 
-        [Trait(Traits.Editor, Traits.Editors.Preview)]
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
@@ -270,7 +270,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
-            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project.Solution, IdeAnalyzerOptions.Default);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
+            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, ideAnalyzerOptions);
             var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;
             var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);

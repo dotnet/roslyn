@@ -150,8 +150,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(545931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545931")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(545931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545931")>
         Public Async Function TestUnsupportedParameters() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -371,8 +371,8 @@ End Class
 #End Region
 
 #Region "EditorBrowsable tests"
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableAlways() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -401,8 +401,8 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableNever() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -431,8 +431,8 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -470,8 +470,8 @@ End Class
                                                        hideAdvancedMembers:=False)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableMixed() As Task
             Dim markup = <Text><![CDATA[
 Class Program

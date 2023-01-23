@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var span = diagnostic.Location.SourceSpan;
                     var pragmaSuppressions = await _suppressionFixProvider.GetPragmaSuppressionsAsync(
-                        document, span, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                        document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                     var pragmaSuppression = pragmaSuppressions.SingleOrDefault();
                     if (pragmaSuppression != null)
                     {

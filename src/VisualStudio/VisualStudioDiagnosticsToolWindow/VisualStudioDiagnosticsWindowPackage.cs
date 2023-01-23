@@ -28,8 +28,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     // The option page configuration is duplicated in PackageRegistration.pkgdef.
     // These attributes specify the menu structure to be used in Tools | Options. These are not
     // localized because they are for internal use only.
-    [ProvideOptionPage(typeof(InternalFeaturesOnOffPage), @"Roslyn\FeatureManager", @"Features", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
-    [ProvideOptionPage(typeof(InternalComponentsOnOffPage), @"Roslyn\FeatureManager", @"Components", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
+    [ProvideOptionPage(typeof(ForceLowMemoryModePage), @"Roslyn\FeatureManager", @"Features", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     [ProvideOptionPage(typeof(PerformanceFunctionIdPage), @"Roslyn\Performance", @"FunctionId", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     [ProvideOptionPage(typeof(PerformanceLoggersPage), @"Roslyn\Performance", @"Loggers", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     [ProvideToolWindow(typeof(DiagnosticsWindow))]
@@ -94,7 +93,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             }
 
             // set logger at start up
-            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, _workspace.Services);
+            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, _workspace.Services.SolutionServices);
         }
         #endregion
 

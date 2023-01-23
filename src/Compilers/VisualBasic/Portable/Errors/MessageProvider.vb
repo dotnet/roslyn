@@ -142,6 +142,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    hasSourceSuppression)
         End Function
 
+#If DEBUG Then
+        Friend Overrides Function ShouldAssertExpectedMessageArgumentsLength(errorCode As Integer) As Boolean
+            ' Consider enabling.
+            Return False
+        End Function
+#End If
 
         Public Overrides ReadOnly Property ERR_FailedToCreateTempFile As Integer
             Get
@@ -237,6 +243,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property WRN_AnalyzerReferencesFramework As Integer
             Get
                 Return ERRID.WRN_AnalyzerReferencesFramework
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property WRN_AnalyzerReferencesNewerCompiler As Integer
+            Get
+                Return ERRID.WRN_AnalyzerReferencesNewerCompiler
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property WRN_DuplicateAnalyzerReference As Integer
+            Get
+                Return ERRID.WRN_DuplicateAnalyzerReference
             End Get
         End Property
 
@@ -582,6 +600,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_InvalidDebugInfo As Integer
             Get
                 Return ERRID.ERR_InvalidDebugInfo
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_FunctionPointerTypesInAttributeNotSupported As Integer
+            Get
+                Return ERRID.ERR_TooLongOrComplexExpression
             End Get
         End Property
 

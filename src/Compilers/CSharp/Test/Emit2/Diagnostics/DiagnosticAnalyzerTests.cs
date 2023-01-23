@@ -373,7 +373,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -1057,7 +1057,7 @@ SyntaxTree: ";
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, contextDetail)}
@@ -1447,13 +1447,17 @@ class D
 [System.CodeDom.Compiler.GeneratedCodeAttribute(""tool"", ""version"")]
 class GeneratedCode{0}
 {{
-    private class Nested{0} {{ }}
+    private class Nested{0} {{ void NestedMethod() {{ System.Console.WriteLine(0); }} }}
+
+    void GeneratedCodeMethod() {{ System.Console.WriteLine(0); }}
 }}
 
 class NonGeneratedCode{0}
 {{
     [System.CodeDom.Compiler.GeneratedCodeAttribute(""tool"", ""version"")]
-    private class NestedGeneratedCode{0} {{ }}
+    private class NestedGeneratedCode{0} {{ void NestedGeneratedCodeMethod() {{ System.Console.WriteLine(0); }} }}
+
+    void NonGeneratedCodeMethod() {{ System.Console.WriteLine(0); }}
 }}
 ";
             var generatedFileNames = new List<string>
@@ -1583,7 +1587,7 @@ partial class PartialType
             AddExpectedLocalDiagnostics(builder, false, squiggledText, line, column, GeneratedCodeAnalysisFlags.ReportDiagnostics, diagnosticArgument);
 
             // Expected compilation diagnostics
-            AddExpectedNonLocalDiagnostic(builder, "PartialType", compilation.SyntaxTrees[0].FilePath);
+            AddExpectedNonLocalDiagnostic(builder, GeneratedCodeAnalyzer.Summary, "PartialType(IsGeneratedCode:False)", $"{compilation.SyntaxTrees[0].FilePath}(IsGeneratedCode:False)");
 
             var expected = builder.ToArrayAndFree();
 
@@ -1612,6 +1616,17 @@ class TypeInGeneratedFile { }
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer2() };
             compilation.VerifyAnalyzerDiagnostics(analyzers,
                 expected: Diagnostic("GeneratedCodeAnalyzer2Warning", "TypeInUserFile").WithArguments("TypeInUserFile", "2").WithLocation(2, 7));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        internal sealed class GeneratedCodeAnalyzer : AbstractGeneratedCodeAnalyzer<SyntaxKind>
+        {
+            public GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlags, bool testIsGeneratedCodeInCallbacks = false)
+                : base(generatedCodeAnalysisFlags, testIsGeneratedCodeInCallbacks)
+            {
+            }
+
+            protected override SyntaxKind ClassDeclarationSyntaxKind => SyntaxKind.ClassDeclaration;
         }
 
         internal class OwningSymbolTestAnalyzer : DiagnosticAnalyzer
@@ -1677,21 +1692,32 @@ class C
         private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, AnalyzerOptions analyzerOptions, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
         {
             var expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt);
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt, analyzerOptions);
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt, analyzerOptions, testIsGeneratedCodeInCallbacks: true);
         }
 
-        private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, DiagnosticDescription[] expected, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt, AnalyzerOptions analyzerOptions = null)
+        private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, DiagnosticDescription[] expected, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt, AnalyzerOptions analyzerOptions = null, bool testIsGeneratedCodeInCallbacks = false)
         {
-            var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt) };
+            var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt, testIsGeneratedCodeInCallbacks) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, analyzerOptions, null, expected: expected);
         }
 
         private static DiagnosticDescription[] GetExpectedGeneratedCodeAnalyzerDiagnostics(Compilation compilation, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
         {
-            var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt) };
+            var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt, testIsGeneratedCodeInCallbacks: true) };
             var files = compilation.SyntaxTrees.Select(t => t.FilePath).ToImmutableArray();
             var sortedCallbackSymbolNames = new SortedSet<string>();
             var sortedCallbackTreePaths = new SortedSet<string>();
+            var sortedCallbackSyntaxNodeNames = new SortedSet<string>();
+            var sortedCallbackOperationNames = new SortedSet<string>();
+            var sortedCallbackSemanticModelPaths = new SortedSet<string>();
+            var sortedCallbackSymbolStartNames = new SortedSet<string>();
+            var sortedCallbackSymbolEndNames = new SortedSet<string>();
+            var sortedCallbackOperationBlockStartNames = new SortedSet<string>();
+            var sortedCallbackOperationBlockEndNames = new SortedSet<string>();
+            var sortedCallbackOperationBlockNames = new SortedSet<string>();
+            var sortedCallbackCodeBlockStartNames = new SortedSet<string>();
+            var sortedCallbackCodeBlockEndNames = new SortedSet<string>();
+            var sortedCallbackCodeBlockNames = new SortedSet<string>();
             var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
             for (int i = 0; i < compilation.SyntaxTrees.Count(); i++)
             {
@@ -1717,7 +1743,7 @@ class C
                 // Type "NonGeneratedCode{0}"
                 squiggledText = string.Format("NonGeneratedCode{0}", i);
                 diagnosticArgument = squiggledText;
-                line = 8;
+                line = 10;
                 column = 7;
                 isGeneratedCode = isGeneratedFile;
                 AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument);
@@ -1725,7 +1751,7 @@ class C
                 // Type "NestedGeneratedCode{0}"
                 squiggledText = string.Format("NestedGeneratedCode{0}", i);
                 diagnosticArgument = squiggledText;
-                line = 11;
+                line = 13;
                 column = 19;
                 isGeneratedCode = true;
                 AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument);
@@ -1733,34 +1759,72 @@ class C
                 // File diagnostic
                 squiggledText = "}"; // last token in file.
                 diagnosticArgument = file;
-                line = 12;
+                line = 16;
                 column = 1;
                 isGeneratedCode = isGeneratedFile;
                 AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument);
 
                 // Compilation end summary diagnostic (verify callbacks into analyzer)
                 // Analyzer always called for generated code, unless generated code analysis is explicitly disabled.
+                Action<SortedSet<string>> addNames = null;
+                Action<SortedSet<string>> addPath = null;
                 if (generatedCodeAnalysisFlagsOpt == null || (generatedCodeAnalysisFlagsOpt & GeneratedCodeAnalysisFlags.Analyze) != 0)
                 {
-                    sortedCallbackSymbolNames.Add(string.Format("GeneratedCode{0}", i));
-                    sortedCallbackSymbolNames.Add(string.Format("Nested{0}", i));
-                    sortedCallbackSymbolNames.Add(string.Format("NonGeneratedCode{0}", i));
-                    sortedCallbackSymbolNames.Add(string.Format("NestedGeneratedCode{0}", i));
+                    addNames = names =>
+                    {
+                        names.Add(string.Format("GeneratedCode{0}(IsGeneratedCode:True)", i));
+                        names.Add(string.Format("Nested{0}(IsGeneratedCode:True)", i));
+                        names.Add(string.Format("NonGeneratedCode{0}(IsGeneratedCode:{1})", i, isGeneratedFile));
+                        names.Add(string.Format("NestedGeneratedCode{0}(IsGeneratedCode:True)", i));
+                    };
 
-                    sortedCallbackTreePaths.Add(file);
+                    addPath = paths => paths.Add($"{file}(IsGeneratedCode:{isGeneratedFile})");
                 }
                 else if (!isGeneratedFile)
                 {
                     // Analyzer always called for non-generated code.
-                    sortedCallbackSymbolNames.Add(string.Format("NonGeneratedCode{0}", i));
-                    sortedCallbackTreePaths.Add(file);
+                    addNames = names => names.Add(string.Format("NonGeneratedCode{0}(IsGeneratedCode:False)", i));
+
+                    addPath = paths => paths.Add($"{file}(IsGeneratedCode:False)");
+                }
+
+                if (addNames != null)
+                {
+                    addNames(sortedCallbackSymbolNames);
+                    addNames(sortedCallbackSyntaxNodeNames);
+                    addNames(sortedCallbackSymbolStartNames);
+                    addNames(sortedCallbackSymbolEndNames);
+                    addNames(sortedCallbackOperationNames);
+                    addNames(sortedCallbackOperationBlockStartNames);
+                    addNames(sortedCallbackOperationBlockEndNames);
+                    addNames(sortedCallbackOperationBlockNames);
+                    addNames(sortedCallbackCodeBlockStartNames);
+                    addNames(sortedCallbackCodeBlockEndNames);
+                    addNames(sortedCallbackCodeBlockNames);
+                }
+
+                if (addPath != null)
+                {
+                    addPath(sortedCallbackTreePaths);
+                    addPath(sortedCallbackSemanticModelPaths);
                 }
             }
 
             // Compilation end summary diagnostic (verify callbacks into analyzer)
             var arg1 = sortedCallbackSymbolNames.Join(",");
             var arg2 = sortedCallbackTreePaths.Join(",");
-            AddExpectedNonLocalDiagnostic(builder, arguments: new[] { arg1, arg2 });
+            var arg3 = sortedCallbackSyntaxNodeNames.Join(",") + ";" +
+                sortedCallbackOperationNames.Join(",") + ";" +
+                sortedCallbackSemanticModelPaths.Join(",") + ";" +
+                sortedCallbackSymbolStartNames.Join(",") + ";" +
+                sortedCallbackSymbolEndNames.Join(",") + ";" +
+                sortedCallbackOperationBlockStartNames.Join(",") + ";" +
+                sortedCallbackOperationBlockEndNames.Join(",") + ";" +
+                sortedCallbackOperationBlockNames.Join(",") + ";" +
+                sortedCallbackCodeBlockStartNames.Join(",") + ";" +
+                sortedCallbackCodeBlockEndNames.Join(",") + ";" +
+                sortedCallbackCodeBlockNames.Join(",");
+            AddExpectedNonLocalDiagnostic(builder, GeneratedCodeAnalyzer.Summary2, arguments: new[] { arg1, arg2, arg3 });
 
             if (compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
             {
@@ -1800,9 +1864,9 @@ class C
             }
         }
 
-        private static void AddExpectedNonLocalDiagnostic(ArrayBuilder<DiagnosticDescription> builder, params string[] arguments)
+        private static void AddExpectedNonLocalDiagnostic(ArrayBuilder<DiagnosticDescription> builder, DiagnosticDescriptor descriptor, params string[] arguments)
         {
-            AddExpectedDiagnostic(builder, GeneratedCodeAnalyzer.Summary.Id, squiggledText: null, line: 1, column: 1, arguments: arguments);
+            AddExpectedDiagnostic(builder, descriptor.Id, squiggledText: null, line: 1, column: 1, arguments: arguments);
         }
 
         private static void AddExpectedDiagnostic(ArrayBuilder<DiagnosticDescription> builder, string diagnosticId, string squiggledText, int line, int column, params string[] arguments)
@@ -2117,7 +2181,7 @@ public class RegularClass
                 Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
                 Diagnostic("GeneratedCodeAnalyzerError", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
-                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("RegularClass", "Source.cs").WithLocation(1, 1));
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("RegularClass(IsGeneratedCode:False)", "Source.cs(IsGeneratedCode:False)").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
@@ -2125,7 +2189,7 @@ public class RegularClass
                 Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
                 Diagnostic("GeneratedCodeAnalyzerError", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
-                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass,RegularClass", "Source.cs").WithLocation(1, 1));
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass(IsGeneratedCode:True),RegularClass(IsGeneratedCode:False)", "Source.cs(IsGeneratedCode:False)").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
@@ -2135,7 +2199,7 @@ public class RegularClass
                 Diagnostic("GeneratedCodeAnalyzerError", "HiddenClass").WithArguments("HiddenClass").WithLocation(4, 14),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
                 Diagnostic("GeneratedCodeAnalyzerError", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
-                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass,RegularClass", "Source.cs").WithLocation(1, 1));
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass(IsGeneratedCode:True),RegularClass(IsGeneratedCode:False)", "Source.cs(IsGeneratedCode:False)").WithLocation(1, 1));
         }
 
         [Fact, WorkItem(15903, "https://github.com/dotnet/roslyn/issues/15903")]
@@ -3570,6 +3634,153 @@ class C
             }
         }
 
+        [Theory, WorkItem(63205, "https://github.com/dotnet/roslyn/issues/63205")]
+        [CombinatorialData]
+        public async Task TestGetAnalysisResultWithFilterSpanAsync(bool testSyntaxNodeAction)
+        {
+            string source = @"
+class B
+{
+    void M1()
+    {
+        int local1 = 1;
+    }
+
+    void M2()
+    {
+        int local2 = 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source });
+            var tree = compilation.SyntaxTrees[0];
+            var localDecl1 = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var analyzer1 = new VariableDeclarationAnalyzer("ID0001", testSyntaxNodeAction);
+            var analyzer2 = new CSharpCompilerDiagnosticAnalyzer();
+            var allAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(allAnalyzers);
+
+            // Invoke "GetAnalysisResultAsync" for a a sub-span and then
+            // for the entire tree span and verify no duplicate diagnostics.
+
+            var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(
+                semanticModel,
+                filterSpan: localDecl1.FullSpan,
+                CancellationToken.None);
+
+            var diagnostics1 = analysisResult.SemanticDiagnostics[tree][analyzer1];
+            diagnostics1.Verify(
+                Diagnostic("ID0001", "int local1 = 1").WithLocation(6, 9));
+
+            var diagnostics2 = analysisResult.SemanticDiagnostics[tree][analyzer2];
+            diagnostics2.Verify(
+                // (6,13): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         int local1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(6, 13));
+
+            analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(
+                semanticModel,
+                filterSpan: null,
+                CancellationToken.None);
+
+            diagnostics1 = analysisResult.SemanticDiagnostics[tree][analyzer1];
+            diagnostics1.Verify(
+                Diagnostic("ID0001", "int local1 = 1").WithLocation(6, 9),
+                Diagnostic("ID0001", "int local2 = 1").WithLocation(11, 9));
+
+            diagnostics2 = analysisResult.SemanticDiagnostics[tree][analyzer2];
+            diagnostics2.Verify(
+                // (6,13): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         int local1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(6, 13),
+                // (11,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         int local2 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(11, 13));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(63466, "https://github.com/dotnet/roslyn/issues/63466")]
+        public async Task TestAnalyzerWithActionsRegisteredAtDifferentScopesAsync(bool testSyntaxNodeAction)
+        {
+            string source = @"
+public class C
+{
+    void M()
+    {
+        System.Console.WriteLine(1 + 1);
+    }
+}
+";
+            var compilation = CreateCompilation(source)
+                .VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var analyzer = new ActionsRegisteredAtDifferentScopesAnalyzer(testSyntaxNodeAction);
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(
+                semanticModel,
+                filterSpan: null,
+                CancellationToken.None);
+
+            var diagnostics1 = analysisResult.SemanticDiagnostics[tree][analyzer];
+            diagnostics1.Verify(
+                Diagnostic("MyDiagnostic", "System.Console.WriteLine(1 + 1)").WithLocation(6, 9),
+                Diagnostic("MyDiagnostic", "1 + 1").WithLocation(6, 34));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class ActionsRegisteredAtDifferentScopesAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MyDiagnostic";
+            internal const string Title = "MyDiagnostic";
+            internal const string MessageFormat = "MyDiagnostic";
+            internal const string Category = "Category";
+
+            private readonly bool _testSyntaxNodeAction;
+
+            public ActionsRegisteredAtDifferentScopesAnalyzer(bool testSyntaxNodeAction)
+            {
+                _testSyntaxNodeAction = testSyntaxNodeAction;
+            }
+
+            internal static DiagnosticDescriptor Rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_testSyntaxNodeAction)
+                {
+                    context.RegisterSyntaxNodeAction(
+                        context => context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation())),
+                        SyntaxKind.InvocationExpression);
+
+                    context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+                    {
+                        context.RegisterSyntaxNodeAction(
+                            context => context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation())),
+                            SyntaxKind.AddExpression);
+                    });
+                }
+                else
+                {
+                    context.RegisterOperationAction(
+                        context => context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Rule, context.Operation.Syntax.GetLocation())),
+                        OperationKind.Invocation);
+
+                    context.RegisterOperationBlockStartAction(context =>
+                    {
+                        context.RegisterOperationAction(
+                            context => context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Rule, context.Operation.Syntax.GetLocation())),
+                            OperationKind.Binary);
+                    });
+                }
+            }
+        }
+
         [Theory, CombinatorialData]
         public async Task TestAdditionalFileAnalyzer(bool registerFromInitialize)
         {
@@ -3600,7 +3811,7 @@ class C
                 Assert.Equal(analyzer.Descriptor.Id, diagnostic.Id);
                 Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
                 var location = (ExternalFileLocation)diagnostic.Location;
-                Assert.Equal(additionalFile.Path, location.FilePath);
+                Assert.Equal(additionalFile.Path, location.GetLineSpan().Path);
                 Assert.Equal(diagnosticSpan, location.SourceSpan);
             }
         }
@@ -3797,6 +4008,52 @@ public record A(int X, int Y);";
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
+        [WorkItem(66085, "https://github.com/dotnet/roslyn/issues/66085")]
+        public void TestDisabledByDefaultAnalyzerEnabledForSingleFile(bool treeBasedOptions)
+        {
+            var source1 = "class C1 { }";
+            var source2 = "class C2 { }";
+            var source3 = "class C3 { }";
+            var analyzer = new AnalyzerWithDisabledRules();
+
+            var compilation = CreateCompilation(new[] { source1, source2, source3 });
+
+            CSharpCompilationOptions options;
+            if (treeBasedOptions)
+            {
+                // Enable disabled by default analyzer for first source file with analyzer config options.
+                var tree1 = compilation.SyntaxTrees[0];
+                options = compilation.Options.WithSyntaxTreeOptionsProvider(
+                    new TestSyntaxTreeOptionsProvider(tree1, (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn)));
+            }
+            else
+            {
+                // Enable disabled by default analyzer for entire compilation with SpecificDiagnosticOptions
+                // and disable the analyzer for second and third source file with analyzer config options.
+                // So, effectively the analyzer is enabled only for first source file.
+                var tree2 = compilation.SyntaxTrees[1];
+                var tree3 = compilation.SyntaxTrees[2];
+                options = compilation.Options
+                    .WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Warn))
+                    .WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(
+                        (tree2, new[] { (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Suppress) }),
+                        (tree3, new[] { (AnalyzerWithDisabledRules.Rule.Id, ReportDiagnostic.Suppress) })));
+            }
+
+            compilation = compilation.WithOptions(options);
+
+            // Verify single analyzer diagnostic reported in the compilation.
+            compilation.VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer }, null, null,
+                    Diagnostic("ID1", "C1").WithLocation(1, 7));
+
+            // PERF: Verify no analyzer callbacks are made for source files where the analyzer was not enabled.
+            var symbol = Assert.Single(analyzer.CallbackSymbols);
+            Assert.Equal("C1", symbol.Name);
         }
     }
 }

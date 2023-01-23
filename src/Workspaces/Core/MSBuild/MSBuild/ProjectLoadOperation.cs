@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         /// <summary>
         /// Represents the MSBuild evaluation of a project. This occurs before <see cref="Build"/>
-        /// to evalute the project file before any tasks are executed.
+        /// to evaluate the project file before any tasks are executed.
         /// </summary>
         Evaluate,
         /// <summary>

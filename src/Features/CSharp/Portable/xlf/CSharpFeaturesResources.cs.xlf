@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="new">Add 'await'</target>
+        <target state="translated">Přidat await</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -102,6 +102,11 @@
         <target state="translated">Použít předvolby rozsahu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_readonly_struct_preferences">
+        <source>Apply 'readonly struct' preferences</source>
+        <target state="translated">Použít předvolby readonly struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
         <target state="translated">Použít předvolby statických místních funkcí</target>
@@ -147,19 +152,24 @@
         <target state="translated">Změnit na přetypování</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">Převést {0} na záznam(record)</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Převést na metodu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">Převést na poziční záznam(record)</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Převést na nezpracovaný řetězec</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_raw_string_no_indent">
-        <source>Convert to raw string (no indent)</source>
-        <target state="translated">Převést na nezpracovaný řetězec (bez odsazení)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -187,9 +197,14 @@
         <target state="translated">Povolit v projektu typy odkazů s možnou hodnotou null</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Dočasná vložená proměnná</target>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">Povolit v řešení typy odkazů s možnou hodnotou null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="translated">Globální direktivy using</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -221,6 +236,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">Obrátit příkaz for</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">Výběr nemůže být v inicializátoru konstruktoru.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
@@ -756,6 +776,14 @@
         <source>Introduce 'using' statement</source>
         <target state="translated">Zavést příkaz using</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="without_leading_whitespace_may_change_semantics">
+        <source>... without leading whitespace (may change semantics)</source>
+        <target state="translated">... bez úvodních prázdných znaků (může se změnit sémantika)</target>
+        <note>This clause is a follow up to the "Convert to raw string" loc string.
+    The intent is that the user sees "Convert to raw string" as an option to select,
+    and that is then followed with this clause.  This is so we don't have a huge string
+    saying "Convert to raw string without leading whitespace (may change semantics)"</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>

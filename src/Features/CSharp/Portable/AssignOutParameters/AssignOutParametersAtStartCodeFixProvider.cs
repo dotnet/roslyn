@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -50,7 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             }
 
             context.RegisterCodeFix(
-                new MyCodeAction(CSharpFeaturesResources.Assign_out_parameters_at_start, GetDocumentUpdater(context)),
+                CodeAction.Create(
+                    CSharpFeaturesResources.Assign_out_parameters_at_start,
+                    GetDocumentUpdater(context),
+                    nameof(CSharpFeaturesResources.Assign_out_parameters_at_start)),
                 context.Diagnostics);
         }
 

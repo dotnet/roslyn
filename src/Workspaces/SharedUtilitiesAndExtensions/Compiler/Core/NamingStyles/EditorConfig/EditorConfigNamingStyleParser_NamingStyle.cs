@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static bool TryGetNamingStyleData(
             string namingRuleName,
-            IReadOnlyDictionary<string, string?> rawOptions,
+            IReadOnlyDictionary<string, string> rawOptions,
             out NamingStyle namingStyle)
         {
-            return TryGetNamingStyleData<string?, object?, NamingStyle>(
+            return TryGetNamingStyleData<string, object?, NamingStyle>(
                 namingRuleName,
                 rawOptions,
-                s => s ?? string.Empty,
+                s => s,
                 x => null,
                 s => (s ?? string.Empty, null),
                 (nameTuple, prefixTuple, suffixTuple, wordSeparatorTuple, capitalizationTuple) =>

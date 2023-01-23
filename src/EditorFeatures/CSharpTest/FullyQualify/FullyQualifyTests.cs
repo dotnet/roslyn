@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
     public class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public FullyQualifyTests(ITestOutputHelper logger)
@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpFullyQualifyCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestTypeFromMultipleNamespaces1()
+        [Theory, CombinatorialData]
+        public async Task TestTypeFromMultipleNamespaces1(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
     {
         Goo();
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestTypeFromMultipleNamespaces2()
+        [Theory, CombinatorialData]
+        public async Task TestTypeFromMultipleNamespaces2(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
         Goo();
     }
 }",
-index: 1);
+index: 1, testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenericWithNoArgs()
+        [Theory, CombinatorialData]
+        public async Task TestGenericWithNoArgs(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -90,11 +90,11 @@ index: 1);
     {
         Goo();
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenericWithCorrectArgs()
+        [Theory, CombinatorialData]
+        public async Task TestGenericWithCorrectArgs(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -110,11 +110,11 @@ index: 1);
     {
         Goo();
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestSmartTagDisplayText()
+        [Theory, CombinatorialData]
+        public async Task TestSmartTagDisplayText(TestHost testHost)
         {
             await TestSmartTagTextAsync(
 @"class Class
@@ -124,11 +124,11 @@ index: 1);
         Goo();
     }
 }",
-"System.Collections.Generic.List");
+"System.Collections.Generic.List", new TestParameters(testHost: testHost));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenericWithWrongArgs()
+        [Theory, CombinatorialData]
+        public async Task TestGenericWithWrongArgs(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Class
@@ -137,11 +137,11 @@ index: 1);
     {
         Goo();
     }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestNotOnVar1()
+        [Theory, CombinatorialData]
+        public async Task TestNotOnVar1(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"namespace N
@@ -156,11 +156,11 @@ class C
         [|var|]
     }
 }
-");
+", new TestParameters(testHost: testHost));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestNotOnVar2()
+        [Theory, CombinatorialData]
+        public async Task TestNotOnVar2(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"namespace N
@@ -175,11 +175,11 @@ class C
         [|var|]
     }
 }
-");
+", new TestParameters(testHost: testHost));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenericInLocalDeclaration()
+        [Theory, CombinatorialData]
+        public async Task TestGenericInLocalDeclaration(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -195,11 +195,11 @@ class C
     {
         System.Collections.Generic.List<int> a = new List<int>();
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenericItemType()
+        [Theory, CombinatorialData]
+        public async Task TestGenericItemType(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -213,11 +213,11 @@ class Class
 class Class
 {
     List<System.Int32> l;
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenerateWithExistingUsings()
+        [Theory, CombinatorialData]
+        public async Task TestGenerateWithExistingUsings(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -237,11 +237,11 @@ class Class
     {
         Goo();
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenerateInNamespace()
+        [Theory, CombinatorialData]
+        public async Task TestGenerateInNamespace(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"namespace N
@@ -263,11 +263,11 @@ class Class
             Goo();
         }
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenerateInNamespaceWithUsings()
+        [Theory, CombinatorialData]
+        public async Task TestGenerateInNamespaceWithUsings(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"namespace N
@@ -293,11 +293,11 @@ class Class
             Goo();
         }
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestExistingUsing()
+        [Theory, CombinatorialData]
+        public async Task TestExistingUsing(TestHost testHost)
         {
             await TestActionCountAsync(
 @"using System.Collections.Generic;
@@ -309,7 +309,7 @@ class Class
         Goo();
     }
 }",
-count: 1);
+count: 1, new TestParameters(testHost: testHost));
 
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -329,11 +329,11 @@ class Class
     {
         Goo();
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestMissingIfUniquelyBound()
+        [Theory, CombinatorialData]
+        public async Task TestMissingIfUniquelyBound(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -344,11 +344,11 @@ class Class
     {
         Goo();
     }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestMissingIfUniquelyBoundGeneric()
+        [Theory, CombinatorialData]
+        public async Task TestMissingIfUniquelyBoundGeneric(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -359,11 +359,11 @@ class Class
     {
         Goo();
     }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestOnEnum()
+        [Theory, CombinatorialData]
+        public async Task TestOnEnum(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -399,11 +399,11 @@ namespace A
         Green,
         Blue
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestOnClassInheritance()
+        [Theory, CombinatorialData]
+        public async Task TestOnClassInheritance(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class : [|Class2|]
@@ -425,11 +425,11 @@ namespace A
     class Class2
     {
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestOnImplementedInterface()
+        [Theory, CombinatorialData]
+        public async Task TestOnImplementedInterface(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class : [|IGoo|]
@@ -451,11 +451,11 @@ namespace A
     interface IGoo
     {
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestAllInBaseList()
+        [Theory, CombinatorialData]
+        public async Task TestAllInBaseList(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class : [|IGoo|], Class2
@@ -491,7 +491,7 @@ namespace B
     interface IGoo
     {
     }
-}");
+}", testHost: testHost);
 
             await TestInRegularAndScriptAsync(
 @"class Class : B.IGoo, [|Class2|]
@@ -527,11 +527,11 @@ namespace B
     interface IGoo
     {
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestAttributeUnexpanded()
+        [Theory, CombinatorialData]
+        public async Task TestAttributeUnexpanded(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"[[|Obsolete|]]
@@ -541,11 +541,11 @@ class Class
 @"[System.Obsolete]
 class Class
 {
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestAttributeExpanded()
+        [Theory, CombinatorialData]
+        public async Task TestAttributeExpanded(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"[[|ObsoleteAttribute|]]
@@ -555,12 +555,11 @@ class Class
 @"[System.ObsoleteAttribute]
 class Class
 {
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestExtensionMethods()
+        [Theory, CombinatorialData, WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
+        public async Task TestExtensionMethods(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -572,12 +571,11 @@ class Goo
         var values = new List<int>() { 1, 2, 3 };
         values.[|Where|](i => i > 1);
     }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestAfterNew()
+        [Theory, CombinatorialData, WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
+        public async Task TestAfterNew(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -595,11 +593,11 @@ class Goo
         List<int> l;
         l = new System.Collections.Generic.List<int>();
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestArgumentsInMethodCall()
+        [Theory, CombinatorialData]
+        public async Task TestArgumentsInMethodCall(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -615,11 +613,11 @@ class Goo
     {
         Console.WriteLine(System.DateTime.Today);
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestCallSiteArgs()
+        [Theory, CombinatorialData]
+        public async Task TestCallSiteArgs(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -633,11 +631,11 @@ class Goo
     void Test(System.DateTime dt)
     {
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestUsePartialClass()
+        [Theory, CombinatorialData]
+        public async Task TestUsePartialClass(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"namespace A
@@ -667,11 +665,11 @@ namespace B
     public partial class PClass
     {
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenericClassInNestedNamespace()
+        [Theory, CombinatorialData]
+        public async Task TestGenericClassInNestedNamespace(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"namespace A
@@ -707,11 +705,11 @@ namespace C
     {
         A.B.GenericClass<int> c;
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestBeforeStaticMethod()
+        [Theory, CombinatorialData]
+        public async Task TestBeforeStaticMethod(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -725,12 +723,11 @@ namespace C
     void Test()
     {
         System.Math.Sqrt();
-    }");
+    }", testHost: testHost);
         }
 
-        [WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestBeforeNamespace()
+        [Theory, CombinatorialData, WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
+        public async Task TestBeforeNamespace(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"namespace A
@@ -766,30 +763,27 @@ namespace B
         {
         }
     }
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestSimpleNameWithLeadingTrivia()
+        [Theory, CombinatorialData, WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
+        public async Task TestSimpleNameWithLeadingTrivia(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|Int32|] i; } }",
-@"class Class { void Test() { /*goo*/System.Int32 i; } }");
+@"class Class { void Test() { /*goo*/System.Int32 i; } }", testHost: testHost);
         }
 
-        [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGenericNameWithLeadingTrivia()
+        [Theory, CombinatorialData, WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
+        public async Task TestGenericNameWithLeadingTrivia(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|List<int>|] l; } }",
-@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }");
+@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }", testHost: testHost);
         }
 
-        [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestFullyQualifyTypeName()
+        [Theory, CombinatorialData, WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
+        public async Task TestFullyQualifyTypeName(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"public class Program
@@ -813,12 +807,11 @@ class Test
 class Test
 {
     Program.Inner i;
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestFullyQualifyUnboundIdentifier3()
+        [Theory, CombinatorialData, WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        public async Task TestFullyQualifyUnboundIdentifier3(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"public class Program
@@ -842,12 +835,11 @@ class Test
 class Test
 {
     public Program.Inner Name
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestFullyQualifyTypeName_NotForGenericType()
+        [Theory, CombinatorialData, WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
+        public async Task TestFullyQualifyTypeName_NotForGenericType(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program<T>
@@ -860,12 +852,11 @@ class Test
 class Test
 {
     [|Inner|] i;
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestFullyQualifyThroughAlias()
+        [Theory, CombinatorialData, WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
+        public async Task TestFullyQualifyThroughAlias(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using Alias = System;
@@ -879,12 +870,11 @@ class C
 class C
 {
     Alias.Int32 i;
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1()
+        [Theory, CombinatorialData, WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
+        public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"namespace Outer
@@ -914,12 +904,11 @@ class Test
 class Test
 {
     Outer.C.C c;
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2()
+        [Theory, CombinatorialData, WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
+        public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"namespace Outer
@@ -950,22 +939,20 @@ class Test
 {
     Outer.C c;
 }",
-index: 1);
+index: 1, testHost: testHost);
         }
 
-        [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task BugFix5950()
+        [Theory, CombinatorialData, WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
+        public async Task BugFix5950(TestHost testHost)
         {
             await TestAsync(
 @"using System.Console; WriteLine([|Expression|].Constant(123));",
 @"using System.Console; WriteLine(System.Linq.Expressions.Expression.Constant(123));",
-parseOptions: GetScriptOptions());
+parseOptions: GetScriptOptions(), testHost: testHost);
         }
 
-        [WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestAfterAlias()
+        [Theory, CombinatorialData, WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
+        public async Task TestAfterAlias(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -978,12 +965,11 @@ class Program
     {
         System::[|Console|] :: WriteLine(""TEST"");
     }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestMissingOnIncompleteStatement()
+        [Theory, CombinatorialData, WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
+        public async Task TestMissingOnIncompleteStatement(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -994,21 +980,19 @@ class C
     static void Main(string[] args)
     {
         [|Path|] }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestAssemblyAttribute()
+        [Theory, CombinatorialData, WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
+        public async Task TestAssemblyAttribute(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"[assembly: [|InternalsVisibleTo|](""Project"")]",
-@"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]");
+@"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]", testHost: testHost);
         }
 
-        [WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestMissingOnAliasName()
+        [Theory, CombinatorialData, WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
+        public async Task TestMissingOnAliasName(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using [|GIBBERISH|] = Goo.GIBBERISH;
@@ -1026,11 +1010,11 @@ namespace Goo
     public class GIBBERISH
     {
     }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestMissingOnAttributeOverloadResolutionError()
+        [Theory, CombinatorialData]
+        public async Task TestMissingOnAttributeOverloadResolutionError(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System.Runtime.InteropServices;
@@ -1039,12 +1023,11 @@ class M
 {
     [[|DllImport|]()]
     static extern int? My();
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestNotOnAbstractConstructor()
+        [Theory, CombinatorialData, WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
+        public async Task TestNotOnAbstractConstructor(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System.IO;
@@ -1055,24 +1038,25 @@ class Program
     {
         var s = new [|Stream|]();
     }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestAttribute()
+        [Theory, CombinatorialData, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        public async Task TestAttributeCount(TestHost testHost)
         {
-            var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
-            await TestActionCountAsync(input, 2);
-
-            await TestInRegularAndScriptAsync(
-input,
-@"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
+            await TestActionCountAsync(@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", 2, new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestGeneratePropertyFromAttribute()
+        [Theory, CombinatorialData, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        public async Task TestAttribute(TestHost testHost)
+        {
+            await TestInRegularAndScriptAsync(
+@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ",
+@"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost: testHost);
+        }
+
+        [Theory, CombinatorialData, WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
+        public async Task TestGeneratePropertyFromAttribute(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -1085,12 +1069,11 @@ class MyAttrAttribute : Attribute
 [MyAttr(123, [|Version|] = 1)]
 class D
 {
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task ShouldTriggerOnCS0308()
+        [Theory, CombinatorialData, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
+        public async Task ShouldTriggerOnCS0308(TestHost testHost)
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
             await TestInRegularAndScriptAsync(
@@ -1111,12 +1094,11 @@ class Test
     {
         System.Collections.Generic.IEnumerable<int> f;
     }
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task AmbiguousTypeFix()
+        [Theory, CombinatorialData, WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
+        public async Task AmbiguousTypeFix(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using n1;
@@ -1166,12 +1148,11 @@ namespace n2
     class A
     {
     }
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task NonPublicNamespaces()
+        [Theory, CombinatorialData, WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
+        public async Task NonPublicNamespaces(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"namespace MS.Internal.Xaml
@@ -1215,7 +1196,7 @@ public class Program
     {
         System.Xaml
     }
-}");
+}", testHost: testHost);
 
             await TestInRegularAndScriptAsync(
 @"namespace MS.Internal.Xaml
@@ -1259,12 +1240,11 @@ public class Program
     {
         MS.Internal.Xaml
     }
-}", index: 1);
+}", index: 1, testHost: testHost);
         }
 
-        [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task AmbiguousFixOrdering()
+        [Theory, CombinatorialData, WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
+        public async Task AmbiguousFixOrdering(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using n1;
@@ -1314,11 +1294,11 @@ namespace n2
         {
         }
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TupleTest()
+        [Theory, CombinatorialData]
+        public async Task TupleTest(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -1334,11 +1314,11 @@ namespace n2
     {
         Goo();
     }
-}");
+}", testHost: testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TupleWithOneName()
+        [Theory, CombinatorialData]
+        public async Task TupleWithOneName(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"class Class
@@ -1354,12 +1334,11 @@ namespace n2
     {
         Goo();
     }
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestContextualKeyword1()
+        [Theory, CombinatorialData, WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        public async Task TestContextualKeyword1(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -1376,12 +1355,11 @@ class C
     {
         [|nameof|]
     }
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity()
+        [Theory, CombinatorialData, WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
+        public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity(TestHost testHost)
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -1389,12 +1367,11 @@ using System.Collections.Generic;
 
 class Program : [|IReadOnlyCollection|]
 {
-}");
+}", new TestParameters(testHost: testHost));
         }
 
-        [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
+        [Theory, CombinatorialData, WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression(TestHost testHost)
         {
             var code = @"
 class C
@@ -1405,7 +1382,7 @@ class C
         return ImmutableArray.CreateRange();
     }
 }";
-            await TestActionCountAsync(code, count: 1);
+            await TestActionCountAsync(code, count: 1, new TestParameters(testHost: testHost));
 
             await TestInRegularAndScriptAsync(
 code,
@@ -1417,12 +1394,11 @@ class C
         System.Collections.Generic.IEnumerable < Int32 >
         return ImmutableArray.CreateRange();
     }
-}");
+}", testHost: testHost);
         }
 
-        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestInUsingContext_Type()
+        [Theory, CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        public async Task TestInUsingContext_Type(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using [|Math|];
@@ -1440,12 +1416,11 @@ class Class
     void Test()
     {
         Sqrt(1);
-    }");
+    }", testHost: testHost);
         }
 
-        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestInUsingContext_Namespace()
+        [Theory, CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        public async Task TestInUsingContext_Namespace(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using [|Collections|];
@@ -1463,12 +1438,11 @@ class Class
     void Test()
     {
         Sqrt(1);
-    }");
+    }", testHost: testHost);
         }
 
-        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestInUsingContext_UsingStatic()
+        [Theory, CombinatorialData, WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        public async Task TestInUsingContext_UsingStatic(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using static [|Math|];
@@ -1486,21 +1460,19 @@ class Class
     void Test()
     {
         Sqrt(1);
-    }");
+    }", testHost: testHost);
         }
 
-        [WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestInUsingContext_UsingAlias()
+        [Theory, CombinatorialData, WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
+        public async Task TestInUsingContext_UsingAlias(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
 @"using M = [|Math|]",
-@"using M = System.Math");
+@"using M = System.Math", testHost: testHost);
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
-        public async Task TestAddUsingsEditorBrowsableNeverSameProject()
+        [Theory, CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
         {
             const string InitialWorkspace = @"
 <Workspace>
@@ -1537,12 +1509,11 @@ class Program
 }
 ";
 
-            await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText);
+            await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
-        public async Task TestAddUsingsEditorBrowsableNeverDifferentProject()
+        [Theory, CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
         {
             const string InitialWorkspace = @"
 <Workspace>
@@ -1569,12 +1540,11 @@ class Program
 </Document>
     </Project>
 </Workspace>";
-            await TestMissingAsync(InitialWorkspace);
+            await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
-        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn()
+        [Theory, CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
         {
             const string InitialWorkspace = @"
 <Workspace>
@@ -1611,12 +1581,11 @@ class Program
     }
 }
 ";
-            await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText);
+            await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
-        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff()
+        [Theory, CombinatorialData, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
         {
             var initialWorkspace = @"
 <Workspace>
@@ -1645,7 +1614,8 @@ class Program
 </Workspace>";
 
             await TestMissingAsync(initialWorkspace, new TestParameters(
-                codeActionOptions: CodeActionOptions.Default with { HideAdvancedMembers = true }));
+                globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
+                testHost: testHost));
         }
     }
 }

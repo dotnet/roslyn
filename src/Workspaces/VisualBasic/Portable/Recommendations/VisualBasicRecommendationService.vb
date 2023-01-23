@@ -18,10 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreateContext(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
-            Return VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken)
-        End Function
-
         Protected Overrides Function CreateRunner(context As VisualBasicSyntaxContext, filterOutOfScopeLocals As Boolean, cancellationToken As CancellationToken) As AbstractRecommendationServiceRunner
             Return New VisualBasicRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken)
         End Function

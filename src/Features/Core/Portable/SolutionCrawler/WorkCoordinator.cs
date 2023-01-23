@@ -22,15 +22,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         internal sealed partial class WorkCoordinator
         {
             private readonly Registration _registration;
-            private readonly object _gate;
+            private readonly object _gate = new();
 
-            private readonly LogAggregator _logAggregator;
+            private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
-            private readonly IOptionService _optionService;
             private readonly IDocumentTrackingService _documentTrackingService;
-            private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
+            private readonly ISolutionCrawlerOptionsService? _solutionCrawlerOptions;
 
-            private readonly CancellationTokenSource _shutdownNotificationSource;
+            private readonly CancellationTokenSource _shutdownNotificationSource = new();
             private readonly CancellationToken _shutdownToken;
             private readonly TaskQueue _eventProcessingQueue;
 
@@ -44,18 +43,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                  bool initializeLazily,
                  Registration registration)
             {
-                _logAggregator = new LogAggregator();
-
                 _registration = registration;
-                _gate = new object();
 
                 _listener = listener;
-                _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
                 _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                _workspaceConfigurationService = _registration.Workspace.Services.GetService<IWorkspaceConfigurationService>();
+                _solutionCrawlerOptions = _registration.Workspace.Services.GetService<ISolutionCrawlerOptionsService>();
 
                 // event and worker queues
-                _shutdownNotificationSource = new CancellationTokenSource();
                 _shutdownToken = _shutdownNotificationSource.Token;
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
@@ -74,15 +68,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
                 _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                _registration.Workspace.DocumentOpened += OnDocumentOpened;
-                _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                _registration.Workspace.TextDocumentOpened += OnTextDocumentOpened;
+                _registration.Workspace.TextDocumentClosed += OnTextDocumentClosed;
 
                 // subscribe to active document changed event for active file background analysis scope.
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
-
-                // subscribe to option changed event after all required fields are set
-                // otherwise, we can get null exception when running OnOptionChanged handler
-                _optionService.OptionChanged += OnOptionChanged;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -99,13 +89,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public void Shutdown(bool blockingShutdown)
             {
-                _optionService.OptionChanged -= OnOptionChanged;
                 _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
-                _registration.Workspace.DocumentOpened -= OnDocumentOpened;
-                _registration.Workspace.DocumentClosed -= OnDocumentClosed;
+                _registration.Workspace.TextDocumentOpened -= OnTextDocumentOpened;
+                _registration.Workspace.TextDocumentClosed -= OnTextDocumentClosed;
 
                 // cancel any pending blocks
                 _shutdownNotificationSource.Cancel();
@@ -135,29 +124,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         SolutionCrawlerLogger.LogWorkCoordinatorShutdownTimeout(CorrelationId);
                     }
                 }
-            }
 
-            private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
-            {
-                ReanalyzeOnOptionChange(sender, e);
-            }
-
-            private void ReanalyzeOnOptionChange(object? sender, OptionChangedEventArgs e)
-            {
-                // get off from option changed event handler since it runs on UI thread
-                // getting analyzer can be slow for the very first time since it is lazily initialized
-                _eventProcessingQueue.ScheduleTask(nameof(ReanalyzeOnOptionChange), () =>
+                foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                 {
-                    // let each analyzer decide what they want on option change
-                    foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
-                    {
-                        if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
-                        {
-                            var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
-                            Reanalyze(analyzer, scope);
-                        }
-                    }
-                }, _shutdownToken);
+                    (analyzer as IDisposable)?.Dispose();
+                }
             }
 
             public void Reanalyze(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority = false)
@@ -221,7 +192,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void ProcessEvent(WorkspaceChangeEventArgs args, string eventName)
             {
-                SolutionCrawlerLogger.LogWorkspaceEvent(_logAggregator, (int)args.Kind);
+                SolutionCrawlerLogger.LogWorkspaceEvent(_logAggregator, args.Kind);
 
                 // TODO: add telemetry that record how much it takes to process an event (max, min, average and etc)
                 switch (args.Kind)
@@ -230,22 +201,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         EnqueueFullSolutionEvent(args.NewSolution, InvocationReasons.DocumentAdded, eventName);
                         break;
 
+                    case WorkspaceChangeKind.SolutionRemoved:
+                    case WorkspaceChangeKind.SolutionCleared:
+                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
+                        break;
+
                     case WorkspaceChangeKind.SolutionChanged:
                     case WorkspaceChangeKind.SolutionReloaded:
                         EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, eventName);
                         break;
 
-                    case WorkspaceChangeKind.SolutionRemoved:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.SolutionCleared:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.DocumentRemoved, eventName);
-                        break;
-
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
                         EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, eventName);
+                        break;
+
+                    case WorkspaceChangeKind.ProjectRemoved:
+                        Contract.ThrowIfNull(args.ProjectId);
+                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
@@ -254,25 +227,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         EnqueueProjectChangedEvent(args.OldSolution, args.NewSolution, args.ProjectId, eventName);
                         break;
 
-                    case WorkspaceChangeKind.ProjectRemoved:
-                        Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, eventName);
-                        break;
-
                     case WorkspaceChangeKind.DocumentAdded:
                         Contract.ThrowIfNull(args.DocumentId);
                         EnqueueFullDocumentEvent(args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, eventName);
                         break;
 
-                    case WorkspaceChangeKind.DocumentReloaded:
-                    case WorkspaceChangeKind.DocumentChanged:
-                        Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
-                        break;
-
                     case WorkspaceChangeKind.DocumentRemoved:
                         Contract.ThrowIfNull(args.DocumentId);
                         EnqueueFullDocumentEvent(args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, eventName);
+                        break;
+
+                    case WorkspaceChangeKind.DocumentChanged:
+                    case WorkspaceChangeKind.DocumentReloaded:
+                        Contract.ThrowIfNull(args.DocumentId);
+                        EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
                         break;
 
                     case WorkspaceChangeKind.AdditionalDocumentAdded:
@@ -293,15 +261,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private void OnDocumentOpened(object? sender, DocumentEventArgs e)
+            private void OnTextDocumentOpened(object? sender, TextDocumentEventArgs e)
             {
-                _eventProcessingQueue.ScheduleTask("OnDocumentOpened",
+                _eventProcessingQueue.ScheduleTask("OnTextDocumentOpened",
                     () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
             }
 
-            private void OnDocumentClosed(object? sender, DocumentEventArgs e)
+            private void OnTextDocumentClosed(object? sender, TextDocumentEventArgs e)
             {
-                _eventProcessingQueue.ScheduleTask("OnDocumentClosed",
+                _eventProcessingQueue.ScheduleTask("OnTextDocumentClosed",
                     () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
             }
 
@@ -392,7 +360,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // If all features are enabled for source generated documents, the solution crawler needs to
                         // include them in incremental analysis.
-                        if (_workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles == true)
+                        if (_solutionCrawlerOptions?.EnableDiagnosticsInSourceGeneratedFiles == true)
                         {
                             // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
                             // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
@@ -428,14 +396,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _shutdownToken);
             }
 
-            private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, Document? document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
+            private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, TextDocument? document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
             {
                 // we are shutting down
                 _shutdownToken.ThrowIfCancellationRequested();
 
                 var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
-                document ??= project.GetDocument(documentId);
-                var isLowPriority = priorityService != null && document != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
+                document ??= project.GetTextDocument(documentId);
+                var sourceDocument = document as Document;
+                var isLowPriority = priorityService != null && sourceDocument != null && await priorityService.IsLowPriorityAsync(sourceDocument, _shutdownToken).ConfigureAwait(false);
 
                 var currentMember = GetSyntaxPath(changedMember);
 
@@ -444,11 +413,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     new WorkItem(documentId, project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
 
                 // enqueue semantic work planner
-                if (invocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
+                if (invocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged) && sourceDocument != null)
                 {
                     // must use "Document" here so that the snapshot doesn't go away. we need the snapshot to calculate p2p dependency graph later.
                     // due to this, we might hold onto solution (and things kept alive by it) little bit longer than usual.
-                    _semanticChangeProcessor.Enqueue(project, documentId, document, currentMember);
+                    _semanticChangeProcessor.Enqueue(project, documentId, sourceDocument, currentMember);
                 }
             }
 
@@ -480,7 +449,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // If all features are enabled for source generated documents, the solution crawler needs to
                 // include them in incremental analysis.
-                if (_workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles == true)
+                if (_solutionCrawlerOptions?.EnableDiagnosticsInSourceGeneratedFiles == true)
                 {
                     foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
                         await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);

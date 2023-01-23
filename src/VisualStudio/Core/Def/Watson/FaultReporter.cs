@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
@@ -85,6 +86,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             try
             {
+                if (exception is OperationCanceledException { InnerException: { } oceInnerException })
+                {
+                    ReportFault(oceInnerException, severity, forceDump);
+                    return;
+                }
+
                 if (exception is AggregateException aggregateException)
                 {
                     // We (potentially) have multiple exceptions; let's just report each of them
@@ -94,7 +101,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     return;
                 }
 
-                exception.SetCallstackIfEmpty();
                 var currentProcess = Process.GetCurrentProcess();
 
                 // write the exception to a log file:
@@ -124,6 +130,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                             foreach (var path in CollectServiceHubLogFilePaths())
                             {
                                 faultUtility.AddFile(path);
+                            }
+
+                            foreach (var loghubPath in CollectLogHubFilePaths())
+                            {
+                                faultUtility.AddFile(loghubPath);
                             }
                         }
 
@@ -158,81 +169,113 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             try
             {
                 // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
-                foreach (var frame in new StackTrace(exception).GetFrames())
+                var frames = new StackTrace(exception).GetFrames();
+
+                // On the .NET Framework, GetFrames() can return null even though it's not documented as such.
+                // At least one case here is if the exception's stack trace itself is null.
+                if (frames != null)
                 {
-                    var method = frame?.GetMethod();
-                    var methodName = method?.Name;
-                    if (methodName == null)
-                        continue;
+                    foreach (var frame in frames)
+                    {
+                        var method = frame?.GetMethod();
+                        var methodName = method?.Name;
+                        if (methodName == null)
+                            continue;
 
-                    var declaringTypeName = method?.DeclaringType?.FullName;
-                    if (declaringTypeName == null)
-                        continue;
+                        var declaringTypeName = method?.DeclaringType?.FullName;
+                        if (declaringTypeName == null)
+                            continue;
 
-                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
-                        continue;
+                        if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
+                            continue;
 
-                    return declaringTypeName + "." + methodName;
+                        return declaringTypeName + "." + methodName;
+                    }
                 }
             }
             catch
             {
             }
 
-            return "Roslyn NonFatal Watson";
+            // If we couldn't get a stack, do this
+            return exception.Message;
         }
 
-        private static List<string> CollectServiceHubLogFilePaths()
+        private static IList<string> CollectLogHubFilePaths()
         {
-            var paths = new List<string>();
-
             try
             {
-                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
-                if (!Directory.Exists(logPath))
-                {
-                    return paths;
-                }
-
-                // attach all log files that are modified less than 1 day before.
-                var now = DateTime.UtcNow;
-                var oneDay = TimeSpan.FromDays(1);
-
-                foreach (var path in Directory.EnumerateFiles(logPath, "*.log"))
-                {
-                    try
-                    {
-                        var name = Path.GetFileNameWithoutExtension(path);
-
-                        // TODO: https://github.com/dotnet/roslyn/issues/42582 
-                        // name our services more consistently to simplify filtering
-
-                        // filter logs that are not relevant to Roslyn investigation
-                        if (!name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
-                            !name.Contains("-CodeLens") &&
-                            !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
-                            !name.Contains("-hub"))
-                        {
-                            continue;
-                        }
-
-                        var lastWrite = File.GetLastWriteTimeUtc(path);
-                        if (now - lastWrite > oneDay)
-                        {
-                            continue;
-                        }
-
-                        paths.Add(path);
-                    }
-                    catch
-                    {
-                        // ignore file that can't be accessed
-                    }
-                }
+                var logPath = Path.Combine(Path.GetTempPath(), "VSLogs");
+                var logs = CollectFilePaths(logPath, "*.svclog", shouldExcludeLogFile: (name) => !name.Contains("Roslyn") && !name.Contains("LSPClient"));
+                return logs;
             }
             catch (Exception)
             {
                 // ignore failures
+            }
+
+            return SpecializedCollections.EmptyList<string>();
+        }
+
+        private static IList<string> CollectServiceHubLogFilePaths()
+        {
+            try
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+
+                // TODO: https://github.com/dotnet/roslyn/issues/42582 
+                // name our services more consistently to simplify filtering
+                var logs = CollectFilePaths(logPath, "*.log", shouldExcludeLogFile: (name) => !name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
+                        !name.Contains("-CodeLens") &&
+                        !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
+                        !name.Contains("-hub"));
+                return logs;
+            }
+            catch (Exception)
+            {
+                // ignore failures
+            }
+
+            return SpecializedCollections.EmptyList<string>();
+        }
+
+        private static List<string> CollectFilePaths(string logDirectoryPath, string logFileExtension, Func<string, bool> shouldExcludeLogFile)
+        {
+            var paths = new List<string>();
+
+            if (!Directory.Exists(logDirectoryPath))
+            {
+                return paths;
+            }
+
+            // attach all log files that are modified less than 1 day before.
+            var now = DateTime.UtcNow;
+            var oneDay = TimeSpan.FromDays(1);
+
+            foreach (var path in Directory.EnumerateFiles(logDirectoryPath, logFileExtension))
+            {
+                try
+                {
+                    var name = Path.GetFileNameWithoutExtension(path);
+
+                    // filter logs that are not relevant to Roslyn investigation
+                    if (shouldExcludeLogFile(name))
+                    {
+                        continue;
+                    }
+
+                    var lastWrite = File.GetLastWriteTimeUtc(path);
+                    if (now - lastWrite > oneDay)
+                    {
+                        continue;
+                    }
+
+                    paths.Add(path);
+                }
+                catch
+                {
+                    // ignore file that can't be accessed
+                }
             }
 
             return paths;

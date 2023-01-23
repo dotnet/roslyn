@@ -14,19 +14,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         where TExtractor : MethodExtractor
         where TResult : SelectionResult
     {
-        protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction, ExtractMethodOptions options);
-        protected abstract TExtractor CreateMethodExtractor(TResult selectionResult, bool localFunction);
+        protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, ExtractMethodOptions options, bool localFunction);
+        protected abstract TExtractor CreateMethodExtractor(TResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);
 
         public async Task<ExtractMethodResult> ExtractMethodAsync(
             Document document,
             TextSpan textSpan,
             bool localFunction,
-            ExtractMethodOptions options,
+            ExtractMethodGenerationOptions options,
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var validator = CreateSelectionValidator(semanticDocument, textSpan, localFunction, options);
+            var validator = CreateSelectionValidator(semanticDocument, textSpan, options.ExtractOptions, localFunction);
 
             var selectionResult = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
             if (!selectionResult.ContainsValidContext)
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             // extract method
-            var extractor = CreateMethodExtractor((TResult)selectionResult, localFunction);
+            var extractor = CreateMethodExtractor((TResult)selectionResult, options, localFunction);
 
             return await extractor.ExtractMethodAsync(cancellationToken).ConfigureAwait(false);
         }

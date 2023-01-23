@@ -3,34 +3,52 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Context passed to an incremental generator when <see cref="IIncrementalGenerator.Initialize(IncrementalGeneratorInitializationContext)"/> is called
     /// </summary>
-    public readonly struct IncrementalGeneratorInitializationContext
+    public readonly partial struct IncrementalGeneratorInitializationContext
     {
         private readonly ArrayBuilder<SyntaxInputNode> _syntaxInputBuilder;
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
         private readonly string _sourceExtension;
 
-        internal IncrementalGeneratorInitializationContext(ArrayBuilder<SyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, string sourceExtension)
+        internal readonly ISyntaxHelper SyntaxHelper;
+
+        internal IncrementalGeneratorInitializationContext(
+            ArrayBuilder<SyntaxInputNode> syntaxInputBuilder,
+            ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes,
+            ISyntaxHelper syntaxHelper,
+            string sourceExtension)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
+            SyntaxHelper = syntaxHelper;
             _sourceExtension = sourceExtension;
         }
 
-        public SyntaxValueProvider SyntaxProvider => new SyntaxValueProvider(_syntaxInputBuilder, RegisterOutput);
+        public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper);
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
+
+        // Use a ReferenceEqualityComparer as we want to rerun this stage whenever the CompilationOptions changes at all
+        // (e.g. we don't care if it has the same conceptual value, we're ok rerunning as long as the actual instance
+        // changes).
+        internal IncrementalValueProvider<CompilationOptions> CompilationOptionsProvider
+            => new(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput)
+                .WithComparer(ReferenceEqualityComparer.Instance)
+                .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions));
 
         public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions));
 
@@ -149,16 +167,19 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly GeneratorRunStateTable.Builder GeneratorRunStateBuilder;
 
+        internal readonly ArrayBuilder<(string Key, string Value)> HostOutputBuilder;
+
         public IncrementalExecutionContext(DriverStateTable.Builder? tableBuilder, GeneratorRunStateTable.Builder generatorRunStateBuilder, AdditionalSourcesCollection sources)
         {
             TableBuilder = tableBuilder;
             GeneratorRunStateBuilder = generatorRunStateBuilder;
             Sources = sources;
+            HostOutputBuilder = ArrayBuilder<(string, string)>.GetInstance();
             Diagnostics = DiagnosticBag.GetInstance();
         }
 
-        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps) ToImmutableAndFree()
-                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree());
+        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps, ImmutableArray<(string Key, string Value)> hostOutputs) ToImmutableAndFree()
+                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree(), HostOutputBuilder.ToImmutableAndFree());
 
         internal void Free()
         {

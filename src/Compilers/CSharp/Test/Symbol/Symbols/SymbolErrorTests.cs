@@ -1120,19 +1120,19 @@ class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '>' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '(' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(5, 11),
                 // (5,14): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
                 // (5,14): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(5, 14),
                 // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(5, 15),
                 // (5,16): error CS8124: Tuple must contain at least two elements.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 16),
@@ -1171,19 +1171,19 @@ class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '>' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '(' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(5, 11),
                 // (5,14): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
                 // (5,14): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(5, 14),
                 // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(5, 15),
                 // (5,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 15),
@@ -1464,9 +1464,9 @@ class C : I
     // (10,77): error CS0100: The parameter name 'p' is a duplicate
     //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
     Diagnostic(ErrorCode.ERR_DuplicateParamName, "p").WithArguments("p").WithLocation(10, 77),
-    // (10,82): error CS0229: Ambiguity between 'object' and 'ref string'
+    // (10,82): error CS0229: Ambiguity between 'object p' and 'ref string p'
     //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
-    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object", "ref string").WithLocation(10, 82)
+    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object p", "ref string p").WithLocation(10, 82)
                 );
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -2126,13 +2126,8 @@ class B : A
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
                 // (9,37): error CS0112: A static member cannot be marked as 'abstract'
                 //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 37),
-                // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract type 'B'
-                //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
-                // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract type 'B'
-                //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 37)
+                );
         }
 
         [Fact]
@@ -2171,7 +2166,10 @@ abstract class B : A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q").WithLocation(8, 47),
                 // (9,50): error CS0112: A static member cannot be marked as 'abstract'
                 //     internal static abstract event System.Action R;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 50)
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 50),
+                // (9,50): warning CS0067: The event 'B.R' is never used
+                //     internal static abstract event System.Action R;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "R").WithArguments("B.R").WithLocation(9, 50)
                 );
         }
 
@@ -3880,10 +3878,10 @@ namespace N
             comp.VerifyDiagnostics(
                 // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base type dependency.
                 //     public class C3 : C1 { }
-                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2", "C1"),
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2"),
                 // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base type dependency.
                 //     public interface I3 : I1 { }
-                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2", "I1")
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2")
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -4573,7 +4571,7 @@ public class NormalType
             comp.VerifyDiagnostics(
                 // (14,17): error CS0400: The type or namespace name 'G' could not be found in the global namespace (are you missing an assembly reference?)
                 //         global::G field;
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G", "<global namespace>"),
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G"),
                 // (14,19): warning CS0169: The field 'NS.S.field' is never used
                 //         global::G field;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.S.field")
@@ -7783,7 +7781,7 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -10556,15 +10554,54 @@ class C
     {
     }
 }
+
+class C1
+{
+    public static int operator <<(C1 c1, int c2)
+    {
+        return 0;
+    }
+}
+
+class C2
+{
+    public static int operator <<(C2 c1, int? c2)
+    {
+        return 0;
+    }
+}
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (4,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static int operator <<(C c1, C c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<"),
-                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static int operator >>(int c1, int c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>"),
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS8936: Feature 'relaxed shift operator' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static int operator <<(C c1, C c2) // CS0564
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "<<").WithArguments("relaxed shift operator", "11.0").WithLocation(4, 32),
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
+                // (12,32): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(12, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
                 // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     public static int operator >>>(int c1, int c2) // CS0564
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
@@ -11483,7 +11520,7 @@ public class Test
                 // (2,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(2, 39),
-                // (2,2): error CS76: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
+                // (2,2): error CS76: There is no argument given that corresponds to the required parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2)
                 );
@@ -12585,10 +12622,10 @@ class A<T, S>
 {
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class C<T> : System.Attribute
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(1, 14));
         }
 
         [Fact]
@@ -12601,13 +12638,13 @@ class C<T>
 {
     class B : A { }
 }";
-            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (2,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class B<T> : A { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(2, 14),
-                // (5,15): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A").WithArguments("generic attributes", "11.0").WithLocation(2, 14),
+                // (5,15): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     class B : A { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(5, 15));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A").WithArguments("generic attributes", "11.0").WithLocation(5, 15));
         }
 
         [Fact]
@@ -12993,10 +13030,12 @@ static class D : B { }
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,29): error CS0714: 'NS.C': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C", "NS.I"),
-                // (15,25): error CS0714: 'NS.D<V>': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>", "NS.IGoo<string, V>"));
+                // (7,29): error CS0714: 'C': static classes cannot implement interfaces
+                //     public static class C : I
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C").WithLocation(7, 29),
+                // (15,25): error CS0714: 'D<V>': static classes cannot implement interfaces
+                //     static class D<V> : IGoo<string, V>
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>").WithLocation(15, 25));
         }
 
         [Fact]
@@ -13020,9 +13059,9 @@ public static class C
 //     public static C operator +(C c)  // CS0715
 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "+").WithArguments("C.operator +(C)"),
 
-// (4,30): error CS0721: 'C': static types cannot be used as parameters
+// (4,32): error CS0721: 'C': static types cannot be used as parameters
 //     public static C operator +(C c)  // CS0715
-Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "+").WithArguments("C"),
+Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C"),
 
 // (4,19): error CS0722: 'C': static types cannot be used as return types
 //     public static C operator +(C c)  // CS0715
@@ -13311,7 +13350,7 @@ static class S
         [Fact]
         public void CS0721ERR_ParameterIsStaticClass01()
         {
-            var text = @"namespace NS
+            var source = @"namespace NS
 {
     public static class C
     {
@@ -13340,13 +13379,16 @@ static class S
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): warning CS8897: 'D<T>': static types cannot be used as parameters
+                //         void M(D<T> d); // Dev10 no error?
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "D<T>").WithArguments("NS.D<T>").WithLocation(12, 16),
+                // (16,23): error CS0721: 'C': static types cannot be used as parameters
+                //         public void F(C p)  // CS0721
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("NS.C").WithLocation(16, 23),
+                // (22,25): error CS0721: 'D<T>': static types cannot be used as parameters
+                //             object M<T>(D<T> p1)  // CS0721
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "D<T>").WithArguments("NS.D<T>").WithLocation(22, 25));
         }
 
         [Fact]
@@ -13359,8 +13401,44 @@ class C
     S P { set { } }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,11): error CS0721: 'S': static types cannot be used as parameters
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("S").WithLocation(4, 11));
+                // (4,5): error CS0721: 'S': static types cannot be used as parameters
+                //     S P { set { } }
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(4, 5));
+        }
+
+        [WorkItem(61831, "https://github.com/dotnet/roslyn/issues/61831")]
+        [Fact]
+        public void CS0721ERR_ParameterIsStaticClass_Lambdas()
+        {
+            var source =
+@"static class S { }
+delegate void Dlg(S p);
+class C
+{
+    void M()
+    {
+        var _a = (S p) => { };
+        var _b = delegate (S p) { };
+        Dlg _c = (p) => { };
+        Dlg _d = p => { };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,19): error CS0721: 'S': static types cannot be used as parameters
+                // delegate void Dlg(S p);
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(2, 19),
+                // (7,18): error CS0721: 'S': static types cannot be used as parameters
+                //         var _a = (S p) => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(7, 19),
+                // (8,18): error CS0721: 'S': static types cannot be used as parameters
+                //         var _b = delegate (S p) { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(8, 28),
+                // (9,19): error CS0721: 'S': static types cannot be used as parameters
+                //         Dlg _c = (p) => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "p").WithArguments("S").WithLocation(9, 19),
+                // (10,18): error CS0721: 'S': static types cannot be used as parameters
+                //         Dlg _d = p => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "p").WithArguments("S").WithLocation(10, 18));
         }
 
         [Fact]
@@ -13419,8 +13497,9 @@ class C
     S P { get { return null; } }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,11): error CS0722: 'S': static types cannot be used as return types
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(4, 11));
+                // (4,5): error CS0722: 'S': static types cannot be used as return types
+                //     S P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(4, 5));
         }
 
         [WorkItem(530434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530434")]
@@ -13503,34 +13582,28 @@ interface I
 {
     void M1(C c); // 1
     C M2(); // 2
-    C Prop { get; set; } // 3, 4
-    C this[C c] { get; set; } // 5, 6, 7
+    C Prop { get; set; } // 3
+    C this[C c] { get; set; } // 4, 5
 }
 ";
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (5,10): warning CS8897: 'C': static types cannot be used as parameters
+                // (5,13): warning CS8897: 'C': static types cannot be used as parameters
                 //     void M1(C c); // 1
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "M1").WithArguments("C").WithLocation(5, 10),
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(5, 13),
                 // (6,7): warning CS8898: 'C': static types cannot be used as return types
                 //     C M2(); // 2
                 Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
-                // (7,14): warning CS8898: 'C': static types cannot be used as return types
-                //     C Prop { get; set; } // 3, 4
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(7, 14),
-                // (7,19): warning CS8897: 'C': static types cannot be used as parameters
-                //     C Prop { get; set; } // 3, 4
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19),
-                // (8,7): warning CS8897: 'C': static types cannot be used as parameters
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "this").WithArguments("C").WithLocation(8, 7),
-                // (8,19): warning CS8898: 'C': static types cannot be used as return types
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(8, 19),
-                // (8,24): warning CS8897: 'C': static types cannot be used as parameters
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
+                // (7,5): warning CS8898: 'C': static types cannot be used as return types
+                //     C Prop { get; set; } // 3
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(7, 5),
+                // (8,5): warning CS8898: 'C': static types cannot be used as return types
+                //     C this[C c] { get; set; } // 4, 5
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(8, 5),
+                // (8,12): warning CS8897: 'C': static types cannot be used as parameters
+                //     C this[C c] { get; set; } // 4, 5
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(8, 12)
             );
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4));
@@ -14539,8 +14612,8 @@ class Goo1
             compilation.VerifyDiagnostics(
                 // (3,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"),
-                // (4,17): error CS0721: 'C': static types cannot be used as parameters
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M2").WithArguments("C"),
+                // (4,25): error CS0721: 'C': static types cannot be used as parameters
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C"),
                 // (5,25): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic"));
         }
@@ -15190,7 +15263,6 @@ class AAttribute : Attribute { }
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ab[10]");
         }
 
-
         [Fact]
         public void CS1642ERR_FixedNotInStruct()
         {
@@ -15425,7 +15497,6 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("goo.ABC", "0"));
         }
 
-
         [Fact]
         public void C1666ERR_InvalidFixedBufferInUnfixedContext()
         {
@@ -15463,7 +15534,7 @@ unsafe struct @s
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,15): error CS1003: Syntax error, '(' expected
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-                Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("(", "bool"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("("),
                 // (8,27): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
@@ -15483,8 +15554,6 @@ unsafe struct @s
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]"));
         }
-
-
 
         [Fact()]
         public void CS1667ERR_AttributeNotOnAccessor()
@@ -16574,13 +16643,13 @@ namespace N1
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int I { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("C.I").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(5, 9),
                 // (6,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     static int S { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithArguments("C.S").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithLocation(6, 16),
                 // (7,19): error CS8050: Only auto-implemented properties can have initializers.
                 //     protected int P { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("C.P").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(7, 19)
             );
         }
 
@@ -17389,7 +17458,6 @@ namespace SA
                 // (7,16): warning CS0169: The field 'SA.Test.cls' is never used
                 //         Class1 cls;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "cls").WithArguments("SA.Test.cls"));
-
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("SA").Single() as NamespaceSymbol;
             // TODO...
@@ -18517,7 +18585,7 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -19156,7 +19224,6 @@ namespace NS
                 //         public int MyMeth;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "MyMeth").WithArguments("NS.MyType.MyMeth", "0")
                 );
-
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("MyType").Single() as NamedTypeSymbol;
@@ -21028,10 +21095,10 @@ class cédille { }
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(6));
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(expected);
         }
 
@@ -21089,10 +21156,10 @@ class CM
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(6));
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(expected);
         }
 
@@ -21134,7 +21201,7 @@ using cédille = System.Console;
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(6));
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using one = System.Console;
@@ -21153,7 +21220,7 @@ using cédille = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using cédille = System.Console;").WithLocation(6, 1)
                 );
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(expected);
         }
 
@@ -21176,7 +21243,7 @@ class \u00B5 { }
 class \u00c0 { }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8981: The type name 'a' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class a { }
@@ -21194,7 +21261,7 @@ class \u00c0 { }
 class \u0060 { }
 ";
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(
                 // (3,7): error CS1001: Identifier expected
                 // class \u0060 { }
@@ -21221,7 +21288,7 @@ class \u0060 { }
 class \u007c { }
 ";
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular11, options: TestOptions.DebugDll.WithWarningLevel(7));
             comp.VerifyDiagnostics(
                 // (3,7): error CS1001: Identifier expected
                 // class \u007c { }
@@ -21435,6 +21502,551 @@ class Test
                 //         Test x = new Derived();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Derived()").WithArguments("Derived", "Test").WithLocation(10, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_01()
+        {
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+[assembly: TypeForwardedTo(typeof(C2))]
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_02()
+        {
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+[assembly: TypeForwardedTo(typeof(C2))]
+";
+
+            var comp2 = CreateCompilation(new[] { source1, source2 });
+            comp2.VerifyEmitDiagnostics(
+                // (4,12): error CS0729: Type 'C1' is defined in this assembly, but a type forwarder is specified for it
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(C1))").WithArguments("C1").WithLocation(4, 12),
+                // (5,12): error CS0729: Type 'C2' is defined in this assembly, but a type forwarder is specified for it
+                // [assembly: TypeForwardedTo(typeof(C2))]
+                Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(C2))").WithArguments("C2").WithLocation(5, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_03()
+        {
+            // Other attributes are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+[assembly: TypeForwarded_2(typeof(C1))]
+[assembly: TypeForwarded_2(typeof(C2))]
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_04()
+        {
+            // Other attributes in the same file are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+
+[assembly: TypeForwarded_2(typeof(C1))]
+[assembly: TypeForwarded_2(typeof(C2))]
+
+[assembly: TypeForwardedTo(typeof(C2))]
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (6,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(6, 35),
+                // (7,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(7, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_05()
+        {
+            // Other attributes in a different file at the same position are not affected
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+[assembly: {0}(typeof(C1))]
+[assembly: {0}(typeof(C2))]
+";
+            var source3 = @"
+global using System.Runtime.CompilerServices;
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(new[] { string.Format(source2, "TypeForwarded_2"), string.Format(source2, "TypeForwardedTo"), source3 }, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+
+            comp2.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp2.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true).Verify(
+                // (2,35): error CS0619: 'C1' is obsolete: 'Error'
+                // [assembly: TypeForwarded_2(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(2, 35),
+                // (3,35): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [assembly: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(3, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_06()
+        {
+            // Attributes on other targets are not affected, including mistaken application of TypeForwardedTo
+            var source1 = @"
+using System;
+
+[Obsolete(""Error"", error: true)]
+public class C1
+{
+}
+
+[Obsolete(""Warning"", error: false)]
+public class C2
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, assemblyName: "Lib1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[module: TypeForwardedTo(typeof(C1))]
+[module: TypeForwarded_2(typeof(C2))]
+
+[TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+{
+    [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+    {}
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class TypeForwarded_2Attribute : System.Attribute
+{
+    public TypeForwarded_2Attribute(System.Type type) { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (4,10): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                // [module: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(4, 10),
+                // (4,33): error CS0619: 'C1' is obsolete: 'Error'
+                // [module: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(4, 33),
+                // (5,33): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [module: TypeForwarded_2(typeof(C2))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(5, 33),
+                // (7,2): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(7, 2),
+                // (7,25): error CS0619: 'C1' is obsolete: 'Error'
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(7, 25),
+                // (7,54): warning CS0618: 'C2' is obsolete: 'Warning'
+                // [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))] class C3
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(7, 54),
+                // (9,6): error CS0592: Attribute 'TypeForwardedTo' is not valid on this declaration type. It is only valid on 'assembly' declarations.
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeForwardedTo").WithArguments("TypeForwardedTo", "assembly").WithLocation(9, 6),
+                // (9,29): error CS0619: 'C1' is obsolete: 'Error'
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C1").WithArguments("C1", "Error").WithLocation(9, 29),
+                // (9,58): warning CS0618: 'C2' is obsolete: 'Warning'
+                //     [TypeForwardedTo(typeof(C1))][TypeForwarded_2(typeof(C2))]void M1()
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C2").WithArguments("C2", "Warning").WithLocation(9, 58)
+                );
+        }
+
+        [Fact]
+        [WorkItem(61264, "https://github.com/dotnet/roslyn/issues/61264")]
+        public void ForwardObsoleteType_07()
+        {
+            // Other errors within the same span are not affected
+
+            // IL is equivalent to:
+            // 
+            // using System;
+            // using System.Runtime.CompilerServices;
+            // 
+            // [Obsolete("Error", error: true)]
+            // [CompilerFeatureRequired("SomeFeatureIsRequired")]
+            // public class C1
+            // {
+            // }
+
+            var ilSsource1 = @"
+.class public auto ansi beforefieldinit C1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+        01 00 05 45 72 72 6f 72 01 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+        01 00 15 53 6f 6d 65 46 65 61 74 75 72 65 49 73
+        52 65 71 75 69 72 65 64 00 00
+    )
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string featureName
+        ) cil managed 
+    {
+        IL_000f: ret
+    } // end of method CompilerFeatureRequiredAttribute::.ctor
+} // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+";
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(C1))]
+";
+
+            var comp2 = CreateCompilationWithIL(source2, ilSsource1);
+            comp2.VerifyEmitDiagnostics(
+                // (4,12): error CS9041: 'C1' requires compiler feature 'SomeFeatureIsRequired', which is not supported by this version of the C# compiler.
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "TypeForwardedTo(typeof(C1))").WithArguments("C1", "SomeFeatureIsRequired").WithLocation(4, 12),
+                // (4,35): error CS9041: 'C1' requires compiler feature 'SomeFeatureIsRequired', which is not supported by this version of the C# compiler.
+                // [assembly: TypeForwardedTo(typeof(C1))]
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "C1").WithArguments("C1", "SomeFeatureIsRequired").WithLocation(4, 35)
+                );
+        }
+
+        [Fact]
+        public void PartialConstructor()
+        {
+            CreateCompilation(new[]
+            {
+                """
+                public class PartialCtor
+                {
+                    partial PartialCtor() { }
+                }
+                """,
+                """
+                public class PublicPartialCtor
+                {
+                    public partial PublicPartialCtor() { }
+                }
+                """,
+                """
+                public class PartialPublicCtor
+                {
+                    partial public PartialPublicCtor() { }
+                }
+                """
+            }).VerifyDiagnostics(
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial public PartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial public PartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial PartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 5),
+                // (3,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial PublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 12),
+                // (3,13): error CS0542: 'PartialCtor': member names cannot be the same as their enclosing type
+                //     partial PartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PartialCtor").WithArguments("PartialCtor").WithLocation(3, 13),
+                // (3,13): error CS0161: 'PartialCtor.PartialCtor()': not all code paths return a value
+                //     partial PartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "PartialCtor").WithArguments("PartialCtor.PartialCtor()").WithLocation(3, 13),
+                // (3,20): error CS0542: 'PublicPartialCtor': member names cannot be the same as their enclosing type
+                //     public partial PublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PublicPartialCtor").WithArguments("PublicPartialCtor").WithLocation(3, 20),
+                // (3,20): error CS0161: 'PublicPartialCtor.PublicPartialCtor()': not all code paths return a value
+                //     public partial PublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "PublicPartialCtor").WithArguments("PublicPartialCtor.PublicPartialCtor()").WithLocation(3, 20));
+        }
+
+        [Fact]
+        public void PartialStaticConstructor()
+        {
+            CreateCompilation(new[]
+            {
+                """
+                public class PartialStaticCtor
+                {
+                    partial static PartialStaticCtor() { }
+                }
+                """,
+                """
+                public class StaticPartialCtor
+                {
+                    static partial StaticPartialCtor() { }
+                }
+                """,
+                """
+                public class PublicStaticPartialCtor
+                {
+                    public static partial PublicStaticPartialCtor() { }
+                }
+                """,
+                """
+                public class PublicPartialStaticCtor
+                {
+                    public partial static PublicPartialStaticCtor() { }
+                }
+                """,
+                """
+                public class StaticPublicPartialCtor
+                {
+                    static public partial StaticPublicPartialCtor() { }
+                }
+                """,
+                """
+                public class StaticPartialPublicCtor
+                {
+                    static partial public StaticPartialPublicCtor() { }
+                }
+                """,
+                """
+                public class PartialStaticPublicCtor
+                {
+                    partial static public PartialStaticPublicCtor() { }
+                }
+                """,
+                """
+                public class PartialPublicStaticCtor
+                {
+                    partial public static PartialPublicStaticCtor() { }
+                }
+                """,
+            }).VerifyDiagnostics(
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial static PartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial static PartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial static public PartialStaticPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     partial static public PartialStaticPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     public partial static PublicPartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     public partial static PublicPartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+                // (3,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     static partial StaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 12),
+                // (3,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static partial PublicStaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 19),
+                // (3,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     static public partial StaticPublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 19),
+                // (3,20): error CS0542: 'StaticPartialCtor': member names cannot be the same as their enclosing type
+                //     static partial StaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "StaticPartialCtor").WithArguments("StaticPartialCtor").WithLocation(3, 20),
+                // (3,20): error CS0161: 'StaticPartialCtor.StaticPartialCtor()': not all code paths return a value
+                //     static partial StaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "StaticPartialCtor").WithArguments("StaticPartialCtor.StaticPartialCtor()").WithLocation(3, 20),
+                // (3,27): error CS0515: 'PartialPublicStaticCtor.PartialPublicStaticCtor()': access modifiers are not allowed on static constructors
+                //     partial public static PartialPublicStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PartialPublicStaticCtor").WithArguments("PartialPublicStaticCtor.PartialPublicStaticCtor()").WithLocation(3, 27),
+                // (3,27): error CS0515: 'PublicPartialStaticCtor.PublicPartialStaticCtor()': access modifiers are not allowed on static constructors
+                //     public partial static PublicPartialStaticCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PublicPartialStaticCtor").WithArguments("PublicPartialStaticCtor.PublicPartialStaticCtor()").WithLocation(3, 27),
+                // (3,27): error CS0515: 'StaticPartialPublicCtor.StaticPartialPublicCtor()': access modifiers are not allowed on static constructors
+                //     static partial public StaticPartialPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "StaticPartialPublicCtor").WithArguments("StaticPartialPublicCtor.StaticPartialPublicCtor()").WithLocation(3, 27),
+                // (3,27): error CS0515: 'PartialStaticPublicCtor.PartialStaticPublicCtor()': access modifiers are not allowed on static constructors
+                //     partial static public PartialStaticPublicCtor() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "PartialStaticPublicCtor").WithArguments("PartialStaticPublicCtor.PartialStaticPublicCtor()").WithLocation(3, 27),
+                // (3,27): error CS0542: 'StaticPublicPartialCtor': member names cannot be the same as their enclosing type
+                //     static public partial StaticPublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "StaticPublicPartialCtor").WithArguments("StaticPublicPartialCtor").WithLocation(3, 27),
+                // (3,27): error CS0542: 'PublicStaticPartialCtor': member names cannot be the same as their enclosing type
+                //     public static partial PublicStaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "PublicStaticPartialCtor").WithArguments("PublicStaticPartialCtor").WithLocation(3, 27),
+                // (3,27): error CS0161: 'StaticPublicPartialCtor.StaticPublicPartialCtor()': not all code paths return a value
+                //     static public partial StaticPublicPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "StaticPublicPartialCtor").WithArguments("StaticPublicPartialCtor.StaticPublicPartialCtor()").WithLocation(3, 27),
+                // (3,27): error CS0161: 'PublicStaticPartialCtor.PublicStaticPartialCtor()': not all code paths return a value
+                //     public static partial PublicStaticPartialCtor() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "PublicStaticPartialCtor").WithArguments("PublicStaticPartialCtor.PublicStaticPartialCtor()").WithLocation(3, 27));
         }
     }
 }

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
@@ -25,12 +26,13 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
     public class GenerateEqualsAndGetHashCodeFromMembersTests
     {
         private class TestWithDialog : VerifyCS.Test
         {
             private static readonly TestComposition s_composition =
-                FeaturesTestCompositions.Features.AddParts(typeof(TestPickMembersService));
+                EditorTestCompositions.EditorFeatures.AddParts(typeof(TestPickMembersService));
 
             public ImmutableArray<string> MemberNames;
             public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsSingleField()
         {
             var code =
@@ -107,7 +109,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsSingleField_CSharp7()
         {
             var code =
@@ -140,8 +142,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         public async Task TestEqualsSingleField_PreferExplicitType()
         {
             var code =
@@ -175,7 +176,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestReferenceIEquatable()
         {
             var code =
@@ -217,7 +218,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestNullableReferenceIEquatable()
         {
             var code =
@@ -265,7 +266,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestValueIEquatable()
         {
             var code =
@@ -307,7 +308,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsLongName()
         {
             var code =
@@ -341,7 +342,7 @@ class ReallyLongName
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsKeywordName()
         {
             var code =
@@ -375,7 +376,7 @@ class ReallyLongLong
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsProperty()
         {
             var code =
@@ -414,7 +415,7 @@ class ReallyLongName
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsBaseTypeWithNoEquals()
         {
             var code =
@@ -452,7 +453,7 @@ class Program : Base
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsBaseWithOverriddenEquals()
         {
             var code =
@@ -509,7 +510,7 @@ class Program : Base
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsOverriddenDeepBase()
         {
             var code =
@@ -573,7 +574,7 @@ class Program : Middle
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsStruct()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -617,7 +618,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsStructCSharpLatest()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -661,7 +662,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsStructAlreadyImplementsIEquatable()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -702,7 +703,7 @@ struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsStructAlreadyHasOperators()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -743,7 +744,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsStructAlreadyImplementsIEquatableAndHasOperators()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -780,7 +781,7 @@ struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsGenericType()
         {
             var code = @"
@@ -815,7 +816,7 @@ class Program<T>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsNullableContext()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -839,7 +840,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeSingleField1()
         {
             var code =
@@ -879,7 +880,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeSingleField2()
         {
             var code =
@@ -919,7 +920,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeWithBaseHashCode1()
         {
             var code =
@@ -970,7 +971,7 @@ class Program : Base
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeWithBaseHashCode2()
         {
             var code =
@@ -1019,7 +1020,7 @@ class Program : Base
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeSingleField_CodeStyle1()
         {
             var code =
@@ -1059,7 +1060,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeTypeParameter()
         {
             var code =
@@ -1099,7 +1100,7 @@ class Program<T>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeGenericType()
         {
             var code =
@@ -1139,7 +1140,7 @@ class Program<T>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeMultipleMembers()
         {
             var code =
@@ -1187,7 +1188,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestSmartTagText1()
         {
             var code =
@@ -1234,7 +1235,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestSmartTagText2()
         {
             var code =
@@ -1289,7 +1290,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestSmartTagText3()
         {
             var code =
@@ -1344,7 +1345,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task Tuple_Disabled()
         {
             var code =
@@ -1379,7 +1380,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task Tuples_Equals()
         {
             var code =
@@ -1413,7 +1414,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TupleWithNames_Equals()
         {
             var code =
@@ -1447,7 +1448,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task Tuple_HashCode()
         {
             var code =
@@ -1487,7 +1488,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TupleWithNames_HashCode()
         {
             var code =
@@ -1527,7 +1528,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task StructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
         {
             var code =
@@ -1575,7 +1576,7 @@ struct Bar
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task StructWithGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
         {
             var code =
@@ -1625,7 +1626,7 @@ struct Bar
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task NullableStructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
         {
             var code =
@@ -1673,7 +1674,7 @@ struct Bar
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task StructTypeParameter_ShouldCallGetHashCodeDirectly()
         {
             var code =
@@ -1713,7 +1714,7 @@ class Foo<TBar> where TBar : struct
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task NullableStructTypeParameter_ShouldCallGetHashCodeDirectly()
         {
             var code =
@@ -1753,7 +1754,7 @@ class Foo<TBar> where TBar : struct
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task Enum_ShouldCallGetHashCodeDirectly()
         {
             var code =
@@ -1801,7 +1802,7 @@ enum Bar
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task PrimitiveValueType_ShouldCallGetHashCodeDirectly()
         {
             var code =
@@ -1841,7 +1842,7 @@ class Foo
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestWithDialog1()
         {
             var code =
@@ -1880,7 +1881,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestWithDialog2()
         {
             var code =
@@ -1921,7 +1922,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestWithDialog3()
         {
             var code =
@@ -1960,8 +1961,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
         public async Task TestWithDialogNoBackingField()
         {
             var code =
@@ -1994,8 +1994,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
         public async Task TestWithDialogNoIndexer()
         {
             var code =
@@ -2027,8 +2026,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(25707, "https://github.com/dotnet/roslyn/issues/25707")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(25707, "https://github.com/dotnet/roslyn/issues/25707")]
         public async Task TestWithDialogNoSetterOnlyProperty()
         {
             var code =
@@ -2060,8 +2058,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")]
         public async Task TestWithDialogInheritedMembers()
         {
             var code =
@@ -2113,7 +2110,7 @@ class Derived : Middle
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGenerateOperators1()
         {
             var code =
@@ -2162,7 +2159,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGenerateOperators2()
         {
             var code =
@@ -2207,7 +2204,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGenerateOperators3()
         {
             var code =
@@ -2250,7 +2247,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGenerateOperators4()
         {
             var code =
@@ -2303,7 +2300,7 @@ struct Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGenerateLiftedOperators()
         {
             var code =
@@ -2359,7 +2356,7 @@ enum Bar
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task LiftedOperatorIsNotUsedWhenDirectOperatorWouldNotBeUsed()
         {
             var code =
@@ -2431,7 +2428,7 @@ struct Bar : IEquatable<Bar>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnStruct()
         {
             var code =
@@ -2474,8 +2471,7 @@ struct Program : IEquatable<Program>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        [Fact, WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
         public async Task TestOverrideEqualsOnRefStructReturnsFalse()
         {
             var code =
@@ -2504,8 +2500,7 @@ ref struct Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        [Fact, WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
         public async Task TestImplementIEquatableOnRefStructSkipsIEquatable()
         {
             var code =
@@ -2539,7 +2534,7 @@ ref struct Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
         {
             var code =
@@ -2580,7 +2575,7 @@ struct Foo : IEquatable<Foo>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnStructInNullableContextWithAnnotatedMetadata()
         {
             var code =
@@ -2629,7 +2624,7 @@ struct Foo : IEquatable<Foo>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnClass_CSharp6()
         {
             var code =
@@ -2673,7 +2668,7 @@ class Program : IEquatable<Program>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnClass_CSharp7()
         {
             var code =
@@ -2717,7 +2712,7 @@ class Program : IEquatable<Program>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnClass_CSharp8()
         {
             var code =
@@ -2761,7 +2756,7 @@ class Program : IEquatable<Program>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnClass_CSharp9()
         {
             var code =
@@ -2805,7 +2800,7 @@ class Program : IEquatable<Program>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnClassInNullableContextWithUnannotatedMetadata()
         {
             var code =
@@ -2847,7 +2842,7 @@ class Foo : IEquatable<Foo?>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestImplementIEquatableOnClassInNullableContextWithAnnotatedMetadata()
         {
             var code =
@@ -2897,7 +2892,7 @@ class Foo : IEquatable<Foo?>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestDoNotOfferIEquatableIfTypeAlreadyImplementsIt()
         {
             var code =
@@ -2936,7 +2931,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestMissingReferences1()
         {
             await new VerifyCS.Test
@@ -3024,8 +3019,6 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS0518").WithSpan(16, 21, 16, 27).WithArguments("System.Object"),
     // /0/Test0.cs(16,28): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
     DiagnosticResult.CompilerError("CS1069").WithSpan(16, 28, 16, 33).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-    // /0/Test0.cs(16,34): error CS0115: 'Class1.GetHashCode()': no suitable method found to override
-    DiagnosticResult.CompilerError("CS0115").WithSpan(16, 34, 16, 45).WithArguments("Class1.GetHashCode()"),
     // /0/Test0.cs(18,16): error CS0518: Predefined type 'System.Int32' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(18, 16, 18, 25).WithArguments("System.Int32"),
     // /0/Test0.cs(18,28): error CS0103: The name 'EqualityComparer' does not exist in the current context
@@ -3042,7 +3035,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeInCheckedContext()
         {
             var code =
@@ -3100,7 +3093,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeStruct()
         {
             var code =
@@ -3154,7 +3147,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeSystemHashCodeOneMember()
         {
             var code =
@@ -3218,8 +3211,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
         public async Task TestPublicSystemHashCodeOtherProject()
         {
             var publicHashCode =
@@ -3292,8 +3284,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
         public async Task TestInternalSystemHashCode()
         {
             var internalHashCode =
@@ -3358,7 +3349,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeSystemHashCodeEightMembers()
         {
             var code =
@@ -3429,7 +3420,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestGetHashCodeSystemHashCodeNineMembers()
         {
             var code =
@@ -3503,8 +3494,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         public async Task TestGetHashCodeSystemHashCodeNineMembers_Explicit()
         {
             var code =
@@ -3578,7 +3568,7 @@ struct S : IEquatable<S>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsSingleField_Patterns()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -3602,7 +3592,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsSingleFieldInStruct_Patterns()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -3641,7 +3631,7 @@ struct Program : IEquatable<Program>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact]
         public async Task TestEqualsBaseWithOverriddenEquals_Patterns()
         {
             var code =
@@ -3695,8 +3685,7 @@ class Program : Base
             }.RunAsync();
         }
 
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialSelection()
         {
             var code =
@@ -3714,8 +3703,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
         public async Task TestEqualityOperatorsNullableAnnotationWithReferenceType()
         {
             var code =
@@ -3781,8 +3769,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
         public async Task TestEqualityOperatorsNullableAnnotationWithValueType()
         {
             var code =
@@ -3837,8 +3824,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
         public async Task TestPartialTypes1()
         {
             await new TestWithDialog
@@ -3890,8 +3876,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
         public async Task TestPartialTypes2()
         {
             await new TestWithDialog
@@ -3941,8 +3926,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
         public async Task TestPartialTypes3()
         {
             await new TestWithDialog
@@ -3992,8 +3976,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
         public async Task TestPartialTypes4()
         {
             await new TestWithDialog
@@ -4045,8 +4028,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact, WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")]
         public async Task TestAbstractBase()
         {
             var code =

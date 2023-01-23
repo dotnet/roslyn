@@ -229,7 +229,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
         Private Shared Async Function TestAsync(definition As XElement, expectedName As String, expectedOrdinal As Integer) As Task
             Using workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim project = workspace.CurrentSolution.Projects.First()
-                Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
+                Dim codeModelService = project.Services.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)

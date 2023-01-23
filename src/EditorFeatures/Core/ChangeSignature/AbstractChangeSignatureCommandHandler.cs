@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -22,9 +24,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         ICommandHandler<RemoveParametersCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
 
-        protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
+        protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+        {
+            _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
+        }
 
         public string DisplayName => EditorFeaturesResources.Change_Signature;
 
@@ -74,11 +80,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 var cancellationToken = context.OperationContext.UserCancellationToken;
 
+                // TODO: Make asynchronous and avoid expensive semantic operations on UI thread:
+                // https://github.com/dotnet/roslyn/issues/62135
+
                 // Async operation to determine the change signature
                 var changeSignatureContext = changeSignatureService.GetChangeSignatureContextAsync(
                     document,
                     caretPoint.Value.Position,
                     restrictToDeclarations: false,
+                    _globalOptions.CreateProvider(),
                     cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
                 // UI thread bound operation to show the change signature dialog.

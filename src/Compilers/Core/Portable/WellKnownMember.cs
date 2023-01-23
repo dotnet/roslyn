@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CallSite_T__Create,
         System_Runtime_CompilerServices_CallSite_T__Target,
 
+        System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject,
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
@@ -442,6 +443,7 @@ namespace Microsoft.CodeAnalysis
 
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
+        System_ReadOnlySpan_T__ctor_Array_Start_Length,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
 
@@ -499,6 +501,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ITuple__get_Length,
 
         System_InvalidOperationException__ctor,
+        System_InvalidOperationException__ctorString,
         System_Runtime_CompilerServices_SwitchExpressionException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
@@ -518,10 +521,20 @@ namespace Microsoft.CodeAnalysis
         System_Text_StringBuilder__ctor,
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
+        System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
+        System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
+        System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
 
         System_MemoryExtensions__SequenceEqual_Span_T,
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
         System_MemoryExtensions__AsSpan_String,
+
+        System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+
+        System_MissingMethodException__ctor,
+        System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
         Count
 

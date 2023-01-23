@@ -300,7 +300,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
@@ -368,7 +368,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),

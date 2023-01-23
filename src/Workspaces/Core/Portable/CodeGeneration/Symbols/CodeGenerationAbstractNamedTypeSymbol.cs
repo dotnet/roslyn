@@ -121,5 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public INamedTypeSymbol TupleUnderlyingType => null;
 
         public bool IsSerializable => false;
+
+        public bool IsFileLocal => Modifiers.IsFile;
     }
 }

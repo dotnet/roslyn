@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             = new();
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly Func<ImmutableArray<Project>, CancellationToken, ValueTask> _processBatchAsync;
+        private readonly Func<ImmutableSegmentedList<Project>, CancellationToken, ValueTask> _processBatchAsync;
         private readonly CancellationToken _disposalToken;
 
         protected AbstractImportCompletionCacheServiceFactory(
             IAsynchronousOperationListenerProvider listenerProvider,
-            Func<ImmutableArray<Project>, CancellationToken, ValueTask> processBatchAsync
+            Func<ImmutableSegmentedList<Project>, CancellationToken, ValueTask> processBatchAsync
             , CancellationToken disposalToken)
         {
             _listenerProvider = listenerProvider;

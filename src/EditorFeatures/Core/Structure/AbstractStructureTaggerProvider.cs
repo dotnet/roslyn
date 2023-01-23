@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -41,19 +42,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     internal abstract partial class AbstractStructureTaggerProvider :
         AsynchronousTaggerProvider<IStructureTag>
     {
-        protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
+        private const string RegionDirective = "#region";
+        private const string UsingDirective = "using";
+        private const string ExternDeclaration = "extern";
+        private const string ImportsStatement = "Imports";
+
+        protected readonly EditorOptionsService EditorOptionsService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
             IThreadingContext threadingContext,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
+            : base(threadingContext, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
         {
-            EditorOptionsFactoryService = editorOptionsFactoryService;
+            EditorOptionsService = editorOptionsService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
 
@@ -67,38 +72,82 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (openDocument == null)
                 return false;
 
+            // If the main Outlining option is turned off, we can just skip computing tags synchronously
+            // so when the document first opens, there won't be any tags yet. When the tags do come in
+            // the IsDefaultCollapsed property, which controls the initial collapsing, won't have any effect
+            // because the document will already be open.
             if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
                 return false;
 
+            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(GlobalOptions, openDocument.Project);
+
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
-            var isMetadataAsSource = openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
-            if (isMetadataAsSource)
+            if (openDocument.Project.Solution.Workspace is MetadataAsSourceWorkspace masWorkspace &&
+                masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options))
+            {
                 return true;
+            }
 
-            // If we contain any #region sections, we want to collapse those automatically on open the first
-            // time a doc is ever opened.  So we need to compute the initial tags synchronously in order to
-            // do that.
-            if (ContainsRegionTag(subjectBuffer.CurrentSnapshot))
+            // If the user wants to collapse imports or #regions then we need to compute
+            // synchronously, but only if there are imports or #regions in the file. To
+            // save some work, we'll look for both in a single pass.
+            var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, openDocument.Project.Language);
+            var collapseImports = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, openDocument.Project.Language);
+
+            if (!collapseRegions && !collapseImports)
+            {
+                return false;
+            }
+
+            if (ContainsRegionOrImport(subjectBuffer.CurrentSnapshot, collapseRegions, collapseImports, openDocument.Project.Language))
+            {
                 return true;
+            }
+
+            return false;
+        }
+
+        // Internal for testing
+        internal static bool ContainsRegionOrImport(ITextSnapshot textSnapshot, bool collapseRegions, bool collapseImports, string language)
+        {
+            foreach (var line in textSnapshot.Lines)
+            {
+                if (collapseRegions && StartsWithRegionTag(line))
+                {
+                    return true;
+                }
+                else if (collapseImports && IsImport(line, language))
+                {
+                    return true;
+                }
+            }
 
             return false;
 
-            static bool ContainsRegionTag(ITextSnapshot textSnapshot)
+            static bool StartsWithRegionTag(ITextSnapshotLine line)
             {
-                foreach (var line in textSnapshot.Lines)
+                var start = line.GetFirstNonWhitespacePosition();
+                return start != null && line.StartsWith(start.Value, RegionDirective, ignoreCase: true);
+            }
+
+            static bool IsImport(ITextSnapshotLine line, string language)
+            {
+                var start = line.GetFirstNonWhitespacePosition();
+                if (start is null)
+                    return false;
+
+                // For VB we only need to find "Imports" at the start of a line
+                if (language == LanguageNames.VisualBasic)
                 {
-                    if (StartsWithRegionTag(line))
-                        return true;
+                    return line.StartsWith(start.Value, ImportsStatement, ignoreCase: true);
                 }
 
-                return false;
+                // For the purposes of collapsing, extern aliases are grouped with usings
+                if (line.StartsWith(start.Value, ExternDeclaration, ignoreCase: false))
+                    return true;
 
-                static bool StartsWithRegionTag(ITextSnapshotLine line)
-                {
-                    var start = line.GetFirstNonWhitespacePosition();
-                    return start != null && line.StartsWith(start.Value, "#region", ignoreCase: true);
-                }
+                return line.StartsWith(start.Value, UsingDirective, ignoreCase: false);
             }
         }
 
@@ -119,13 +168,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
         }
 
         protected sealed override async Task ProduceTagsAsync(
@@ -155,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -173,6 +222,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 var tag = new StructureTag(this, span, snapshot);
                 context.AddTag(new TagSpan<IStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
             }
+        }
+
+        protected override bool TagEquals(IStructureTag tag1, IStructureTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 is StructureTag);
+            Contract.ThrowIfFalse(tag2 is StructureTag);
+            return tag1.Equals(tag2);
         }
 
         internal abstract object? GetCollapsedHintForm(StructureTag structureTag);
@@ -301,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             SnapshotSpan shortHintSpan)
         {
             return ProjectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
-                EditorOptionsFactoryService.GlobalOptions,
+                EditorOptionsService.Factory.GlobalOptions,
                 contentType: null,
                 exposedSpans: shortHintSpan);
         }

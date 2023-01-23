@@ -8,8 +8,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Roslyn.Utilities;
-using System.Threading;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
@@ -43,20 +43,20 @@ namespace Microsoft.CodeAnalysis
 
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode)
+            : this(messageProvider, errorCode, Array.Empty<object>())
         {
-            _messageProvider = messageProvider;
-            _errorCode = errorCode;
-            _defaultSeverity = messageProvider.GetSeverity(errorCode);
-            _effectiveSeverity = _defaultSeverity;
-            _arguments = Array.Empty<object>();
         }
 
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, params object[] arguments)
-            : this(messageProvider, errorCode)
         {
             AssertMessageSerializable(arguments);
+            AssertExpectedMessageArgumentsLength(messageProvider, errorCode, arguments.Length);
 
+            _messageProvider = messageProvider;
+            _errorCode = errorCode;
+            _defaultSeverity = messageProvider.GetSeverity(errorCode);
+            _effectiveSeverity = _defaultSeverity;
             _arguments = arguments;
         }
 
@@ -78,7 +78,11 @@ namespace Microsoft.CodeAnalysis
 
         private static DiagnosticDescriptor GetOrCreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
         {
-            return ImmutableInterlocked.GetOrAdd(ref s_errorCodeToDescriptorMap, errorCode, code => CreateDescriptor(code, defaultSeverity, messageProvider));
+            return ImmutableInterlocked.GetOrAdd(
+                ref s_errorCodeToDescriptorMap,
+                errorCode,
+                static (code, arg) => CreateDescriptor(code, arg.defaultSeverity, arg.messageProvider),
+                (defaultSeverity, messageProvider));
         }
 
         private static DiagnosticDescriptor CreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
@@ -120,6 +124,32 @@ namespace Microsoft.CodeAnalysis
 
                 throw ExceptionUtilities.UnexpectedValue(type);
             }
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertExpectedMessageArgumentsLength(CommonMessageProvider messageProvider, int errorCode, int actualLength)
+        {
+#if DEBUG
+            if (!messageProvider.ShouldAssertExpectedMessageArgumentsLength(errorCode))
+            {
+                return;
+            }
+            string message = messageProvider.LoadMessage(errorCode, language: null);
+            var matches = Regex.Matches(message, @"\{\d+[}:]");
+            int expectedLength = 0;
+            var bits = BitVector.Create(actualLength);
+            foreach (object? m in matches)
+            {
+                if (m is Match match)
+                {
+                    int value = int.Parse(match.Value[1..^1]);
+                    expectedLength = Math.Max(value + 1, expectedLength);
+                    bits[value] = true;
+                }
+            }
+            Debug.Assert(expectedLength == actualLength);
+            Debug.Assert(bits == BitVector.AllSet(actualLength));
+#endif
         }
 
         // Only the compiler creates instances.
@@ -467,7 +497,7 @@ namespace Microsoft.CodeAnalysis
         internal virtual DiagnosticInfo GetResolvedInfo()
         {
             // We should never call GetResolvedInfo on a non-lazy DiagnosticInfo
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

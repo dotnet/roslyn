@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class BreakKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtRoot()
         {
             await VerifyAbsenceAsync(
 @"$$", options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalStatement()
         {
             await VerifyAbsenceAsync(
@@ -35,7 +34,7 @@ $$");
 $$", options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration()
         {
             await VerifyAbsenceAsync(
@@ -43,21 +42,21 @@ $$", options: CSharp9ParseOptions);
 $$", options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestEmptyStatement(bool topLevelStatement)
         {
@@ -65,7 +64,7 @@ $$", options: CSharp9ParseOptions);
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestBeforeStatement(bool topLevelStatement)
         {
@@ -74,7 +73,7 @@ $$", options: CSharp9ParseOptions);
 return true;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterStatement(bool topLevelStatement)
         {
@@ -83,7 +82,7 @@ return true;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptio
 $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterBlock(bool topLevelStatement)
         {
@@ -93,7 +92,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterIf(bool topLevelStatement)
         {
@@ -102,7 +101,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterDo(bool topLevelStatement)
         {
@@ -111,7 +110,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterWhile(bool topLevelStatement)
         {
@@ -120,7 +119,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterFor(bool topLevelStatement)
         {
@@ -129,7 +128,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterForeach(bool topLevelStatement)
         {
@@ -138,7 +137,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestNotInsideLambda(bool topLevelStatement)
         {
@@ -148,7 +147,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
      $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestNotInsideAnonymousMethod(bool topLevelStatement)
         {
@@ -158,7 +157,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
      $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestInsideSwitch(bool topLevelStatement)
         {
@@ -168,7 +167,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
        $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestNotInsideSwitchWithLambda(bool topLevelStatement)
         {
@@ -179,7 +178,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestInsideSwitchOutsideLambda(bool topLevelStatement)
         {
@@ -191,7 +190,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
       $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestNotAfterBreak(bool topLevelStatement)
         {
@@ -199,7 +198,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 @"break $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInClass()
         {
             await VerifyAbsenceAsync(@"class C
@@ -208,7 +207,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterYield(bool topLevelStatement)
         {
@@ -216,7 +215,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 @"yield $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterSwitchInSwitch(bool topLevelStatement)
         {
@@ -228,7 +227,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
       $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAfterBlockInSwitch(bool topLevelStatement)
         {

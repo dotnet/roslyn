@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -33,12 +34,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly SyntaxNode _typeDeclaration;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _selectedMembers;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public GenerateEqualsAndGetHashCodeAction(
                 Document document,
                 SyntaxNode typeDeclaration,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> selectedMembers,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool generateEquals,
                 bool generateGetHashCode,
                 bool implementIEquatable,
@@ -48,6 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _typeDeclaration = typeDeclaration;
                 _containingType = containingType;
                 _selectedMembers = selectedMembers;
+                _fallbackOptions = fallbackOptions;
                 _generateEquals = generateEquals;
                 _generateGetHashCode = generateGetHashCode;
                 _implementIEquatable = implementIEquatable;
@@ -83,10 +87,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 }
 
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-                var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
-                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(_document, cancellationToken).ConfigureAwait(false);
 
-                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, codeGenOptions, cancellationToken);
+                var codeGenOptions = await _document.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                var info = codeGenOptions.GetInfo(CodeGenerationContext.Default, _document.Project);
+                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, info, cancellationToken);
 
                 if (constructedTypeToImplement is object)
                 {
@@ -129,7 +135,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var oldRoot = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(oldRoot.ReplaceNode(oldType, newType));
-                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(_document, cancellationToken).ConfigureAwait(false);
+                var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportOptions, cancellationToken).ConfigureAwait(false);
                 return newDocument;

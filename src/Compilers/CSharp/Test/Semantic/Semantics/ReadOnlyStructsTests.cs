@@ -2046,7 +2046,7 @@ public struct S
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(4, 15),
                 // (4,15): error CS0575: Only class types can contain destructors
                 //     readonly ~S() { }
-                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithArguments("S.~S()").WithLocation(4, 15));
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithLocation(4, 15));
         }
 
         [Fact]
@@ -2128,7 +2128,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'S.M2(Func<int>)'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'S.M2(Func<int>)'
                 //         M2(readonly () => 42);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("a", "S.M2(System.Func<int>)").WithLocation(6, 9),
                 // (6,12): error CS1026: ) expected
@@ -2148,7 +2148,7 @@ public struct S
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(6, 24),
                 // (6,24): error CS1003: Syntax error, ',' expected
                 //         M2(readonly () => 42);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 24),
                 // (6,27): error CS1002: ; expected
                 //         M2(readonly () => 42);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "42").WithLocation(6, 27),

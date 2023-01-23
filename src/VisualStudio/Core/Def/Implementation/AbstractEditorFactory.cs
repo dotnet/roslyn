@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -324,10 +326,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
 
-            var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
+            var fileLoader = new WorkspaceFileTextLoader(solution.Services, filePath, defaultEncoding: null);
+            var forkedSolution = projectToAddTo.Solution.AddDocument(
+                DocumentInfo.Create(
+                    documentId,
+                    name: filePath,
+                    loader: fileLoader,
+                    filePath: filePath));
+
             var addedDocument = forkedSolution.GetRequiredDocument(documentId);
 
-            var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(addedDocument, fallbackOptions: null, cancellationToken).ConfigureAwait(true);
+            var globalOptions = _componentModel.GetService<IGlobalOptionService>();
+            var cleanupOptions = await addedDocument.GetCodeCleanupOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(true);
 
             // Call out to various new document formatters to tweak what they want
             var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
@@ -340,7 +350,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
-            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services, cleanupOptions.FormattingOptions, cancellationToken);
+            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services.SolutionServices, cleanupOptions.FormattingOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.

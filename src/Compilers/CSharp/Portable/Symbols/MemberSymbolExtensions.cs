@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.ReturnType.ContainsTupleNames() || method.Parameters.Any(p => p.Type.ContainsTupleNames());
+                    return method.ReturnType.ContainsTupleNames() || method.Parameters.Any(static p => p.Type.ContainsTupleNames());
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).Type.ContainsTupleNames();
                 case SymbolKind.Event:

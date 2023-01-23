@@ -19,7 +19,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
-    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax, StatementSyntax>
+    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<
+        SyntaxKind, StatementSyntax, IfStatementSyntax, StatementSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => ifNode.Else == null;
 
         protected override bool CanInvert(IfStatementSyntax ifNode)
-            => ifNode.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+            => ifNode?.Parent is (kind: SyntaxKind.Block or SyntaxKind.SwitchSection);
 
         protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
             => ifNode.Condition;
@@ -43,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => new(ifNode.Statement, ifNode.Statement);
 
         protected override bool IsStatementContainer(SyntaxNode node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+            => node.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection;
 
         protected override bool IsNoOpSyntaxNode(SyntaxNode node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.EmptyStatement);
+            => node.Kind() is SyntaxKind.Block or SyntaxKind.EmptyStatement;
 
         protected override bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
@@ -83,55 +84,36 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         }
 
         protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case BlockSyntax n:
-                    return n.Statements;
-                case SwitchSectionSyntax n:
-                    return n.Statements;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
-            }
-        }
+                BlockSyntax n => n.Statements,
+                SwitchSectionSyntax n => n.Statements,
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
 
-        protected override int GetJumpStatementRawKind(SyntaxNode node)
-        {
-            switch (node)
+        protected override SyntaxKind? GetJumpStatementKind(SyntaxNode node)
+            => node switch
             {
-                case SwitchSectionSyntax:
-                    return (int)SyntaxKind.BreakStatement;
+                SwitchSectionSyntax
+                    => SyntaxKind.BreakStatement,
+                LocalFunctionStatementSyntax or AccessorDeclarationSyntax or MemberDeclarationSyntax
+                    => node.ContainsYield() ? SyntaxKind.YieldBreakStatement : SyntaxKind.ReturnStatement,
+                AnonymousFunctionExpressionSyntax
+                    => SyntaxKind.ReturnStatement,
+                CommonForEachStatementSyntax or DoStatementSyntax or WhileStatementSyntax or ForStatementSyntax
+                    => SyntaxKind.ContinueStatement,
+                _ => null,
+            };
 
-                case LocalFunctionStatementSyntax:
-                case AccessorDeclarationSyntax:
-                case MemberDeclarationSyntax:
-                case AnonymousFunctionExpressionSyntax:
-                    return (int)SyntaxKind.ReturnStatement;
-
-                case CommonForEachStatementSyntax:
-                case DoStatementSyntax:
-                case WhileStatementSyntax:
-                case ForStatementSyntax:
-                    return (int)SyntaxKind.ContinueStatement;
-            }
-
-            return -1;
-        }
-
-        protected override StatementSyntax GetJumpStatement(int rawKind)
-        {
-            switch ((SyntaxKind)rawKind)
+        protected override StatementSyntax GetJumpStatement(SyntaxKind kind)
+            => kind switch
             {
-                case SyntaxKind.ContinueStatement:
-                    return SyntaxFactory.ContinueStatement();
-                case SyntaxKind.BreakStatement:
-                    return SyntaxFactory.BreakStatement();
-                case SyntaxKind.ReturnStatement:
-                    return SyntaxFactory.ReturnStatement();
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(rawKind);
-            }
-        }
+                SyntaxKind.ContinueStatement => SyntaxFactory.ContinueStatement(),
+                SyntaxKind.BreakStatement => SyntaxFactory.BreakStatement(),
+                SyntaxKind.ReturnStatement => SyntaxFactory.ReturnStatement(),
+                SyntaxKind.YieldBreakStatement => SyntaxFactory.YieldStatement(SyntaxKind.YieldBreakStatement),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
 
         protected override StatementSyntax AsEmbeddedStatement(IEnumerable<StatementSyntax> statements, StatementSyntax original)
         {

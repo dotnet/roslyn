@@ -262,8 +262,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return;
             }
 
-            var left = memberOfText.Substring(0, index);
-            var right = memberOfText.Substring(index + specifier.Length);
+            var left = memberOfText[..index];
+            var right = memberOfText[(index + specifier.Length)..];
 
             AddIndent();
             AddText(left);
@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return;
             }
 
-            var formattingService = _project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var formattingService = _project.Services.GetService<IDocumentationCommentFormattingService>();
             if (formattingService == null)
             {
                 return;

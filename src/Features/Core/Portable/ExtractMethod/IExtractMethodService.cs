@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal interface IExtractMethodService : ILanguageService
     {
-        Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, bool localFunction, ExtractMethodOptions options, CancellationToken cancellationToken);
+        Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, bool localFunction, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
     }
 }

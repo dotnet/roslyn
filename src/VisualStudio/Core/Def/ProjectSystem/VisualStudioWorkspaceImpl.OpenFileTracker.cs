@@ -9,14 +9,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -33,9 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
 
             private readonly VisualStudioWorkspaceImpl _workspace;
+            private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
             private readonly IAsynchronousOperationListener _asyncOperationListener;
 
             private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+            private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -73,6 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
                 = new();
 
+            /// <summary>
+            /// Boolean flag to indicate if any <see cref="TextDocument"/> has been opened in the workspace.
+            /// </summary>
+            private bool _anyDocumentOpened;
+
             #endregion
 
             /// <summary>
@@ -87,13 +99,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This cutoff of 10 was chosen arbitrarily and with no evidence whatsoever.</remarks>
             private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
 
-            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable runningDocumentTable, IComponentModel componentModel)
+            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IVsRunningDocumentTable runningDocumentTable, IComponentModel componentModel)
             {
                 _workspace = workspace;
+                _projectSystemProjectFactory = projectSystemProjectFactory;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
+                _editorOptionsFactoryService = componentModel.GetService<IEditorOptionsFactoryService>();
             }
 
             void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
@@ -112,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
             }
 
-            public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
+            public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IAsyncServiceProvider asyncServiceProvider)
             {
                 var runningDocumentTable = (IVsRunningDocumentTable?)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 Assumes.Present(runningDocumentTable);
@@ -120,16 +134,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
                 Assumes.Present(componentModel);
 
-                return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
+                return new OpenFileTracker(workspace, projectSystemProjectFactory, runningDocumentTable, componentModel);
             }
 
             private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                _workspace.ApplyChangeToWorkspace(w =>
+                _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                 {
-                    var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                    var documentIds = _projectSystemProjectFactory.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                     if (documentIds.IsDefaultOrEmpty)
                     {
                         return;
@@ -155,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     foreach (var documentId in documentIds)
                     {
-                        if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                        if (!w.IsDocumentOpen(documentId) && !_projectSystemProjectFactory.DocumentsNotFromFiles.Contains(documentId))
                         {
                             var isCurrentContext = documentId.ProjectId == activeContextProjectId;
                             if (w.CurrentSolution.ContainsDocument(documentId))
@@ -170,6 +184,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             {
                                 Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
                                 w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
+                            }
+
+                            if (!_anyDocumentOpened)
+                            {
+                                // First document opened in the workspace.
+                                // We enable quick actions from SuggestedActionsSourceProvider via an editor option.
+                                // NOTE: We need to be on the UI thread to enable the editor option.
+                                _foregroundAffinitization.AssertIsForeground();
+                                SuggestedActionsSourceProvider.Enable(_editorOptionsFactoryService);
+                                _anyDocumentOpened = true;
                             }
                         }
                     }
@@ -263,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                _workspace.ApplyChangeToWorkspace(w =>
+                _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                     if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
@@ -305,7 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 UnsubscribeFromWatchedHierarchies(moniker);
 
-                _workspace.ApplyChangeToWorkspace(w =>
+                _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                     if (documentIds.IsDefaultOrEmpty)
@@ -315,20 +339,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     foreach (var documentId in documentIds)
                     {
-                        if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                        if (w.IsDocumentOpen(documentId) && !_projectSystemProjectFactory.DocumentsNotFromFiles.Contains(documentId))
                         {
-                            if (w.CurrentSolution.ContainsDocument(documentId))
+                            var solution = w.CurrentSolution;
+
+                            if (solution.GetDocument(documentId) is { } document)
                             {
-                                w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                w.OnDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null));
                             }
-                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            else if (solution.GetAdditionalDocument(documentId) is { } additionalDocument)
                             {
-                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                w.OnAdditionalDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null));
                             }
                             else
                             {
-                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                var analyzerConfigDocument = solution.GetRequiredAnalyzerConfigDocument(documentId);
+                                w.OnAnalyzerConfigDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null));
                             }
                         }
                     }

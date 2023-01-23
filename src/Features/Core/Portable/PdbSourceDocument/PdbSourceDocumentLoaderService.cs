@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,13 +27,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         /// Lazy import ISourceLinkService because it can cause debugger 
         /// binaries to be eagerly loaded even if they are never used.
         /// </summary>
-        private readonly Lazy<ISourceLinkService?> _sourceLinkService;
+        private readonly Lazy<ISourceLinkService>? _sourceLinkService;
         private readonly IPdbSourceDocumentLogger? _logger;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
         public PdbSourceDocumentLoaderService(
-            [Import(AllowDefault = true)] Lazy<ISourceLinkService?> sourceLinkService,
+            [Import(AllowDefault = true)] Lazy<ISourceLinkService>? sourceLinkService,
             [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
         {
             _sourceLinkService = sourceLinkService;
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
         {
-            if (sourceDocument.SourceLinkUrl is null || _sourceLinkService.Value is null)
+            if (sourceDocument.SourceLinkUrl is null || _sourceLinkService is null)
                 return null;
 
             var timeout = useExtendedTimeout ? ExtendedSourceLinkTimeout : SourceLinkTimeout;
@@ -197,14 +198,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
-                var sourceText = SourceText.From(stream, encoding, sourceDocument.HashAlgorithm, throwIfBinaryDetected: true);
+                var sourceText = SourceText.From(stream, encoding, sourceDocument.ChecksumAlgorithm, throwIfBinaryDetected: true);
 
                 var fileChecksum = sourceText.GetChecksum();
                 if (ignoreChecksum || fileChecksum.SequenceEqual(sourceDocument.Checksum))
                 {
                     var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
                     var textLoader = TextLoader.From(textAndVersion);
-                    return new SourceFileInfo(filePath, sourceDescription, textLoader, fromRemoteLocation);
+                    return new SourceFileInfo(filePath, sourceDescription, textLoader, sourceDocument.ChecksumAlgorithm, fromRemoteLocation);
                 }
 
                 return null;

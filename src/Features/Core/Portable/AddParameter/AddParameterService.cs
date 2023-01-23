@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
 
-            var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
+            var anySymbolReferencesNotInSource = referencedSymbols.Any(static symbol => !symbol.IsFromSource());
             var locationsInSource = referencedSymbols.Where(symbol => symbol.IsFromSource());
 
             // Indexing Locations[0] is valid because IMethodSymbols have one location at most
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var document = documentLookup.Key;
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(syntaxRoot, solution.Workspace.Services);
+                var editor = new SyntaxEditor(syntaxRoot, solution.Services);
                 var generator = editor.Generator;
                 foreach (var methodDeclaration in documentLookup)
                 {

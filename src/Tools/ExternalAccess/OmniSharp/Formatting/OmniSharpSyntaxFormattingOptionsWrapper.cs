@@ -4,6 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -11,21 +14,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
 {
     internal readonly record struct OmniSharpSyntaxFormattingOptionsWrapper
     {
-        internal readonly SyntaxFormattingOptions FormattingOptions;
-        internal readonly SimplifierOptions SimplifierOptions;
+        internal readonly CodeCleanupOptions CleanupOptions;
 
-        internal OmniSharpSyntaxFormattingOptionsWrapper(SyntaxFormattingOptions formattingOptions, SimplifierOptions simplifierOptions)
+        internal OmniSharpSyntaxFormattingOptionsWrapper(CodeCleanupOptions cleanupOptions)
         {
-            FormattingOptions = formattingOptions;
-            SimplifierOptions = simplifierOptions;
+            CleanupOptions = cleanupOptions;
         }
 
-        public static async ValueTask<OmniSharpSyntaxFormattingOptionsWrapper> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+        public static async ValueTask<OmniSharpSyntaxFormattingOptionsWrapper> FromDocumentAsync(Document document, OmniSharpLineFormattingOptions fallbackLineFormattingOptions, CancellationToken cancellationToken)
         {
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var defaultOptions = CodeCleanupOptions.GetDefault(document.Project.Services);
+            var fallbackOptions = defaultOptions with
+            {
+                FormattingOptions = defaultOptions.FormattingOptions.With(new LineFormattingOptions
+                {
+                    IndentationSize = fallbackLineFormattingOptions.IndentationSize,
+                    TabSize = fallbackLineFormattingOptions.TabSize,
+                    UseTabs = fallbackLineFormattingOptions.UseTabs,
+                    NewLine = fallbackLineFormattingOptions.NewLine,
+                })
+            };
 
-            return new OmniSharpSyntaxFormattingOptionsWrapper(formattingOptions, simplifierOptions);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return new OmniSharpSyntaxFormattingOptionsWrapper(cleanupOptions);
         }
     }
 }

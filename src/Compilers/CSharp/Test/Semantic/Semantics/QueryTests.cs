@@ -1897,7 +1897,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "null").WithLocation(8, 66),
                 // CS1003: Syntax error, 'in' expected
                 //         var query = /*<bind>*/from int i in new int[] { 1 } join null on true equals true select i/*</bind>*/; //CS1031
-                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("in", "null").WithLocation(8, 66)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("in").WithLocation(8, 66)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1959,7 +1959,6 @@ class Program
 }";
             CompileAndVerify(csSource, expectedOutput: "3 4");
         }
-
 
         [WorkItem(541788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541788")]
         [Fact]
@@ -3340,7 +3339,6 @@ class Test1
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(34, 32)
                 );
         }
-
 
         [WorkItem(529350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529350")]
         [Fact]

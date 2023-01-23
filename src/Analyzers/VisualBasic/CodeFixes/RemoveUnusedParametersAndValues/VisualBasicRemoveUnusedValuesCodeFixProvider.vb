@@ -7,7 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -25,11 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
         Public Sub New()
         End Sub
 
-#If CODE_STYLE Then
         Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting
             Return VisualBasicSyntaxFormatting.Instance
         End Function
-#End If
 
         Protected Overrides Function WrapWithBlockIfNecessary(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
             ' Unreachable code path as VB statements don't need to be wrapped in special BlockSyntax.
@@ -62,7 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
         Protected Overrides Function GetReplacementNodeForCompoundAssignment(originalCompoundAssignment As SyntaxNode, newAssignmentTarget As SyntaxNode, editor As SyntaxEditor, syntaxFacts As ISyntaxFactsService) As SyntaxNode
             ' VB does not support compound assignments.
-            Throw New NotImplementedException()
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Protected Overrides Function GetReplacementNodeForVarPattern(originalVarPattern As SyntaxNode, newNameNode As SyntaxNode) As SyntaxNode
+            ' VB does not have var patterns
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Protected Overrides Function GetCandidateLocalDeclarationForRemoval(declarator As VariableDeclaratorSyntax) As LocalDeclarationStatementSyntax

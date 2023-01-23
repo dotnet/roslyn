@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
     public class BasicEndConstruct : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -24,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact]
         public void EndConstruct()
         {
             SetUpEditor(@"
@@ -45,7 +46,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact]
         public void IntelliSenseCompletedWhile()
         {
             SetUpEditor(@"
@@ -66,7 +67,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact]
         public void InterfaceToClassFixup()
         {
             SetUpEditor(@"
@@ -80,7 +81,7 @@ Class C
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact]
         public void CaseInsensitiveSubToFunction()
         {
             SetUpEditor(@"

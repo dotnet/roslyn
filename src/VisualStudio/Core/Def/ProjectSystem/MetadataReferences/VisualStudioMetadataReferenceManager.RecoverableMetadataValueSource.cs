@@ -4,6 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,25 +19,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioMetadataReferenceManager
     {
-        private sealed class RecoverableMetadataValueSource : ValueSource<Optional<AssemblyMetadata>>
+        private sealed class RecoverableMetadataValueSource : ValueSource<AssemblyMetadata>
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
-            private readonly List<ITemporaryStreamStorage> _storages;
-            private readonly ConditionalWeakTable<Metadata, object> _lifetimeMap;
+            private readonly ImmutableArray<TemporaryStorageService.TemporaryStreamStorage> _storages;
 
-            public RecoverableMetadataValueSource(AssemblyMetadata value, List<ITemporaryStreamStorage> storages, ConditionalWeakTable<Metadata, object> lifetimeMap)
+            public RecoverableMetadataValueSource(AssemblyMetadata value, ImmutableArray<TemporaryStorageService.TemporaryStreamStorage> storages)
             {
-                Contract.ThrowIfFalse(storages.Count > 0);
+                Contract.ThrowIfFalse(storages.Length > 0);
 
                 _weakValue = new WeakReference<AssemblyMetadata>(value);
                 _storages = storages;
-                _lifetimeMap = lifetimeMap;
             }
 
-            public IEnumerable<ITemporaryStreamStorage> GetStorages()
-                => _storages;
-
-            public override bool TryGetValue(out Optional<AssemblyMetadata> value)
+            public override bool TryGetValue([MaybeNullWhen(false)] out AssemblyMetadata value)
             {
                 if (_weakValue.TryGetTarget(out var target))
                 {
@@ -42,14 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             }
 
-            public override Task<Optional<AssemblyMetadata>> GetValueAsync(CancellationToken cancellationToken)
+            public override Task<AssemblyMetadata> GetValueAsync(CancellationToken cancellationToken)
                 => Task.FromResult(GetValue(cancellationToken));
 
-            public override Optional<AssemblyMetadata> GetValue(CancellationToken cancellationToken)
+            public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
             {
                 if (_weakValue.TryGetTarget(out var value))
                 {
@@ -61,32 +59,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private AssemblyMetadata RecoverMetadata()
             {
-                var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance(_storages.Count);
+                using var _ = ArrayBuilder<ModuleMetadata>.GetInstance(_storages.Length, out var moduleBuilder);
 
                 foreach (var storage in _storages)
-                {
                     moduleBuilder.Add(GetModuleMetadata(storage));
-                }
 
-                var metadata = AssemblyMetadata.Create(moduleBuilder.ToImmutableAndFree());
+                var metadata = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
                 _weakValue.SetTarget(metadata);
 
                 return metadata;
             }
 
-            private ModuleMetadata GetModuleMetadata(ITemporaryStreamStorage storage)
+            private static ModuleMetadata GetModuleMetadata(
+                TemporaryStorageService.TemporaryStreamStorage storage)
             {
+                // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
                 var stream = storage.ReadStream(CancellationToken.None);
-
-                // under VS host, direct access should be supported
-                var directAccess = (ISupportDirectMemoryAccess)stream;
-                var pImage = directAccess.GetPointer();
-
-                var metadata = ModuleMetadata.CreateFromMetadata(pImage, (int)stream.Length);
-
-                // memory management.
-                _lifetimeMap.Add(metadata, stream);
-                return metadata;
+                unsafe
+                {
+                    return ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
+                }
             }
         }
     }

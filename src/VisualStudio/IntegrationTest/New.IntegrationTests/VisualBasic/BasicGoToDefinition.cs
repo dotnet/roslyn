@@ -42,8 +42,7 @@ End Class", HangMitigatingCancellationToken);
 End Class", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("SomeClass", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"FileDef.vb{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"FileDef.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync(@"Class SomeClass$$", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
@@ -57,17 +56,17 @@ End Class", HangMitigatingCancellationToken);
 @"Class C
     Dim i As Integer$$
 End Class", HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic), true);
+            globalOptions.SetGlobalOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic, true);
 
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal("Object Browser", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            globalOptions.SetGlobalOption(new OptionKey(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic), false);
-            globalOptions.SetGlobalOption(new OptionKey(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, language: null), false);
+            globalOptions.SetGlobalOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic, false);
+            globalOptions.SetGlobalOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, false);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb", HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Int32 [from metadata]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("Int32 [from metadata] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync("Public Structure Int32", cancellationToken: HangMitigatingCancellationToken);
         }
 
@@ -85,7 +84,7 @@ End Class", HangMitigatingCancellationToken);
 End Class", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Overrides", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Object [from metadata]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("Object [from metadata] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync(@"Public Overridable Function ToString$$() As String", assertCaretPosition: true);
         }
     }

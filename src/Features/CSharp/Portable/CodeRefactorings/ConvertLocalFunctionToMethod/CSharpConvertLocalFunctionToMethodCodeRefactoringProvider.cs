@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -51,7 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            if (!localFunction.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
+            if (localFunction.Parent is not BlockSyntax parentBlock)
+            {
+                return;
+            }
+
+            var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
+            // If the local function is defined in a block within the top-level statements context, then we can't provide the refactoring because
+            // there is no class we can put the generated method in.
+            if (container == null || container.IsKind(SyntaxKind.GlobalStatement))
             {
                 return;
             }
@@ -59,8 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(
-                new MyCodeAction(
-                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                CodeAction.Create(
+                    CSharpFeaturesResources.Convert_to_method,
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, container, context.Options, c),
+                    nameof(CSharpFeaturesResources.Convert_to_method)),
                 localFunction.Span);
         }
 
@@ -69,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             Document document,
             BlockSyntax parentBlock,
             LocalFunctionStatementSyntax localFunction,
+            MemberDeclarationSyntax container,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -102,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var captureTypes = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
             RemoveUnusedTypeParameters(localFunction, semanticModel, typeParameters, reservedTypeParameters: captureTypes);
 
-            var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
             var containerSymbol = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
 
@@ -125,8 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 typeParameters: typeParameters.ToImmutableArray(),
                 parameters: parameters.AddRange(capturesAsParameters));
 
-            var defaultOptions = await CSharpCodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, cancellationToken);
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = (CSharpCodeGenerationContextInfo)options.GetInfo(CodeGenerationContext.Default, document.Project);
+            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, info, cancellationToken);
 
             var generator = s_generator;
             var editor = new SyntaxEditor(root, generator);
@@ -178,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
-                if (node.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+                if (node.Parent is InvocationExpressionSyntax invocation)
                 {
                     if (hasAdditionalArguments)
                     {
@@ -311,14 +324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             return NameGenerator.EnsureUniqueness(
                 baseName: declaredSymbol.Name,
                 reservedNames: declaredSymbol.ContainingType.GetMembers().Select(m => m.Name));
-        }
-
-        private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Convert_to_method, createChangedDocument, nameof(CSharpFeaturesResources.Convert_to_method))
-            {
-            }
         }
     }
 }

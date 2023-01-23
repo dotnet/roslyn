@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitDynamic,
         ExplicitDynamic,
         ImplicitConstant,
-        ImplicitUtf8StringLiteral,
         ImplicitUserDefined,
         AnonymousFunction,
         MethodGroup,

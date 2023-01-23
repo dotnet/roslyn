@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 //   dotnet_style_qualification_for_method
                 //   dotnet_style_qualification_for_property
                 new DiagnosticSet(AnalyzersResources.Add_this_or_Me_qualification,
-                    IDEDiagnosticIds.AddQualificationDiagnosticId,
-                    IDEDiagnosticIds.RemoveQualificationDiagnosticId),
+                    IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId,
+                    IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId),
 
                 // Language keywords vs BCL types preferences
                 //   dotnet_style_predefined_type_for_locals_parameters_members
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 // Expression-level preferences
                 //   dotnet_style_coalesce_expression
                 new DiagnosticSet(FeaturesResources.Apply_coalesce_expression_preferences,
-                    IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId),
+                    IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId),
                 //   dotnet_style_collection_initializer
                 new DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
                     IDEDiagnosticIds.UseCollectionInitializerDiagnosticId),
@@ -178,9 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 //   csharp_style_conditional_delegate_call
                 new DiagnosticSet(CSharpFeaturesResources.Apply_conditional_delegate_call_preferences,
                     IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId),
-                //   csharp_style_prefer_parameter_null_checking
-                new DiagnosticSet(CSharpFeaturesResources.Apply_parameter_null_preferences,
-                    IDEDiagnosticIds.UseParameterNullCheckingId),
 
                 // Modifier preferences
                 //   csharp_prefer_static_local_function
@@ -190,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(FeaturesResources.Sort_accessibility_modifiers,
                     IDEDiagnosticIds.OrderModifiersDiagnosticId,
                     "CS0267"),
+                new DiagnosticSet(CSharpFeaturesResources.Apply_readonly_struct_preferences,
+                    IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId),
 
                 // Code-block preferences
                 //   csharp_prefer_braces
@@ -265,13 +264,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
                 new DiagnosticSet(FeaturesResources.Remove_unused_variables,
                     CSharpRemoveUnusedVariableCodeFixProvider.CS0168,
-                    CSharpRemoveUnusedVariableCodeFixProvider.CS0219)
+                    CSharpRemoveUnusedVariableCodeFixProvider.CS0219),
+
+                new DiagnosticSet(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive,
+                    IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
+                    IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)
                 );
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(ICodeFixService codeFixService)
-            : base(codeFixService)
+        public CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+            : base(codeFixService, diagnosticAnalyzerService)
         {
         }
 

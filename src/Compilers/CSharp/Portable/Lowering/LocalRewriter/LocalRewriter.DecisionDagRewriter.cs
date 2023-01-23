@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode Visit(BoundNode node)
                 {
                     // A constant expression cannot mutate anything
-                    if (node is BoundExpression { ConstantValue: { } })
+                    if (node is BoundExpression { ConstantValueOpt: { } })
                         return null;
 
                     // Stop visiting once we determine something might get assigned
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var mightAssignWalker = new WhenClauseMightAssignPatternVariableWalker();
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
-                    .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));
+                    .Any(static (node, mightAssignWalker) => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression), mightAssignWalker);
 
                 if (canShareTemps)
                 {
@@ -535,6 +535,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         if (!t1.Input.Equals(t2.Input))
                             return false;
+
+                        if (t1.Input.Type.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
+                        {
+                            // The optimization (using balanced switch dispatch) breaks the semantics of NaN
+                            return false;
+                        }
+
                         return true;
                     }
                 }
@@ -916,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
             private void LowerWhenClauses(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
-                if (!sortedNodes.Any(n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
+                if (!sortedNodes.Any(static n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
 
                 // The way the DAG is prepared, it is possible for different `BoundWhenDecisionDagNode` nodes to
                 // share the same `WhenExpression` (same `BoundExpression` instance).
@@ -952,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node is BoundWhenDecisionDagNode whenNode)
                     {
                         var whenExpression = whenNode.WhenExpression;
-                        if (whenExpression is not null && whenExpression.ConstantValue != ConstantValue.True)
+                        if (whenExpression is not null && whenExpression.ConstantValueOpt != ConstantValue.True)
                         {
                             LabelSymbol labelToWhenExpression;
                             if (whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo))
@@ -1104,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var whenFalse = whenClause.WhenFalse;
                     var trueLabel = GetDagNodeLabel(whenTrue);
-                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
+                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValueOpt != ConstantValue.True)
                     {
                         addConditionalGoto(whenClause.WhenExpression, whenClause.Syntax, trueLabel, sectionBuilder);
 

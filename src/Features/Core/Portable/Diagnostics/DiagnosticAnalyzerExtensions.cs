@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -15,12 +16,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal static class DiagnosticAnalyzerExtensions
     {
         public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
-            => analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer == FileContentLoadAnalyzer.Instance;
+            => analyzer is DocumentDiagnosticAnalyzer
+            || analyzer is ProjectDiagnosticAnalyzer
+            || analyzer == FileContentLoadAnalyzer.Instance
+            || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance;
 
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
             => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
 
-        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, OptionSet options)
+        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, SimplifierOptions? options)
             => analyzer is IBuiltInAnalyzer builtInAnalyzer && builtInAnalyzer.OpenFileOnly(options);
 
         public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
@@ -49,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
-            => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable;
+            => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable();
 
         public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<DiagnosticAnalyzer> analyzers)
         {

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     /// <typeparam name="TNode">Tree node.</typeparam>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public struct Edit<TNode> : IEquatable<Edit<TNode>>
+    public readonly struct Edit<TNode> : IEquatable<Edit<TNode>>
     {
         private readonly TreeComparer<TNode> _comparer;
         private readonly EditKind _kind;

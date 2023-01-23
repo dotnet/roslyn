@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,16 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
-        internal static string MakeIteratorFinallyMethodName(int iteratorState)
+        internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
         {
-            // we can pick any name, but we will try to do
-            // <>m__Finally1
-            // <>m__Finally2
-            // <>m__Finally3
-            // . . . 
-            // that will roughly match native naming scheme and may also be easier when need to debug.
+            Debug.Assert((int)finalizeState < -2);
+
+            // It is important that the name is only derived from the finalizeState, so that when 
+            // editing method during EnC the Finally methods corresponding to matching states have matching names.
             Debug.Assert((char)GeneratedNameKind.IteratorFinallyMethod == 'm');
-            return "<>m__Finally" + StringExtensions.GetNumeral(Math.Abs(iteratorState + 2));
+            return "<>m__Finally" + StringExtensions.GetNumeral(-((int)finalizeState + 2));
         }
 
         internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal, int generation)
@@ -495,6 +494,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string LambdaCopyParameterName(int ordinal)
         {
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
+        }
+
+        internal static string AnonymousDelegateParameterName(int index, int parameterCount)
+        {
+            // SPEC: parameter names arg1, ..., argn or arg if a single parameter
+            if (parameterCount == 1)
+            {
+                return "arg";
+            }
+            return "arg" + StringExtensions.GetNumeral(index + 1);
+        }
+
+        internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksumOpt)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+            sb.Append('<');
+            AppendFileName(filePath, sb);
+            sb.Append('>');
+            sb.Append((char)GeneratedNameKind.FileType);
+            if (checksumOpt.IsDefault)
+            {
+                // Note: this is an error condition.
+                // This is only included for clarity for users inspecting the value of 'MetadataName'.
+                sb.Append("<no checksum>");
+            }
+            else
+            {
+                foreach (var b in checksumOpt)
+                {
+                    sb.AppendFormat("{0:X2}", b);
+                }
+            }
+            sb.Append("__");
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static string GetDisplayFilePath(string filePath)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            AppendFileName(filePath, pooledBuilder.Builder);
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static void AppendFileName(string filePath, StringBuilder sb)
+        {
+            var fileName = FileNameUtilities.GetFileName(filePath, includeExtension: false);
+            if (fileName is null)
+            {
+                return;
+            }
+
+            foreach (var ch in fileName)
+            {
+                sb.Append(ch switch
+                {
+                    >= 'a' and <= 'z' => ch,
+                    >= 'A' and <= 'Z' => ch,
+                    >= '0' and <= '9' => ch,
+                    _ => '_'
+                });
+            }
         }
     }
 }

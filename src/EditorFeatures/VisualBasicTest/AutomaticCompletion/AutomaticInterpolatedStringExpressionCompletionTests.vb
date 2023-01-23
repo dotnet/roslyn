@@ -10,17 +10,18 @@ Imports Microsoft.CodeAnalysis.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
+    <Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
     Public Class AutomaticInterpolatedStringExpressionCompletionTests
         Inherits AbstractAutomaticBraceCompletionTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestCreation()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
@@ -31,7 +32,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
@@ -42,7 +43,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
@@ -53,7 +54,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact>
         Public Sub TestAfterDollarSign()
             Dim code = <code>Class C
     Sub M()

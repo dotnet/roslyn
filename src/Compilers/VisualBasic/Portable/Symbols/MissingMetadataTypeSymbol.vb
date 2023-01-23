@@ -303,19 +303,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Arity = other.Arity AndAlso
                     _containingType.Equals(other._containingType)
             End Function
-
-            Private Function GetDebuggerDisplay() As String
-                Dim fullName As String
-
-                fullName = _containingType.ToString() & "." & Me.Name
-
-                If _arity > 0 Then
-                    fullName = fullName & "(Of " & New String(","c, _arity - 1) & ")"
-                End If
-
-                Return fullName & "[missing]"
-            End Function
-
         End Class
 
     End Class

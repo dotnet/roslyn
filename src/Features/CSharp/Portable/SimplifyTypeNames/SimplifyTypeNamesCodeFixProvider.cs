@@ -40,9 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
                     return string.Format(CSharpFeaturesResources.Simplify_member_access_0, nodeText);
 
-                case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
-                    return CSharpFeaturesResources.Remove_this_qualification;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnosticId);
             }

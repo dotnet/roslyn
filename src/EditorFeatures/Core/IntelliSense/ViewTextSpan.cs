@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     /// which need to be mapped to ViewTextSpans before comparing to view positions
     /// such as the current caret location.
     /// </summary>
-    internal struct ViewTextSpan
+    internal readonly struct ViewTextSpan
     {
         public readonly TextSpan TextSpan;
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             => this.TextSpan = textSpan;
     }
 
-    internal struct DisconnectedBufferGraph
+    internal readonly struct DisconnectedBufferGraph
     {
         // The subject buffer's snapshot at the point of the initial model's creation
         public readonly ITextSnapshot SubjectBufferSnapshot;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     }
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 

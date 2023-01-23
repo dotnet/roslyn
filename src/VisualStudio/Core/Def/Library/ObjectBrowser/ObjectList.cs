@@ -30,7 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private readonly ObjectList _parentList;
         private readonly ObjectListItem _parentListItem;
         private readonly uint _flags;
-        private readonly AbstractObjectBrowserLibraryManager _manager;
         private readonly ImmutableArray<ObjectListItem> _items;
 
         public ObjectList(
@@ -55,7 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             _flags = flags;
             _parentList = parentList;
             _parentListItem = parentListItem;
-            _manager = manager;
 
             _items = items;
 
@@ -517,17 +515,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             switch (listKind)
             {
                 case ObjectListKind.Types:
-                    return new ObjectList(ObjectListKind.Types, flags, this, listItem, _manager, this.LibraryManager.GetTypeListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.Types, flags, this, listItem, LibraryManager, this.LibraryManager.GetTypeListItems(listItem, compilation));
                 case ObjectListKind.Hierarchy:
-                    return new ObjectList(ObjectListKind.Hierarchy, flags, this, listItem, _manager, this.LibraryManager.GetFolderListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.Hierarchy, flags, this, listItem, LibraryManager, this.LibraryManager.GetFolderListItems(listItem, compilation));
                 case ObjectListKind.Namespaces:
-                    return new ObjectList(ObjectListKind.Namespaces, flags, this, listItem, _manager, this.LibraryManager.GetNamespaceListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.Namespaces, flags, this, listItem, LibraryManager, this.LibraryManager.GetNamespaceListItems(listItem, compilation));
                 case ObjectListKind.Members:
-                    return new ObjectList(ObjectListKind.Members, flags, this, listItem, _manager, this.LibraryManager.GetMemberListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.Members, flags, this, listItem, LibraryManager, this.LibraryManager.GetMemberListItems(listItem, compilation));
                 case ObjectListKind.References:
-                    return new ObjectList(ObjectListKind.References, flags, this, listItem, _manager, this.LibraryManager.GetReferenceListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.References, flags, this, listItem, LibraryManager, this.LibraryManager.GetReferenceListItems(listItem, compilation));
                 case ObjectListKind.BaseTypes:
-                    return new ObjectList(ObjectListKind.BaseTypes, flags, this, listItem, _manager, this.LibraryManager.GetBaseTypeListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.BaseTypes, flags, this, listItem, LibraryManager, this.LibraryManager.GetBaseTypeListItems(listItem, compilation));
             }
 
             throw new NotImplementedException();
@@ -692,7 +690,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             var symbol = symbolListItem.ResolveSymbol(compilation);
                             if (symbol != null)
                             {
-                                var helpContextService = project.LanguageServices.GetService<IHelpContextService>();
+                                var helpContextService = project.Services.GetService<IHelpContextService>();
 
                                 pvar = helpContextService.FormatSymbol(symbol);
                                 return true;
@@ -747,8 +745,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             try
             {
-                using var token = _manager.AsynchronousOperationListener.BeginAsyncOperation(nameof(GoToSourceAsync));
-                using var context = _manager.OperationExecutor.BeginExecute(ServicesVSResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
+                var operationExecutor = LibraryManager.ComponentModel.GetService<IUIThreadOperationExecutor>();
+
+                using var context = operationExecutor.BeginExecute(ServicesVSResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
 
                 var cancellationToken = context.UserCancellationToken;
                 if (srcType == VSOBJGOTOSRCTYPE.GS_DEFINITION &&
@@ -776,15 +775,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 case ObjectListKind.Projects:
                 case ObjectListKind.References:
-                    return _manager.PackageVersion;
+                    return LibraryManager.PackageVersion;
                 case ObjectListKind.BaseTypes:
                 case ObjectListKind.Namespaces:
                 case ObjectListKind.Types:
-                    return _manager.ClassVersion;
+                    return LibraryManager.ClassVersion;
                 case ObjectListKind.Members:
-                    return _manager.MembersVersion;
+                    return LibraryManager.MembersVersion;
                 case ObjectListKind.Hierarchy:
-                    return _manager.ClassVersion | _manager.MembersVersion;
+                    return LibraryManager.ClassVersion | LibraryManager.MembersVersion;
 
                 default:
                     Debug.Fail("Unsupported object list kind: " + _kind.ToString());

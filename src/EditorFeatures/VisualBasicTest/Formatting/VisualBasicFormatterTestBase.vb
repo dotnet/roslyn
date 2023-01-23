@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.EditorUtilities
 Imports Xunit.Abstractions
@@ -47,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim clonedBuffer = EditorFactory.CreateBuffer(workspace.ExportProvider, buffer.ContentType, buffer.CurrentSnapshot.GetText())
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
-                Dim syntaxTree = Await document.GetSyntaxTreeAsync()
+                Dim docSyntax = Await ParsedDocument.CreateAsync(document, CancellationToken.None)
 
                 ' Add Base IndentationRule that we had just set up.
                 Dim formattingRuleProvider = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
@@ -57,13 +58,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                     factory.TextSpan = span
                 End If
 
-                Dim rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document))
-                Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+                Dim rules = formattingRuleProvider.CreateRule(docSyntax, 0).Concat(Formatter.GetDefaultFormattingRules(document))
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 Dim changes = Formatter.GetFormattedTextChanges(
-                    Await syntaxTree.GetRootAsync(),
+                    docSyntax.Root,
                     workspace.Documents.First(Function(d) d.SelectedSpans.Any()).SelectedSpans,
-                    workspace.Services,
+                    workspace.Services.SolutionServices,
                     options,
                     rules,
                     CancellationToken.None)

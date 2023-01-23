@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    public struct ClassifiedSpan : IEquatable<ClassifiedSpan>
+    public readonly struct ClassifiedSpan : IEquatable<ClassifiedSpan>
     {
         public string ClassificationType { get; }
         public TextSpan TextSpan { get; }
@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
             => Hash.Combine(this.ClassificationType, this.TextSpan.GetHashCode());
 
         public override bool Equals(object? obj)
-        {
-            return obj is ClassifiedSpan &&
-                Equals((ClassifiedSpan)obj);
-        }
+            => obj is ClassifiedSpan span && Equals(span);
 
         public bool Equals(ClassifiedSpan other)
             => this.ClassificationType == other.ClassificationType && this.TextSpan == other.TextSpan;

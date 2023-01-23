@@ -9,16 +9,11 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Simplification;
 
-internal interface ISimplifierOptionsStorage : ILanguageService
-{
-    SimplifierOptions GetOptions(IGlobalOptionService globalOptions);
-}
-
 internal static class SimplifierOptionsStorage
 {
-    public static Task<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-        => SimplifierOptions.FromDocumentAsync(document, globalOptions.GetSimplifierOptions(document.Project.LanguageServices), cancellationToken);
+    public static ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        => document.GetSimplifierOptionsAsync(globalOptions.GetSimplifierOptions(document.Project.Services), cancellationToken);
 
-    public static SimplifierOptions? GetSimplifierOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-        => languageServices.GetService<ISimplifierOptionsStorage>()?.GetOptions(globalOptions);
+    public static SimplifierOptions GetSimplifierOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
+        => languageServices.GetRequiredService<ISimplificationService>().GetSimplifierOptions(globalOptions, fallbackOptions: null);
 }

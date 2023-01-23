@@ -426,10 +426,7 @@ class C
             }
 
             var name = instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, builder);
-            if (builder != null)
-            {
-                builder.Free();
-            }
+            builder?.Free();
 
             return name;
         }
@@ -437,7 +434,7 @@ class C
         private string GetReturnTypeName(string source, string methodName, Type[] typeArguments = null)
         {
             var instructionDecoder = CSharpInstructionDecoder.Instance;
-            var serializedTypeArgumentNames = typeArguments?.Select(t => (t != null) ? t.AssemblyQualifiedName : null).ToArray();
+            var serializedTypeArgumentNames = typeArguments?.Select(t => t?.AssemblyQualifiedName).ToArray();
             var method = GetConstructedMethod(source, methodName, serializedTypeArgumentNames, instructionDecoder);
 
             return instructionDecoder.GetReturnTypeName(method);

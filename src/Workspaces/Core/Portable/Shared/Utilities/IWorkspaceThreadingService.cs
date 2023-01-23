@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// </remarks>
     internal interface IWorkspaceThreadingService
     {
+        bool IsOnMainThread { get; }
+
         TResult Run<TResult>(Func<Task<TResult>> asyncMethod);
     }
 

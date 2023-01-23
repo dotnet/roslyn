@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var invocationNodes = diagnostics.Select(d => GetInvocationExpression(d, cancellationToken))
                                              .OrderByDescending(i => i.SpanStart)
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 ResultKind.Computed => CreateComputedRange(result),
                 ResultKind.Constant => CreateConstantRange(result, generator),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
         private static RangeExpressionSyntax CreateComputedRange(Result result)

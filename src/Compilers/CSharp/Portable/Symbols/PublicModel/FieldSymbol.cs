@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        RefKind IFieldSymbol.RefKind => _underlying.RefKind;
+
+        ImmutableArray<CustomModifier> IFieldSymbol.RefCustomModifiers => _underlying.RefCustomModifiers;
+
         ITypeSymbol IFieldSymbol.Type
         {
             get
@@ -80,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool IFieldSymbol.IsReadOnly => _underlying.IsReadOnly;
 
         bool IFieldSymbol.IsVolatile => _underlying.IsVolatile;
+
+        bool IFieldSymbol.IsRequired => _underlying.IsRequired;
 
         bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
 

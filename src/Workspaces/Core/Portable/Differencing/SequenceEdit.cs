@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// Represents an edit operation on a sequence of values.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct SequenceEdit : IEquatable<SequenceEdit>
+    internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
     {
         private readonly int _oldIndex;
         private readonly int _newIndex;

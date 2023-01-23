@@ -502,6 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         ' Compile time asserts.
+#Disable Warning IDE0051 ' Remove unused private members
         Private Const s_delegateRelaxationLevelMask_AssertZero = SmallFieldMask.DelegateRelaxationLevelMask - ConversionKind.DelegateRelaxationLevelMask
         Private ReadOnly _delegateRelaxationLevelMask_Assert1(s_delegateRelaxationLevelMask_AssertZero) As Boolean
         Private ReadOnly _delegateRelaxationLevelMask_Assert2(-s_delegateRelaxationLevelMask_AssertZero) As Boolean
@@ -509,6 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Const s_inferenceLevelMask_AssertZero = CByte((SmallFieldMask.InferenceLevelMask >> SmallFieldMask.InferenceLevelShift) <> ((TypeArgumentInference.InferenceLevel.Invalid << 1) - 1))
         Private ReadOnly _inferenceLevelMask_Assert1(s_inferenceLevelMask_AssertZero) As Boolean
         Private ReadOnly _inferenceLevelMask_Assert2(-s_inferenceLevelMask_AssertZero) As Boolean
+#Enable Warning IDE0051 ' Remove unused private members
 #End If
         Public Structure OptionalArgument
             Public ReadOnly DefaultValue As BoundExpression
@@ -1130,7 +1132,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 GoTo ResolutionComplete
             End If
 
-
             '3.	Next, eliminate all members from the set that require narrowing conversions 
             '   to be applicable to the argument list, except for the case where the argument 
             '   expression type is Object.
@@ -1178,7 +1179,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
 ResolutionComplete:
-
             If Not resolutionIsLateBound AndAlso applicableCandidates = 0 Then
                 Return ReportOverloadResolutionFailedOrLateBound(candidates, applicableCandidates, lateBindingIsAllowed AndAlso binder.OptionStrict <> OptionStrict.On, asyncLambdaSubToFunctionMismatch)
             End If
@@ -1608,8 +1608,6 @@ ResolutionComplete:
             Return True
         End Function
 
-
-
         ''' <summary>
         ''' Implements shadowing based on
         ''' §11.8.1 Overloaded Method Resolution.
@@ -1908,7 +1906,6 @@ ResolutionComplete:
                 Return CInt(_candidates(indexX).InferenceLevel).CompareTo(_candidates(indexY).InferenceLevel)
             End Function
         End Class
-
 
         ''' <summary>
         ''' §11.8.1.1 Applicability
@@ -2827,7 +2824,6 @@ Done:
             End If
 
 Bailout:
-
             If argsToParams IsNot Nothing Then
                 argsToParams.Free()
                 argsToParams = Nothing
@@ -3196,7 +3192,6 @@ Bailout:
 
         End Sub
 
-
         ''' <summary>
         ''' Should be in sync with Binder.ReportByRefConversionErrors.
         ''' </summary>
@@ -3275,7 +3270,6 @@ Bailout:
             End If
 
         End Sub
-
 
         ''' <summary>
         ''' Should be in sync with Binder.ReportByValConversionErrors.
@@ -3876,7 +3870,6 @@ Bailout:
             End Select
         End Sub
 
-
         Private Shared Sub InferTypeArgumentsIfNeedToAndCombineWithExistingCandidates(
             results As ArrayBuilder(Of CandidateAnalysisResult),
             newCandidate As CandidateAnalysisResult,
@@ -4432,7 +4425,6 @@ ContinueCandidatesLoop:
             '                f(x)            ' Calls the first overload
             '            End Sub
             '        End Module
-
 
             Dim leftParamIndex As Integer = 0
             Dim rightParamIndex As Integer = 0

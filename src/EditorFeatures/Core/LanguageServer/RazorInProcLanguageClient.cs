@@ -6,13 +6,13 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
@@ -41,35 +41,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     {
         public const string ClientName = ProtocolConstants.RazorCSharp;
 
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
-            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
+            ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
             IThreadingContext threadingContext,
-            ILspLoggerFactory lspLoggerFactory)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext)
+            ILspServiceLoggerFactory lspLoggerFactory,
+            ExportProvider exportProvider,
+            [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider, middleLayer)
         {
-            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
+            _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
         }
 
         protected override void Activate_OffUIThread()
         {
             // Ensure we let the default capabilities provider initialize off the UI thread to avoid
             // unnecessary MEF part loading during the GetCapabilities call, which is done on the UI thread
-            _defaultCapabilitiesProvider.Initialize();
+            _experimentalCapabilitiesProvider.Initialize();
         }
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            var capabilities = _experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities);
 
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;

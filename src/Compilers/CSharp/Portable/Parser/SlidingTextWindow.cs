@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (_characterWindow != null)
             {
                 s_windowPool.Free(_characterWindow);
-                _characterWindow = null;
+                _characterWindow = null!;
                 _strings.Free();
             }
         }
@@ -395,14 +393,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int position = this.Position;
 
             // if we're peeking, then we don't want to change the position
-            SyntaxDiagnosticInfo info;
+            SyntaxDiagnosticInfo? info;
             var ch = this.ScanUnicodeEscape(peek: true, surrogateCharacter: out surrogateCharacter, info: out info);
             Debug.Assert(info == null, "Never produce a diagnostic while peeking.");
             this.Reset(position);
             return ch;
         }
 
-        public char NextCharOrUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo info)
+        public char NextCharOrUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo? info)
         {
             var ch = this.PeekChar();
             Debug.Assert(ch != InvalidCharacter, "Precondition established by all callers; required for correctness of AdvanceChar() call.");
@@ -421,12 +419,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        public char NextUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo info)
+        public char NextUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo? info)
         {
             return ScanUnicodeEscape(peek: false, surrogateCharacter: out surrogateCharacter, info: out info);
         }
 
-        private char ScanUnicodeEscape(bool peek, out char surrogateCharacter, out SyntaxDiagnosticInfo info)
+        private char ScanUnicodeEscape(bool peek, out char surrogateCharacter, out SyntaxDiagnosticInfo? info)
         {
             surrogateCharacter = InvalidCharacter;
             info = null;

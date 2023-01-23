@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return factory.ThrowStatement(exceptionCreationExpression);
         }
 
-        [return: NotNullIfNotNull("syntax")]
+        [return: NotNullIfNotNull(nameof(syntax))]
         public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode? syntax) where TSyntaxNode : SyntaxNode
             => symbol is CodeGenerationSymbol codeGenerationSymbol
                 ? syntax?.WithAdditionalAnnotations(codeGenerationSymbol.GetAnnotations())
@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public static void GetNameAndInnermostNamespace(
             INamespaceSymbol @namespace,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo info,
             out string name,
             out INamespaceSymbol innermostNamespace)
         {
-            if (options.Context.GenerateMembers && options.Context.MergeNestedNamespaces && @namespace.Name != string.Empty)
+            if (info.Context.GenerateMembers && info.Context.MergeNestedNamespaces && @namespace.Name != string.Empty)
             {
                 var names = new List<string>();
                 names.Add(@namespace.Name);
@@ -178,20 +178,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return node.WithLeadingTrivia(leadingTrivia);
         }
 
-        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
+        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationContextInfo info)
             where T : SyntaxNode
         {
             Contract.ThrowIfNull(attribute);
 
-            return options.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
-                attribute.ApplicationSyntaxReference.GetSyntax() as T :
-                null;
+            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null
+                ? attribute.ApplicationSyntaxReference.GetSyntax() as T
+                : null;
         }
 
         public static int GetInsertionIndex<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             IComparer<TDeclaration> comparerWithoutNameCheck,
             IComparer<TDeclaration> comparerWithNameCheck,
@@ -202,9 +202,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
 
             // Try to strictly obey the after option by inserting immediately after the member containing the location
-            if (options.Context.AfterThisLocation != null)
+            if (info.Context.AfterThisLocation?.SourceTree is { } afterSourceTree &&
+                afterSourceTree.FilePath == declarationList.FirstOrDefault()?.SyntaxTree.FilePath)
             {
-                var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.Context.AfterThisLocation.SourceSpan.Start);
+                var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= info.Context.AfterThisLocation.SourceSpan.Start);
                 if (afterMember != null)
                 {
                     var index = declarationList.IndexOf(afterMember);
@@ -217,9 +218,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             // Try to strictly obey the before option by inserting immediately before the member containing the location
-            if (options.Context.BeforeThisLocation != null)
+            if (info.Context.BeforeThisLocation?.SourceTree is { } beforeSourceTree &&
+                beforeSourceTree.FilePath == declarationList.FirstOrDefault()?.SyntaxTree.FilePath)
             {
-                var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.Context.BeforeThisLocation.SourceSpan.End);
+                var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= info.Context.BeforeThisLocation.SourceSpan.End);
                 if (beforeMember != null)
                 {
                     var index = declarationList.IndexOf(beforeMember);
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
             }
 
-            if (options.Context.AutoInsertionLocation)
+            if (info.Context.AutoInsertionLocation)
             {
                 if (declarationList.IsEmpty())
                 {
@@ -394,5 +396,25 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // Couldn't find anything with our name.  Just place us at the end of this group.
             return desiredGroupIndex;
         }
+
+        // from https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
+        public static bool IsCompilerInternalAttribute(AttributeData attribute)
+            => attribute.AttributeClass is
+            {
+                Name: "NullableAttribute" or "NullableContextAttribute" or "NativeIntegerAttribute" or "DynamicAttribute",
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Runtime.CompilerServices),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Runtime),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System),
+                            ContainingNamespace.IsGlobalNamespace: true,
+                        },
+                    },
+                },
+            };
     }
 }

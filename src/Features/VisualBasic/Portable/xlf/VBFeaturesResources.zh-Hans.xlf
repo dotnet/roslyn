@@ -67,11 +67,6 @@
         <target state="translated">插入缺少的“{0}”。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">内联临时变量</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">检测到冲突。</target>
@@ -101,6 +96,11 @@
         <source>Organize Imports</source>
         <target state="translated">整理 Import</target>
         <note>{Locked="Import"}</note>
+      </trans-unit>
+      <trans-unit id="Project_level_Imports">
+        <source>Project level 'Imports'</source>
+        <target state="translated">项目级别“导入”</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
         <source>Remove 'Shared' keyword from Module member</source>

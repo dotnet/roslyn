@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // put argument syntax to argument operation
             IOperation value = Create(expression);
-            (SyntaxNode syntax, bool isImplicit) = expression.Syntax is { Parent: ArgumentSyntax parent } ? (parent, expression.WasCompilerGenerated) : (value.Syntax, true);
+            (SyntaxNode syntax, bool isImplicit) = expression.Syntax is { Parent: ArgumentSyntax or AttributeArgumentSyntax } ? (expression.Syntax.Parent, expression.WasCompilerGenerated) : (value.Syntax, true);
             return new ArgumentOperation(
                 kind,
                 parameter,
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new VariableDeclaratorOperation(symbol, initializer, ignoredDimensions, _semanticModel, syntax, isImplicit);
         }
 
-        [return: NotNullIfNotNull("boundLocal")]
+        [return: NotNullIfNotNull(nameof(boundLocal))]
         internal IVariableDeclaratorOperation? CreateVariableDeclarator(BoundLocal? boundLocal)
         {
             return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol.GetPublicSymbol(), initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, isImplicit: false);
@@ -133,8 +133,9 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation? instance = CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt, boundEventAssignmentOperator.Event);
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
+            TypeParameterSymbol? constrainedToType = GetConstrainedToType(boundEventAssignmentOperator.Event, boundEventAssignmentOperator.ReceiverOpt);
 
-            return new EventReferenceOperation(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, isImplicit);
+            return new EventReferenceOperation(@event, constrainedToType.GetPublicSymbol(), instance, _semanticModel, eventAccessSyntax, @event.Type, isImplicit);
         }
 
         internal IOperation CreateDelegateTargetOperation(BoundNode delegateNode)
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression, bool isObjectOrCollectionInitializer)
+        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
         {
             switch (containingExpression.Kind)
             {
@@ -207,16 +208,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                     boundObjectInitializerMember.Expanded,
                                     boundObjectInitializerMember.Syntax);
                     }
-
-                default:
-                    return DeriveArguments(containingExpression);
-            }
-        }
-
-        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
-        {
-            switch (containingExpression.Kind)
-            {
                 case BoundKind.IndexerAccess:
                     {
                         var boundIndexer = (BoundIndexerAccess)containingExpression;
@@ -237,6 +228,15 @@ namespace Microsoft.CodeAnalysis.Operations
                                                objectCreation.Expanded,
                                                objectCreation.Syntax);
                     }
+                case BoundKind.Attribute:
+                    var attribute = (BoundAttribute)containingExpression;
+                    Debug.Assert(attribute.Constructor is not null);
+                    return DeriveArguments(attribute.Constructor,
+                                           attribute.ConstructorArguments,
+                                           attribute.ConstructorArgumentsToParamsOpt,
+                                           attribute.ConstructorDefaultArguments,
+                                           attribute.ConstructorExpanded,
+                                           attribute.Syntax);
                 case BoundKind.Call:
                     {
                         var boundCall = (BoundCall)containingExpression;
@@ -359,6 +359,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // No matching declaration, synthesize a property reference to be assigned.
                     target = new PropertyReferenceOperation(
                         property.GetPublicSymbol(),
+                        constrainedToType: null,
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
                         instance,
                         semanticModel: _semanticModel,
@@ -370,6 +371,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 else
                 {
                     target = new PropertyReferenceOperation(anonymousProperty.Property.GetPublicSymbol(),
+                                                            constrainedToType: null,
                                                             ImmutableArray<IArgumentOperation>.Empty,
                                                             instance,
                                                             _semanticModel,

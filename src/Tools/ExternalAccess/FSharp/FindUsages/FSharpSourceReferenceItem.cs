@@ -10,7 +10,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
     {
         private readonly Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem _roslynSourceReferenceItem;
 
+#pragma warning disable IDE0051 // Remove unused private members
         private FSharpSourceReferenceItem(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem roslynDefinitionItem)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             _roslynSourceReferenceItem = roslynDefinitionItem;
         }

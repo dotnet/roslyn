@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ICompilationTracker Fork(SolutionServices solutionServices, ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default)
+            public ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate)
             {
                 // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
                 // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
                 // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public async Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis
                     await UnderlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
                     await _replacedGeneratedDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 
-            public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
+            public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
                 // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
                 // So this method should only be called if:
@@ -185,6 +186,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     return UnderlyingTracker.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
                 }
+            }
+
+            public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                // We can directly return the diagnostics from the underlying tracker; this is because
+                // a generated document cannot have any diagnostics that are produced by a generator:
+                // a generator cannot add diagnostics to it's own file outputs, and generators don't see the
+                // outputs of each other.
+                return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(solution, cancellationToken);
             }
         }
     }

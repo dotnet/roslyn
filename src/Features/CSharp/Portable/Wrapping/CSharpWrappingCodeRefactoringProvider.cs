@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
         {
         }
 
-        protected override SyntaxWrappingOptions GetWrappingOptions(AnalyzerConfigOptions options, CodeActionOptions ideOptions)
-            => CSharpSyntaxWrappingOptions.Create(options, ideOptions);
+        protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions)
+            => options.GetCSharpSyntaxWrappingOptions(ideOptions);
     }
 }

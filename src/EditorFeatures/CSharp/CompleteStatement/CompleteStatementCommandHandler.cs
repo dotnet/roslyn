@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -155,6 +155,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 delimiters = startingNode.GetBrackets();
             }
 
+            if (delimiters == default)
+            {
+                delimiters = startingNode.GetBraces();
+            }
+
             var (openingDelimiter, closingDelimiter) = delimiters;
             if (!openingDelimiter.IsKind(SyntaxKind.None) && openingDelimiter.Span.Start >= caretPosition
                 || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
@@ -184,17 +189,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            if (currentNode.IsKind(
-                SyntaxKind.ArgumentList,
-                SyntaxKind.ArrayRankSpecifier,
-                SyntaxKind.BracketedArgumentList,
-                SyntaxKind.ParenthesizedExpression,
-                SyntaxKind.ParameterList,
-                SyntaxKind.DefaultExpression,
-                SyntaxKind.CheckedExpression,
-                SyntaxKind.UncheckedExpression,
-                SyntaxKind.TypeOfExpression,
-                SyntaxKind.TupleExpression))
+            if (currentNode.Kind() is
+                    SyntaxKind.ArgumentList or
+                    SyntaxKind.ArrayRankSpecifier or
+                    SyntaxKind.BracketedArgumentList or
+                    SyntaxKind.ParenthesizedExpression or
+                    SyntaxKind.ParameterList or
+                    SyntaxKind.DefaultExpression or
+                    SyntaxKind.CheckedExpression or
+                    SyntaxKind.UncheckedExpression or
+                    SyntaxKind.TypeOfExpression or
+                    SyntaxKind.TupleExpression or
+                    SyntaxKind.SwitchExpression)
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -242,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool CanHaveSemicolon(SyntaxNode currentNode)
         {
-            if (currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+            if (currentNode.Kind() is SyntaxKind.FieldDeclaration or SyntaxKind.DelegateDeclaration or SyntaxKind.ArrowExpressionClause)
             {
                 return true;
             }
@@ -252,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return true;
             }
 
-            if (currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } })
+            if (currentNode is RecordDeclarationSyntax { OpenBraceToken.IsMissing: true })
             {
                 return true;
             }
@@ -276,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
         {
-            if (!currentNode.IsKind(SyntaxKind.DoStatement, out DoStatementSyntax? doStatement))
+            if (currentNode is not DoStatementSyntax doStatement)
             {
                 return false;
             }
@@ -405,8 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInAStringOrCharacter(SyntaxNode currentNode, SnapshotPoint caret)
             // Check to see if caret is before or after string
-            => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression, SyntaxKind.CharacterLiteralExpression)
-                && caret.Position < currentNode.Span.End
+            => currentNode.Kind() is SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression && caret.Position < currentNode.Span.End
                 && caret.Position > currentNode.SpanStart;
 
         /// <summary>
@@ -460,7 +465,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
             return currentNode.GetBrackets().closeBracket.IsMissing ||
-                currentNode.GetParentheses().closeParen.IsMissing;
+                currentNode.GetParentheses().closeParen.IsMissing ||
+                currentNode.GetBraces().closeBrace.IsMissing;
         }
     }
 }

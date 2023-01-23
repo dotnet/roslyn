@@ -11,10 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -62,13 +63,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         public async Task<CodeAction> IntroduceVariableAsync(
             Document document,
             TextSpan textSpan,
+            CodeCleanupOptions options,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_IntroduceVariable, cancellationToken))
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var state = await State.GenerateAsync((TService)this, semanticDocument, textSpan, cancellationToken).ConfigureAwait(false);
+                var state = await State.GenerateAsync((TService)this, semanticDocument, options, textSpan, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
                     var (title, actions) = CreateActions(state, cancellationToken);
@@ -247,10 +249,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             if (allOccurrences)
             {
-                return new IntroduceVariableAllOccurrenceCodeAction((TService)this, state.Document, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
+                return new IntroduceVariableAllOccurrenceCodeAction((TService)this, state.Document, state.Options, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
             }
 
-            return new IntroduceVariableCodeAction((TService)this, state.Document, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
+            return new IntroduceVariableCodeAction((TService)this, state.Document, state.Options, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
         }
 
         protected static SyntaxToken GenerateUniqueFieldName(
@@ -297,7 +299,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool allOccurrences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = currentDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = currentDocument.Project.Services.GetService<ISyntaxFactsService>();
             var originalSemanticModel = originalDocument.SemanticModel;
             var currentSemanticModel = currentDocument.SemanticModel;
 

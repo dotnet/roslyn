@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
             : base(IDEDiagnosticIds.UseTupleSwapDiagnosticId,
                    EnforceOnBuildValues.UseTupleSwap,
                    CSharpCodeStyleOptions.PreferTupleSwap,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -61,11 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
 
         private void AnalyzeLocalDeclarationStatement(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            var cancellationToken = syntaxContext.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferTupleSwap, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferTupleSwap;
             if (!styleOption.Value)
                 return;
 

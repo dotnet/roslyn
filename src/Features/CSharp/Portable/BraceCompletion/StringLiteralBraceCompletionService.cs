@@ -9,14 +9,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class StringLiteralBraceCompletionService : AbstractBraceCompletionService
+    internal class StringLiteralBraceCompletionService : AbstractCSharpBraceCompletionService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,34 +26,30 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         }
 
         protected override char OpeningBrace => DoubleQuote.OpenCharacter;
-
         protected override char ClosingBrace => DoubleQuote.CloseCharacter;
 
-        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken);
+        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeWithValidClosingToken(context);
 
-        public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
+        public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
         {
             // Only potentially valid for string literal completion if not in an interpolated string brace completion context.
-            if (OpeningBrace == brace && await InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false))
+            if (OpeningBrace == brace && InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContext(document, openingPosition, cancellationToken))
             {
                 return false;
             }
 
-            return await base.CanProvideBraceCompletionAsync(brace, openingPosition, document, cancellationToken).ConfigureAwait(false);
+            return base.CanProvideBraceCompletion(brace, openingPosition, document, cancellationToken);
         }
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.StringLiteralToken);
 
         protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.StringLiteralToken);
 
-        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
+        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
         {
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (ParentIsSkippedTokensTriviaOrNull(syntaxFactsService, token) || !IsValidOpeningBraceToken(token))
-            {
-                return SpecializedTasks.False;
-            }
+            if (ParentIsSkippedTokensTriviaOrNull(this.SyntaxFacts, token) || !IsValidOpeningBraceToken(token))
+                return false;
 
             // If the single token that the user typed is a string literal that is more than just
             // the one double quote character they typed, and the line doesn't have errors, then
@@ -72,23 +69,23 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 token.Span.Length > 1 &&
                 !RestOfLineContainsDiagnostics(token))
             {
-                return SpecializedTasks.False;
+                return false;
             }
 
             if (token.SpanStart == position)
             {
-                return SpecializedTasks.True;
+                return true;
             }
 
             // The character at the position is a double quote but the token's span start we found at the position
             // doesn't match the position.  Check if we're in a verbatim string token @" where the token span start
             // is the @ character and the " is one past the token start.
-            return Task.FromResult(token.SpanStart + 1 == position && token.IsVerbatimStringLiteral());
+            return token.SpanStart + 1 == position && token.IsVerbatimStringLiteral();
         }
 
         private static bool RestOfLineContainsDiagnostics(SyntaxToken token)
         {
-            while (!token.TrailingTrivia.Contains(t => t.IsEndOfLine()))
+            while (!token.IsKind(SyntaxKind.None) && !token.TrailingTrivia.Contains(t => t.IsEndOfLine()))
             {
                 if (token.ContainsDiagnostics)
                     return true;

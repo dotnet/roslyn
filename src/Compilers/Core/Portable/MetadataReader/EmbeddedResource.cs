@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct EmbeddedResource
+    internal readonly struct EmbeddedResource
     {
         public readonly uint Offset;
         public readonly ManifestResourceAttributes Attributes;

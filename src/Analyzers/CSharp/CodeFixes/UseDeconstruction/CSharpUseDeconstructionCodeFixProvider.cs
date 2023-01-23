@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var nodesToProcess = diagnostics.SelectAsArray(d => d.Location.FindToken(cancellationToken).Parent);
 
@@ -55,13 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return editor.ApplyMethodBodySemanticEditsAsync(
                 document, nodesToProcess,
                 (semanticModel, node) => true,
-                (semanticModel, currentRoot, node) => UpdateRoot(semanticModel, currentRoot, node, document.Project.Solution.Workspace.Services, cancellationToken),
+                (semanticModel, currentRoot, node) => UpdateRoot(document, semanticModel, currentRoot, node, cancellationToken),
                 cancellationToken);
         }
 
-        private SyntaxNode UpdateRoot(SemanticModel semanticModel, SyntaxNode root, SyntaxNode node, HostWorkspaceServices services, CancellationToken cancellationToken)
+        private SyntaxNode UpdateRoot(
+            Document document,
+            SemanticModel semanticModel,
+            SyntaxNode root,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(root, services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             // We use the callback form of ReplaceNode because we may have nested code that
             // needs to be updated in fix-all situations.  For example, nested foreach statements.
@@ -150,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // i.e.   (int x, int y) t = ...   will be converted to (int x, int y) = ...
             //
             // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
-            return typeNode.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleTypeSyntax)
+            return typeNode is TupleTypeSyntax tupleTypeSyntax
                 ? CreateTupleExpression(tupleTypeSyntax)
                 : CreateDeclarationExpression(tupleType, typeNode);
         }

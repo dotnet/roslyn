@@ -24,19 +24,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ICodeGenerationService service,
             BaseNamespaceDeclarationSyntax destination,
             INamespaceSymbol @namespace,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamespaceDeclaration(
                 service, @namespace,
                 CodeGenerationDestination.Namespace,
-                options,
+                info,
                 cancellationToken);
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
 
-            var members = Insert(destination.Members, namespaceDeclaration, options, availableIndices);
+            var members = Insert(destination.Members, namespaceDeclaration, info, availableIndices);
             return destination.WithMembers(members);
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ICodeGenerationService service,
             CompilationUnitSyntax destination,
             INamespaceSymbol @namespace,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 service,
                 @namespace,
                 CodeGenerationDestination.CompilationUnit,
-                options,
+                info,
                 cancellationToken);
 
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
 
-            var members = Insert(destination.Members, namespaceDeclaration, options, availableIndices);
+            var members = Insert(destination.Members, namespaceDeclaration, info, availableIndices);
             return destination.WithMembers(members);
         }
 
@@ -66,16 +66,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ICodeGenerationService service,
             INamespaceSymbol @namespace,
             CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
-            GetNameAndInnermostNamespace(@namespace, options, out var name, out var innermostNamespace);
+            GetNameAndInnermostNamespace(@namespace, info, out var name, out var innermostNamespace);
 
             var declaration = GetDeclarationSyntaxWithoutMembers(
-                @namespace, innermostNamespace, name, destination, options);
+                @namespace, innermostNamespace, name, destination, info);
 
-            declaration = options.Context.GenerateMembers
-                ? service.AddMembers(declaration, innermostNamespace.GetMembers(), options, cancellationToken)
+            declaration = info.Context.GenerateMembers
+                ? service.AddMembers(declaration, innermostNamespace.GetMembers(), info, cancellationToken)
                 : declaration;
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
@@ -85,18 +85,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ICodeGenerationService service,
             SyntaxNode declaration,
             IList<ISymbol> newMembers,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
             declaration = RemoveAllMembers(declaration);
-            declaration = service.AddMembers(declaration, newMembers, options, cancellationToken);
+            declaration = service.AddMembers(declaration, newMembers, info, cancellationToken);
             return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
 
         private static SyntaxNode GenerateNamespaceDeclarationWorker(
             string name, INamespaceSymbol innermostNamespace,
             CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options)
+            CSharpCodeGenerationContextInfo info)
         {
             var usings = GenerateUsingDirectives(innermostNamespace);
 
@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.CompilationUnit().WithUsings(usings);
 
             if (destination == CodeGenerationDestination.CompilationUnit &&
-                options.Preferences.NamespaceDeclarations == NamespaceDeclarationPreference.FileScoped &&
-                options.Preferences.LanguageVersion >= LanguageVersion.CSharp10)
+                info.Options.NamespaceDeclarations.Value == NamespaceDeclarationPreference.FileScoped &&
+                info.LanguageVersion >= LanguageVersion.CSharp10)
             {
                 return SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.ParseName(name)).WithUsings(usings);
             }
@@ -119,11 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             INamespaceSymbol innermostNamespace,
             string name,
             CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options)
+            CSharpCodeGenerationContextInfo info)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<SyntaxNode>(@namespace, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<SyntaxNode>(@namespace, info);
             return reusableSyntax == null
-                ? GenerateNamespaceDeclarationWorker(name, innermostNamespace, destination, options)
+                ? GenerateNamespaceDeclarationWorker(name, innermostNamespace, destination, info)
                 : RemoveAllMembers(reusableSyntax);
         }
 

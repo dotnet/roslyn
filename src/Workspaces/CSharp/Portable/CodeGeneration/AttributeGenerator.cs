@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         public static SyntaxList<AttributeListSyntax> GenerateAttributeLists(
             ImmutableArray<AttributeData> attributes,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             SyntaxToken? target = null)
         {
-            if (options.Context.MergeAttributes)
+            if (info.Context.MergeAttributes)
             {
                 var attributeNodes =
                     attributes.OrderBy(a => a.AttributeClass?.Name)
-                              .Select(a => TryGenerateAttribute(a, options))
+                              .Select(a => TryGenerateAttribute(a, info))
                               .WhereNotNull().ToList();
                 return attributeNodes.Count == 0
                     ? default
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var attributeDeclarations =
                     attributes.OrderBy(a => a.AttributeClass?.Name)
-                              .Select(a => TryGenerateAttributeDeclaration(a, target, options))
+                              .Select(a => TryGenerateAttributeDeclaration(a, target, info))
                               .WhereNotNull().ToList();
                 return attributeDeclarations.Count == 0
                     ? default
@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AttributeListSyntax? TryGenerateAttributeDeclaration(
-            AttributeData attribute, SyntaxToken? target, CSharpCodeGenerationOptions options)
+            AttributeData attribute, SyntaxToken? target, CSharpCodeGenerationContextInfo info)
         {
-            var attributeSyntax = TryGenerateAttribute(attribute, options);
+            var attributeSyntax = TryGenerateAttribute(attribute, info);
             return attributeSyntax == null
                 ? null
                 : SyntaxFactory.AttributeList(
@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.SingletonSeparatedList(attributeSyntax));
         }
 
-        private static AttributeSyntax? TryGenerateAttribute(AttributeData attribute, CSharpCodeGenerationOptions options)
+        private static AttributeSyntax? TryGenerateAttribute(AttributeData attribute, CSharpCodeGenerationContextInfo info)
         {
             if (IsCompilerInternalAttribute(attribute))
                 return null;
 
-            if (!options.Context.MergeAttributes)
+            if (!info.Context.MergeAttributes)
             {
-                var reusableSyntax = GetReuseableSyntaxNodeForAttribute<AttributeSyntax>(attribute, options);
+                var reusableSyntax = GetReuseableSyntaxNodeForAttribute<AttributeSyntax>(attribute, info);
                 if (reusableSyntax != null)
                 {
                     return reusableSyntax;
@@ -79,30 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
                 ? SyntaxFactory.Attribute(nameSyntax, attributeArguments)
                 : null;
-        }
-
-        private static bool IsCompilerInternalAttribute(AttributeData attribute)
-        {
-            // from https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
-            var attrClass = attribute.AttributeClass;
-            if (attrClass == null)
-                return false;
-
-            var name = attrClass.Name;
-
-            if (name is not "NullableAttribute" and
-                not "NullableContextAttribute" and
-                not "NativeIntegerAttribute" and
-                not "DynamicAttribute")
-            {
-                return false;
-            }
-
-            var ns = attrClass.ContainingNamespace;
-            return ns?.Name == nameof(System.Runtime.CompilerServices) &&
-                   ns.ContainingNamespace?.Name == nameof(System.Runtime) &&
-                   ns.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
-                   ns.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
         private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(AttributeData attribute)

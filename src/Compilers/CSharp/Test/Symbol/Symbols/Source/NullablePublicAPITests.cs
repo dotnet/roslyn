@@ -2331,7 +2331,6 @@ class C
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
-
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
@@ -2571,6 +2570,38 @@ class C
                     Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
                     Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
                 }
+            }
+        }
+
+        [Fact]
+        public void GetForeachInfo()
+        {
+            var source = @"
+class C
+{
+    void M(string?[] nullableStrings, string[] strings)
+    {
+        foreach (var o in nullableStrings) {}
+        foreach (var o in strings) {}
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
+
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+
+            void assertAnnotation(ForEachStatementSyntax foreachStatement, PublicNullableAnnotation expectedElementTypeAnnotation)
+            {
+                var foreachInfo = model.GetForEachStatementInfo(foreachStatement);
+                Assert.Equal(expectedElementTypeAnnotation, foreachInfo.ElementType.NullableAnnotation);
             }
         }
 
@@ -3876,7 +3907,6 @@ class C
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
-
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
@@ -4081,7 +4111,6 @@ class C
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
-
 
             var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
             var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;

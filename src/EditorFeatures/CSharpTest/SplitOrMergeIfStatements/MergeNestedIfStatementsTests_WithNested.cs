@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 }");
         }
 
-        [Fact]
-        [WorkItem(55563, "https://github.com/dotnet/roslyn/issues/55563")]
+        [Fact, WorkItem(55563, "https://github.com/dotnet/roslyn/issues/55563")]
         public async Task MergedOnOuterIf_TopLevelStatements()
         {
             await TestInRegularAndScriptAsync(

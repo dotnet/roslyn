@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Editor
@@ -123,8 +124,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             Await TestAsync(code, indentation:=30)
         End Function
 
-        <WorkItem(542240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542240")>
-        <Fact>
+        <Fact, WorkItem(542240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542240")>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Async Function MissingEndStatement() As Task
             Dim code = <code>Module Module1
@@ -138,8 +138,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
             Await TestAsync(code, indentation:=4)
         End Function
 
-        <WorkItem(542240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542240")>
-        <Fact>
+        <Fact, WorkItem(542240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542240")>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Async Function EmptyElement1() As Task
             Await TestAsync(My.Resources.XmlLiterals.EmptyElement1, indentation:=23)
@@ -189,7 +188,7 @@ End Class
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
-                Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 Dim formattingRules = ImmutableArray.Create(Of AbstractFormattingRule)(New SpecialFormattingRule(indentStyle)).AddRange(Formatter.GetDefaultFormattingRules(document))
 
@@ -202,9 +201,9 @@ End Class
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                             formattingRules, root, line.AsTextLine, options, Nothing, ignoreMissingToken))
 
-                Dim formatOptions = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+                Dim formatOptions = VisualBasicSyntaxFormattingOptions.Default
                 Dim smartFormatter = New VisualBasicSmartTokenFormatter(formatOptions, formattingRules, root)
-                Dim changes = Await smartFormatter.FormatTokenAsync(token, Nothing)
+                Dim changes = smartFormatter.FormatToken(token, Nothing)
 
                 Using edit = buffer.CreateEdit()
                     For Each change In changes

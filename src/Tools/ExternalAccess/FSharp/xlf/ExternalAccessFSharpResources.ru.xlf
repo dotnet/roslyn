@@ -2,21 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../ExternalAccessFSharpResources.resx">
     <body>
-      <trans-unit id="AddAssemblyReference">
-        <source>Add an assembly reference to '{0}'</source>
-        <target state="translated">Добавить ссылку на сборку в "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AddNewKeyword">
-        <source>Add 'new' keyword</source>
-        <target state="translated">Добавить ключевое слово "new"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AddProjectReference">
-        <source>Add a project reference to '{0}'</source>
-        <target state="translated">Добавить ссылку на проект в "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CannotDetermineSymbol">
         <source>Cannot determine the symbol under the caret</source>
         <target state="translated">Не удается определить символ, на котором находится курсор.</target>
@@ -25,11 +10,6 @@
       <trans-unit id="CannotNavigateUnknown">
         <source>Cannot navigate to the requested location</source>
         <target state="translated">Не удается перейти к запрошенному расположению.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExceptionsHeader">
-        <source>Exceptions:</source>
-        <target state="translated">Исключения:</target>
         <note />
       </trans-unit>
       <trans-unit id="FSharpDisposablesClassificationType">
@@ -55,11 +35,6 @@
       <trans-unit id="FSharpPropertiesClassificationType">
         <source>F# Properties</source>
         <target state="translated">Свойства F#</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GenericParametersHeader">
-        <source>Generic parameters:</source>
-        <target state="translated">Общие параметры:</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementInterface">
@@ -92,24 +67,9 @@
         <target state="translated">Переход к символу…</target>
         <note />
       </trans-unit>
-      <trans-unit id="PrefixValueNameWithUnderscore">
-        <source>Prefix '{0}' with underscore</source>
-        <target state="translated">Добавить префикс в виде символа подчеркивания к "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RemoveUnusedOpens">
         <source>Remove unused open declarations</source>
         <target state="translated">Удалить неиспользуемые объявления open</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="RenameValueToDoubleUnderscore">
-        <source>Rename '{0}' to '__'</source>
-        <target state="translated">Переименовать "{0}" в "__"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="RenameValueToUnderscore">
-        <source>Rename '{0}' to '_'</source>
-        <target state="translated">Переименовать "{0}" в "_"</target>
         <note />
       </trans-unit>
       <trans-unit id="SimplifyName">

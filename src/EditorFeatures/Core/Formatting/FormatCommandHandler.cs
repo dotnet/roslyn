@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
+    [Order(Before = PredefinedCommandHandlerNames.StringCopyPaste)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal partial class FormatCommandHandler :
         ICommandHandler<FormatDocumentCommandArgs>,
@@ -59,40 +61,35 @@ namespace Microsoft.CodeAnalysis.Formatting
             _globalOptions = globalOptions;
         }
 
-        private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private void Format(ITextView textView, ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
+                // Note: C# always completes synchronously, TypeScript is async
+                var changes = formattingService.GetFormattingChangesAsync(document, textBuffer, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.IsEmpty)
                 {
                     return;
                 }
 
-                ApplyChanges(document, changes, selectionOpt, cancellationToken);
-                transaction.Complete();
-            }
-        }
-
-        private static void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
-        {
-            if (selectionOpt.HasValue)
-            {
-                var ruleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-
-                changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
-                if (changes.Count == 0)
+                if (selectionOpt.HasValue)
                 {
-                    return;
+                    var ruleFactory = document.Project.Solution.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+                    changes = ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes).ToImmutableArray();
                 }
-            }
 
-            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-            {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+                if (!changes.IsEmpty)
+                {
+                    using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+                    {
+                        textBuffer.ApplyChanges(changes);
+                    }
+                }
+
+                transaction.Complete();
             }
         }
 
@@ -160,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
+                // Note: C# always completes synchronously, TypeScript is async
                 textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
@@ -169,8 +167,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
+                // Note: C# always completes synchronously, TypeScript is async
                 textChanges = service.GetFormattingChangesAsync(
-                    document, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document, typeCharArgs.SubjectBuffer, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {
@@ -185,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Automatic_Formatting))
             {
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, cancellationToken);
+                subjectBuffer.ApplyChanges(textChanges);
                 transaction.Complete();
             }
 
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var snapshotAfterFormatting = args.SubjectBuffer.CurrentSnapshot;
+            var snapshotAfterFormatting = subjectBuffer.CurrentSnapshot;
 
             var oldCaretPosition = caretPosition.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
             var newCaretPosition = newCaretPositionMarker.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);

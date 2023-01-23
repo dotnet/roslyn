@@ -7,9 +7,9 @@
     <Platforms>AnyCPU</Platforms>
     <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <!-- We build this against net6.0 to build the console app version, and against netstandard2.0 for
+    <!-- We build this against net7.0 to build the console app version, and against netstandard2.0 for
          the Source Generator version. -->
-    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
     <OutputType Condition="'$(TargetFramework)' != 'netstandard2.0'">Exe</OutputType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>

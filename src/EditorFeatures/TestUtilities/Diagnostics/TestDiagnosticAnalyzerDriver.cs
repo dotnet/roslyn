@@ -18,6 +18,9 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -26,11 +29,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private readonly DiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly bool _includeSuppressedDiagnostics;
 
-        public TestDiagnosticAnalyzerDriver(Workspace workspace, Project project, bool includeSuppressedDiagnostics = false)
+        internal readonly IGlobalOptionService GlobalOptions;
+        internal readonly CodeActionOptionsProvider FallbackOptions;
+
+        public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false)
         {
-            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
-            _diagnosticAnalyzerService = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
-            _diagnosticAnalyzerService.CreateIncrementalAnalyzer(project.Solution.Workspace);
+            var mefServices = workspace.Services.SolutionServices.ExportProvider;
+
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(mefServices.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            _diagnosticAnalyzerService = Assert.IsType<DiagnosticAnalyzerService>(mefServices.GetExportedValue<IDiagnosticAnalyzerService>());
+
+            GlobalOptions = mefServices.GetExportedValue<IGlobalOptionService>();
+            FallbackOptions = GlobalOptions.CreateProvider();
+
+            _diagnosticAnalyzerService.CreateIncrementalAnalyzer(workspace);
             _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
         }
 
@@ -46,11 +58,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             if (getDocumentDiagnostics)
             {
+                var text = await document.GetTextAsync().ConfigureAwait(false);
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics);
                 documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(
                     filterSpan is null
-                        ? dxs.Where(d => d.HasTextSpan)
-                        : dxs.Where(d => d.HasTextSpan && d.GetTextSpan().IntersectsWith(filterSpan.Value)),
+                        ? dxs.Where(d => d.DataLocation.DocumentId != null)
+                        : dxs.Where(d => d.DataLocation.DocumentId != null && d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).IntersectsWith(filterSpan.Value)),
                     project,
                     CancellationToken.None);
             }
@@ -58,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             if (getProjectDiagnostics)
             {
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, includeSuppressedDiagnostics: _includeSuppressedDiagnostics);
-                projectDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => !d.HasTextSpan), project, CancellationToken.None);
+                projectDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.DocumentId is null), project, CancellationToken.None);
             }
 
             var allDiagnostics = documentDiagnostics.Concat(projectDiagnostics);

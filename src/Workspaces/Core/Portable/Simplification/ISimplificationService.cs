@@ -12,11 +12,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
-    internal interface ISimplificationService : ILanguageService
+    internal interface ISimplificationService : ISimplification, ILanguageService
     {
-        SimplifierOptions DefaultOptions { get; }
-        SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions);
-
         SyntaxNode Expand(
             SyntaxNode node,
             SemanticModel semanticModel,

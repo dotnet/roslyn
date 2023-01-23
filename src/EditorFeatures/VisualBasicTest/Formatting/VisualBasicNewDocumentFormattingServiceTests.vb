@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities.Formatting
@@ -32,7 +33,9 @@ Imports System
 Namespace Goo
 
 End Namespace",
-                options:={(CodeStyleOptions2.FileHeaderTemplate, "This is a banner.")})
+                options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+                    {CodeStyleOptions2.FileHeaderTemplate, "This is a banner."}
+                })
         End Function
 
         <Fact>

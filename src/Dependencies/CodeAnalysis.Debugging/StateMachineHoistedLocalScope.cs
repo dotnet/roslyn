@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Debugging
 {
-    internal struct StateMachineHoistedLocalScope
+    internal readonly struct StateMachineHoistedLocalScope
     {
         /// <summary>
         /// The offset of the first operation in the scope.

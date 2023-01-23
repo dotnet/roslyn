@@ -8,11 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -36,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
+        internal abstract SyntaxTrivia ElasticMarker { get; }
+
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
         internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
         internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Workspace workspace, string language)
-            => GetGenerator(workspace.Services, language);
+            => GetGenerator(workspace.Services.SolutionServices, language);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
-        internal static SyntaxGenerator GetGenerator(HostWorkspaceServices services, string language)
+        internal static SyntaxGenerator GetGenerator(SolutionServices services, string language)
             => services.GetLanguageServices(language).GetRequiredService<SyntaxGenerator>();
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the project.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Project project)
-            => project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+            => project.Services.GetRequiredService<SyntaxGenerator>();
 
         #region Declarations
 
@@ -201,14 +201,12 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a method declaration matching an existing method symbol.
+        /// Creates a operator or conversion declaration matching an existing method symbol.
         /// </summary>
         public SyntaxNode OperatorDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode>? statements = null)
         {
-            if (method.MethodKind != MethodKind.UserDefinedOperator)
-            {
+            if (method.MethodKind is not (MethodKind.UserDefinedOperator or MethodKind.Conversion))
                 throw new ArgumentException("Method is not an operator.");
-            }
 
             var decl = OperatorDeclaration(
                 GetOperatorKind(method),
@@ -257,23 +255,43 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a parameter declaration.
         /// </summary>
-        public abstract SyntaxNode ParameterDeclaration(
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public SyntaxNode ParameterDeclaration(
             string name,
             SyntaxNode? type = null,
             SyntaxNode? initializer = null,
-            RefKind refKind = RefKind.None);
+            RefKind refKind = RefKind.None)
+        {
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        private protected abstract SyntaxNode ParameterDeclaration(
+            string name,
+            SyntaxNode? type,
+            SyntaxNode? initializer,
+            RefKind refKind,
+            bool isExtension,
+            bool isParams);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
         /// </summary>
         public SyntaxNode ParameterDeclaration(IParameterSymbol symbol, SyntaxNode? initializer = null)
         {
-            return ParameterDeclaration(
+            var parameter = ParameterDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
-                initializer,
-                symbol.RefKind);
+                initializer is not null ? initializer :
+                symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
+                symbol.RefKind,
+                isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
+                symbol.IsParams);
+
+            return parameter;
         }
+
+        private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
 
         /// <summary>
         /// Creates a property declaration. The property will have a <c>get</c> accessor if
@@ -576,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Ordinary:
                             return MethodDeclaration(method);
 
-                        case MethodKind.UserDefinedOperator:
+                        case MethodKind.UserDefinedOperator or MethodKind.Conversion:
                             return OperatorDeclaration(method);
                     }
 
@@ -597,39 +615,38 @@ namespace Microsoft.CodeAnalysis.Editing
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 baseType: (type.BaseType != null) ? TypeExpression(type.BaseType) : null,
-                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                interfaceTypes: type.Interfaces.Select(TypeExpression),
+                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
                             break;
                         case TypeKind.Struct:
                             declaration = StructDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
-                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                interfaceTypes: type.Interfaces.Select(TypeExpression),
+                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
                             break;
                         case TypeKind.Interface:
                             declaration = InterfaceDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                interfaceTypes: type.Interfaces.Select(TypeExpression),
+                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
                             break;
                         case TypeKind.Enum:
                             declaration = EnumDeclaration(
                                 type.Name,
                                 underlyingType: (type.EnumUnderlyingType == null || type.EnumUnderlyingType.SpecialType == SpecialType.System_Int32) ? null : TypeExpression(type.EnumUnderlyingType.SpecialType),
                                 accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration));
                             break;
                         case TypeKind.Delegate:
-                            var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
-                            if (invoke != null)
+                            if (type.GetMembers("Invoke") is [IMethodSymbol invoke, ..])
                             {
                                 declaration = DelegateDeclaration(
                                     type.Name,
                                     parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
-                                    returnType: TypeExpression(invoke.ReturnType),
+                                    returnType: invoke.ReturnsVoid ? null : TypeExpression(invoke.ReturnType),
                                     accessibility: type.DeclaredAccessibility,
                                     modifiers: DeclarationModifiers.From(type));
                             }
@@ -702,7 +719,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
                                    | (tp.HasReferenceTypeConstraint ? SpecialTypeConstraintKind.ReferenceType : SpecialTypeConstraintKind.None)
                                    | (tp.HasValueTypeConstraint ? SpecialTypeConstraintKind.ValueType : SpecialTypeConstraintKind.None),
-                            types: tp.ConstraintTypes.Select(t => TypeExpression(t)));
+                            types: tp.ConstraintTypes.Select(TypeExpression));
                     }
                 }
             }
@@ -1267,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return false;
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         protected static SyntaxNode? PreserveTrivia<TNode>(TNode? node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
             if (node == null)
@@ -1315,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a new instance of the node with the leading and trailing trivia removed and replaced with elastic markers.
         /// </summary>
-        [return: MaybeNull, NotNullIfNotNull("node")]
+        [return: MaybeNull, NotNullIfNotNull(nameof(node))]
         public abstract TNode ClearTrivia<TNode>([MaybeNull] TNode node) where TNode : SyntaxNode;
 
 #pragma warning disable CA1822 // Mark members as static - shipped public API
@@ -1557,6 +1574,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
 
+        internal abstract SyntaxNode GlobalStatement(SyntaxNode statement);
+
         #endregion
 
         #region Expressions
@@ -1596,7 +1615,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a literal expression. This is typically numeric primitives, strings or chars.
         /// </summary>
-        public abstract SyntaxNode LiteralExpression(object? value);
+        public SyntaxNode LiteralExpression(object? value)
+            => GenerateExpression(type: null, value, canUseFieldReference: true);
 
         /// <summary>
         /// Creates an expression for a typed constant.
@@ -1643,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a generic identifier name.
         /// </summary>
         public SyntaxNode GenericName(string identifier, IEnumerable<ITypeSymbol> typeArguments)
-            => GenericName(identifier, typeArguments.Select(ta => TypeExpression(ta)));
+            => GenericName(identifier, typeArguments.Select(TypeExpression));
 
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.
@@ -1797,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     throw new ArgumentException("The number of element names must match the cardinality of the tuple.", nameof(elementNames));
                 }
 
-                return TupleTypeExpression(elementTypes.Zip(elementNames, (type, name) => TupleElementExpression(type, name)));
+                return TupleTypeExpression(elementTypes.Zip(elementNames, TupleElementExpression));
             }
 
             return TupleTypeExpression(elementTypes.Select(type => TupleElementExpression(type, name: null)));

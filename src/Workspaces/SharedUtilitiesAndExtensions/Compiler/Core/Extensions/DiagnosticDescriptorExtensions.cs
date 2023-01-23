@@ -30,18 +30,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// 1. Compilation options from ruleset file, if any, and command line options such as /nowarn, /warnaserror, etc.
         /// 2. Analyzer config documents at the project root directory or in ancestor directories.
         /// </summary>
-        public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions compilationOptions, AnalyzerConfigOptionsResult? analyzerConfigOptions)
+        public static ReportDiagnostic GetEffectiveSeverity(
+            this DiagnosticDescriptor descriptor,
+            CompilationOptions compilationOptions,
+            ImmutableDictionary<string, string>? analyzerOptions,
+            ImmutableDictionary<string, ReportDiagnostic>? treeOptions)
         {
             var effectiveSeverity = descriptor.GetEffectiveSeverity(compilationOptions);
 
             // Apply analyzer config options, unless configured with a non-default value in compilation options.
             // Note that compilation options (/nowarn, /warnaserror) override analyzer config options.
-            if (analyzerConfigOptions.HasValue &&
+            if (treeOptions != null && analyzerOptions != null &&
                 (!compilationOptions.SpecificDiagnosticOptions.TryGetValue(descriptor.Id, out var reportDiagnostic) ||
                  reportDiagnostic == ReportDiagnostic.Default))
             {
-                if (analyzerConfigOptions.Value.TreeOptions.TryGetValue(descriptor.Id, out reportDiagnostic) && reportDiagnostic != ReportDiagnostic.Default ||
-                    TryGetSeverityFromBulkConfiguration(descriptor, analyzerConfigOptions.Value, out reportDiagnostic))
+                if (treeOptions.TryGetValue(descriptor.Id, out reportDiagnostic) && reportDiagnostic != ReportDiagnostic.Default ||
+                    TryGetSeverityFromBulkConfiguration(descriptor, analyzerOptions, out reportDiagnostic))
                 {
                     Debug.Assert(reportDiagnostic != ReportDiagnostic.Default);
                     effectiveSeverity = reportDiagnostic;
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(static tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 return false;
             }
@@ -109,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(static tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 return ReportDiagnostic.Default;
             }
@@ -145,17 +149,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         private static bool TryGetSeverityFromBulkConfiguration(
             DiagnosticDescriptor descriptor,
-            AnalyzerConfigOptionsResult analyzerConfigOptions,
+            ImmutableDictionary<string, string> analyzerOptions,
             out ReportDiagnostic severity)
         {
-            Debug.Assert(!analyzerConfigOptions.TreeOptions.ContainsKey(descriptor.Id));
-
             // Analyzer bulk configuration does not apply to:
             //  1. Disabled by default diagnostics
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(static tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 severity = default;
                 return false;
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // If user has explicitly configured default severity for the diagnostic category, that should be respected.
             // For example, 'dotnet_analyzer_diagnostic.category-security.severity = error'
             var categoryBasedKey = $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{descriptor.Category}.{SeveritySuffix}";
-            if (analyzerConfigOptions.AnalyzerOptions.TryGetValue(categoryBasedKey, out var value) &&
+            if (analyzerOptions.TryGetValue(categoryBasedKey, out var value) &&
                 EditorConfigSeverityStrings.TryParse(value, out severity))
             {
                 return true;
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Otherwise, if user has explicitly configured default severity for all analyzer diagnostics, that should be respected.
             // For example, 'dotnet_analyzer_diagnostic.severity = error'
-            if (analyzerConfigOptions.AnalyzerOptions.TryGetValue(DotnetAnalyzerDiagnosticSeverityKey, out value) &&
+            if (analyzerOptions.TryGetValue(DotnetAnalyzerDiagnosticSeverityKey, out value) &&
                 EditorConfigSeverityStrings.TryParse(value, out severity))
             {
                 return true;
@@ -189,5 +191,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         internal static Uri? GetValidHelpLinkUri(this DiagnosticDescriptor descriptor)
            => Uri.TryCreate(descriptor.HelpLinkUri, UriKind.Absolute, out var uri) &&
               (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) ? uri : null;
+
+        public static DiagnosticDescriptor WithMessageFormat(this DiagnosticDescriptor descriptor, LocalizableString messageFormat)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs - DiagnosticDescriptor .ctor is banned in this project, but fine to use here.
+            return new DiagnosticDescriptor(descriptor.Id, descriptor.Title, messageFormat,
+                descriptor.Category, descriptor.DefaultSeverity, descriptor.IsEnabledByDefault,
+                descriptor.Description, descriptor.HelpLinkUri, descriptor.CustomTags.ToArray());
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
     }
 }

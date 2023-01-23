@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="new">Add 'await'</target>
+        <target state="translated">'await' の追加</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -102,6 +102,11 @@
         <target state="translated">範囲の基本設定を適用する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_readonly_struct_preferences">
+        <source>Apply 'readonly struct' preferences</source>
+        <target state="translated">'読み取り専用の構造体' 基本設定を適用する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
         <target state="translated">静的なローカル関数の基本設定を適用する</target>
@@ -147,19 +152,24 @@
         <target state="translated">キャストに変更</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">'{0}' を record に変換</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">メソッドに変換</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">位置指定 record に変換</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">生文字列に変換する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_raw_string_no_indent">
-        <source>Convert to raw string (no indent)</source>
-        <target state="translated">生文字列に変換 (インデントなし)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -187,9 +197,14 @@
         <target state="translated">プロジェクトで null 許容参照型を有効にする</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">インラインの一時変数</target>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">ソリューションで null 許容参照型を有効にする</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="translated">グローバル 'using' ディレクティブ</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -221,6 +236,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">'for' ステートメントの反転</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">選択範囲をコンストラクター初期化子に含めることはできません</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
@@ -756,6 +776,14 @@
         <source>Introduce 'using' statement</source>
         <target state="translated">'using' ステートメントを導入します</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="without_leading_whitespace_may_change_semantics">
+        <source>... without leading whitespace (may change semantics)</source>
+        <target state="translated">...先頭に空白がありません (セマンティクスが変更される可能性があります)</target>
+        <note>This clause is a follow up to the "Convert to raw string" loc string.
+    The intent is that the user sees "Convert to raw string" as an option to select,
+    and that is then followed with this clause.  This is so we don't have a huge string
+    saying "Convert to raw string without leading whitespace (may change semantics)"</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>

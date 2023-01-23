@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
         Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
-        Private ReadOnly _globalOptions As IGlobalOptionService
+        Private ReadOnly _editorOptionsService As EditorOptionsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -46,14 +46,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
             editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
             <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            globalOptions As IGlobalOptionService)
+            editorOptionsService As EditorOptionsService)
 
             _threadingContext = threadingContext
             _signatureHelpControllerProvider = signatureHelpControllerProvider
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
             _editorAdaptersFactoryService = editorAdaptersFactoryService
             _argumentProviders = argumentProviders.ToImmutableArray()
-            _globalOptions = globalOptions
+            _editorOptionsService = editorOptionsService
         End Sub
 
         Friend Overrides ReadOnly Property Language As String
@@ -86,12 +86,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim targetToken = leftToken.GetPreviousTokenIfTouchingWord(position)
 
             If syntaxTree.IsPossibleTupleContext(leftToken, position) Then
-                Return
-            End If
-
-            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
-            Dim syntaxContext = VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken)
-            If syntaxContext.IsInTaskLikeTypeContext Then
                 Return
             End If
 
@@ -137,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 _editorCommandHandlerServiceFactory,
                 _editorAdaptersFactoryService,
                 _argumentProviders,
-                _globalOptions)
+                _editorOptionsService)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

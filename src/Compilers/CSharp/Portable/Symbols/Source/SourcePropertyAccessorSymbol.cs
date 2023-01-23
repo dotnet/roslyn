@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasExpressionBody = syntax.ExpressionBody is object;
             bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+
             return new SourcePropertyAccessorSymbol(
                 containingType,
                 property,
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasBody: false,
                 hasExpressionBody: false,
                 isIterator: false,
-                modifiers: new SyntaxTokenList(),
+                modifiers: default,
                 methodKind,
                 usesInit,
                 isAutoPropertyAccessor: true,
@@ -159,17 +160,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
+            bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
             this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isMetadataVirtualIgnoringModifiers: property.IsExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
+                isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
             CheckModifiersForBody(location, diagnostics);
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, property.IsExplicitInterfaceImplementation);
-            if (info != null)
-            {
-                diagnostics.Add(info, location);
-            }
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
 
             this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
         }
@@ -206,7 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, property.IsExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
+            bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
+            var declarationModifiers = this.MakeModifiers(modifiers, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
 
             // Include some modifiers from the containing property, but not the accessibility modifiers.
             declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isMetadataVirtualIgnoringModifiers: property.IsExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
+                isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || isAutoPropertyAccessor, diagnostics);
 
@@ -228,16 +227,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, property.IsExplicitInterfaceImplementation);
-            if (info != null)
-            {
-                diagnostics.Add(info, location);
-            }
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
 
             if (!modifierErrors)
             {
                 this.CheckModifiers(location, hasBody || hasExpressionBody, isAutoPropertyAccessor, diagnostics);
             }
+
+            if (modifiers.Count > 0)
+                MessageID.IDS_FeaturePropertyAccessorMods.CheckFeatureAvailability(diagnostics, syntax, modifiers[0].GetLocation());
         }
 #nullable disable
 
@@ -248,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // These values may not be final, but we need to have something set here in the
             // event that we need to find the overridden accessor.
-            _lazyParameters = ComputeParameters(diagnostics);
+            _lazyParameters = ComputeParameters();
             _lazyReturnType = ComputeReturnType(diagnostics);
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
@@ -377,14 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.MethodKind == MethodKind.PropertyGet)
             {
-                var type = _property.TypeWithAnnotations;
-                if (type.Type.IsStatic)
-                {
-                    // '{0}': static types cannot be used as return types
-                    diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), this.locations[0], type.Type);
-                }
-
-                return type;
+                return _property.TypeWithAnnotations;
             }
             else
             {
@@ -508,12 +499,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
-            if (this.ContainingType.IsInterface && !isExplicitInterfaceImplementation)
+            bool isInterface = this.ContainingType.IsInterface;
+            if (isInterface && !isExplicitInterfaceImplementation)
             {
                 defaultInterfaceImplementationModifiers = DeclarationModifiers.AccessibilityMask;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -735,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ImmutableArray<ParameterSymbol> ComputeParameters(BindingDiagnosticBag diagnostics)
+        private ImmutableArray<ParameterSymbol> ComputeParameters()
         {
             bool isGetMethod = this.MethodKind == MethodKind.PropertyGet;
             var propertyParameters = _property.Parameters;
@@ -759,14 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isGetMethod)
             {
-                var propertyType = _property.TypeWithAnnotations;
-                if (propertyType.IsStatic)
-                {
-                    // '{0}': static types cannot be used as parameters
-                    diagnostics.Add(ErrorFacts.GetStaticClassParameterCode(ContainingType.IsInterfaceType()), this.locations[0], propertyType.Type);
-                }
-
-                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count));
+                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, _property.TypeWithAnnotations, parameters.Count));
             }
 
             return parameters.ToImmutableAndFree();

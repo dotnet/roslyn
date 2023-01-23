@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // This dictionary is used as cache among all projects and PE references. 
             // The key is the receiver type as in the extension method declaration (symbol retrived from originating compilation).
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
-            private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes;
+            private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes = new();
 
             public SymbolComputer(
                 Document document,
@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var receiverTypeNames = GetReceiverTypeNames(receiverTypeSymbol);
                 _receiverTypeNames = AddComplexTypes(receiverTypeNames);
                 _cacheService = GetCacheService(document.Project);
-                _checkedReceiverTypes = new ConcurrentDictionary<ITypeSymbol, bool>();
             }
 
             public static async Task<SymbolComputer> CreateAsync(
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
-                => project.Solution.Workspace.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
+                => project.Solution.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
 
             private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
                 => peReference.FilePath ?? peReference.Display;
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
 
                 foreach (var peReference in GetAllRelevantPeReferences(project))
-                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var graph = project.Solution.GetProjectDependencyGraph();
                 var relevantProjectIds = graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id).Concat(project.Id);
-                return relevantProjectIds.Select(id => project.Solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation).ToImmutableArray();
+                return relevantProjectIds.Select(project.Solution.GetRequiredProject).Where(p => p.SupportsCompilation).ToImmutableArray();
             }
 
             // Returns all PEs referenced by originating project.
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (forceCacheCreation)
                 {
                     symbolInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        _originatingDocument.Project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                        _originatingDocument.Project.Solution, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -362,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // First try to filter out types from already imported namespaces
                     var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
-                    var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName.Substring(0, indexOfLastDot) : string.Empty;
+                    var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName[..indexOfLastDot] : string.Empty;
 
                     if (_namespaceInScope.Contains(qualifiedNamespaceName))
                     {
@@ -423,8 +422,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Since we are dealing with extension methods and their container (top level static class and modules), only public,
                 // internal and private modifiers are in play here. 
                 // Also, this check is called for a method symbol only when the container was checked and is accessible.
-                static bool IsAccessible(ISymbol symbol, bool internalsVisible) =>
-                    symbol.DeclaredAccessibility == Accessibility.Public ||
+                static bool IsAccessible(ISymbol symbol, bool internalsVisible)
+                    => symbol.DeclaredAccessibility == Accessibility.Public ||
                     (symbol.DeclaredAccessibility == Accessibility.Internal && internalsVisible);
             }
 
@@ -522,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexReceiverTypeName);
                 receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexArrayReceiverTypeName);
 
-                return receiverTypeNamesBuilder.ToImmutable();
+                return receiverTypeNamesBuilder.ToImmutableAndClear();
             }
 
             private static string GetReceiverTypeName(ITypeSymbol typeSymbol)

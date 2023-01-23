@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
-        private struct ExportKey : IEquatable<ExportKey>
+        private readonly struct ExportKey : IEquatable<ExportKey>
         {
             internal readonly string ExtensionTypeName;
             internal readonly string MetadataTypeName;

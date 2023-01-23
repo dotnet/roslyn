@@ -81,7 +81,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // Calling PopulateWithData ensures the underlying session will call SuggestedActionsUpdated at least once
             // with the latest data computed.  This is needed so that if the lightbulb computation is already complete
             // that we hear about the results.
-            asyncSession.PopulateWithData(overrideRequestedActionCategories: null, operationContext: null);
+            await asyncSession.PopulateWithDataAsync(overrideRequestedActionCategories: null, operationContext: null).ConfigureAwait(false);
 
             try
             {
@@ -90,7 +90,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 var version = await testServices.Shell.GetVersionAsync(cancellationToken);
-                if (Version.Parse("17.2.32314.265") >= version)
+                if (Version.Parse("17.2.32427.441") >= version)
                 {
                     // Unexpected cancellation can occur when the editor dismisses the light bulb without request
                     return null;

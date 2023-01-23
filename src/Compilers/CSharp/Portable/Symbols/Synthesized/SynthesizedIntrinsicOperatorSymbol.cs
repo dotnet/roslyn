@@ -18,9 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
-        private readonly bool _isCheckedBuiltin;
 
-        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType, bool isCheckedBuiltin)
+        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType)
         {
             if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
@@ -44,31 +43,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, leftType, 0, "left"),
                                                       new SynthesizedOperatorParameterSymbol(this, rightType, 1, "right"));
-            _isCheckedBuiltin = isCheckedBuiltin;
         }
 
-        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol container, string name, TypeSymbol returnType, bool isCheckedBuiltin)
+        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol container, string name, TypeSymbol returnType)
         {
             _containingType = container;
             _name = name;
             _returnType = returnType;
             _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, container, 0, "value"));
-            _isCheckedBuiltin = isCheckedBuiltin;
         }
+
+        public override bool IsCheckedBuiltin => SyntaxFacts.IsCheckedOperator(this.Name);
 
         public override string Name
         {
             get
             {
                 return _name;
-            }
-        }
-
-        public override bool IsCheckedBuiltin
-        {
-            get
-            {
-                return _isCheckedBuiltin;
             }
         }
 
@@ -166,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
@@ -418,10 +409,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => false;
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
@@ -437,8 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (_isCheckedBuiltin == other._isCheckedBuiltin &&
-                _parameters.Length == other._parameters.Length &&
+            if (_parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
                 TypeSymbol.Equals(_containingType, other._containingType, compareKind) &&
                 TypeSymbol.Equals(_returnType, other._returnType, compareKind))
@@ -469,9 +465,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, name, isNullChecked: false)
+            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, ScopedKind.None, name)
             {
             }
+
+            internal override bool IsMetadataIn => RefKind == RefKind.In;
+
+            internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
@@ -504,6 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return null; }
             }
+
+            internal override bool HasUnscopedRefAttribute => false;
         }
     }
 }

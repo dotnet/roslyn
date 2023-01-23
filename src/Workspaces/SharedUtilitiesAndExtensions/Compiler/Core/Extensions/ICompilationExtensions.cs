@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -49,10 +50,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return referencedAssemblySymbols;
             }
 
+            // Do a quick check first to avoid unnecessary allocations in case this is not a script compilation.
+            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            if (previous is null)
+            {
+                return referencedAssemblySymbols;
+            }
+
             var builder = ArrayBuilder<IAssemblySymbol>.GetInstance();
             builder.AddRange(referencedAssemblySymbols);
 
-            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
             while (previous != null)
             {
                 builder.Add(previous.Assembly);
@@ -220,5 +227,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? DataContractAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
+
+        public static INamedTypeSymbol? AsyncMethodBuilderAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AsyncMethodBuilderAttribute");
+
+        public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
+
+        public static INamedTypeSymbol? ValueTupleType(this Compilation compilation, int arity)
+            => compilation.GetTypeByMetadataName($"System.ValueTuple`{arity}");
+
+        public static INamedTypeSymbol? ListOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
     }
 }

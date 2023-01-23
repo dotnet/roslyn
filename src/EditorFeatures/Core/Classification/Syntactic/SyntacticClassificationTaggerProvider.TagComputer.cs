@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Classification
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             private IClassificationService? TryGetClassificationService(ITextSnapshot snapshot)
-                => _workspace?.Services.GetLanguageServices(snapshot.ContentType)?.GetService<IClassificationService>();
+                => _workspace?.Services.SolutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>();
 
             #region Workspace Hookup
 
@@ -264,11 +265,11 @@ namespace Microsoft.CodeAnalysis.Classification
             /// the editor.  Calls to <see cref="ProcessChangesAsync"/> are serialized by <see cref="AsyncBatchingWorkQueue{TItem}"/>
             /// so we don't need to worry about multiple calls to this happening concurrently.
             /// </summary>
-            private async ValueTask ProcessChangesAsync(ImmutableArray<ITextSnapshot> snapshots, CancellationToken cancellationToken)
+            private async ValueTask ProcessChangesAsync(ImmutableSegmentedList<ITextSnapshot> snapshots, CancellationToken cancellationToken)
             {
                 // We have potentially heard about several changes to the subject buffer.  However
                 // we only need to process the latest once.
-                Contract.ThrowIfTrue(snapshots.IsDefaultOrEmpty);
+                Contract.ThrowIfTrue(snapshots.IsDefault || snapshots.IsEmpty);
                 var currentSnapshot = GetLatest(snapshots);
 
                 var classificationService = TryGetClassificationService(currentSnapshot);
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 var (previousSnapshot, previousDocument, previousRoot) = GetLastProcessedData();
 
                 // Optionally pre-calculate the root of the doc so that it is ready to classify
-                // once GetTags is called.  Also, attempt to determine a smallwe change range span
+                // once GetTags is called.  Also, attempt to determine a smaller change range span
                 // for this document so that we can avoid reporting the entire document as changed.
 
                 var currentRoot = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -299,10 +300,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 return;
 
-                static ITextSnapshot GetLatest(ImmutableArray<ITextSnapshot> snapshots)
+                static ITextSnapshot GetLatest(ImmutableSegmentedList<ITextSnapshot> snapshots)
                 {
                     var latest = snapshots[0];
-                    for (var i = 1; i < snapshots.Length; i++)
+                    for (var i = 1; i < snapshots.Count; i++)
                     {
                         var snapshot = snapshots[i];
                         if (snapshot.Version.VersionNumber > latest.Version.VersionNumber)
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     // If we have syntax available fast path the change computation without async or blocking.
                     if (previousRoot != null && currentRoot != null)
-                        return new(classificationService.ComputeSyntacticChangeRange(currentDocument.Project.Solution.Workspace, previousRoot, currentRoot, _diffTimeout, cancellationToken));
+                        return new(classificationService.ComputeSyntacticChangeRange(currentDocument.Project.Solution.Services, previousRoot, currentRoot, _diffTimeout, cancellationToken));
 
                     // Otherwise, fall back to the language to compute the difference based on the document contents.
                     if (previousDocument != null)
@@ -426,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (root == null)
                     classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
                 else
-                    classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+                    classificationService.AddSyntacticClassifications(document.Project.Solution.Services, root, span.Span.ToTextSpan(), tempList, cancellationToken);
 
                 _lastLineCache.Update(span, tempList);
                 classifiedSpans.AddRange(tempList);

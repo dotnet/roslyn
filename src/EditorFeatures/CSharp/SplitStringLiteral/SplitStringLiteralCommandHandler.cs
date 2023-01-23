@@ -33,19 +33,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IGlobalOptionService _globalOptions;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SplitStringLiteralCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IGlobalOptionService globalOptions,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            EditorOptionsService editorOptionsService)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
-            _globalOptions = globalOptions;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _editorOptionsService = editorOptionsService;
         }
 
         public string DisplayName => CSharpEditorResources.Split_string;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {
-            if (!_globalOptions.GetOption(SplitStringLiteralOptions.Enabled, LanguageNames.CSharp))
+            if (!_editorOptionsService.GlobalOptions.GetOption(SplitStringLiteralOptions.Enabled))
             {
                 return false;
             }
@@ -92,8 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 }
             }
 
-            var useTabs = !textView.Options.IsConvertTabsToSpacesEnabled();
-            var tabSize = textView.Options.GetTabSize();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
+            }
+
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
+            var options = subjectBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
 
             // We now go through the verified string literals and split each of them.
             // The list of spans is traversed in reverse order so we do not have to
@@ -101,52 +107,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             // from splitting at earlier caret positions.
             foreach (var span in spans.Reverse())
             {
-                if (!SplitString(textView, subjectBuffer, span.Start.Position, useTabs, tabSize, CancellationToken.None))
+                using var transaction = CaretPreservingEditTransaction.TryCreate(
+                    CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+                var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, options, CancellationToken.None);
+                if (splitter?.TrySplit(out var newRoot, out var newPosition) != true)
                 {
                     return false;
                 }
+
+                // apply the change:
+                var newDocument = parsedDocument.WithChangedRoot(newRoot!, CancellationToken.None);
+                var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
+                parsedDocument = newDocument;
+
+                // The buffer edit may have adjusted to position of the current caret but we might need a different location.
+                // Only adjust caret if it is the only one (no multi-caret support: https://github.com/dotnet/roslyn/issues/64812).
+                if (spans.Count == 1)
+                {
+                    var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                        new SnapshotPoint(newSnapshot, newPosition),
+                        PointTrackingMode.Negative,
+                        PositionAffinity.Predecessor,
+                        textView.TextBuffer);
+
+                    if (newCaretPoint != null)
+                    {
+                        textView.Caret.MoveTo(newCaretPoint.Value);
+                    }
+                }
+
+                transaction?.Complete();
             }
 
-            return true;
-        }
-
-        private bool SplitString(ITextView textView, ITextBuffer subjectBuffer, int position, bool useTabs, int tabSize, CancellationToken cancellationToken)
-        {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
-            // TODO: read option from textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
-            var options = _globalOptions.GetIndentationOptionsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-
-            using var transaction = CaretPreservingEditTransaction.TryCreate(
-                CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-
-            var splitter = StringSplitter.TryCreate(document, position, options, useTabs, tabSize, cancellationToken);
-            if (splitter?.TrySplit(out var newDocument, out var newPosition) != true)
-            {
-                return false;
-            }
-
-            // apply the change:
-            var workspace = newDocument.Project.Solution.Workspace;
-            workspace.TryApplyChanges(newDocument.Project.Solution);
-
-            // move caret:
-            var snapshotPoint = new SnapshotPoint(
-                subjectBuffer.CurrentSnapshot, newPosition);
-            var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
-                textView.TextBuffer);
-
-            if (newCaretPoint != null)
-            {
-                textView.Caret.MoveTo(newCaretPoint.Value);
-            }
-
-            transaction?.Complete();
             return true;
         }
 

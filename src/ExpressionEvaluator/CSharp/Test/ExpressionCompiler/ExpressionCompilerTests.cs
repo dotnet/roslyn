@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// <summary>
         /// Each assembly should have a unique MVID and assembly name.
         /// </summary>
-        [WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")]
-        [Fact]
+        [Fact, WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")]
         public void UniqueModuleVersionId()
         {
             var source =
@@ -108,8 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// <summary>
         /// Diagnostics should be formatted with the CurrentUICulture.
         /// </summary>
-        [WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")]
-        [Fact]
+        [Fact, WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")]
         public void FormatterCultureInfo()
         {
             var previousCulture = Thread.CurrentThread.CurrentCulture;
@@ -441,8 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// copy/paste of (simple cases of) RHS of assignment in Watch window,
         /// not to allow arbitrary syntax after the semicolon, not even comments.
         /// </summary>
-        [WorkItem(950242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/950242")]
-        [Fact]
+        [Fact, WorkItem(950242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/950242")]
         public void TrailingSemicolon()
         {
             var source =
@@ -1093,8 +1090,7 @@ class B : A
         /// The custom modifiers are not copied to the corresponding
         /// local in the generated method since there is no need.
         /// </remarks>
-        [WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")]
-        [Fact]
+        [Fact, WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")]
         public void LocalType_CustomModifiers()
         {
             var source =
@@ -1134,8 +1130,7 @@ class B : A
 }");
         }
 
-        [WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
-        [Fact]
+        [Fact, WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
         public void LocalType_ByRefOrPinned()
         {
             var source = @"
@@ -1286,8 +1281,7 @@ class B : A
             });
         }
 
-        [WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")]
-        [Fact]
+        [Fact, WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")]
         public void AssignLocal()
         {
             var source =
@@ -1610,13 +1604,13 @@ class C
                 context.CompileExpression("y", out resultProperties, out error);
                 Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
                 context.CompileExpression("(bool)y", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("!y", out resultProperties, out error);
                 Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("false", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("F()", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult | DkmClrCompilationResultFlags.PotentialSideEffect);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult | DkmClrCompilationResultFlags.PotentialSideEffect, resultProperties.Flags);
             });
         }
 
@@ -1668,7 +1662,7 @@ class C
                 expr: "this.M()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var method = (MethodSymbol)methodData.Method;
             Assert.Equal(SpecialType.System_Void, method.ReturnType.SpecialType);
@@ -1729,7 +1723,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58449")]
         public void AssignMethodGroup()
         {
             var source =
@@ -1841,7 +1835,7 @@ class C
         }
 
         [Fact]
-        public void EvaluateUTF8StringConversion_01()
+        public void EvaluateUtf8StringLiteral_01()
         {
             var source =
 @"class C
@@ -1854,109 +1848,17 @@ class C
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.F",
-                expr: @"(byte[])""hello""");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
-}
-");
-        }
-
-        [Fact]
-        public void EvaluateUTF8StringConversion_02()
-        {
-            var source =
-@"class C
-{
-    static void F()
-    {
-    }
-}";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                targetFramework: TargetFramework.NetCoreApp,
-                methodName: "C.F",
-                expr: @"(System.Span<byte>)""hello""");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-        }
-
-        [Fact]
-        public void EvaluateUTF8StringConversion_03()
-        {
-            var source =
-@"class C
-{
-    static void F()
-    {
-    }
-}";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                targetFramework: TargetFramework.NetCoreApp,
-                methodName: "C.F",
-                expr: @"(System.ReadOnlySpan<byte>)""hello""");
+                expr: @"""hello""u8",
+                targetFramework: TargetFramework.NetCoreApp);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"
 {
   // Code size       12 (0xc)
   .maxstack  2
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.F3AEFE62965A91903610F0E23CC8A69D5B87CEA6D28E75489B0D2CA02ED7993C""
   IL_0005:  ldc.i4.5
   IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
   IL_000b:  ret
-}
-");
-        }
-
-        [Fact]
-        public void EvaluateUTF8StringLiteral_01()
-        {
-            var source =
-@"class C
-{
-    static void F()
-    {
-    }
-}";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.F",
-                expr: @"""hello""u8");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
 }
 ");
         }
@@ -2139,8 +2041,7 @@ class C
             });
         }
 
-        [WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
-        [Fact]
+        [Fact, WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
         public void RewriteCatchLocal()
         {
             var source =
@@ -2226,8 +2127,7 @@ class C<T>
             });
         }
 
-        [WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
-        [Fact]
+        [Fact, WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
         public void RewriteSequenceTemps()
         {
             var source =
@@ -2424,8 +2324,7 @@ class C
         /// the expression compiler and so an await expression would not
         /// normally be allowed.
         /// </remarks>
-        [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact]
+        [Fact, WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
         public void Await()
         {
             var source = @"
@@ -2460,8 +2359,7 @@ class C
         /// <remarks>
         /// This would be illegal in any non-debugger context.
         /// </remarks>
-        [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact]
+        [Fact, WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
         public void AwaitInUnsafeContext()
         {
             var source = @"
@@ -2503,8 +2401,8 @@ class C
         /// Flow analysis should catch definite assignment errors
         /// for variables declared within the expression.
         /// </summary>
-        [WorkItem(549, "https://github.com/dotnet/roslyn/issues/549")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/549")]
+        [WorkItem(549, "https://github.com/dotnet/roslyn/issues/549")]
         public void FlowAnalysis()
         {
             var source =
@@ -2712,8 +2610,7 @@ class C<T>
             });
         }
 
-        [WorkItem(976847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976847")]
-        [Fact]
+        [Fact, WorkItem(976847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976847")]
         public void VarArgMethod()
         {
             var source =
@@ -2930,7 +2827,7 @@ class B : A
                 expr: "((System.Func<object>)(() => this.G))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       12 (0xc)
@@ -2947,7 +2844,7 @@ class B : A
                 expr: "((System.Func<object>)(() => this.F() ?? this.P))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       27 (0x1b)
@@ -2990,8 +2887,7 @@ class B : A
 }");
         }
 
-        [WorkItem(905986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905986")]
-        [Fact]
+        [Fact, WorkItem(905986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905986")]
         public void EvaluateLambdaClosedOverBase()
         {
             var source =
@@ -3158,8 +3054,7 @@ class B : A
             });
         }
 
-        [WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")]
-        [Fact]
+        [Fact, WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")]
         public void Repro994485()
         {
             var source = @"
@@ -3567,8 +3462,8 @@ class B : A
         /// containing the current frame, so new instances can
         /// be used interchangeably with existing instances.
         /// </summary>
-        [WorkItem(3188, "https://github.com/dotnet/roslyn/issues/3188")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/3188")]
+        [WorkItem(3188, "https://github.com/dotnet/roslyn/issues/3188")]
         public void EvaluateExistingAnonymousType_2()
         {
             var source =
@@ -3746,8 +3641,7 @@ class C
         /// <summary>
         /// DiagnosticsPass must be run on evaluation method.
         /// </summary>
-        [WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
-        [Fact]
+        [Fact, WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
         public void DiagnosticsPass()
         {
             var source =
@@ -3775,8 +3669,7 @@ class C
             });
         }
 
-        [WorkItem(935651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935651")]
-        [Fact]
+        [Fact, WorkItem(935651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935651")]
         public void EvaluatePropertySet()
         {
             var source =
@@ -3916,8 +3809,7 @@ class C
         /// <summary>
         /// Netmodules with same name.
         /// </summary>
-        [Fact]
-        [WorkItem(30031, "https://github.com/dotnet/roslyn/issues/30031")]
+        [Fact, WorkItem(30031, "https://github.com/dotnet/roslyn/issues/30031")]
         public void NetModuleDuplicateReferences()
         {
             // Netmodule 0
@@ -4087,7 +3979,15 @@ class C
                 expr: "sizeof(C)",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')", error);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  sizeof     ""C""
+  IL_0006:  ret
+}
+");
         }
 
         [Fact]
@@ -4165,8 +4065,7 @@ class C
 }");
         }
 
-        [WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
-        [Fact]
+        [Fact, WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
         public void ConditionalAttribute()
         {
             var source =
@@ -4200,8 +4099,7 @@ class C
 }");
         }
 
-        [WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
-        [Fact]
+        [Fact, WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
         public void ConditionalAttribute_CollectionInitializer()
         {
             var source =
@@ -4279,7 +4177,7 @@ class C
             Assert.Equal("error CS1618: Cannot create delegate with 'C.F()' because it or a method it overrides has a Conditional attribute", error);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58449")]
         public void StaticDelegate()
         {
             var source =
@@ -4361,8 +4259,7 @@ class C
 }");
         }
 
-        [WorkItem(984509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984509")]
-        [Fact]
+        [Fact, WorkItem(984509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984509")]
         public void LambdaContainingIncrementOperator()
         {
             var source =
@@ -4382,7 +4279,7 @@ class C
                 resultProperties: out resultProperties,
                 error: out error);
 
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0").VerifyIL(
 @"{
   // Code size       17 (0x11)
@@ -4487,8 +4384,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")]
-        [Fact]
+        [Fact, WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")]
         public void BaseExpression()
         {
             var source = @"
@@ -4547,8 +4443,7 @@ struct S
 }");
         }
 
-        [WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")]
-        [Fact]
+        [Fact, WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")]
         public void IntOverflow()
         {
             var source = @"
@@ -4595,8 +4490,7 @@ class C
             });
         }
 
-        [WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
-        [Fact]
+        [Fact, WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
         public void AssignmentConversion()
         {
             var source = @"
@@ -4648,8 +4542,7 @@ class C
             });
         }
 
-        [WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")]
-        [Fact]
+        [Fact, WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")]
         public void EvaluateStatement()
         {
             var source = @"
@@ -4670,8 +4563,7 @@ class C
             Assert.Equal("error CS8115: A throw expression is not allowed in this context.", error);
         }
 
-        [WorkItem(1016555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]
-        [Fact]
+        [Fact, WorkItem(1016555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]
         public void UnmatchedCloseAndOpenParens()
         {
             var source =
@@ -4697,8 +4589,7 @@ class C
             });
         }
 
-        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
-        [Fact]
+        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void DateTimeFieldConstant()
         {
             var source =
@@ -4734,8 +4625,7 @@ class C
 }");
         }
 
-        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
-        [Fact]
+        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void DecimalFieldConstant()
         {
             var source = @"
@@ -4773,8 +4663,7 @@ struct S
 }");
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void IteratorParameter()
         {
             var source =
@@ -4808,8 +4697,7 @@ struct S
             });
         }
 
-        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
-        [Fact]
+        [Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         public void IteratorGenericLocal()
         {
             var source =
@@ -4845,8 +4733,7 @@ struct S
             });
         }
 
-        [WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")]
-        [Fact]
+        [Fact, WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")]
         public void StaticLambdaInDisplayClass()
         {
             var source =
@@ -5184,8 +5071,7 @@ class C
             });
         }
 
-        [Fact]
-        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
+        [Fact, WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void FieldLikeEvent()
         {
             var source = @"
@@ -5288,8 +5174,7 @@ class C
             });
         }
 
-        [Fact]
-        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
+        [Fact, WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void FieldLikeEvent_WinRT()
         {
             var ilSource = @"
@@ -5434,8 +5319,7 @@ class C
 ");
         }
 
-        [WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")]
-        [Fact]
+        [Fact, WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")]
         public void RangeVariableError()
         {
             var source =
@@ -5469,8 +5353,7 @@ class C
             });
         }
 
-        [WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
-        [Fact]
+        [Fact, WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
         public void Bug1079762()
         {
             var source =
@@ -5506,8 +5389,7 @@ class C
             });
         }
 
-        [WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
-        [Fact]
+        [Fact, WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
         public void LambdaParameter()
         {
             var source =
@@ -5538,8 +5420,7 @@ class C
             });
         }
 
-        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        [Fact]
+        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void StaticTypeImport()
         {
             var source = @"
@@ -5574,8 +5455,7 @@ class C
             });
         }
 
-        [WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
-        [Fact]
+        [Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         public void NonStateMachineTypeParameter()
         {
             var source = @"
@@ -5608,8 +5488,7 @@ class C
             });
         }
 
-        [WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
-        [Fact]
+        [Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         public void StateMachineTypeParameter()
         {
             var source = @"
@@ -5645,8 +5524,7 @@ class C
             });
         }
 
-        [WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")]
-        [Fact]
+        [Fact, WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")]
         public void ModuleWithBadImageFormat()
         {
             var source = @"
@@ -5683,8 +5561,7 @@ class C
             }
         }
 
-        [WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
-        [Fact]
+        [Fact, WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
         public void MissingType()
         {
             var libSource = @"
@@ -5746,8 +5623,7 @@ public class C
             });
         }
 
-        [WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
-        [Fact]
+        [Fact, WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
         public void UseSiteWarning()
         {
             var signedDllOptions = TestOptions.SigningReleaseDll.
@@ -5809,8 +5685,7 @@ public class Source
             });
         }
 
-        [WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
-        [Fact]
+        [Fact, WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
         public void ObsoleteAttribute()
         {
             var source = @"
@@ -5839,8 +5714,7 @@ class C
             });
         }
 
-        [WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
-        [Fact]
+        [Fact, WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
         public void DeprecatedAttribute()
         {
             var source = @"
@@ -5900,8 +5774,7 @@ namespace Windows.Foundation.Metadata
             });
         }
 
-        [WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")]
-        [Fact]
+        [Fact, WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")]
         public void BadPdb_MissingMethod()
         {
             var source = @"
@@ -5933,8 +5806,7 @@ public class C
 ");
         }
 
-        [WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")]
-        [Fact]
+        [Fact, WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")]
         public void SymUnmanagedReaderNotImplemented()
         {
             var source = @"
@@ -5965,8 +5837,7 @@ public class C
 ");
         }
 
-        [WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")]
-        [Fact]
+        [Fact, WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")]
         public void MethodTypeParameterInLambda()
         {
             var source = @"
@@ -6006,8 +5877,7 @@ public class C<T>
             });
         }
 
-        [WorkItem(1136085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1136085")]
-        [Fact]
+        [Fact, WorkItem(1136085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1136085")]
         public void TypeofOpenGenericType()
         {
             var source = @"
@@ -6055,8 +5925,7 @@ public class C
             });
         }
 
-        [WorkItem(1068138, "DevDiv")]
-        [Fact]
+        [Fact, WorkItem(1068138, "DevDiv")]
         public void GetSymAttributeByVersion()
         {
             var source1 = @"
@@ -6155,8 +6024,7 @@ public class C
         /// <summary>
         /// Ignore accessibility in lambda rewriter.
         /// </summary>
-        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
-        [Fact]
+        [Fact, WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
         public void LambdaRewriterIgnoreAccessibility()
         {
             var source =
@@ -6292,8 +6160,7 @@ class C
             });
         }
 
-        [WorkItem(3309, "https://github.com/dotnet/roslyn/issues/3309")]
-        [Fact]
+        [Fact, WorkItem(3309, "https://github.com/dotnet/roslyn/issues/3309")]
         public void NullAnonymousTypeInstance()
         {
             var source =
@@ -6320,8 +6187,7 @@ class C
         /// DkmClrInstructionAddress.ILOffset is set to uint.MaxValue
         /// if the instruction does not map to an IL offset.
         /// </summary>
-        [WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")]
-        [Fact]
+        [Fact, WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")]
         public void NoILOffset()
         {
             var source =
@@ -6395,8 +6261,7 @@ class C
             });
         }
 
-        [WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
-        [Fact]
+        [Fact, WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
         public void SelectAnonymousType()
         {
             var source =
@@ -6469,8 +6334,7 @@ class C
             });
         }
 
-        [WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
-        [Fact]
+        [Fact, WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
         public void ImportsInAsyncLambda()
         {
             var source =
@@ -6622,8 +6486,9 @@ class C
         [Fact]
         public void InLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
         {
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var reference = CreateCompilation(@"
-public delegate void D(in int p);");
+public delegate void D(in int p);", parseOptions: parseOptions);
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -6637,7 +6502,7 @@ public class Test
     void M(D lambda)
     {
     }
-}", references: new[] { reference.EmitToImageReference() });
+}", references: new[] { reference.EmitToImageReference() }, parseOptions: parseOptions);
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -6658,8 +6523,9 @@ public class Test
         [Fact]
         public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_ReturnTypes()
         {
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var reference = CreateCompilation(@"
-public delegate ref readonly int D();");
+public delegate ref readonly int D();", parseOptions: parseOptions);
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -6674,7 +6540,7 @@ public class Test
     void M(D lambda)
     {
     }
-}", references: new[] { reference.EmitToImageReference() });
+}", references: new[] { reference.EmitToImageReference() }, parseOptions: parseOptions);
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -6784,8 +6650,7 @@ class C
             });
         }
 
-        [Fact]
-        [WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
+        [Fact, WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
         public void RefReturnNonRefLocal()
         {
             var source = @"
@@ -6805,8 +6670,24 @@ class C
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");
-                context.CompileExpression("M(() => ref local)", out var error);
-                Assert.Equal("error CS8168: Cannot return local 'local' by reference because it is not a ref local", error);
+                var testData = new CompilationTestData();
+                context.CompileExpression("M(() => ref local)", out var error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (int V_0) //local
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldloc.0
+  IL_0007:  stfld      ""int <>x.<>c__DisplayClass0_0.local""
+  IL_000c:  ldftn      ""ref int <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0012:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0017:  call       ""ref int C.M(D)""
+  IL_001c:  ldind.i4
+  IL_001d:  ret
+}");
             });
         }
 
@@ -7072,6 +6953,61 @@ class C
   IL_000c:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0011:  ret
 }");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61463")]
+        public void RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+class Program
+{
+    static void Main()
+    {
+        int i = 1;
+        var s = new S<int>(ref i);
+    }
+}";
+            Evaluate(source, OutputKind.ConsoleApplication, "Program.Main", "s.F = 2").GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       10 (0xa)
+  .maxstack  3
+  .locals init (int V_0, //i
+                S<int> V_1) //s
+  IL_0000:  ldloc.1
+  IL_0001:  ldfld      ""ref int S<int>.F""
+  IL_0006:  ldc.i4.2
+  IL_0007:  dup
+  IL_0008:  stind.i4
+  IL_0009:  ret
+}");
+        }
+
+        [Fact, WorkItem(65165, "https://github.com/dotnet/roslyn/issues/65165")]
+        public void EEMethodSymbol_DeclaringSyntaxReferences()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+    }
+}";
+            Evaluate(source, OutputKind.ConsoleApplication, "Program.Main", """1 switch { 1 => "hello" }""").GetMethodData("<>x.<>m0").VerifyIL("""
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldstr      "hello"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}
+""");
         }
     }
 }

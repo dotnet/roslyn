@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private static async ValueTask CacheClassificationsAsync(
-            ImmutableArray<(Document document, ClassificationType type, ClassificationOptions options)> documents,
+            ImmutableSegmentedList<(Document document, ClassificationType type, ClassificationOptions options)> documents,
             CancellationToken cancellationToken)
         {
             // Group all the requests by document (as we may have gotten many requests for the same document). Then,
@@ -110,10 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Document document, ClassificationType type, ClassificationOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistenceService = solution.Workspace.Services.GetPersistentStorageService();
-
-            // we should never use no-op storage in OOP
-            Contract.ThrowIfTrue(persistenceService is NoOpPersistentStorageService);
+            var persistenceService = solution.Services.GetPersistentStorageService();
 
             var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
             await using var _1 = storage.ConfigureAwait(false);
@@ -310,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                return classifiedSpans.ToImmutable();
+                return classifiedSpans.ToImmutableAndClear();
             }
             catch
             {

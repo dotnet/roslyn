@@ -45,6 +45,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="System.Runtime.InteropServices.NFloat.Internal" Version="$(SystemRuntimeInteropServicesNFloatInternalVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
 
     <!-- This project should target net6.0-macos, but due to repeated issues
@@ -52,7 +53,7 @@
          validation errors on workload dependencies), we are instead manually
          referencing what we need out of the macos SDK. -->
     <PackageDownload Include="Microsoft.macOS.Ref" Version="[$(MicrosoftmacOSRefVersion)]" />
-    <Reference Include="$(NuGetPackageRoot)microsoft.macos.ref\$(MicrosoftmacOSRefVersion)\ref\net6.0\Xamarin.Mac.dll" />
+    <Reference Include="$(NuGetPackageRoot)microsoft.macos.ref\$(MicrosoftmacOSRefVersion)\ref\net6.0\Microsoft.macOS.dll" />
 
     <!-- There are net6.0-macos packages. Manually referencing them for the same
          reason. There is no dependency resolution here so must manually list

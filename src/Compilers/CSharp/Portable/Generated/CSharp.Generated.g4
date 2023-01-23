@@ -99,6 +99,7 @@ modifier
   | 'async'
   | 'const'
   | 'extern'
+  | 'file'
   | 'fixed'
   | 'internal'
   | 'new'
@@ -109,6 +110,8 @@ modifier
   | 'public'
   | 'readonly'
   | 'ref'
+  | 'required'
+  | 'scoped'
   | 'sealed'
   | 'static'
   | 'unsafe'
@@ -157,7 +160,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* modifier* type? (identifier_token | '__arglist') '!!'? equals_value_clause?
+  : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
   ;
 
 constructor_initializer
@@ -349,6 +352,7 @@ type
   | pointer_type
   | predefined_type
   | ref_type
+  | scoped_type
   | tuple_type
   ;
 
@@ -418,6 +422,10 @@ predefined_type
 
 ref_type
   : 'ref' 'readonly'? type
+  ;
+
+scoped_type
+  : 'scoped' type
   ;
 
 tuple_type

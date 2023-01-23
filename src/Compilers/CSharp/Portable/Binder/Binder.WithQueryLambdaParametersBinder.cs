@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We only construct transparent query variables using anonymous types, so if we're trying to navigate through
                     // some other type, we must have some query API where the types don't match up as expected.
-                    var info = new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedTransparentIdentifierAccess, name, receiver.ExpressionSymbol ?? receiverType);
+                    var info = new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedTransparentIdentifierAccess, name, new FormattedSymbol(receiver.ExpressionSymbol ?? receiverType, SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                     if (receiver.Type?.IsErrorType() != true)
                     {
                         Error(diagnostics, info, node);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+            internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
             {
                 if (options.CanConsiderMembers())
                 {

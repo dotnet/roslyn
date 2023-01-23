@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public IAsyncCompletionItemManager? GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInLspEditorContext())
+            if (textView.IsInLspEditorContext())
             {
                 // If we're in an LSP editing context, we want to avoid returning a completion item manager.
                 // Otherwise, we'll interfere with the LSP client manager and disrupt filtering.

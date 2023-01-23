@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Valid
     }
 
-    internal struct UserDefinedConversionResult
+    internal readonly struct UserDefinedConversionResult
     {
         public readonly ImmutableArray<UserDefinedConversionAnalysis> Results;
         public readonly int Best;

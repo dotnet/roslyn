@@ -1877,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 default:
                     var typeToken = ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd).With(kind: RegexKind.TextToken);
 
-                    if (!HasOption(_options, RegexOptions.ECMAScript) && RegexCharClass.IsWordChar(ch))
+                    if (!HasOption(_options, RegexOptions.ECMAScript) && RegexCharClass.IsBoundaryWordChar(ch))
                     {
                         typeToken = typeToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                             string.Format(FeaturesResources.Unrecognized_escape_sequence_0, ch),

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -37,6 +38,7 @@ namespace IdeBenchmarks.InheritanceMargin
 
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new();
         private readonly IWpfTextView _mockTextView;
+        private readonly Workspace _workspace;
 
         private Application _wpfApp;
         private Canvas _canvas;
@@ -58,6 +60,7 @@ namespace IdeBenchmarks.InheritanceMargin
             _operationExecutor = null!;
             _listener = null!;
             _canvas = null!;
+            _workspace = null!;
             var mockTextView = new Mock<IWpfTextView>();
             mockTextView.Setup(textView => textView.ZoomLevel).Returns(100);
             _mockTextView = mockTextView.Object;
@@ -102,6 +105,7 @@ namespace IdeBenchmarks.InheritanceMargin
                     {
                         var tag = _tags[j];
                         var glyph = new InheritanceMarginGlyph(
+                            _workspace,
                             _threadingContext,
                             _streamingFindUsagesPresenter,
                             _classificationTypeMap,
@@ -128,7 +132,7 @@ namespace IdeBenchmarks.InheritanceMargin
             using var _ = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMarginTag>.GetInstance(out var builder);
             foreach (var grouping in items.GroupBy(i => i.LineNumber))
             {
-                builder.Add(new InheritanceMarginTag(workspace, grouping.Key, grouping.ToImmutableArray()));
+                builder.Add(new InheritanceMarginTag(grouping.Key, grouping.ToImmutableArray()));
             }
 
             _tags = builder.ToImmutableArray();

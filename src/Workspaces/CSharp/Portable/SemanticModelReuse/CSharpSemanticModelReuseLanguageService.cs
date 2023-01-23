@@ -7,10 +7,10 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Roslyn.Utilities;
 
@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
     [ExportLanguageService(typeof(ISemanticModelReuseLanguageService), LanguageNames.CSharp), Shared]
     internal class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService<
         MemberDeclarationSyntax,
-        BaseMethodDeclarationSyntax,
         BasePropertyDeclarationSyntax,
         AccessorDeclarationSyntax>
     {
@@ -56,14 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
             return null;
         }
 
-        protected override async Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(
-            SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
+        protected override SemanticModel? TryGetSpeculativeSemanticModelWorker(SemanticModel previousSemanticModel, SyntaxNode previousBodyNode, SyntaxNode currentBodyNode)
         {
-            var previousRoot = await previousSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await currentBodyNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var previousBodyNode = GetPreviousBodyNode(previousRoot, currentRoot, currentBodyNode);
-
             if (previousBodyNode is BaseMethodDeclarationSyntax previousBaseMethod &&
                 currentBodyNode is BaseMethodDeclarationSyntax currentBaseMethod &&
                 previousBaseMethod.Body != null &&

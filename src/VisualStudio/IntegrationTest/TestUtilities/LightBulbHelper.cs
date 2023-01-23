@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -46,6 +48,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static async Task<IEnumerable<SuggestedActionSet>> WaitForItemsAsync(ILightBulbBroker broker, IWpfTextView view)
         {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            var editor = Editor_InProc.Create();
+            while (true)
+            {
+                var items = await TryWaitForItemsAsync(broker, view, cancellationTokenSource.Token);
+                if (items is not null)
+                    return items;
+
+                // The session was dismissed unexpectedly. The editor might show it again.
+                editor.WaitForEditorOperations(Helper.HangMitigatingTimeout);
+            }
+        }
+
+        private static async Task<IEnumerable<SuggestedActionSet>?> TryWaitForItemsAsync(ILightBulbBroker broker, IWpfTextView view, CancellationToken cancellationToken)
+        {
             var activeSession = broker.GetSession(view);
             if (activeSession == null)
             {
@@ -67,20 +84,42 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     tcs.SetResult(e.ActionSets.ToList());
                 else if (e.Status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
                     tcs.SetResult(new List<SuggestedActionSet>());
+                else if (e.Status == QuerySuggestedActionCompletionStatus.Canceled)
+                    tcs.TrySetCanceled();
                 else
-                    tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
+                    tcs.TrySetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
 
                 asyncSession.SuggestedActionsUpdated -= handler;
             };
 
             asyncSession.SuggestedActionsUpdated += handler;
 
+            asyncSession.Dismissed += (_, _) => tcs.TrySetCanceled(new CancellationToken(true));
+
+            if (asyncSession.IsDismissed)
+                tcs.TrySetCanceled(new CancellationToken(true));
+
             // Calling PopulateWithData ensures the underlying session will call SuggestedActionsUpdated at least once
             // with the latest data computed.  This is needed so that if the lightbulb computation is already complete
             // that we hear about the results.
-            asyncSession.PopulateWithData(overrideRequestedActionCategories: null, operationContext: null);
+            await asyncSession.PopulateWithDataAsync(overrideRequestedActionCategories: null, operationContext: null).ConfigureAwait(false);
 
-            return await tcs.Task.WithTimeout(Helper.HangMitigatingTimeout).ConfigureAwait(false);
+            try
+            {
+                return await tcs.Task.WithCancellation(cancellationToken);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                var shell = Shell_InProc.Create();
+                var version = shell.GetVersion();
+                if (Version.Parse("17.2.32427.441") >= version)
+                {
+                    // Unexpected cancellation can occur when the editor dismisses the light bulb without request
+                    return null;
+                }
+
+                throw new OperationCanceledException($"IDE version '{version}' unexpectedly dismissed the light bulb.");
+            }
         }
     }
 }

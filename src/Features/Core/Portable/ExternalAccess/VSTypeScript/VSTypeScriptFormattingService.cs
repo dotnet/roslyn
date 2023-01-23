@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl)
             => _impl = impl ?? throw new ArgumentNullException(nameof(impl));
 
-        public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var tsOptions = new VSTypeScriptIndentationOptions(
-                UseSpaces: !options.UseTabs,
-                TabSize: options.TabSize,
-                IndentSize: options.IndentationSize);
+                UseSpaces: !lineFormattingOptions.UseTabs,
+                TabSize: lineFormattingOptions.TabSize,
+                IndentSize: lineFormattingOptions.IndentationSize);
 
             return _impl.FormatAsync(document, spans, tsOptions, cancellationToken);
         }

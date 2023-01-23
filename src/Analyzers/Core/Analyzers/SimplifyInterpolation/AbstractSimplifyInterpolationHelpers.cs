@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                                 .SelectAsArray(interpolation.Syntax.SyntaxTree.GetLocation);
         }
 
-        [return: NotNullIfNotNull("expression")]
+        [return: NotNullIfNotNull(nameof(expression))]
         private static IOperation? Unwrap(IOperation? expression, bool towardsParent = false)
         {
             while (true)
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         {
             Contract.ThrowIfNull(expression.SemanticModel);
 
-            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
+            if (expression is IInvocationOperation { TargetMethod.Name: nameof(ToString) } invocation &&
                 HasNonImplicitInstance(invocation) &&
                 !syntaxFacts.IsBaseExpression(invocation.Instance!.Syntax) &&
                 !invocation.Instance.Type!.IsRefLikeType)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                             var alignmentOp = invocation.Arguments[0].Value;
 
                             if (PermitNonLiteralAlignmentComponents
-                                ? alignmentOp is { ConstantValue: { HasValue: true } }
+                                ? alignmentOp is { ConstantValue.HasValue: true }
                                 : alignmentOp is { Kind: OperationKind.Literal })
                             {
                                 var alignmentSyntax = alignmentOp.Syntax;

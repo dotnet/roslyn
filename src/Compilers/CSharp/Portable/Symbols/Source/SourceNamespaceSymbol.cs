@@ -372,13 +372,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
-                        if ((nts as SourceNamedTypeSymbol)?.IsPartial == true && (other as SourceNamedTypeSymbol)?.IsPartial == true)
+                        switch (nts, other)
                         {
-                            diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
-                        }
-                        else
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
+                                // no error
+                                break;
+                            case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
+                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                                break;
+                            case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
+                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
+                                break;
+                            default:
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                                break;
                         }
                     }
 
@@ -394,6 +401,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+            }
+
+            static bool isFileLocalTypeInSeparateFileFrom(SourceNamedTypeSymbol possibleFileLocalType, SourceNamedTypeSymbol otherSymbol)
+            {
+                if (!possibleFileLocalType.IsFileLocal)
+                {
+                    return false;
+                }
+
+                var leftTree = possibleFileLocalType.MergedDeclaration.Declarations[0].Location.SourceTree;
+                if (otherSymbol.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
 
@@ -486,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private struct NameToSymbolMapBuilder
+        private readonly struct NameToSymbolMapBuilder
         {
             private readonly Dictionary<string, object> _dictionary;
 

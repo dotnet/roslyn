@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -136,11 +137,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // +1 for project itself
                 var count = documentAnalysisScope != null ? 1 : project.DocumentIds.Count + 1;
+                var forSpanAnalysis = documentAnalysisScope?.Span.HasValue ?? false;
 
                 var performanceInfo = analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache).ToImmutableArray();
 
                 _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
-                    (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
+                    (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, forSpanAnalysis, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
@@ -159,21 +161,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
-
             using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
             var analyzerMap = pooledObject.Object;
 
+            var ideOptions = ((WorkspaceAnalyzerOptions)compilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions;
+
             var analyzers = documentAnalysisScope?.Analyzers ??
-                compilationWithAnalyzers.Analyzers.Where(a => forceExecuteAllAnalyzers || !a.IsOpenFileOnly(solution.Options));
+                compilationWithAnalyzers.Analyzers.Where(a => forceExecuteAllAnalyzers || !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
+
             analyzerMap.AppendAnalyzerMap(analyzers);
 
             if (analyzerMap.Count == 0)
             {
                 return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
-
-            var ideOptions = ((WorkspaceAnalyzerOptions)compilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions;
 
             var argument = new DiagnosticArguments(
                 compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ideOptions);
 
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
-                solution,
+                project.Solution,
                 invocation: (service, solutionInfo, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 

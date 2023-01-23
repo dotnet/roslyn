@@ -6,18 +6,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
+using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
@@ -27,13 +34,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
     {
         private readonly IGlyphService _glyphService;
         private readonly IThreadingContext _threadingContext;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext)
+        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _glyphService = glyphService;
             _threadingContext = threadingContext;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
         public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
@@ -45,17 +54,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             string languageName,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
+            var memberViewModels = extractableMembers
+                .SelectAsArray(member =>
+                    new MemberSymbolViewModel(member, _glyphService)
+                    {
+                        IsChecked = true,
+                        MakeAbstract = false,
+                        IsMakeAbstractCheckable = false,
+                        IsCheckable = true
+                    });
+
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var viewModel = new ExtractInterfaceDialogViewModel(
                 syntaxFactsService,
-                _glyphService,
+                _uiThreadOperationExecutor,
                 notificationService,
                 defaultInterfaceName,
-                extractableMembers,
                 allTypeNames,
+                memberViewModels,
                 defaultNamespace,
                 generatedNameTypeParameterSuffix,
                 languageName);
@@ -72,7 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                     includedMembers: includedMembers.AsImmutable(),
                     interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
                     fileName: viewModel.DestinationViewModel.FileName.Trim(),
-                    location: GetLocation(viewModel.DestinationViewModel.Destination));
+                    location: GetLocation(viewModel.DestinationViewModel.Destination),
+                    fallbackOptions);
             }
             else
             {
@@ -81,13 +104,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         }
 
         private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(NewTypeDestination destination)
-        {
-            switch (destination)
+            => destination switch
             {
-                case NewTypeDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
-                case NewTypeDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
-                default: throw ExceptionUtilities.UnexpectedValue(destination);
-            }
-        }
+                NewTypeDestination.CurrentFile => ExtractInterfaceOptionsResult.ExtractLocation.SameFile,
+                NewTypeDestination.NewFile => ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
+                _ => throw ExceptionUtilities.UnexpectedValue(destination),
+            };
     }
 }

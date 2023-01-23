@@ -56,8 +56,8 @@ class C
 }");
         }
 
-        [WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
+        [WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")]
         public async Task TestThisWithNoType()
         {
             await TestInRegularAndScriptAsync(
@@ -95,7 +95,7 @@ class C
     }
 }",
                 options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Warning),
-                diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                diagnosticId: IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
 

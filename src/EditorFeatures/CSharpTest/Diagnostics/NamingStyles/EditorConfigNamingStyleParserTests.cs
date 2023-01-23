@@ -7,17 +7,20 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.EditorConfigNamingStyleParser;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles
 {
     public class EditorConfigNamingStyleParserTests
     {
+        private static NamingStylePreferences ParseDictionary(Dictionary<string, string> options)
+            => EditorConfigNamingStyleParser.ParseDictionary(new DictionaryAnalyzerConfigOptions(options.ToImmutableDictionary()));
+
         [Fact]
         public static void TestPascalCaseRule()
         {
@@ -66,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(Capitalization.PascalCase, namingStyle.CapitalizationScheme);
         }
 
-        [Fact]
-        [WorkItem(40705, "https://github.com/dotnet/roslyn/issues/40705")]
+        [Fact, WorkItem(40705, "https://github.com/dotnet/roslyn/issues/40705")]
         public static void TestPascalCaseRuleWithKeyCapitalization()
         {
             var dictionary = new Dictionary<string, string>()
@@ -424,8 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                          vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)));
         }
 
-        [Fact]
-        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
+        [Fact, WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
         public static void TestPrefixParse()
         {
             var rule = new Dictionary<string, string>()
@@ -468,6 +469,112 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 var editorConfigString = EditorConfigNamingStyleParser.ToEditorConfigString(ImmutableArray.Create(applicableSymbolKind));
                 Assert.True(!string.IsNullOrEmpty(editorConfigString));
             }
+        }
+
+        [Theory]
+        [InlineData("a", "b", "a", "public", "public, private")]
+        [InlineData("b", "a", "a", "public, private", "public")]
+        [InlineData("b", "a", "b", "public", "public, private")]
+        [InlineData("a", "b", "b", "public, private", "public")]
+        [InlineData("a", "b", "a", "*", "*")]
+        [InlineData("b", "a", "a", "*", "*")]
+        [InlineData("A", "b", "A", "*", "*")]
+        [InlineData("b", "A", "A", "*", "*")]
+        [InlineData("a", "B", "a", "*", "*")]
+        [InlineData("B", "a", "a", "*", "*")]
+        [InlineData("A", "B", "A", "*", "*")]
+        [InlineData("B", "A", "A", "*", "*")]
+        public static void TestOrderedByAccessibilityBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstAccessibility, string secondAccessibility)
+        {
+            var namingStylePreferences = ParseDictionary(new Dictionary<string, string>()
+            {
+                [$"dotnet_naming_rule.{firstName}.severity"] = "error",
+                [$"dotnet_naming_rule.{firstName}.symbols"] = "first_symbols",
+                [$"dotnet_naming_rule.{firstName}.style"] = $"{firstName}_style",
+                ["dotnet_naming_symbols.first_symbols.applicable_kinds"] = "method,property",
+                ["dotnet_naming_symbols.first_symbols.applicable_accessibilities"] = firstAccessibility,
+                [$"dotnet_naming_style.{firstName}_style.capitalization"] = "pascal_case",
+                [$"dotnet_naming_style.{secondName}_style.capitalization"] = "camel_case",
+                [$"dotnet_naming_rule.{secondName}.severity"] = "error",
+                [$"dotnet_naming_rule.{secondName}.symbols"] = "second_symbols",
+                [$"dotnet_naming_rule.{secondName}.style"] = $"{secondName}_style",
+                ["dotnet_naming_symbols.second_symbols.applicable_kinds"] = "method,property",
+                ["dotnet_naming_symbols.second_symbols.applicable_accessibilities"] = secondAccessibility,
+            });
+
+            var secondNameAfterOrdering = firstNameAfterOrdering == firstName ? secondName : firstName;
+            Assert.Equal($"{firstNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[0].NamingStyle.Name);
+            Assert.Equal($"{secondNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[1].NamingStyle.Name);
+        }
+
+        [Theory]
+        [InlineData("a", "b", "a", "static, readonly", "static")]
+        [InlineData("b", "a", "a", "static", "static, readonly")]
+        [InlineData("b", "a", "b", "static, readonly", "static")]
+        [InlineData("a", "b", "b", "static", "static, readonly")]
+        [InlineData("a", "b", "a", "", "")]
+        [InlineData("b", "a", "a", "", "")]
+        [InlineData("A", "b", "A", "", "")]
+        [InlineData("b", "A", "A", "", "")]
+        [InlineData("a", "B", "a", "", "")]
+        [InlineData("B", "a", "a", "", "")]
+        [InlineData("A", "B", "A", "", "")]
+        [InlineData("B", "A", "A", "", "")]
+        public static void TestOrderedByModifiersBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstModifiers, string secondModifiers)
+        {
+            var namingStylePreferences = ParseDictionary(new Dictionary<string, string>()
+            {
+                [$"dotnet_naming_rule.{firstName}.severity"] = "error",
+                [$"dotnet_naming_rule.{firstName}.symbols"] = "first_symbols",
+                [$"dotnet_naming_rule.{firstName}.style"] = $"{firstName}_style",
+                ["dotnet_naming_symbols.first_symbols.applicable_kinds"] = "method,property",
+                ["dotnet_naming_symbols.first_symbols.required_modifiers"] = firstModifiers,
+                [$"dotnet_naming_style.{firstName}_style.capitalization"] = "pascal_case",
+                [$"dotnet_naming_style.{secondName}_style.capitalization"] = "camel_case",
+                [$"dotnet_naming_rule.{secondName}.severity"] = "error",
+                [$"dotnet_naming_rule.{secondName}.symbols"] = "second_symbols",
+                [$"dotnet_naming_rule.{secondName}.style"] = $"{secondName}_style",
+                ["dotnet_naming_symbols.second_symbols.applicable_kinds"] = "method,property",
+                ["dotnet_naming_symbols.second_symbols.required_modifiers"] = secondModifiers,
+            });
+
+            var secondNameAfterOrdering = firstNameAfterOrdering == firstName ? secondName : firstName;
+            Assert.Equal($"{firstNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[0].NamingStyle.Name);
+            Assert.Equal($"{secondNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[1].NamingStyle.Name);
+        }
+
+        [Theory]
+        [InlineData("a", "b", "a", "method", "method, property")]
+        [InlineData("b", "a", "a", "method, property", "method")]
+        [InlineData("b", "a", "b", "method", "method, property")]
+        [InlineData("a", "b", "b", "method, property", "method")]
+        [InlineData("a", "b", "a", "*", "*")]
+        [InlineData("b", "a", "a", "*", "*")]
+        [InlineData("A", "b", "A", "*", "*")]
+        [InlineData("b", "A", "A", "*", "*")]
+        [InlineData("a", "B", "a", "*", "*")]
+        [InlineData("B", "a", "a", "*", "*")]
+        [InlineData("A", "B", "A", "*", "*")]
+        [InlineData("B", "A", "A", "*", "*")]
+        public static void TestOrderedBySymbolsBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstSymbols, string secondSymbols)
+        {
+            var namingStylePreferences = ParseDictionary(new Dictionary<string, string>()
+            {
+                [$"dotnet_naming_rule.{firstName}.severity"] = "error",
+                [$"dotnet_naming_rule.{firstName}.symbols"] = "first_symbols",
+                [$"dotnet_naming_rule.{firstName}.style"] = $"{firstName}_style",
+                ["dotnet_naming_symbols.first_symbols.applicable_kinds"] = firstSymbols,
+                [$"dotnet_naming_style.{firstName}_style.capitalization"] = "pascal_case",
+                [$"dotnet_naming_style.{secondName}_style.capitalization"] = "camel_case",
+                [$"dotnet_naming_rule.{secondName}.severity"] = "error",
+                [$"dotnet_naming_rule.{secondName}.symbols"] = "second_symbols",
+                [$"dotnet_naming_rule.{secondName}.style"] = $"{secondName}_style",
+                ["dotnet_naming_symbols.second_symbols.applicable_kinds"] = secondSymbols,
+            });
+
+            var secondNameAfterOrdering = firstNameAfterOrdering == firstName ? secondName : firstName;
+            Assert.Equal($"{firstNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[0].NamingStyle.Name);
+            Assert.Equal($"{secondNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[1].NamingStyle.Name);
         }
     }
 }

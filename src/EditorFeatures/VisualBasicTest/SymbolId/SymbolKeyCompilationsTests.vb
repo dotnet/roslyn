@@ -12,8 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
 #Region "No change to symbol"
 
-        <WorkItem(528864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528864")>
-        <Fact>
+        <Fact, WorkItem(528864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528864")>
         Public Sub C2CTypeSymbolUnchanged01()
 
             Dim src1 = <compilation name="C2CTypeSymbolUnchanged01">

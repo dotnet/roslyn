@@ -183,7 +183,25 @@ class C
         }
     }
 }
-");
+",
+                // (6,15): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         using await (this)
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 15),
+                // (6,21): error CS1001: Identifier expected
+                //         using await (this)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(6, 21),
+                // (6,21): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         using await (this)
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(this").WithLocation(6, 21),
+                // (6,21): error CS1003: Syntax error, '[' expected
+                //         using await (this)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(6, 21),
+                // (6,26): error CS1003: Syntax error, ']' expected
+                //         using await (this)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(6, 26),
+                // (6,27): error CS1002: ; expected
+                //         using await (this)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 27));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -334,7 +352,37 @@ class C
         }
     }
 }
-");
+",
+                // (6,17): error CS1003: Syntax error, '(' expected
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "await").WithArguments("(").WithLocation(6, 17),
+                // (6,28): error CS1026: ) expected
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "i").WithLocation(6, 28),
+                // (6,28): error CS1515: 'in' expected
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_InExpected, "i").WithLocation(6, 28),
+                // (6,28): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "i").WithLocation(6, 28),
+                // (6,30): error CS1026: ) expected
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(6, 30),
+                // (6,30): error CS1525: Invalid expression term 'in'
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(6, 30),
+                // (6,30): error CS1002: ; expected
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(6, 30),
+                // (6,30): error CS1513: } expected
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "in").WithLocation(6, 30),
+                // (6,43): error CS1002: ; expected
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 43),
+                // (6,43): error CS1513: } expected
+                //         foreach await (var i in collection)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 43));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

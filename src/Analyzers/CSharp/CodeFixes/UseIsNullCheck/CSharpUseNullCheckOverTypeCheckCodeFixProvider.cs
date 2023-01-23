@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     UnaryPatternSyntax =>
                         s_nullConstantPattern,
                     // The analyzer reports diagnostic only on BinaryExpressionSyntax and UnaryPatternSyntax.
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
 
                 editor.ReplaceNode(node, replacement.WithTriviaFrom(node));

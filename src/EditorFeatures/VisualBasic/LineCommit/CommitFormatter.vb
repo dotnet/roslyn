@@ -10,12 +10,14 @@ Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 
@@ -30,14 +32,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
 
-        Private ReadOnly _globalOptions As IGlobalOptionService
-        Private ReadOnly _indentationManager As IIndentationManagerService
+        Private ReadOnly _editorOptionsService As EditorOptionsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(globalOptions As IGlobalOptionService, indentationManager As IIndentationManagerService)
-            _globalOptions = globalOptions
-            _indentationManager = indentationManager
+        Public Sub New(editorOptionsService As EditorOptionsService)
+            _editorOptionsService = editorOptionsService
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                 baseTree As SyntaxTree,
                                 cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
 
-            Using (Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken))
+            Using Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken)
                 Dim buffer = spanToFormat.Snapshot.TextBuffer
                 Dim currentSnapshot = buffer.CurrentSnapshot
 
@@ -64,25 +64,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                If Not (isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                If Not (isExplicitFormat OrElse _editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 
+                Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
+
                 Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
-                If AbortForDiagnostics(document, cancellationToken) Then
+                If AbortForDiagnostics(tree, cancellationToken) Then
                     Return
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim cleanupOptions = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.Services, isExplicitFormat, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
-                    document,
-                    formattingOptions,
+                    document.Id,
+                    document.Project.Services,
+                    cleanupOptions.FormattingOptions,
                     spanToFormat,
                     baseSnapshot,
                     baseTree,
                     dirtyRegion,
-                    document.GetSyntaxTreeSynchronously(cancellationToken),
+                    tree,
                     cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
@@ -90,9 +93,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                Concat(commitFormattingCleanup)
 
                 Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
-                Dim simplifierOptions = document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken)
-                Dim addImportOptions = AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
-                Dim cleanupOptions = New CodeCleanupOptions(formattingOptions, simplifierOptions, addImportOptions)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
@@ -108,8 +108,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Dim newRoot = cleanupService.CleanupAsync(
                         root,
                         ImmutableArray.Create(textSpanToFormat),
-                        formattingOptions,
-                        document.Project.Solution.Workspace.Services,
+                        cleanupOptions.FormattingOptions,
+                        document.Project.Solution.Services,
                         codeCleanups,
                         cancellationToken).WaitAndGetResult(cancellationToken)
 
@@ -125,14 +125,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
                 End If
 
-                finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
+                Dim changes = finalDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                buffer.ApplyChanges(changes)
             End Using
         End Sub
 
-        Private Shared Function AbortForDiagnostics(document As Document, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function AbortForDiagnostics(tree As SyntaxTree, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"
-
-            Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
 
             ' If we have any unterminated strings that overlap what we're trying to format, then
             ' bail out.  It's quite likely the unterminated string will cause a bunch of code to
@@ -144,7 +143,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Private Shared Function GetCommitFormattingCleanupProvider(
-            document As Document,
+            documentId As DocumentId,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldSnapshot As ITextSnapshot,
@@ -156,13 +156,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldDirtySpan = newDirtySpan.TranslateTo(oldSnapshot, SpanTrackingMode.EdgeInclusive)
 
             ' based on changes made to dirty spans, get right formatting rules to apply
-            Dim rules = GetFormattingRules(document, options, spanToFormat, oldDirtySpan, oldTree, newDirtySpan, newTree, cancellationToken)
+            Dim rules = GetFormattingRules(documentId, languageServices, options, spanToFormat, oldDirtySpan, oldTree, newDirtySpan, newTree, cancellationToken)
 
             Return New FormatCodeCleanupProvider(rules)
         End Function
 
         Private Shared Function GetFormattingRules(
-            document As Document,
+            documentId As DocumentId,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldDirtySpan As SnapshotSpan,
@@ -174,11 +175,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' if the span we are going to format is same as the span that got changed, don't bother to do anything special.
             ' just do full format of the span.
             If spanToFormat = newDirtySpan Then
-                Return Formatter.GetDefaultFormattingRules(document)
+                Return Formatter.GetDefaultFormattingRules(languageServices)
             End If
 
             If oldTree Is Nothing OrElse newTree Is Nothing Then
-                Return Formatter.GetDefaultFormattingRules(document)
+                Return Formatter.GetDefaultFormattingRules(languageServices)
             End If
 
             ' TODO: remove this in dev14
@@ -186,10 +187,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' workaround for VB razor case.
             ' if we are under VB razor, we always use anchor operation otherwise, due to our double formatting, everything will just get messed.
             ' this is really a hacky workaround we should remove this in dev14
-            Dim formattingRuleService = document.Project.Solution.Workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+            Dim formattingRuleService = languageServices.SolutionServices.GetService(Of IHostDependentFormattingRuleFactoryService)()
             If formattingRuleService IsNot Nothing Then
-                If formattingRuleService.ShouldUseBaseIndentation(document) Then
-                    Return Formatter.GetDefaultFormattingRules(document)
+                If formattingRuleService.ShouldUseBaseIndentation(documentId) Then
+                    Return Formatter.GetDefaultFormattingRules(languageServices)
                 End If
             End If
 
@@ -215,16 +216,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' for now, do very simple checking. basically, we see whether we get same number of indent operation for the give span. alternative, but little bit
             ' more expensive and complex, we can actually calculate indentation right after the span, and see whether that is changed. not sure whether that much granularity
             ' is needed.
-            If GetNumberOfIndentOperations(document, options, oldTree, oldDirtySpan, cancellationToken) =
-               GetNumberOfIndentOperations(document, options, newTree, newDirtySpan, cancellationToken) Then
-                Return (New NoAnchorFormatterRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+            If GetNumberOfIndentOperations(languageServices, options, oldTree, oldDirtySpan, cancellationToken) =
+               GetNumberOfIndentOperations(languageServices, options, newTree, newDirtySpan, cancellationToken) Then
+                Return (New NoAnchorFormatterRule()).Concat(Formatter.GetDefaultFormattingRules(languageServices))
             End If
 
-            Return Formatter.GetDefaultFormattingRules(document)
+            Return Formatter.GetDefaultFormattingRules(languageServices)
         End Function
 
         Private Shared Function GetNumberOfIndentOperations(
-            document As Document,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             syntaxTree As SyntaxTree,
             span As SnapshotSpan,
@@ -243,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
                 operations.AddRange(FormattingOperations.GetIndentBlockOperations(
-                                    Formatter.GetDefaultFormattingRules(document), node, options))
+                                    Formatter.GetDefaultFormattingRules(languageServices), node, options))
                 node = node.Parent
             End While
 

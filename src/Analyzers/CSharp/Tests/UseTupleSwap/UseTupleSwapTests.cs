@@ -18,9 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
         CSharpUseTupleSwapDiagnosticAnalyzer,
         CSharpUseTupleSwapCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
     public partial class UseTupleSwapTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMissingBeforeCSharp7()
         {
             var code = @"
@@ -43,7 +44,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMissingWithFeatureOff()
         {
             var code = @"
@@ -69,7 +70,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestBasicCase()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -95,7 +96,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotWithRef()
         {
             var code = @"
@@ -117,7 +118,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestArbitraryParens()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -143,7 +144,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -171,7 +172,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestTrivia2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -197,7 +198,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleAssignment1()
         {
             var code = @"
@@ -219,7 +220,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleAssignment2()
         {
             var code = @"
@@ -241,7 +242,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotSwap1()
         {
             var code = @"
@@ -263,7 +264,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotSwap2()
         {
             var code = @"
@@ -285,7 +286,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotSwap3()
         {
             var code = @"
@@ -307,7 +308,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotSwap4()
         {
             var code = @"
@@ -329,7 +330,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotSwap5()
         {
             var code = @"
@@ -351,7 +352,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestInSwitch()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -387,7 +388,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -423,7 +424,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotWithMultipleVariables()
         {
             var code = @"
@@ -445,8 +446,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-        [WorkItem(58759, "https://github.com/dotnet/roslyn/issues/58759")]
+        [Fact, WorkItem(58759, "https://github.com/dotnet/roslyn/issues/58759")]
         public async Task TestTopLevelStatements()
         {
             await new VerifyCS.Test

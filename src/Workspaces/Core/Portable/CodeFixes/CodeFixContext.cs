@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -20,19 +21,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     public readonly struct CodeFixContext : ITypeScriptCodeFixContext
 #pragma warning restore
     {
-        private readonly Document _document;
+        private readonly TextDocument _document;
         private readonly TextSpan _span;
         private readonly ImmutableArray<Diagnostic> _diagnostics;
         private readonly CancellationToken _cancellationToken;
         private readonly Action<CodeAction, ImmutableArray<Diagnostic>> _registerCodeFix;
 
         /// <summary>
-        /// Document corresponding to the <see cref="Span"/> to fix.
+        /// Document corresponding to the <see cref="CodeFixContext.Span"/> to fix.
+        /// For code fixes that support non-source documents by providing a non-default value for
+        /// <see cref="ExportCodeFixProviderAttribute.DocumentKinds"/>, this property will
+        /// throw an <see cref="InvalidOperationException"/>. Such fixers should use the
+        /// <see cref="CodeFixContext.TextDocument"/> property instead.
         /// </summary>
-        public Document Document => _document;
+        public Document Document
+        {
+            get
+            {
+                if (TextDocument is not Document document)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents);
+                }
+
+                return document;
+            }
+        }
 
         /// <summary>
-        /// Text span within the <see cref="Document"/> to fix.
+        /// TextDocument corresponding to the <see cref="Span"/> to fix.
+        /// This property should be used instead of <see cref="Document"/> property by
+        /// code fixes that support non-source documents by providing a non-default value for
+        /// <see cref="ExportCodeFixProviderAttribute.DocumentKinds"/>
+        /// </summary>
+        public TextDocument TextDocument => _document;
+
+        /// <summary>
+        /// Text span within the <see cref="Document"/> or <see cref="TextDocument"/> to fix.
         /// </summary>
         public TextSpan Span => _span;
 
@@ -55,9 +79,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </remarks>
         internal readonly CodeActionOptionsProvider Options;
 
+        /// <summary>
+        /// TypeScript specific. https://github.com/dotnet/roslyn/issues/61122
+        /// </summary>
+        private readonly bool _isBlocking;
+
         [Obsolete]
         bool ITypeScriptCodeFixContext.IsBlocking
-            => Options(Document.Project.LanguageServices).IsBlocking;
+            => _isBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -76,17 +105,52 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Throws this exception if the given <paramref name="diagnostics"/> is empty,
         /// has a null element or has an element whose span is not equal to <paramref name="span"/>.
         /// </exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CodeFixContext(
             Document document,
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document ?? throw new ArgumentNullException(nameof(document)),
+            : this(document,
                    span,
-                   VerifyDiagnosticsArgument(diagnostics, span),
-                   registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   _ => CodeActionOptions.Default,
+                   diagnostics,
+                   registerCodeFix,
+                   CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
+                   cancellationToken)
+        {
+        }
+
+        /// <summary>
+        /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
+        /// </summary>
+        /// <param name="document">Text document to fix.</param>
+        /// <param name="span">Text span within the <paramref name="document"/> to fix.</param>
+        /// <param name="diagnostics">
+        /// Diagnostics to fix.
+        /// All the diagnostics must have the same <paramref name="span"/>.
+        /// Additionally, the <see cref="Diagnostic.Id"/> of each diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+        /// </param>
+        /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
+        /// <exception cref="ArgumentException">
+        /// Throws this exception if the given <paramref name="diagnostics"/> is empty,
+        /// has a null element or has an element whose span is not equal to <paramref name="span"/>.
+        /// </exception>
+        public CodeFixContext(
+            TextDocument document,
+            TextSpan span,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            CancellationToken cancellationToken)
+            : this(document,
+                   span,
+                   diagnostics,
+                   registerCodeFix,
+                   CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
                    cancellationToken)
         {
         }
@@ -102,35 +166,65 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CodeFixContext(
             Document document,
             Diagnostic diagnostic,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document ?? throw new ArgumentNullException(nameof(document)),
+            : this(document,
                    (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
                    ImmutableArray.Create(diagnostic),
-                   registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   _ => CodeActionOptions.Default,
+                   registerCodeFix,
+                   CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
+                   cancellationToken)
+        {
+        }
+
+        /// <summary>
+        /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
+        /// </summary>
+        /// <param name="document">Text document to fix.</param>
+        /// <param name="diagnostic">
+        /// Diagnostic to fix.
+        /// The <see cref="Diagnostic.Id"/> of this diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+        /// </param>
+        /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
+        public CodeFixContext(
+            TextDocument document,
+            Diagnostic diagnostic,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            CancellationToken cancellationToken)
+            : this(document,
+                   (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
+                   ImmutableArray.Create(diagnostic),
+                   registerCodeFix,
+                   CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
                    cancellationToken)
         {
         }
 
         internal CodeFixContext(
-            Document document,
+            TextDocument document,
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CodeActionOptionsProvider options,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(diagnostics.Any(d => d.Location.SourceSpan == span));
+            VerifyDiagnosticsArgument(diagnostics, span);
 
-            _document = document;
+            _document = document ?? throw new ArgumentNullException(nameof(document));
             _span = span;
             _diagnostics = diagnostics;
-            _registerCodeFix = registerCodeFix;
+            _registerCodeFix = registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix));
             Options = options;
+            _isBlocking = isBlocking;
             _cancellationToken = cancellationToken;
         }
 
@@ -191,14 +285,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _registerCodeFix(action, diagnostics);
         }
 
-        private static ImmutableArray<Diagnostic> VerifyDiagnosticsArgument(ImmutableArray<Diagnostic> diagnostics, TextSpan span)
+        private static void VerifyDiagnosticsArgument(ImmutableArray<Diagnostic> diagnostics, TextSpan span)
         {
             if (diagnostics.IsDefaultOrEmpty)
             {
                 throw new ArgumentException(WorkspacesResources.At_least_one_diagnostic_must_be_supplied, nameof(diagnostics));
             }
 
-            if (diagnostics.Any(d => d == null))
+            if (diagnostics.Any(static d => d == null))
             {
                 throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
             }
@@ -207,8 +301,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 throw new ArgumentException(string.Format(WorkspacesResources.Diagnostic_must_have_span_0, span.ToString()), nameof(diagnostics));
             }
-
-            return diagnostics;
         }
     }
 

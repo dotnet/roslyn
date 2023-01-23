@@ -29,8 +29,11 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Sublinhar variáveis reatribuídas;exibir dicas incorporadas;inserção automática de construções finais;Alterar as configurações de reformatação automática;Alterar o modo de estrutura de tópicos;Inserção automática de interface e membros MustOverride;Mostrar ou ocultar separadores de linha de procedimento;Ativar ou desativar as sugestões de correção de erros;ativar ou desativar o realce de referências e palavras-chave;
+        <target state="translated">Sublinhar variáveis reatribuídas;Exibir dicas incorporadas;Inserção automática de construtores finais;Alterar as configurações de reformatação automática;Alterar o modo de estrutura de tópicos;Inserção automática de interface e membros MustOverride;Mostrar ou ocultar separadores de linha de procedimento;Ativar ou desativar as sugestões de correção de erros;Ativar ou desativar o realce de referências e palavras-chave;
 Regex; 
 expressões regulares;
 componentes relacionados sob o cursor;
@@ -41,7 +44,10 @@ JSON;
 Colorizar cadeias de caracteres JSON;
 Notificar cadeias de caracteres JSON inválidas;
 Detectar e oferecer recursos de editor para cadeia de caracteres JSON;
-Usar cores aprimoradas; editar o Esquema de Cores;Margem de Herança; Importar Diretivas;</target>
+Recolher #regions do arquivo aberto;
+Recolher inportações do arquivo aberto;
+Recolher implementações de metadados do arquivo aberto;
+Usar cores aprimoradas;Esquema de Cores do Editor;Margem de Herança;Importar Diretivas;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

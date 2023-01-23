@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -53,12 +54,12 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// If the declared namespace for <paramref name="container"/> is already identical to <paramref name="targetNamespace"/>, then it will be
         /// a no-op and original solution will be returned.
         /// </remarks>
-        Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, ChangeNamespaceOptionsProvider options, CancellationToken cancellationToken);
+        Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Using only the top level namespace declarations of a document, change all of them to the target namespace. Will only
         /// use namespace containers considered valid by <see cref="CanChangeNamespaceAsync(Document, SyntaxNode, CancellationToken)"/>
         /// </summary>
-        Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, ChangeNamespaceOptionsProvider options, CancellationToken cancellationToken);
+        Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
     }
 }

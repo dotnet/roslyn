@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             private readonly PreviewSolutionCrawlerRegistrationServiceFactory _owner;
             private readonly Workspace _workspace;
-            private readonly CancellationTokenSource _source;
+            private readonly CancellationTokenSource _source = new();
 
             // since we now have one service for each one specific instance of workspace,
             // we can have states for this specific workspace.
@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             {
                 _owner = owner;
                 _workspace = workspace;
-                _source = new CancellationTokenSource();
             }
 
             public void Register(Workspace workspace)
@@ -117,15 +116,25 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             private async Task UnregisterAsync(Workspace workspace)
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
-                Contract.ThrowIfNull(_analyzeTask);
 
                 _source.Cancel();
 
-                // wait for analyzer work to be finished
-                await _analyzeTask.ConfigureAwait(false);
+                try
+                {
+                    var analyzeTask = _analyzeTask;
+                    if (analyzeTask != null)
+                    {
+                        // wait for analyzer work to be finished
+                        await analyzeTask.ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    _source.Dispose();
 
-                // ask it to reset its stages for the given workspace
-                _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
+                    // ask it to reset its stages for the given workspace
+                    _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
+                }
             }
 
             public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)

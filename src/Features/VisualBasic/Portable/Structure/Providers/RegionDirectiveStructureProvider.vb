@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     span, span,
                     GetBannerText(regionDirective),
                     autoCollapse:=autoCollapse,
-                    isDefaultCollapsed:=Not options.IsMetadataAsSource,
+                    isDefaultCollapsed:=options.CollapseRegionsWhenFirstOpened,
                     type:=BlockTypes.PreprocessorRegion,
                     isCollapsible:=True))
             End If

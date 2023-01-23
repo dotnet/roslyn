@@ -523,5 +523,24 @@ namespace Microsoft.CodeAnalysis
                 return projects;
             }
         }
+
+        /// <summary>
+        /// Checks whether <paramref name="id"/> depends on <paramref name="potentialDependency"/>.
+        /// </summary>
+        internal bool DoesProjectTransitivelyDependOnProject(ProjectId id, ProjectId potentialDependency)
+        {
+            // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
+            // If the information is not available, do not compute it.
+            var forwardDependencies = TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
+            if (forwardDependencies is object && forwardDependencies.Contains(potentialDependency))
+            {
+                return true;
+            }
+
+            // Compute the set of all projects that depend on 'potentialDependency'. This information answers the same
+            // question as the previous check, but involves at most one transitive computation within the
+            // dependency graph when you are checking multiple projects against the same potentialDependency.
+            return GetProjectsThatTransitivelyDependOnThisProject(potentialDependency).Contains(id);
+        }
     }
 }

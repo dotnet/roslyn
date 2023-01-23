@@ -191,6 +191,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return False
             End Function
 
+            Public Overrides Function TryGetPreviousStateMachineState(awaitOrYieldSyntax As SyntaxNode, ByRef state As StateMachineState) As Boolean
+                state = 0
+                Return False
+            End Function
+
+            Public Overrides Function GetFirstUnusedStateMachineState(increasing As Boolean) As StateMachineState?
+                Return Nothing
+            End Function
+
             Public Overrides ReadOnly Property PreviousStateMachineTypeName As String
                 Get
                     Return Nothing

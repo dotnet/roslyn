@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnsealClass
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnsealClass
     {
         protected abstract string TitleFormat { get; }
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // This code fix addresses a very specific compiler error. It's unlikely there will be more than 1 of them at a time.
             return null;
@@ -32,8 +31,8 @@ namespace Microsoft.CodeAnalysis.UnsealClass
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var node = syntaxRoot.FindNode(context.Span, getInnermostNodeForTie: true);
 
@@ -42,12 +41,14 @@ namespace Microsoft.CodeAnalysis.UnsealClass
             {
                 var definition = await SymbolFinder.FindSourceDefinitionAsync(
                     type, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                if (definition != null && definition.DeclaringSyntaxReferences.Length > 0)
+                if (definition is not null && definition.DeclaringSyntaxReferences.Length > 0)
                 {
+                    var title = string.Format(TitleFormat, type.Name);
                     context.RegisterCodeFix(
-                        new MyCodeAction(
-                            string.Format(TitleFormat, type.Name),
-                            c => UnsealDeclarationsAsync(document.Project.Solution, definition.DeclaringSyntaxReferences, c)),
+                        CodeAction.Create(
+                            title,
+                            c => UnsealDeclarationsAsync(document.Project.Solution, definition.DeclaringSyntaxReferences, c),
+                            title),
                         context.Diagnostics);
                 }
             }
@@ -57,12 +58,12 @@ namespace Microsoft.CodeAnalysis.UnsealClass
             Solution solution, ImmutableArray<SyntaxReference> declarationReferences, CancellationToken cancellationToken)
         {
             foreach (var (documentId, syntaxReferences) in
-                declarationReferences.GroupBy(reference => solution.GetDocumentId(reference.SyntaxTree)))
+                declarationReferences.GroupBy(reference => solution.GetDocumentId(reference.SyntaxTree)!))
             {
-                var document = solution.GetDocument(documentId);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(documentId);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+                var editor = new SyntaxEditor(root, document.Project.Solution.Services);
                 var generator = editor.Generator;
 
                 foreach (var syntaxReference in syntaxReferences)
@@ -82,14 +83,6 @@ namespace Microsoft.CodeAnalysis.UnsealClass
             }
 
             return solution;
-        }
-
-        private sealed class MyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
     }
 }

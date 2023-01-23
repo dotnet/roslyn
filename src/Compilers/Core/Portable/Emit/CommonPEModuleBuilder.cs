@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 foreach (ResourceDescription r in ManifestResources)
                 {
-                    builder.Add(r.ToManagedResource(this));
+                    builder.Add(r.ToManagedResource());
                 }
 
                 if (OutputKind != OutputKind.NetModule)
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
                 // _namesOfTopLevelTypes are only used to generated exported types, which are not emitted in EnC deltas (hence generation 0):
-                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type, generation: 0)));
+                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMetadataName(type, generation: 0)));
         }
 
         public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()
@@ -981,14 +981,27 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region Token Mapping
 
-        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(this.SupportsPrivateImplClass);
+            Debug.Assert(SupportsPrivateImplClass);
+            Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
 
-            var privateImpl = this.GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
             // map a field to the block (that makes it addressable via a token)
-            return privateImpl.CreateDataField(data);
+            return privateImpl.CreateDataField(data, alignment);
+        }
+
+        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(SupportsPrivateImplClass);
+
+            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+
+            var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
+
+            // map a field to the block (that makes it addressable via a token)
+            return privateImpl.CreateArrayCachingField(data, arrayType, emitContext);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();

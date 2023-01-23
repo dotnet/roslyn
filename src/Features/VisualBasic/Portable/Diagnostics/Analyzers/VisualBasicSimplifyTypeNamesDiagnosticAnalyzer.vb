@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
 
-            Dim simplifierOptions = context.Options.GetVisualBasicSimplifierOptions(semanticModel.SyntaxTree)
+            Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, ignoredSpans:=Nothing, cancellationToken)
             simplifier.Visit(context.CodeBlock)
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree)
-            Dim simplifierOptions = context.Options.GetVisualBasicSimplifierOptions(semanticModel.SyntaxTree)
+            Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
             Dim root = syntaxTree.GetRoot(cancellationToken)
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
@@ -112,10 +112,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End If
 
             Return True
-        End Function
-
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
         End Function
     End Class
 End Namespace

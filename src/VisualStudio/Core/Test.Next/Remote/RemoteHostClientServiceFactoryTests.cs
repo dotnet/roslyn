@@ -5,14 +5,15 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -36,13 +37,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             using var workspace = CreateWorkspace();
 
-            var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
+            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-            globalOptions.SetGlobalOption(new OptionKey(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), 1);
-
-            var checksumUpdater = new SolutionChecksumUpdater(workspace, globalOptions, listenerProvider, CancellationToken.None);
+            var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
             // make sure client is ready
@@ -52,7 +51,12 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
             var project = workspace.AddProject("proj", LanguageNames.CSharp);
             var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
-            workspace.ApplyTextChanges(document.Id, new[] { new TextChange(new TextSpan(0, 1), "abc") }, CancellationToken.None);
+
+            var oldText = document.GetTextSynchronously(CancellationToken.None);
+            var newText = oldText.WithChanges(new[] { new TextChange(new TextSpan(0, 1), "abc") });
+            var newSolution = document.Project.Solution.WithDocumentText(document.Id, newText, PreservationMode.PreserveIdentity);
+
+            workspace.TryApplyChanges(newSolution);
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);

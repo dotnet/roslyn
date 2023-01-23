@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
@@ -53,22 +54,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken,
             out ImmutableArray<(string name, IOperation value)> namedAttributeArguments)
         {
-            var attribute = model.GetOperation(attributeSyntax, cancellationToken);
-            if (attribute == null)
+            var operation = (model.GetOperation(attributeSyntax, cancellationToken) as IAttributeOperation)?.Operation;
+            if (operation is not IObjectCreationOperation { Initializer: { } initializerOperation })
             {
                 namedAttributeArguments = ImmutableArray<(string name, IOperation value)>.Empty;
                 return false;
             }
 
-            // Workaround for https://github.com/dotnet/roslyn/issues/18198
-            // Use 'IOperation.Children' to get named attribute arguments.
-            // Each named attribute argument is represented as an 'ISimpleAssignmentOperation'
-            // with a constant value assignment to an 'IPropertyReferenceOperation' in the operation tree.
             using var _ = ArrayBuilder<(string name, IOperation value)>.GetInstance(out var builder);
-            foreach (var childOperation in attribute.ChildOperations)
+            foreach (var initializer in initializerOperation.Initializers)
             {
-                if (childOperation is ISimpleAssignmentOperation simpleAssignment &&
-                    simpleAssignment.Target is IPropertyReferenceOperation propertyReference &&
+                var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+                if (simpleAssignment.Target is IPropertyReferenceOperation propertyReference &&
                     _suppressMessageAttributeType.Equals(propertyReference.Property.ContainingType))
                 {
                     builder.Add((propertyReference.Property.Name, simpleAssignment.Value));

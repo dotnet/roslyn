@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -89,8 +89,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var shouldReplaceInvocation = stringInvocationMethods.Contains(invocationSymbol);
 
             context.RegisterRefactoring(
-                    new ConvertToInterpolatedStringCodeAction(
-                        c => CreateInterpolatedStringAsync(invocationSyntax, document, syntaxFactsService, shouldReplaceInvocation, c)),
+                    CodeAction.Create(
+                        FeaturesResources.Convert_to_interpolated_string,
+                        c => CreateInterpolatedStringAsync(invocationSyntax, document, syntaxFactsService, shouldReplaceInvocation, c),
+                        nameof(FeaturesResources.Convert_to_interpolated_string)),
                     invocationSyntax.Span);
 
             // Local Functions
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             {
                 var argumentExpression = syntaxFacts.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFacts));
                 var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
-                if (convertedType == null)
+                if (convertedType is null)
                 {
                     builder.Add((TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpression));
                 }
@@ -348,14 +350,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             return true;
-        }
-
-        private class ConvertToInterpolatedStringCodeAction : CodeAction.DocumentChangeAction
-        {
-            public ConvertToInterpolatedStringCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
-            {
-            }
         }
 
         private static class StringFormatArguments

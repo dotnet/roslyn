@@ -2,22 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace;
-using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
@@ -28,17 +24,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+            var service = context.Document.Project.Solution.Services.GetRequiredService<ISupportedChangesService>();
+            if (service.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         AnalyzersResources.Change_namespace_to_match_folder_structure,
                         cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics,
-#if CODE_STYLE
-                        options: _ => default,
-#else
-                        context.Options,
-#endif
+                        context.GetOptionsProvider(),
                         cancellationToken),
                         nameof(AnalyzersResources.Change_namespace_to_match_folder_structure)),
                     context.Diagnostics);
@@ -65,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 documentWithInvalidFolders,
                 new DocumentRenameOptions(),
 #if !CODE_STYLE
-                ChangeNamespaceOptions.CreateProvider(options),
+                options,
 #endif
                 documentWithInvalidFolders.Name,
                 newDocumentFolders: targetFolders,

@@ -29,10 +29,13 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Yeniden atanan değişkenleri altını çiz;Satır içi ipuçlarını göster;Bitiş yapılarının otomatik olarak eklenmesi;Düzgün listeleme ayarlarını değiştir;Ana hat modunu değiştir;Interface ve MustOverride üyelerinin otomatik olarak eklenmesi;Yordam satır ayraçlarını göster veya gizle;Hata düzeltme önerilerini aç veya kapat;Başvuruları ve anahtar sözcükleri vurgulamayı aç veya kapat;
+        <target state="translated">Yeniden atanan değişkenlerin altını çiz;Satır içi ipuçlarını görüntüle;Bitiş yapılarının otomatik olarak eklenmesi;Düzgün listeleme ayarlarını değiştir;Ana hat modunu değiştir;Interface ve MustOverride üyelerinin otomatik olarak eklenmesi;Yordam satır ayraçlarını göster veya gizle;Hata düzeltme önerilerini aç veya kapat;Başvuruları ve anahtar sözcükleri vurgulamayı aç veya kapat;
 Normal ifade;
-normal ifadeler; 
+normal ifadeler;
 imlecin altındaki ilgili bileşenler; 
 Geçersiz normal ifadeleri bildir;
 normal ifade;
@@ -41,7 +44,10 @@ JSON;
 JSON dizelerini renklendir;
 Geçersiz JSON dizelerini bildir;
 JSON dizeleri için düzenleyici özelliklerini algıla ve öner;
-Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İçe Aktarma Yönergeleri;</target>
+Dosya açılırken #bölgeleri daralt;
+Dosya açılırken İçeri Aktarmaları daralt;
+Dosya açılırken meta veri uygulamalarını daralt;
+Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İçeri Aktarma Yönergeleri;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

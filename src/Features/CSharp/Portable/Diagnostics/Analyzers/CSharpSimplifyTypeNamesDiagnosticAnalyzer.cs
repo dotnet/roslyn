@@ -36,15 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
             // callbacks when they include attributes, but analysis of the node at this level would block more efficient
             // analysis of descendant members.
-            return codeBlock.IsKind(
-                SyntaxKind.CompilationUnit,
-                SyntaxKind.ClassDeclaration,
-                SyntaxKind.RecordDeclaration,
-                SyntaxKind.StructDeclaration,
-                SyntaxKind.RecordStructDeclaration,
-                SyntaxKind.InterfaceDeclaration,
-                SyntaxKind.DelegateDeclaration,
-                SyntaxKind.EnumDeclaration);
+            return codeBlock.Kind() is
+                SyntaxKind.CompilationUnit or
+                SyntaxKind.ClassDeclaration or
+                SyntaxKind.RecordDeclaration or
+                SyntaxKind.StructDeclaration or
+                SyntaxKind.RecordStructDeclaration or
+                SyntaxKind.InterfaceDeclaration or
+                SyntaxKind.DelegateDeclaration or
+                SyntaxKind.EnumDeclaration;
         }
 
         protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context)
@@ -52,9 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxTree = semanticModel.SyntaxTree;
-            var options = context.Options.GetCSharpSimplifierOptions(syntaxTree);
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
+            var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
             simplifier.Visit(context.CodeBlock);
             return simplifier.Diagnostics;
         }
@@ -64,11 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxTree = semanticModel.SyntaxTree;
-            var simplifierOptions = context.Options.GetCSharpSimplifierOptions(syntaxTree);
-            var root = syntaxTree.GetRoot(cancellationToken);
+            var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, simplifierOptions, ignoredSpans: codeBlockIntervalTree, cancellationToken);
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: codeBlockIntervalTree, cancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;
         }
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             SyntaxNode replacementSyntax;
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax? crefSyntax))
+            if (node is QualifiedCrefSyntax crefSyntax)
             {
                 if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, options, out var replacement, out issueSpan, cancellationToken))
                     return false;
@@ -131,8 +129,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             return true;
         }
-
-        protected override string GetLanguageName()
-            => LanguageNames.CSharp;
     }
 }

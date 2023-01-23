@@ -4,7 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CSharp.LanguageServices
+Imports Microsoft.CodeAnalysis.CSharp.LanguageService
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
@@ -12,8 +12,9 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)>
     Public Class MoveToNamespaceDialogViewModelTests
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)>
+        <Fact>
         Public Sub TestMoveToNamespace_ErrorState()
             Dim viewModel = CreateViewModel()
 
@@ -42,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
             Assert.False(viewModel.ShowMessage)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)>
+        <Fact>
         Public Sub TestMoveToNamespace_NewNamespaceState()
             Dim viewModel = CreateViewModel()
 

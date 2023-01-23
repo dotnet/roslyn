@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -111,8 +112,7 @@ class C
             }
         }
 
-        [Fact]
-        [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
+        [Fact, WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
@@ -129,8 +129,7 @@ class C
             });
         }
 
-        [WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
-        [Fact]
+        [Fact, WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_1()
         {
             var analyzer = new ThrowingDiagnosticAnalyzer<SyntaxKind>();
@@ -138,8 +137,7 @@ class C
             AccessSupportedDiagnostics(analyzer);
         }
 
-        [WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
-        [Fact]
+        [Fact, WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_2()
         {
             var analyzer = new ThrowingDoNotCatchDiagnosticAnalyzer<SyntaxKind>();
@@ -187,7 +185,7 @@ class C
         {
             public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-            public bool OpenFileOnly(OptionSet options) => false;
+            public bool OpenFileOnly(SimplifierOptions? options) => false;
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;

@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -12,8 +13,9 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
@@ -42,63 +44,83 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
         }
 
+        public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
+            => args.SubjectBuffer.SupportsRefactorings() ? CommandState.Available : CommandState.Unspecified;
+
         public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
         {
-            if (!args.SubjectBuffer.SupportsRefactorings())
-            {
+            var textBuffer = args.SubjectBuffer;
+            if (!textBuffer.SupportsRefactorings())
                 return false;
-            }
 
-            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring);
+            var spans = args.TextView.Selection.GetSnapshotSpansOnBuffer(textBuffer);
+            if (spans.Count != 1)
+                return false;
 
-            return Execute(args, waitScope);
+            var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+            if (document == null)
+                return false;
+
+            // Fire and forget
+            var token = _listener.BeginAsyncOperation(FeatureAttribute.EncapsulateField);
+            _ = ExecuteAsync(args, document, spans.Single()).CompletesAsyncOperation(token);
+            return true;
         }
 
-        private bool Execute(EncapsulateFieldCommandArgs args, IUIThreadOperationScope waitScope)
+        private async Task ExecuteAsync(
+            EncapsulateFieldCommandArgs args,
+            Document initialDocument,
+            SnapshotSpan span)
         {
-            using var token = _listener.BeginAsyncOperation("EncapsulateField");
+            _threadingContext.ThrowIfNotOnUIThread();
 
-            var cancellationToken = waitScope.Context.UserCancellationToken;
-            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                waitScope.Context, _threadingContext);
-            if (document == null)
-            {
-                return false;
-            }
+            var subjectBuffer = args.SubjectBuffer;
+            var workspace = initialDocument.Project.Solution.Workspace;
 
-            var spans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
+            var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            using var context = indicatorFactory.Create(
+                args.TextView, span, EditorFeaturesResources.Computing_Encapsulate_Field_information,
+                cancelOnEdit: true, cancelOnFocusLost: true);
 
-            var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
+            var cancellationToken = context.UserCancellationToken;
+            var document = await subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context).ConfigureAwait(false);
+            Contract.ThrowIfNull(document);
 
-            // The formatting and simplification options are only applied within the given document (and all linked documents).
-            // We can therefore fetch all necessary options for the language now rather then lazily,
-            // which would be needed if we had to apply them to documents of different languages.
-            var fallbackOptions = new EncapsulateFieldOptions(
-                SimplifierOptions: _globalOptions.GetSimplifierOptions(document.Project.LanguageServices));
+            var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
 
-            var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), fallbackOptions, useDefaultBehavior: true, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = await service.EncapsulateFieldsInSpanAsync(
+                document, span.Span.ToTextSpan(), _globalOptions.CreateProvider(), useDefaultBehavior: true, cancellationToken).ConfigureAwait(false);
 
-            // We are about to show a modal UI dialog so we should take over the command execution
-            // wait context. That means the command system won't attempt to show its own wait dialog 
-            // and also will take it into consideration when measuring command handling duration.
-            waitScope.Context.TakeOwnership();
-
-            var workspace = document.Project.Solution.Workspace;
             if (result == null)
             {
-                var notificationService = workspace.Services.GetService<INotificationService>();
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                // We are about to show a modal UI dialog so we should take over the command execution
+                // wait context. That means the command system won't attempt to show its own wait dialog 
+                // and also will take it into consideration when measuring command handling duration.
+                context.TakeOwnership();
+
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(EditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);
-                return false;
+                return;
             }
 
-            waitScope.AllowCancellation = false;
-            cancellationToken = waitScope.Context.UserCancellationToken;
+            await ApplyChangeAsync(subjectBuffer, document, result, cancellationToken).ConfigureAwait(false);
+        }
 
-            var finalSolution = result.GetSolutionAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+        private async Task ApplyChangeAsync(
+            ITextBuffer subjectBuffer,
+            Document document,
+            EncapsulateFieldResult result, CancellationToken cancellationToken)
+        {
+            var finalSolution = await result.GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
+            var solution = document.Project.Solution;
+            var workspace = solution.Workspace;
             var previewService = workspace.Services.GetService<IPreviewDialogService>();
             if (previewService != null)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 finalSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
                      "vs.csharp.refactoring.preview",
@@ -106,30 +128,25 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     result.Name,
                     result.Glyph,
                     finalSolution,
-                    document.Project.Solution);
+                    solution);
             }
 
             if (finalSolution == null)
             {
                 // User clicked cancel.
-                return true;
+                return;
             }
 
-            using (var undoTransaction = _undoManager.GetTextBufferUndoManager(args.SubjectBuffer).TextBufferUndoHistory.CreateTransaction(EditorFeaturesResources.Encapsulate_Field))
-            {
-                if (!workspace.TryApplyChanges(finalSolution))
-                {
-                    undoTransaction.Cancel();
-                    return false;
-                }
+            using var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction(EditorFeaturesResources.Encapsulate_Field);
 
+            if (workspace.TryApplyChanges(finalSolution))
+            {
                 undoTransaction.Complete();
             }
-
-            return true;
+            else
+            {
+                undoTransaction.Cancel();
+            }
         }
-
-        public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
-            => args.SubjectBuffer.SupportsRefactorings() ? CommandState.Available : CommandState.Unspecified;
     }
 }

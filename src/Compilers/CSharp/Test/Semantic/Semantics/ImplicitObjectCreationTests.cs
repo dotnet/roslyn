@@ -95,9 +95,15 @@ class C
                 // (10,16): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         C v1 = new();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(10, 16),
+                // (11,11): warning CS0219: The variable 'v2' is assigned but its value is never used
+                //         S v2 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v2").WithArguments("v2").WithLocation(11, 11),
                 // (11,16): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         S v2 = new();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(11, 16),
+                // (12,12): warning CS0219: The variable 'v3' is assigned but its value is never used
+                //         S? v3 = new();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v3").WithArguments("v3").WithLocation(12, 12),
                 // (12,17): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         S? v3 = new();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(12, 17),
@@ -118,8 +124,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(15, 17),
                 // (15,21): error CS0103: The name 'missing' does not exist in the current context
                 //         S? v6 = new(missing);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(15, 21)
-                );
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(15, 21));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -4701,7 +4706,7 @@ public class C : System.Attribute
                 // (2,2): error CS0181: Attribute constructor parameter 'c' has type 'C', which is not a valid attribute parameter type
                 // [C(new())]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "C").WithArguments("c", "C").WithLocation(2, 2),
-                // (2,4): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.C(C)'
+                // (2,4): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.C(C)'
                 // [C(new())]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new()").WithArguments("c", "C.C(C)").WithLocation(2, 4)
                 );
@@ -4853,6 +4858,54 @@ class C
                 // (13,18): error CS0150: A constant value is expected
                 //         if (t is new T()) { } // 4
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new T()").WithLocation(13, 18)
+                );
+        }
+
+        [Fact, WorkItem(60960, "https://github.com/dotnet/roslyn/issues/60960")]
+        public void TestInCollectionInitializer()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+_ = new List<A> {new A()};
+_ = new MyList<A> {new A()};
+
+_ = new List<A> {new()};
+_ = new MyList<A> {new()};
+
+class MyList<T> : List<T>
+{
+    [Obsolete(""Message"")]
+    public new void Add(T value) { }
+}
+
+class A
+{
+    [Obsolete(""Message"")]
+    public A() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,18): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new List<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new A()").WithArguments("A.A()", "Message").WithLocation(5, 18),
+                // (6,20): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new MyList<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new A()").WithArguments("A.A()", "Message").WithLocation(6, 20),
+                // (6,20): warning CS1062: The best overloaded Add method 'MyList<A>.Add(A)' for the collection initializer element is obsolete. Message
+                // _ = new MyList<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "new A()").WithArguments("MyList<A>.Add(A)", "Message").WithLocation(6, 20),
+                // (8,18): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new List<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new()").WithArguments("A.A()", "Message").WithLocation(8, 18),
+                // (9,20): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new MyList<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new()").WithArguments("A.A()", "Message").WithLocation(9, 20),
+                // (9,20): warning CS1062: The best overloaded Add method 'MyList<A>.Add(A)' for the collection initializer element is obsolete. Message
+                // _ = new MyList<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "new()").WithArguments("MyList<A>.Add(A)", "Message").WithLocation(9, 20)
                 );
         }
     }

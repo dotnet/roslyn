@@ -3,18 +3,41 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType;
+using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
 {
     internal readonly record struct OmniSharpCodeActionOptions(
-        OmniSharpImplementTypeOptions ImplementTypeOptions)
+        OmniSharpImplementTypeOptions ImplementTypeOptions,
+        OmniSharpLineFormattingOptions LineFormattingOptions)
     {
-        internal CodeActionOptions GetCodeActionOptions()
-            => new(ImplementTypeOptions: new(
-                InsertionBehavior: (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,
-                PropertyGenerationBehavior: (ImplementTypePropertyGenerationBehavior)ImplementTypeOptions.PropertyGenerationBehavior));
+        internal CodeActionOptions GetCodeActionOptions(LanguageServices languageServices)
+        {
+            var defaultOptions = CodeActionOptions.GetDefault(languageServices);
+            return defaultOptions with
+            {
+                CleanupOptions = defaultOptions.CleanupOptions with
+                {
+                    FormattingOptions = defaultOptions.CleanupOptions.FormattingOptions.With(new LineFormattingOptions
+                    {
+                        IndentationSize = LineFormattingOptions.IndentationSize,
+                        TabSize = LineFormattingOptions.TabSize,
+                        UseTabs = LineFormattingOptions.UseTabs,
+                        NewLine = LineFormattingOptions.NewLine,
+                    })
+                },
+                ImplementTypeOptions = new()
+                {
+                    InsertionBehavior = (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,
+                    PropertyGenerationBehavior = (ImplementTypePropertyGenerationBehavior)ImplementTypeOptions.PropertyGenerationBehavior
+                }
+            };
+        }
     }
 }

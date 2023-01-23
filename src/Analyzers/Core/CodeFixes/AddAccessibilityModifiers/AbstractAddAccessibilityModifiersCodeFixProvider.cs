@@ -31,14 +31,18 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
 
-            RegisterCodeFix(context, AnalyzersResources.Add_accessibility_modifiers, nameof(AnalyzersResources.Add_accessibility_modifiers), priority);
+            var (title, key) = diagnostic.Properties.ContainsKey(AddAccessibilityModifiersConstants.ModifiersAdded)
+                ? (AnalyzersResources.Add_accessibility_modifiers, nameof(AnalyzersResources.Add_accessibility_modifiers))
+                : (AnalyzersResources.Remove_accessibility_modifiers, nameof(AnalyzersResources.Remove_accessibility_modifiers));
+
+            RegisterCodeFix(context, title, key, priority);
 
             return Task.CompletedTask;
         }
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (operation.SemanticModel != null)
                 {
-                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingModelOrSelf);
+                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingPublicModelOrSelf);
                 }
             }
             base.Visit(operation);
@@ -520,6 +520,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotNull(operation.TargetMethod);
             var isVirtual = operation.IsVirtual;
 
+            AssertConstrainedToType(operation.TargetMethod, operation.ConstrainedToType);
+            if (operation.ConstrainedToType is not null)
+            {
+                Assert.True(isVirtual);
+            }
+
             IEnumerable<IOperation> children;
             if (operation.Instance != null)
             {
@@ -628,6 +634,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitMemberReference(IMemberReferenceOperation operation, IEnumerable<IOperation> additionalChildren)
         {
             Assert.NotNull(operation.Member);
+            AssertConstrainedToType(operation.Member, operation.ConstrainedToType);
 
             IEnumerable<IOperation> children;
 
@@ -655,6 +662,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.FieldReference, operation.Kind);
             VisitMemberReference(operation);
+            Assert.Null(operation.ConstrainedToType);
 
             Assert.Same(operation.Member, operation.Field);
             var isDeclaration = operation.IsDeclaration;
@@ -667,6 +675,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Assert.Same(operation.Member, operation.Method);
             var isVirtual = operation.IsVirtual;
+
+            if (operation.ConstrainedToType is not null)
+            {
+                Assert.True(isVirtual);
+            }
         }
 
         public override void VisitPropertyReference(IPropertyReferenceOperation operation)
@@ -720,7 +733,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
 
+            AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
+
+            CheckOperators(operation.SemanticModel, operation.Syntax);
         }
 
         public override void VisitBinaryOperator(IBinaryOperation operation)
@@ -733,8 +749,63 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
             var isCompareText = operation.IsCompareText;
+            var constrainedToType = operation.ConstrainedToType;
+
+            if (binaryOperationKind is BinaryOperatorKind.ConditionalAnd or BinaryOperatorKind.ConditionalOr)
+            {
+                if ((operatorMethod is null || !operatorMethod.IsStatic || (!operatorMethod.IsVirtual && !operatorMethod.IsAbstract)) &&
+                    (unaryOperatorMethod is null || !unaryOperatorMethod.IsStatic || (!unaryOperatorMethod.IsVirtual && !unaryOperatorMethod.IsAbstract)))
+                {
+                    Assert.Null(constrainedToType);
+                }
+                else if (constrainedToType is not null) // In error cases we might not have the type parameter
+                {
+                    Assert.IsAssignableFrom<ITypeParameterSymbol>(constrainedToType);
+                }
+            }
+            else
+            {
+                Assert.Null(unaryOperatorMethod);
+                AssertConstrainedToType(operatorMethod, constrainedToType);
+            }
 
             AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.ChildOperations);
+
+            CheckOperators(operation.SemanticModel, operation.Syntax);
+        }
+
+        private static void CheckOperators(SemanticModel semanticModel, SyntaxNode syntax)
+        {
+            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
+            // potentially creating synthesized intrinsic operators.
+            var symbolInfo = semanticModel?.GetSymbolInfo(syntax) ?? default;
+
+            foreach (var symbol in symbolInfo.GetAllSymbols())
+            {
+                if (symbol is IMethodSymbol method)
+                {
+                    VisualBasic.SymbolDisplay.ToDisplayString(method, SymbolDisplayFormat.TestFormat);
+                    VisualBasic.SymbolDisplay.ToDisplayString(method);
+                    CSharp.SymbolDisplay.ToDisplayString(method, SymbolDisplayFormat.TestFormat);
+                    CSharp.SymbolDisplay.ToDisplayString(method);
+
+                    if (method.MethodKind == MethodKind.BuiltinOperator)
+                    {
+                        switch (method.Parameters.Length)
+                        {
+                            case 1:
+                                semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type);
+                                break;
+                            case 2:
+                                semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                                break;
+                            default:
+                                AssertEx.Fail($"Unexpected parameter count for built in method: {method.ToDisplayString()}");
+                                break;
+                        }
+                    }
+                }
+            }
         }
 
         public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
@@ -754,6 +825,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isChecked = operation.IsChecked;
             var isTryCast = operation.IsTryCast;
 
+            AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
+
             switch (operation.Language)
             {
                 case LanguageNames.CSharp:
@@ -770,6 +843,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
+
+            if (operatorMethod != null)
+            {
+                VisualBasic.SymbolDisplay.ToDisplayString(operatorMethod, SymbolDisplayFormat.TestFormat);
+                VisualBasic.SymbolDisplay.ToDisplayString(operatorMethod);
+                CSharp.SymbolDisplay.ToDisplayString(operatorMethod, SymbolDisplayFormat.TestFormat);
+                CSharp.SymbolDisplay.ToDisplayString(operatorMethod);
+            }
+        }
+
+        private static void AssertConstrainedToType(ISymbol member, ITypeSymbol constrainedToType)
+        {
+            if (member is null || !member.IsStatic || (!member.IsVirtual && !member.IsAbstract))
+            {
+                Assert.Null(constrainedToType);
+            }
+            else if (constrainedToType is not null) // In error cases we might not have the type parameter
+            {
+                Assert.IsAssignableFrom<ITypeParameterSymbol>(constrainedToType);
+            }
         }
 
         public override void VisitConditional(IConditionalOperation operation)
@@ -868,9 +961,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.ChildOperations);
         }
 
-        public override void VisitUTF8String(IUTF8StringOperation operation)
+        public override void VisitUtf8String(IUtf8StringOperation operation)
         {
-            Assert.Equal(OperationKind.UTF8String, operation.Kind);
+            Assert.Equal(OperationKind.Utf8String, operation.Kind);
             Assert.Empty(operation.ChildOperations);
             Assert.NotNull(operation.Value);
         }
@@ -1079,6 +1172,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
+            AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             VisitAssignment(operation);
         }
 
@@ -1090,6 +1184,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
 
+            AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             Assert.Same(operation.Target, operation.ChildOperations.Single());
         }
 
@@ -1706,6 +1801,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _ = operation.CloneMethod;
             IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
             AssertEx.Equal(children, operation.ChildOperations);
+        }
+
+        public override void VisitAttribute(IAttributeOperation operation)
+        {
+            Assert.Equal(OperationKind.Attribute, operation.Kind);
+            Assert.False(operation.ConstantValue.HasValue);
         }
     }
 }

@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
         }
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(Descriptor);
-
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
@@ -34,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var options = SyntaxFormatting.GetFormattingOptions(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree));
+            var options = context.GetAnalyzerOptions().GetSyntaxFormattingOptions(SyntaxFormatting);
             FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormatting, Descriptor, options);
         }
     }

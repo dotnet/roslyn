@@ -17,6 +17,21 @@
         <target state="translated">'{0}' 형식을 포함하는 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">기본 제공 연산자 이름 '{0}'이(가) 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">지원되지 않는 기본 제공 연산자: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">'{0}'은(는) 유효한 기본 제공 연산자 이름이 아닙니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">변경 내용은 SourceText의 범위 내에 있어야 합니다.</target>
@@ -38,6 +53,26 @@
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
         <target state="translated">이 분석기를 사용하지 않도록 설정하려면 다음 진단이 표시되지 않도록 설정하세요. {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
+        <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
+        <target state="translated">해당 대기 식이 삭제되었으므로 편집하고 계속하기가 일시 중단된 비동기 메서드를 재개할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
+        <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
+        <target state="translated">해당 yield return 문이 삭제되었으므로 편집하고 계속하기가 일시 중단된 반복기를 다시 시작할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">생성기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">총 생성기 실행 시간: {0} 초</target>
+        <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>

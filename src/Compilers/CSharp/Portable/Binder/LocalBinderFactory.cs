@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// analyzed.
     ///
     /// For reasons of lifetime management, this type is distinct from the BinderFactory 
-    /// which also creates a map from CSharpSyntaxNode to Binder. That type owns it's binders
+    /// which also creates a map from CSharpSyntaxNode to Binder. That type owns its binders
     /// and that type's lifetime is that of the compilation. Therefore we do not store
     /// binders local to method bodies in that type's cache. 
     /// </summary>
@@ -163,14 +163,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.ParameterList is object);
             Debug.Assert(node.IsKind(SyntaxKind.RecordDeclaration));
 
-            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
-            AddToMap(node, enclosing);
-            Visit(node.PrimaryConstructorBaseTypeIfClass, enclosing);
+            Visit(node.PrimaryConstructorBaseTypeIfClass);
         }
 
         public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
         {
-            Binder enclosing = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing).WithAdditionalFlags(BinderFlags.ConstructorInitializer);
             AddToMap(node, enclosing);
             VisitConstructorInitializerArgumentList(node, node.ArgumentList, enclosing);
         }
@@ -198,6 +196,127 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Body);
             Visit(node.ExpressionBody);
         }
+
+#nullable enable
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            if (node.MayBeNameofOperator())
+            {
+                var oldEnclosing = _enclosing;
+
+                WithTypeParametersBinder? withTypeParametersBinder;
+                Binder? withParametersBinder;
+                if ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+                {
+                    var attributeTarget = getAttributeTarget(_enclosing);
+                    withTypeParametersBinder = getExtraWithTypeParametersBinder(_enclosing, attributeTarget);
+                    withParametersBinder = getExtraWithParametersBinder(_enclosing, attributeTarget);
+                }
+                else
+                {
+                    withTypeParametersBinder = null;
+                    withParametersBinder = null;
+                }
+
+                var argumentExpression = node.ArgumentList.Arguments[0].Expression;
+                var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, withTypeParametersBinder, withParametersBinder);
+                AddToMap(node, possibleNameofBinder);
+
+                _enclosing = possibleNameofBinder;
+                base.VisitInvocationExpression(node);
+                _enclosing = oldEnclosing;
+                return;
+            }
+
+            base.VisitInvocationExpression(node);
+            return;
+
+            static Symbol getAttributeTarget(Binder current)
+            {
+                Debug.Assert((current.Flags & BinderFlags.InContextualAttributeBinder) != 0);
+                var contextualAttributeBinder = Binder.TryGetContextualAttributeBinder(current);
+
+                Debug.Assert(contextualAttributeBinder is not null);
+                return contextualAttributeBinder.AttributeTarget;
+            }
+
+            static WithTypeParametersBinder? getExtraWithTypeParametersBinder(Binder enclosing, Symbol target)
+                => target.Kind == SymbolKind.Method ? new WithMethodTypeParametersBinder((MethodSymbol)target, enclosing) : null;
+
+            // We're bringing parameters in scope inside `nameof` in attributes on methods, their type parameters and parameters.
+            // This also applies to local functions, lambdas, indexers and delegates.
+            static Binder? getExtraWithParametersBinder(Binder enclosing, Symbol target)
+            {
+                if (target is LambdaSymbol lambda)
+                {
+                    // lambda parameters have some special rules around parameters named `_`
+                    return new WithLambdaParametersBinder(lambda, enclosing);
+                }
+
+                var parameters = target switch
+                {
+                    SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertySet } setter => getSetterParameters(setter),
+                    MethodSymbol methodSymbol => methodSymbol.Parameters,
+                    ParameterSymbol parameter => getAllParameters(parameter),
+                    TypeParameterSymbol typeParameter => getMethodParametersFromTypeParameter(typeParameter),
+                    PropertySymbol property => property.Parameters,
+                    NamedTypeSymbol namedType when namedType.IsDelegateType() => getDelegateParameters(namedType),
+                    _ => default
+                };
+
+                return parameters.IsDefaultOrEmpty
+                    ? null
+                    : new WithParametersBinder(parameters, enclosing);
+            }
+
+            static ImmutableArray<ParameterSymbol> getAllParameters(ParameterSymbol parameter)
+            {
+                switch (parameter.ContainingSymbol)
+                {
+                    case MethodSymbol method:
+                        return method.Parameters;
+                    case PropertySymbol property:
+                        return property.Parameters;
+                    default:
+                        Debug.Assert(false);
+                        return default;
+                }
+            }
+
+            static ImmutableArray<ParameterSymbol> getMethodParametersFromTypeParameter(TypeParameterSymbol typeParameter)
+            {
+                switch (typeParameter.ContainingSymbol)
+                {
+                    case MethodSymbol method:
+                        return method.Parameters;
+                    case NamedTypeSymbol namedType when namedType.IsDelegateType():
+                        return getDelegateParameters(namedType);
+                    default:
+                        Debug.Assert(false);
+                        return default;
+                }
+            }
+
+            static ImmutableArray<ParameterSymbol> getDelegateParameters(NamedTypeSymbol delegateType)
+            {
+                Debug.Assert(delegateType.IsDelegateType());
+                if (delegateType.DelegateInvokeMethod is { } invokeMethod)
+                {
+                    return invokeMethod.Parameters;
+                }
+
+                Debug.Assert(false);
+                return default;
+            }
+
+            static ImmutableArray<ParameterSymbol> getSetterParameters(SourcePropertyAccessorSymbol setter)
+            {
+                var parameters = setter.Parameters;
+                Debug.Assert(parameters[^1] is SynthesizedAccessorValueParameterSymbol);
+                return parameters.RemoveAt(parameters.Length - 1);
+            }
+        }
+#nullable disable
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
@@ -486,6 +605,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
         {
             VisitCommonForEachStatement(node);
+        }
+
+        public override void VisitCheckedExpression(CheckedExpressionSyntax node)
+        {
+            Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedExpression);
+            AddToMap(node, binder);
+            Visit(node.Expression, binder);
         }
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)

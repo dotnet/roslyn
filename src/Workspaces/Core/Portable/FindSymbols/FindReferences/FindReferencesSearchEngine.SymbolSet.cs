@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             protected readonly FindReferencesSearchEngine Engine;
 
             protected SymbolSet(FindReferencesSearchEngine engine)
-            {
-                Engine = engine;
-            }
+                => Engine = engine;
 
             protected Solution Solution => Engine._solution;
 
@@ -53,42 +51,53 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// will add Goo.Goo is added to the set as well so that references to it can be found.
             /// </summary>
             /// <remarks>
-            /// This method is non threadsafe as it mutates the symbol set instance.  As such, it should only be
-            /// called serially.  <see cref="GetAllSymbols"/> should not be called concurrently with this.
+            /// This method is non thread-safe as it mutates the symbol set instance.  As such, it should only be called
+            /// serially.  <see cref="GetAllSymbols"/> should not be called concurrently with this.
             /// </remarks>
             public abstract Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken);
 
-            private static bool InvolvesInheritance(ISymbol symbol)
-                => symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event;
-
             public static async Task<SymbolSet> CreateAsync(
-                FindReferencesSearchEngine engine, ISymbol symbol, CancellationToken cancellationToken)
+                FindReferencesSearchEngine engine,
+                MetadataUnifyingSymbolHashSet symbols,
+                bool includeImplementationsThroughDerivedTypes,
+                CancellationToken cancellationToken)
             {
                 var solution = engine._solution;
                 var options = engine._options;
 
                 // Start by mapping the initial symbol to the appropriate source symbol in originating project if possible.
-                var searchSymbol = await MapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+                var searchSymbols = await MapToAppropriateSymbolsAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
 
                 // If the caller doesn't want any cascading then just return an appropriate set that will just point at
                 // only the search symbol and won't cascade to any related symbols, linked symbols, or inheritance
                 // symbols.
                 if (!options.Cascade)
-                    return new NonCascadingSymbolSet(engine, searchSymbol);
+                    return new NonCascadingSymbolSet(engine, searchSymbols);
 
                 // Keep track of the initial symbol group corresponding to search-symbol.  Any references to this group
                 // will always be reported.
                 //
                 // Depending on what type of search we're doing, return an appropriate set that will have those
                 // inheritance cascading semantics.
-                var initialSymbols = await DetermineInitialSearchSymbolsAsync(engine, searchSymbol, cancellationToken).ConfigureAwait(false);
+                var initialSymbols = await DetermineInitialSearchSymbolsAsync(engine, searchSymbols, cancellationToken).ConfigureAwait(false);
 
                 // Walk and find all the symbols above the starting symbol set. 
-                var upSymbols = await DetermineInitialUpSymbolsAsync(engine, initialSymbols, cancellationToken).ConfigureAwait(false);
+                var upSymbols = await DetermineInitialUpSymbolsAsync(
+                    engine, initialSymbols, includeImplementationsThroughDerivedTypes, cancellationToken).ConfigureAwait(false);
 
                 return options.UnidirectionalHierarchyCascade
                     ? new UnidirectionalSymbolSet(engine, initialSymbols, upSymbols)
-                    : new BidirectionalSymbolSet(engine, initialSymbols, upSymbols);
+                    : new BidirectionalSymbolSet(engine, initialSymbols, upSymbols, includeImplementationsThroughDerivedTypes);
+            }
+
+            private static async Task<MetadataUnifyingSymbolHashSet> MapToAppropriateSymbolsAsync(
+                Solution solution, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
+            {
+                var result = new MetadataUnifyingSymbolHashSet();
+                foreach (var symbol in symbols)
+                    result.Add(await MapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false));
+
+                return result;
             }
 
             private static async Task<ISymbol> MapToAppropriateSymbolAsync(
@@ -121,19 +130,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             /// <summary>
             /// Determines the initial set of symbols that we should actually be finding references for given a request
-            /// to find refs to <paramref name="symbol"/>.  This will include any symbols that a specific <see
+            /// to find refs to <paramref name="symbols"/>.  This will include any symbols that a specific <see
             /// cref="IReferenceFinder"/> cascades to, as well as all the linked symbols to those across any
-            /// multi-targetting/shared-project documents.  This will not include symbols up or down the inheritance
+            /// multi-targeting/shared-project documents.  This will not include symbols up or down the inheritance
             /// hierarchy.
             /// </summary>
-            private static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialSearchSymbolsAsync(
-                FindReferencesSearchEngine engine, ISymbol symbol, CancellationToken cancellationToken)
+            public static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialSearchSymbolsAsync(
+                FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
             {
                 var result = new MetadataUnifyingSymbolHashSet();
                 var workQueue = new Stack<ISymbol>();
 
-                // Start with the initial symbol we're searching for.
-                workQueue.Push(symbol);
+                // Start with the initial symbols we're searching for.
+                foreach (var symbol in symbols)
+                    workQueue.Push(symbol);
 
                 // As long as there's work in the queue, keep going.
                 while (workQueue.Count > 0)
@@ -145,8 +155,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return result;
             }
 
-            private static async Task<HashSet<ISymbol>> DetermineInitialUpSymbolsAsync(
-                FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, CancellationToken cancellationToken)
+            private static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialUpSymbolsAsync(
+                FindReferencesSearchEngine engine,
+                MetadataUnifyingSymbolHashSet initialSymbols,
+                bool includeImplementationsThroughDerivedTypes,
+                CancellationToken cancellationToken)
             {
                 var upSymbols = new MetadataUnifyingSymbolHashSet();
                 var workQueue = new Stack<ISymbol>();
@@ -157,7 +170,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 while (workQueue.Count > 0)
                 {
                     var currentSymbol = workQueue.Pop();
-                    await AddUpSymbolsAsync(engine, currentSymbol, upSymbols, workQueue, allProjects, cancellationToken).ConfigureAwait(false);
+                    await AddUpSymbolsAsync(
+                        engine, currentSymbol, upSymbols, workQueue, allProjects, includeImplementationsThroughDerivedTypes, cancellationToken).ConfigureAwait(false);
                 }
 
                 return upSymbols;
@@ -228,10 +242,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 else
                 {
-                    var overrrides = await SymbolFinder.FindOverridesArrayAsync(
+                    var overrides = await SymbolFinder.FindOverridesArrayAsync(
                         symbol, solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    await AddCascadedAndLinkedSymbolsToAsync(engine, overrrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(engine, overrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -241,9 +255,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// then it is also added to <paramref name="workQueue"/> to allow fixed point algorithms to continue.
             /// </summary>
             protected static async Task AddUpSymbolsAsync(
-                FindReferencesSearchEngine engine, ISymbol symbol,
-                MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue,
-                ImmutableHashSet<Project> projects, CancellationToken cancellationToken)
+                FindReferencesSearchEngine engine,
+                ISymbol symbol,
+                MetadataUnifyingSymbolHashSet seenSymbols,
+                Stack<ISymbol> workQueue,
+                ImmutableHashSet<Project> projects,
+                bool includeImplementationsThroughDerivedTypes,
+                CancellationToken cancellationToken)
             {
                 if (!InvolvesInheritance(symbol))
                     return;
@@ -254,7 +272,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     // We have a normal method.  Find any interface methods up the inheritance hierarchy that it implicitly
                     // or explicitly implements and cascade to those.
-                    foreach (var match in await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false))
+                    var matches = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(
+                        symbol, solution, projects, includeImplementationsThroughDerivedTypes, cancellationToken).ConfigureAwait(false);
+                    foreach (var match in matches)
                         await AddCascadedAndLinkedSymbolsToAsync(engine, match, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
 

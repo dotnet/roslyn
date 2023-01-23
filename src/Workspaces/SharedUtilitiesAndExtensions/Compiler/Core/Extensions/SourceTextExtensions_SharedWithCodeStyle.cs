@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var lineText = line.ToString();
-            return lineText.Substring(0, linePosition.Value - line.Start);
+            return lineText[..(linePosition.Value - line.Start)];
         }
 
         public static bool OverlapsHiddenPosition(

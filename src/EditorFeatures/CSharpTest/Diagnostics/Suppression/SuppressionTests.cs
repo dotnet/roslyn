@@ -45,12 +45,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                 get { return 0; }
             }
 
+            [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             public class CompilerDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
                 internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                     => Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestPragmaWarningDirective()
                 {
                     await TestAsync(
@@ -74,8 +75,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(26015, "https://github.com/dotnet/roslyn/issues/26015")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(26015, "https://github.com/dotnet/roslyn/issues/26015")]
                 public async Task TestPragmaWarningDirectiveAroundMultiLineStatement()
                 {
                     await TestAsync(
@@ -101,8 +101,7 @@ line"";
 }}");
                 }
 
-                [WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
                 public async Task TestPragmaWarningDirectiveAroundMultiLineInterpolatedString()
                 {
                     await TestAsync(
@@ -140,7 +139,7 @@ hi {{new Session()}}
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestMultilineStatementPragmaWarningDirective()
                 {
                     await TestAsync(
@@ -166,7 +165,7 @@ class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestMultilineStatementPragmaWarningDirective2()
                 {
                     await TestAsync(
@@ -192,7 +191,7 @@ class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestPragmaWarningDirectiveWithExistingTrivia()
                 {
                     await TestAsync(
@@ -221,8 +220,7 @@ class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                [Fact, WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
                 public async Task TestPragmaWarningDirectiveWithDocumentationComment1()
                 {
                     await TestAsync(
@@ -246,7 +244,7 @@ sealed class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestPragmaWarningExpressionBodiedMember1()
                 {
                     await TestAsync(
@@ -264,7 +262,7 @@ sealed class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestPragmaWarningExpressionBodiedMember2()
                 {
                     await TestAsync(
@@ -298,7 +296,7 @@ class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestPragmaWarningExpressionBodiedLocalFunction()
                 {
                     await TestAsync(
@@ -338,7 +336,7 @@ class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestPragmaWarningExpressionBodiedLambda()
                 {
                     await TestAsync(
@@ -378,8 +376,7 @@ class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                [Fact, WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
                 public async Task TestPragmaWarningDirectiveWithDocumentationComment2()
                 {
                     await TestAsync(
@@ -410,7 +407,7 @@ sealed class Class
 }}", new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose));
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestMultipleInstancesOfPragmaWarningDirective()
                 {
                     await TestAsync(
@@ -434,8 +431,7 @@ class Class
 }}");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                [WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
+                [Fact, WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
                 public async Task TestNoDuplicateSuppressionCodeFixes()
                 {
                     var source = @"
@@ -467,8 +463,7 @@ class Class
                     var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
                     Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                    var options = CodeActionOptions.Default;
-                    var allFixes = (await fixService.GetFixesAsync(document, span, _ => options, CancellationToken.None))
+                    var allFixes = (await fixService.GetFixesAsync(document, span, CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None))
                         .SelectMany(fixCollection => fixCollection.Fixes);
 
                     var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219").ToArray();
@@ -487,7 +482,7 @@ class Class
                     Assert.NotEqual(cs0219EquivalenceKey, cs0168EquivalenceKey);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestErrorAndWarningScenario()
                 {
                     await TestAsync(
@@ -513,8 +508,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
                 public async Task TestWholeFilePragmaWarningDirective()
                 {
                     await TestAsync(
@@ -524,8 +518,7 @@ class Class {{ void Method() {{ int x = 0; }} }}
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}");
                 }
 
-                [WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")]
                 public async Task TestSuppressionAroundSingleToken()
                 {
                     await TestAsync(
@@ -555,8 +548,7 @@ class Program
 }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia1()
                 {
                     await TestAsync(
@@ -594,8 +586,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia2()
                 {
                     await TestAsync(
@@ -605,8 +596,7 @@ class Class
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia3()
                 {
                     await TestAsync(
@@ -616,8 +606,7 @@ class Class
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia4()
                 {
                     await TestAsync(
@@ -637,8 +626,7 @@ class C {{ }}
 ");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia5()
                 {
                     await TestAsync(
@@ -654,8 +642,7 @@ class C2 {{ }}
 class C3 {{ }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia6()
                 {
                     await TestAsync(
@@ -955,8 +942,8 @@ using System;
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
-            [WorkItem(2764, "https://github.com/dotnet/roslyn/issues/2764")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [WorkItem(2764, "https://github.com/dotnet/roslyn/issues/2764")]
             public async Task TestPragmaWarningDirectiveAroundMultilineDiagnostic()
             {
                 await TestAsync(
@@ -1064,6 +1051,7 @@ class Class
                 }
             }
 
+            [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             public partial class UserInfoDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
@@ -1134,8 +1122,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveTrailingWhitespace()
                 {
                     var expected =
@@ -1167,8 +1154,7 @@ using System;
                 private static bool HasTrailingWhitespace(string line)
                     => line.LastOrNull() is char last && char.IsWhiteSpace(last);
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveLeadingBlankLines()
                 {
                     var expected =
@@ -1198,8 +1184,7 @@ using System;
 }", expected);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveMoreThanOneTrailingBlankLine()
                 {
                     var expected =
@@ -1229,7 +1214,7 @@ using System;
 }", expected);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnSimpleType()
                 {
                     await TestAsync(
@@ -1271,7 +1256,7 @@ using System.Diagnostics.CodeAnalysis;
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnNamespace()
                 {
                     await TestInRegularAndScriptAsync(
@@ -1319,7 +1304,7 @@ using System.Diagnostics.CodeAnalysis;
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnTypeInsideNamespace()
                 {
                     await TestAsync(
@@ -1373,7 +1358,7 @@ namespace N1
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnNestedType()
                 {
                     await TestAsync(
@@ -1427,7 +1412,7 @@ namespace N
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnMethod()
                 {
                     await TestAsync(
@@ -1481,7 +1466,7 @@ namespace N
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnOverloadedMethod()
                 {
                     await TestAsync(
@@ -1581,7 +1566,7 @@ using System.Diagnostics.CodeAnalysis;
 ");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnGenericMethod()
                 {
                     await TestAsync(
@@ -1635,7 +1620,7 @@ namespace N
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnProperty()
                 {
                     await TestAsync(
@@ -1689,7 +1674,7 @@ namespace N
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnField()
                 {
                     await TestAsync(
@@ -1725,8 +1710,7 @@ class Class
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
+                [Fact, WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
                 public async Task TestSuppressionOnTriviaBetweenFields()
                 {
                     await TestAsync(
@@ -1776,7 +1760,7 @@ enum E
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnField2()
                 {
                     await TestAsync(
@@ -1812,7 +1796,7 @@ class Class
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnEvent()
                 {
                     await TestAsync(
@@ -1876,7 +1860,7 @@ class Class
 }");
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionWithExistingGlobalSuppressionsDocument()
                 {
                     var initialMarkup = @"<Workspace>
@@ -1916,7 +1900,7 @@ using System.Diagnostics.CodeAnalysis;
                     await TestAsync(initialMarkup, expectedText);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
                 {
                     // Own custom file named GlobalSuppressions.cs
@@ -1952,7 +1936,7 @@ using System.Diagnostics.CodeAnalysis;
                     await TestAsync(initialMarkup, expectedText);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionWithExistingGlobalSuppressionsDocument3()
                 {
                     // Own custom file named GlobalSuppressions.cs + existing GlobalSuppressions2.cs with global suppressions
@@ -1999,7 +1983,7 @@ using System.Diagnostics.CodeAnalysis;
                     await TestAsync(initialMarkup, expectedText);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
                 {
                     var initialMarkup = @"<Workspace>
@@ -2031,7 +2015,7 @@ using System.Diagnostics.CodeAnalysis;
                     await TestAsync(initialMarkup, expectedText);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionWithoutUsingDirectiveInExistingGlobalSuppressionsDocument()
                 {
                     var initialMarkup = @"<Workspace>
@@ -2067,6 +2051,7 @@ using System.Diagnostics.CodeAnalysis;
         {
             protected sealed override int CodeActionIndex => 2;
 
+            [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             public class UserInfoDiagnosticSuppressionTests : CSharpLocalSuppressMessageSuppressionTests
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
@@ -2107,7 +2092,7 @@ using System.Diagnostics.CodeAnalysis;
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnSimpleType()
                 {
                     var initial = @"
@@ -2141,7 +2126,7 @@ class Class
                     await TestMissingAsync(expected);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnSimpleType2()
                 {
                     // Type already has attributes.
@@ -2179,7 +2164,7 @@ class Class
                     await TestMissingAsync(expected);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnSimpleType3()
                 {
                     // Type already has attributes with trailing trivia.
@@ -2219,7 +2204,7 @@ class Class
                     await TestMissingAsync(expected);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnTypeInsideNamespace()
                 {
                     var initial = @"
@@ -2262,7 +2247,7 @@ namespace N1
                     await TestMissingAsync(expected);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnNestedType()
                 {
                     var initial = @"
@@ -2305,7 +2290,7 @@ namespace N
                     await TestMissingAsync(expected);
                 }
 
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact]
                 public async Task TestSuppressionOnMethod()
                 {
                     var initial = @"
@@ -2348,8 +2333,7 @@ namespace N
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithXmlDoc()
                 {
                     var initial = @"
@@ -2390,8 +2374,7 @@ namespace ClassLibrary10
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithNoTrivia()
                 {
                     var initial = @"
@@ -2424,8 +2407,7 @@ namespace ClassLibrary10
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithTriviaStartsOnTheSameLine()
                 {
                     var initial = @"

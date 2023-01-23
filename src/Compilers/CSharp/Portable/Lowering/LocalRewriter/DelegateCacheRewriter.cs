@@ -162,7 +162,7 @@ internal sealed class DelegateCacheRewriter
         var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
         try
         {
-            if (targetMethod.IsAbstract && boundDelegateCreation.Argument is BoundTypeExpression typeExpression)
+            if ((targetMethod.IsAbstract || targetMethod.IsVirtual) && boundDelegateCreation.Argument is BoundTypeExpression typeExpression)
             {
                 FindTypeParameters(typeExpression.Type, usedTypeParameters);
             }

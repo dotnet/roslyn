@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,20 +20,32 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>This object may allocate significant resources or lock files depending upon how it is constructed.</remarks>
     public sealed partial class ModuleMetadata : Metadata
     {
-        private bool _isDisposed;
-
         private readonly PEModule _module;
 
-        private ModuleMetadata(PEReader peReader)
+        /// <summary>
+        /// Optional action to invoke when this metadata is disposed.
+        /// </summary>
+        private Action? _onDispose;
+
+        private bool _isDisposed;
+
+        private ModuleMetadata(PEReader peReader, Action? onDispose)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
+            _onDispose = onDispose;
         }
 
-        private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
+        private ModuleMetadata(
+            IntPtr metadata,
+            int size,
+            Action? onDispose,
+            bool includeEmbeddedInteropTypes,
+            bool ignoreAssemblyRefs)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes, ignoreAssemblyRefs: ignoreAssemblyRefs);
+            _onDispose = onDispose;
         }
 
         // creates a copy
@@ -40,6 +53,11 @@ namespace Microsoft.CodeAnalysis
             : base(isImageOwner: false, id: metadata.Id)
         {
             _module = metadata.Module;
+
+            // note: we intentionally do not pass the _onDispose callback to the copy.  Only the owner owns the callback
+            // and controls calling it.  This does mean that the callback (and underlying memory it holds onto) may
+            // disappear once the owner is disposed or GC'd.  But that's ok as that is expected semantics.  Once an image
+            // owner is gone, all copies are no longer in a valid state for use.
         }
 
         /// <summary>
@@ -51,6 +69,33 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size)
+            => CreateFromMetadataWorker(metadata, size, onDispose: null);
+
+        /// <summary>
+        /// Create metadata module from a raw memory pointer to metadata directory of a PE image or .cormeta section of an object file.
+        /// Only manifest modules are currently supported.
+        /// </summary>
+        /// <param name="metadata">Pointer to the start of metadata block.</param>
+        /// <param name="size">The size of the metadata block.</param>
+        /// <param name="onDispose">Action to run when the metadata module is disposed.  This will only be called then
+        /// this actual metadata instance is disposed.  Any instances created from this using <see
+        /// cref="Metadata.Copy"/> will not call this when they are disposed.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="onDispose"/> is null.</exception>
+        public static unsafe ModuleMetadata CreateFromMetadata(
+            IntPtr metadata,
+            int size,
+            Action onDispose)
+        {
+            if (onDispose is null)
+                throw new ArgumentNullException(nameof(onDispose));
+
+            return CreateFromMetadataWorker(metadata, size, onDispose);
+        }
+
+        private static ModuleMetadata CreateFromMetadataWorker(
+            IntPtr metadata,
+            int size,
+            Action? onDispose)
         {
             if (metadata == IntPtr.Zero)
             {
@@ -62,14 +107,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
+            return new ModuleMetadata(metadata, size, onDispose, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
         }
 
         internal static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs = false)
         {
             Debug.Assert(metadata != IntPtr.Zero);
             Debug.Assert(size > 0);
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
+            return new ModuleMetadata(metadata, size, onDispose: null, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
         }
 
         /// <summary>
@@ -80,8 +125,11 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
+            => CreateFromImage((byte*)peImage, size, onDispose: null);
+
+        private static unsafe ModuleMetadata CreateFromImage(byte* peImage, int size, Action? onDispose)
         {
-            if (peImage == IntPtr.Zero)
+            if (peImage == null)
             {
                 throw new ArgumentNullException(nameof(peImage));
             }
@@ -91,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader((byte*)peImage, size));
+            return new ModuleMetadata(new PEReader(peImage, size), onDispose);
         }
 
         /// <summary>
@@ -121,7 +169,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peImage));
             }
 
-            return new ModuleMetadata(new PEReader(peImage));
+            return new ModuleMetadata(new PEReader(peImage), onDispose: null);
         }
 
         /// <summary>
@@ -169,6 +217,29 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(peStream));
             }
 
+            var prefetch = (options & (PEStreamOptions.PrefetchEntireImage | PEStreamOptions.PrefetchMetadata)) != 0;
+
+            // If this stream is an UnmanagedMemoryStream, we can heavily optimize creating the metadata by directly
+            // accessing the underlying memory. Note: we can only do this if the caller asked us not to prefetch the
+            // metadata from the stream.  In that case, we want to fall through below and have the PEReader read
+            // everything into a copy immediately.  If, however, we are allowed to be lazy, we can create an efficient
+            // metadata that is backed directly by the memory that is backed in, and which will release that memory (if
+            // requested) once it is done with it.
+            if (!prefetch && peStream is UnmanagedMemoryStream unmanagedMemoryStream)
+            {
+                unsafe
+                {
+                    Action? onDispose = options.HasFlag(PEStreamOptions.LeaveOpen)
+                        ? null
+                        : unmanagedMemoryStream.Dispose;
+
+                    return CreateFromImage(
+                        unmanagedMemoryStream.PositionPointer,
+                        (int)Math.Min(unmanagedMemoryStream.Length, int.MaxValue),
+                        onDispose);
+                }
+            }
+
             // Workaround of issue https://github.com/dotnet/corefx/issues/1815: 
             if (peStream.Length == 0 && (options & PEStreamOptions.PrefetchEntireImage) != 0 && (options & PEStreamOptions.PrefetchMetadata) != 0)
             {
@@ -177,7 +248,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // ownership of the stream is passed on PEReader:
-            return new ModuleMetadata(new PEReader(peStream, options));
+            return new ModuleMetadata(new PEReader(peStream, options), onDispose: null);
         }
 
         /// <summary>
@@ -228,6 +299,9 @@ namespace Microsoft.CodeAnalysis
             if (IsImageOwner)
             {
                 _module.Dispose();
+
+                var onDispose = Interlocked.Exchange(ref _onDispose, null);
+                onDispose?.Invoke();
             }
         }
 

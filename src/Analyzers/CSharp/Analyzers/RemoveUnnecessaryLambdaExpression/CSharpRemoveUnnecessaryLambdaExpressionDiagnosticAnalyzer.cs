@@ -26,16 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
     /// time.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
                    EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
                    CSharpCodeStyleOptions.PreferMethodGroupConversion,
-                   LanguageNames.CSharp,
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   isUnnecessary: true)
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
 
-            var preference = context.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion);
+            var preference = context.GetCSharpAnalyzerOptions().PreferMethodGroupConversion;
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 // User doesn't care about this rule.
@@ -132,6 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
 
             var invokedSymbolInfo = semanticModel.GetSymbolInfo(invokedExpression, cancellationToken);
             if (invokedSymbolInfo.Symbol is not IMethodSymbol invokedMethod)
+                return;
+
+            // cannot convert a partial-definition to a delegate (unless there's an existing implementation part that can be used).
+            if (invokedMethod.IsPartialDefinition && invokedMethod.PartialImplementationPart is null)
                 return;
 
             // If we're calling a generic method, we have to have supplied type arguments.  They cannot be inferred once

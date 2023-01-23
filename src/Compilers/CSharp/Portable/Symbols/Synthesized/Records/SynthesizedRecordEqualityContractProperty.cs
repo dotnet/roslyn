@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
@@ -83,6 +83,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.ValidatePropertyType(diagnostics);
             VerifyOverridesEqualityContractFromBase(this, diagnostics);
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            var compilation = this.DeclaringCompilation;
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 
         internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, BindingDiagnosticBag diagnostics)
@@ -133,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        hasBody: true,
                        hasExpressionBody: false,
                        isIterator: false,
-                       modifiers: new SyntaxTokenList(),
+                       modifiers: default,
                        MethodKind.PropertyGet,
                        usesInit: false,
                        isAutoPropertyAccessor: false,

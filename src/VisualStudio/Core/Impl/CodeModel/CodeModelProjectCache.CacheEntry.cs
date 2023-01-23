@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal sealed partial class CodeModelProjectCache
     {
-        private struct CacheEntry
+        private readonly struct CacheEntry
         {
             // NOTE: The logic here is a little bit tricky.  We can't just keep a WeakReference to
             // something like a ComHandle, since it's not something that our clients keep alive.

@@ -40,9 +40,6 @@ namespace AnalyzerRunner
         internal readonly string LogFileName;
         internal readonly string ProfileRoot;
 
-        internal IdeAnalyzerOptions IdeOptions
-            => IdeAnalyzerOptions.Default;
-
         internal BackgroundAnalysisScope AnalysisScope
             => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
 
@@ -216,9 +213,9 @@ namespace AnalyzerRunner
                         }
                         else
                         {
-                            throw new InvalidDataException((arg.StartsWith("/", StringComparison.Ordinal) ?
-                             "Unrecognized option " + arg :
-                             "Unrecognized parameter " + arg));
+                            throw new InvalidDataException((arg.StartsWith("/", StringComparison.Ordinal)
+                             ? "Unrecognized option " + arg
+                             : "Unrecognized parameter " + arg));
                         }
                         break;
                 }

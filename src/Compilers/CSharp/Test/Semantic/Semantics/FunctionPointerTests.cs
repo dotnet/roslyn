@@ -33,26 +33,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using s = delegate*<void>;");
 
             comp.VerifyDiagnostics(
-                // (2,26): error CS8805: Program using top-level statements must be an executable.
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, ";").WithLocation(2, 26),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1),
                 // (2,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
-                // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,26): error CS1001: Identifier expected
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 26),
                 // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
-
-                // See same-named test in TopLevelStatementsParsingTests, there is a single top-level statement in the tree and it is an empty statement.
-                // (2,26): error CS8937: At least one top-level statement must be non-empty.
+                // (2,11): error CS8805: Program using top-level statements must be an executable.
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "delegate*<void>;").WithLocation(2, 11),
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1)
             );
         }
 
@@ -3307,8 +3305,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
             comp.VerifyDiagnostics(
                 // (7,9): error CS8370: Feature 'function pointers' is not available in C# 7.3. Please use language version 9.0 or greater.
                 //         delegate*<void> ptr = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(7, 9)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate").WithArguments("function pointers", "9.0").WithLocation(7, 9));
         }
 
         [Fact]
@@ -3564,9 +3561,9 @@ class E<T> where T : struct {}
                 // (6,27): error CS0722: 'S': static types cannot be used as return types
                 //     void M1(delegate*<C*, S> ptr) {}
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(6, 27),
-                // (6,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (6,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //     void M1(delegate*<C*, S> ptr) {}
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
                 // (8,32): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     void M3<T>(delegate*<D<T>> ptr) {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ptr").WithArguments("D<T>", "T", "T").WithLocation(8, 32),
@@ -3822,7 +3819,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_TypeExpected, "__arglist").WithLocation(4, 64),
                 // (4,64): error CS1003: Syntax error, ',' expected
                 //     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",", "__arglist").WithLocation(4, 64),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",").WithLocation(4, 64),
                 // (6,14): error CS1503: Argument 1: cannot convert from '__arglist' to 'string'
                 //         ptr1(__arglist(string.Empty, 1), 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("1", "__arglist", "string").WithLocation(6, 14),
@@ -3991,7 +3988,7 @@ unsafe class C
             comp.VerifyDiagnostics(
                 // (6,38): error CS1003: Syntax error, ',' expected
                 //         delegate*<void> ptr = new () => {};
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 38),
                 // (6,41): error CS1002: ; expected
                 //         delegate*<void> ptr = new () => {};
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 41),
@@ -4036,6 +4033,24 @@ public class C
                 // (6,13): error CS8904: A function pointer cannot be called with named arguments.
                 //         ptr(arg0: "a", arg1: 1);
                 Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
+            );
+        }
+
+        [Fact, WorkItem(53973, "https://github.com/dotnet/roslyn/issues/53973")]
+        public void FunctionPointerNullable()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    
+    public unsafe void M(delegate*<void>? f) {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (5,43): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //     public unsafe void M(delegate*<void>? f) {
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f").WithArguments("delegate*<void>").WithLocation(5, 43)
             );
         }
     }

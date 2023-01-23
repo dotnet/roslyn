@@ -10,7 +10,7 @@ namespace Roslyn.Utilities
 {
     internal class WordSimilarityChecker
     {
-        private struct CacheResult
+        private readonly struct CacheResult
         {
             public readonly string CandidateText;
             public readonly bool AreSimilar;

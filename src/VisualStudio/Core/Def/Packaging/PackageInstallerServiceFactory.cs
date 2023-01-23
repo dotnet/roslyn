@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -143,8 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Task<ImmutableArray<PackageSource>> localPackageSourcesTask;
             lock (_gate)
             {
-                if (_packageSourcesTask is null)
-                    _packageSourcesTask = Task.Run(() => GetPackageSourcesAsync(), this.DisposalToken);
+                _packageSourcesTask ??= Task.Run(() => GetPackageSourcesAsync(), this.DisposalToken);
 
                 localPackageSourcesTask = _packageSourcesTask;
             }
@@ -455,7 +455,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private ValueTask ProcessWorkQueueAsync(
-            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
+            ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -470,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private async ValueTask ProcessWorkQueueWorkerAsync(
-            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
+            ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -519,7 +519,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private void AddProjectsToProcess(
-            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, Solution solution, HashSet<ProjectId> projectsToProcess)
+            ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, Solution solution, HashSet<ProjectId> projectsToProcess)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -603,7 +603,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return installedPackagesMap;
         }
 
-        public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
+        public bool IsInstalled(ProjectId projectId, string packageName)
         {
             ThisCanBeCalledOnAnyThread();
             return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out var installedPackages) &&

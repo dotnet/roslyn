@@ -270,10 +270,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// If this is a non-speculative member semantic model, then returns the containing semantic model for the entire tree.
+        /// If this is an instance of semantic model that cannot be exposed to external consumers, then returns the containing public semantic model.
         /// Otherwise, returns this instance of the semantic model.
         /// </summary>
-        internal abstract SemanticModel ContainingModelOrSelf
+        internal abstract SemanticModel ContainingPublicModelOrSelf
         {
             get;
         }
@@ -772,6 +772,16 @@ namespace Microsoft.CodeAnalysis
         /// that the position is considered inside of.
         /// </summary>
         protected abstract ISymbol? GetEnclosingSymbolCore(int position, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a position in the SyntaxTree for this SemanticModel returns the <see cref="IImportScope"/>s at that
+        /// point.  Scopes are ordered from closest to the passed in <paramref name="position"/> to the furthest. See
+        /// <see cref="IImportScope"/> for a deeper description of what information is available for each scope.
+        /// </summary>
+        public ImmutableArray<IImportScope> GetImportScopes(int position, CancellationToken cancellationToken = default)
+            => GetImportScopesCore(position, cancellationToken);
+
+        private protected abstract ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines if the symbol is accessible from the specified location.

@@ -15,32 +15,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return FlattenActions(actions)
         End Function
 
-        Private Protected Shared Function GetIndentionColumn(column As Integer) As CodeActionOptions
-            Return New CodeActionOptions(WrappingColumn:=column)
+        Private Protected Function GetIndentionColumn(column As Integer) As TestParameters
+            Return New TestParameters(globalOptions:=[Option](CodeActionOptionsStorage.WrappingColumn, column))
         End Function
 
         Protected Function TestAllWrappingCasesAsync(
             input As String,
             ParamArray outputs As String()) As Task
 
-            Return TestAllWrappingCasesAsync(input, options:=CodeActionOptions.Default, outputs)
+            Return TestAllWrappingCasesAsync(input, parameters:=Nothing, outputs)
         End Function
 
         Private Protected Function TestAllWrappingCasesAsync(
             input As String,
-            options As CodeActionOptions,
+            parameters As TestParameters,
             ParamArray outputs As String()) As Task
 
-            Dim parameters = New TestParameters(codeActionOptions:=options)
-            Return TestAllInRegularAndScriptAsync(input, parameters, outputs)
-        End Function
-
-        Private Protected Function TestAllWrappingCasesAsync(
-            input As String,
-            options As OptionsCollection,
-            ParamArray outputs As String()) As Task
-
-            Dim parameters = New TestParameters(options:=options)
             Return TestAllInRegularAndScriptAsync(input, parameters, outputs)
         End Function
     End Class

@@ -41,10 +41,13 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected sealed override ITypeSymbol GetSwitchType(ISwitchExpressionOperation switchExpression)
-            => switchExpression.Value.Type ?? throw ExceptionUtilities.Unreachable;
+            => switchExpression.Value.Type ?? throw ExceptionUtilities.Unreachable();
 
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation switchOperation)
             => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(switchOperation);
+
+        protected override bool HasNullSwitchArm(ISwitchExpressionOperation switchOperation)
+            => PopulateSwitchExpressionHelpers.HasNullSwitchArm(switchOperation);
 
         protected static TExpressionSyntax Exception(SyntaxGenerator generator, Compilation compilation)
             => (TExpressionSyntax)generator.CreateThrowNotImplementedExpression(compilation);

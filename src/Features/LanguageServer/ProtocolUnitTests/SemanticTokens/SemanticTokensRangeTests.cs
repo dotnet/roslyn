@@ -5,19 +5,27 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 {
     public class SemanticTokensRangeTests : AbstractSemanticTokensTests
     {
+        public SemanticTokensRangeTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestGetSemanticTokensRange_FullDocAsync()
         {
@@ -25,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 @"{|caret:|}// Comment
 static class C { }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
             var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
@@ -47,7 +55,7 @@ static class C { }
 @"{|caret:|}// Comment
 static class C { }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
@@ -82,7 +90,7 @@ static class C { }
 @"{|caret:|}// Comment
 static class C { }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
@@ -117,7 +125,7 @@ static class C { }
 two
 three */ }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(4, 0) };
@@ -159,7 +167,7 @@ three"";
 }
 ";
 
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) };
             var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
 
@@ -192,7 +200,7 @@ three"";
 }
 ";
 
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) };
@@ -217,7 +225,7 @@ three"";
                        0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.LocalName],             0, // 'x'
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator],               0, // '='
                        0,     2,     5,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '@"one'
-                       1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'two'
+                       1,     0,     4,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'two '
                        0,     4,     2,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.StringEscapeCharacter], 0, // '""'
                        1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // 'three"'
                        0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
@@ -227,7 +235,7 @@ three"";
             };
 
             await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            Assert.Equal(expectedResults.Data, results);
+            AssertEx.Equal(expectedResults.Data, results);
         }
 
         [Fact]
@@ -245,7 +253,7 @@ class C
 }
 ";
 
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) };
@@ -279,12 +287,13 @@ class C
                        0,     2,     3,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],                0, // 'new'
                        0,     4,     5,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],             0, // 'Regex'
                        0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
-                       0,     1,     8,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.String],                 0, // '"(abc)*"'
+                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.String],                 0, // '"'
                        0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('
                        0,     1,     3,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexText],             0, // 'abc'
                        0,     3,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
                        0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
-                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
+                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.String],                 0, // '"'
+                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ')'
                        0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
                        1,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
                        1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
@@ -292,7 +301,16 @@ class C
             };
 
             await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
-            Assert.Equal(expectedResults.Data, results);
+            AssertEx.Equal(expectedResults.Data, results);
         }
+
+        [Theory, MemberData(nameof(ClassificationTypeNamesToMatch))]
+        public void TestGetSemanticTokensRange_AssertCustomTokenTypes(string fieldName)
+            => Assert.True(SemanticTokensHelpers.RoslynCustomTokenTypes.Contains(fieldName), $"Missing token type {fieldName}.");
+
+        public static IEnumerable<object[]> ClassificationTypeNamesToMatch => ClassificationTypeNames.AllTypeNames.Where(
+            type => !SemanticTokensHelpers.ClassificationTypeToSemanticTokenTypeMap.ContainsKey(type) &&
+                !ClassificationTypeNames.AdditiveTypeNames.Contains(type)).Select(field => new object[] { field });
+
     }
 }

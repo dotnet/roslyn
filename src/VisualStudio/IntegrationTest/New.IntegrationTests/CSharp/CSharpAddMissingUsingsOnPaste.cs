@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -49,46 +50,7 @@ class Program
 }", HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp), false);
-
-            await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
-
-            AssertEx.EqualOrDiff(@"
-using System;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-
-    Task DoThingAsync() => Task.CompletedTask;
-}", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-        }
-
-        [IdeFact]
-        public async Task VerifyDisabledWithNull()
-        {
-            var project = ProjectName;
-            await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: @"
-public class Example
-{
-}
-", cancellationToken: HangMitigatingCancellationToken);
-            await SetUpEditorAsync(@"
-using System;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-
-    $$
-}", HangMitigatingCancellationToken);
-
-            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp), null);
+            globalOptions.SetGlobalOption(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, false);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
@@ -136,7 +98,7 @@ class Program
             await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp), true);
+            globalOptions.SetGlobalOption(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, true);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
@@ -158,11 +120,62 @@ class Program
             await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/commandhandler/paste/importsonpaste" }, HangMitigatingCancellationToken);
         }
 
+        [IdeFact]
+        public async Task VerifyIndentation()
+        {
+            var project = ProjectName;
+            await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: @"
+public class Example
+{
+}
+");
+            await SetUpEditorAsync(@"
+namespace MyNs
+{
+    using System;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+
+        $$
+    }
+}", HangMitigatingCancellationToken);
+
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, true);
+
+            await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(@"
+namespace MyNs
+{
+    using System;
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+
+        Task DoThingAsync() => Task.CompletedTask;
+    }
+}", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        }
+
         private async Task PasteAsync(string text, CancellationToken cancellationToken)
         {
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler }, cancellationToken);
+            var provider = await TestServices.Shell.GetComponentModelServiceAsync<IAsynchronousOperationListenerProvider>(HangMitigatingCancellationToken);
+            var waiter = (IAsynchronousOperationWaiter)provider.GetListener(FeatureAttribute.AddImportsOnPaste);
+
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy }, cancellationToken);
             Clipboard.SetText(text);
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Paste, cancellationToken);
+
+            await waiter.ExpeditedWaitAsync();
         }
     }
 }

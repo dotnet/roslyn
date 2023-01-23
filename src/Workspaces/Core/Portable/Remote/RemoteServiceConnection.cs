@@ -30,11 +30,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
-        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken);
-
         // no solution, callback
 
         public abstract ValueTask<bool> TryInvokeAsync(
@@ -93,18 +88,12 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
-        // streaming
+        // multiple solution, no callback
 
-        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Solution solution,
-            Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken);
-
-        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Project project,
-            Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+        public abstract ValueTask<bool> TryInvokeAsync(
+            Solution solution1,
+            Solution solution2,
+            Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation,
             CancellationToken cancellationToken);
     }
 }

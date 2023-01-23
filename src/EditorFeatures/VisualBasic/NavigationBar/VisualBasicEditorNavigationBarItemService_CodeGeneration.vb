@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim generatedTree = Await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim generatedNode = generatedTree.GetAnnotatedNodes(GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
-            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Dim indentSize = documentOptions.GetOption(FormattingOptions.IndentationSize)
+            Dim formattingOptions = Await document.GetLineFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(False)
+            Dim indentSize = formattingOptions.IndentationSize
 
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
 
@@ -55,13 +55,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Dim codeGenerationContext = New CodeGenerationContext(contextLocation, generateMethodBodies:=True)
 
-            Dim newDocument = Await GetGeneratedDocumentCoreAsync(document, generateCodeItem, codeGenerationContext, cancellationToken).ConfigureAwait(False)
+            Dim newDocument = Await GetGeneratedDocumentCoreAsync(document, generateCodeItem, codeGenerationContext, globalOptions.CreateProvider(), cancellationToken).ConfigureAwait(False)
             If newDocument Is Nothing Then
                 Return document
             End If
 
             Dim simplifierOptions = Await newDocument.GetSimplifierOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(False)
-            Dim formattingOptions = Await SyntaxFormattingOptions.FromDocumentAsync(newDocument, cancellationToken).ConfigureAwait(False)
+            Dim formattingOptions = Await newDocument.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(False)
 
             newDocument = Await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, simplifierOptions, cancellationToken).ConfigureAwait(False)
 
@@ -82,26 +82,38 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return generateCodeItem.Kind <> RoslynNavigationBarItemKind.GenerateFinalizer
         End Function
 
-        Private Shared Function GetGeneratedDocumentCoreAsync(document As Document, generateCodeItem As RoslynNavigationBarItem, codeGenerationContext As CodeGenerationContext, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Function GetGeneratedDocumentCoreAsync(
+                document As Document,
+                generateCodeItem As RoslynNavigationBarItem,
+                codeGenerationContext As CodeGenerationContext,
+                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                cancellationToken As CancellationToken) As Task(Of Document)
+
             Select Case generateCodeItem.Kind
                 Case RoslynNavigationBarItemKind.GenerateDefaultConstructor
-                    Return GenerateDefaultConstructorAsync(document, DirectCast(generateCodeItem, GenerateDefaultConstructor), codeGenerationContext, cancellationToken)
+                    Return GenerateDefaultConstructorAsync(document, DirectCast(generateCodeItem, GenerateDefaultConstructor), codeGenerationContext, fallbackOptions, cancellationToken)
 
                 Case RoslynNavigationBarItemKind.GenerateEventHandler
-                    Return GenerateEventHandlerAsync(document, DirectCast(generateCodeItem, GenerateEventHandler), codeGenerationContext, cancellationToken)
+                    Return GenerateEventHandlerAsync(document, DirectCast(generateCodeItem, GenerateEventHandler), codeGenerationContext, fallbackOptions, cancellationToken)
 
                 Case RoslynNavigationBarItemKind.GenerateFinalizer
-                    Return GenerateFinalizerAsync(document, DirectCast(generateCodeItem, GenerateFinalizer), codeGenerationContext, cancellationToken)
+                    Return GenerateFinalizerAsync(document, DirectCast(generateCodeItem, GenerateFinalizer), codeGenerationContext, fallbackOptions, cancellationToken)
 
                 Case RoslynNavigationBarItemKind.GenerateMethod
-                    Return GenerateMethodAsync(document, DirectCast(generateCodeItem, GenerateMethod), codeGenerationContext, cancellationToken)
+                    Return GenerateMethodAsync(document, DirectCast(generateCodeItem, GenerateMethod), codeGenerationContext, fallbackOptions, cancellationToken)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(generateCodeItem.Kind)
             End Select
         End Function
 
-        Private Shared Async Function GenerateDefaultConstructorAsync(document As Document, generateCodeItem As GenerateDefaultConstructor, codeGenerationContext As CodeGenerationContext, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function GenerateDefaultConstructorAsync(
+                document As Document,
+                generateCodeItem As GenerateDefaultConstructor,
+                codeGenerationContext As CodeGenerationContext,
+                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                cancellationToken As CancellationToken) As Task(Of Document)
+
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
 
@@ -131,14 +143,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 statements:=statements.ToImmutableAndFree())
             methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
 
-            Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
-                                                                 destinationType,
-                                                                 methodSymbol,
-                                                                 codeGenerationContext,
-                                                                 cancellationToken).ConfigureAwait(False)
+            Return Await CodeGenerator.AddMethodDeclarationAsync(
+                New CodeGenerationSolutionContext(
+                    document.Project.Solution,
+                    codeGenerationContext,
+                    fallbackOptions),
+                destinationType,
+                methodSymbol,
+                cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function GenerateEventHandlerAsync(document As Document, generateCodeItem As GenerateEventHandler, codeGenerationContext As CodeGenerationContext, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function GenerateEventHandlerAsync(
+                document As Document,
+                generateCodeItem As GenerateEventHandler,
+                codeGenerationContext As CodeGenerationContext,
+                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                cancellationToken As CancellationToken) As Task(Of Document)
+
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim eventSymbol = TryCast(generateCodeItem.EventSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).GetAnySymbol(), IEventSymbol)
             Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).GetAnySymbol(), INamedTypeSymbol)
@@ -179,14 +200,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 handlesExpressions:=ImmutableArray.Create(Of SyntaxNode)(handlesSyntax))
             methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
 
-            Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
-                                                                 destinationType,
-                                                                 methodSymbol,
-                                                                 codeGenerationContext,
-                                                                 cancellationToken).ConfigureAwait(False)
+            Return Await CodeGenerator.AddMethodDeclarationAsync(
+                New CodeGenerationSolutionContext(
+                    document.Project.Solution,
+                    codeGenerationContext,
+                    fallbackOptions),
+                destinationType,
+                methodSymbol,
+                cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function GenerateFinalizerAsync(document As Document, generateCodeItem As GenerateFinalizer, codeGenerationContext As CodeGenerationContext, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function GenerateFinalizerAsync(
+                document As Document,
+                generateCodeItem As GenerateFinalizer,
+                codeGenerationContext As CodeGenerationContext,
+                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                cancellationToken As CancellationToken) As Task(Of Document)
+
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
 
@@ -216,14 +246,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             finalizerMethodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(finalizerMethodSymbol)
 
-            Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
-                                                                 destinationType,
-                                                                 finalizerMethodSymbol,
-                                                                 codeGenerationContext,
-                                                                 cancellationToken).ConfigureAwait(False)
+            Return Await CodeGenerator.AddMethodDeclarationAsync(
+                New CodeGenerationSolutionContext(
+                    document.Project.Solution,
+                    codeGenerationContext,
+                    fallbackOptions),
+                destinationType,
+                finalizerMethodSymbol,
+                cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function GenerateMethodAsync(document As Document, generateCodeItem As GenerateMethod, codeGenerationContext As CodeGenerationContext, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function GenerateMethodAsync(
+                document As Document,
+                generateCodeItem As GenerateMethod,
+                codeGenerationContext As CodeGenerationContext,
+                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                cancellationToken As CancellationToken) As Task(Of Document)
+
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
             Dim methodToReplicate = TryCast(generateCodeItem.MethodToReplicateSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, IMethodSymbol)
@@ -236,11 +275,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 CodeGenerationSymbolFactory.CreateMethodSymbol(
                     methodToReplicate.RemoveInaccessibleAttributesAndAttributesOfTypes(destinationType)))
 
-            Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
-                                                                 destinationType,
-                                                                 codeGenerationSymbol,
-                                                                 codeGenerationContext,
-                                                                 cancellationToken).ConfigureAwait(False)
+            Return Await CodeGenerator.AddMethodDeclarationAsync(
+                 New CodeGenerationSolutionContext(
+                    document.Project.Solution,
+                    codeGenerationContext,
+                    fallbackOptions),
+                destinationType,
+                codeGenerationSymbol,
+                cancellationToken).ConfigureAwait(False)
         End Function
     End Class
 End Namespace

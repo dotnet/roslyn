@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1004,8 +1005,7 @@ class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
+        [Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
         public async Task TestAddMissingCasesForNullableEnum()
         {
             await TestInRegularAndScript1Async(
@@ -1054,8 +1054,7 @@ class MyClass
 ");
         }
 
-        [Fact]
-        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        [Fact, WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
         public async Task TestOrPatternIsHandled()
         {
             await TestInRegularAndScript1Async(
@@ -1111,8 +1110,7 @@ class MyClass
 ");
         }
 
-        [Fact]
-        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        [Fact, WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
         public async Task TestOrPatternIsHandled_AllEnumValuesAreHandled_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1142,8 +1140,7 @@ class MyClass
 ");
         }
 
-        [Fact]
-        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        [Fact, WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
         public async Task TestMixingOrWithAndPatterns()
         {
             await TestInRegularAndScript1Async(
@@ -1203,8 +1200,7 @@ class MyClass
 );
         }
 
-        [Fact]
-        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        [Fact, WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
         public async Task TestMixingOrWithAndPatterns2()
         {
             await TestInRegularAndScript1Async(
@@ -1366,6 +1362,253 @@ class C
     }
 }
 ");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableEnabled()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+            null => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+            null => throw null,
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            null => throw null,
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableDisabled()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+            null => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+            null => throw null,
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            null => throw null,
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean1()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean2()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+            null => ""null"",
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+        };
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        return boolean switch
+        {
+            true => ""true"",
+            _ => throw new System.NotImplementedException(),
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean [||]switch
+        {
+            true => ""true"",
+            false => ""false"",
+        };
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        return boolean switch
+        {
+            true => ""true"",
+            false => ""false"",
+            _ => throw new System.NotImplementedException(),
+        };
+    }
+}");
         }
     }
 }

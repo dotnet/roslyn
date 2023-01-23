@@ -4485,30 +4485,30 @@ class C
             // BREAK: dev11 doesn't report CS1581 for "Q[]" or "Q*" because it only checks for error
             // types and it finds an array type and a pointer type, respectively.
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (2,16): warning CS1581: Invalid return type in XML comment cref attribute
+                // (2,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithArguments("Q", "explicit operator Q"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithLocation(2, 34),
                 // (2,16): warning CS1574: XML comment has cref attribute 'explicit operator Q' that could not be resolved
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q"),
-                // (3,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q").WithLocation(2, 16),
+                // (3,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithArguments("C{Q}", "explicit operator C{Q}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithLocation(3, 34),
                 // (3,16): warning CS1574: XML comment has cref attribute 'explicit operator C{Q}' that could not be resolved
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}"),
-                // (4,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}").WithLocation(3, 16),
+                // (4,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithArguments("Q[]", "explicit operator Q[]"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithLocation(4, 34),
                 // (4,16): warning CS1574: XML comment has cref attribute 'explicit operator Q[]' that could not be resolved
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]"),
-                // (5,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]").WithLocation(4, 16),
+                // (5,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithArguments("Q*", "explicit operator Q*"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithLocation(5, 34),
                 // (5,16): warning CS1574: XML comment has cref attribute 'explicit operator Q*' that could not be resolved
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*").WithLocation(5, 16));
         }
 
         [Fact]

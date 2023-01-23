@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             : base(IDEDiagnosticIds.UseNotPatternDiagnosticId,
                    EnforceOnBuildValues.UseNotPattern,
                    CSharpCodeStyleOptions.PreferNotPattern,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                         nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -54,18 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var node = syntaxContext.Node;
-            var syntaxTree = node.SyntaxTree;
-
-            var options = syntaxContext.Options;
-            var cancellationToken = syntaxContext.CancellationToken;
-
             // Bail immediately if the user has disabled this feature.
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferNotPattern, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferNotPattern;
             if (!styleOption.Value)
                 return;
 
             // Look for the form: !(...)
+            var node = syntaxContext.Node;
             if (node is not PrefixUnaryExpressionSyntax(SyntaxKind.LogicalNotExpression)
                 {
                     Operand: ParenthesizedExpressionSyntax parenthesizedExpression

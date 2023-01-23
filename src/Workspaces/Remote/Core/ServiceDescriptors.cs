@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
@@ -17,18 +17,19 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EncapsulateField;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
-using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Roslyn.Utilities;
@@ -53,17 +54,17 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             (typeof(IRemoteAssetSynchronizationService), null),
             (typeof(IRemoteAsynchronousOperationListenerService), null),
-            (typeof(IRemoteTodoCommentsDiscoveryService), typeof(IRemoteTodoCommentsDiscoveryService.ICallback)),
+            (typeof(IRemoteTaskListService), null),
             (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
-            (typeof(IRemoteProjectTelemetryService), typeof(IRemoteProjectTelemetryService.ICallback)),
             (typeof(IRemoteDiagnosticAnalyzerService), null),
             (typeof(IRemoteSemanticClassificationService), null),
             (typeof(IRemoteDocumentHighlightsService), null),
-            (typeof(IRemoteEncapsulateFieldService), null),
-            (typeof(IRemoteRenamerService), null),
-            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
+            (typeof(IRemoteEncapsulateFieldService), typeof(IRemoteEncapsulateFieldService.ICallback)),
+            (typeof(IRemoteRenamerService), typeof(IRemoteRenamerService.ICallback)),
+            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), typeof(IRemoteConvertTupleToStructCodeRefactoringService.ICallback)),
             (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
+            (typeof(IRemoteFullyQualifyService), null),
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
             (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteMissingImportDiscoveryService), typeof(IRemoteMissingImportDiscoveryService.ICallback)),
@@ -78,7 +79,9 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteUnusedReferenceAnalysisService), null),
             (typeof(IRemoteProcessTelemetryService), null),
             (typeof(IRemoteCompilationAvailableService), null),
+            (typeof(IRemoteLegacySolutionEventsAggregationService), null),
             (typeof(IRemoteStackTraceExplorerService), null),
+            (typeof(IRemoteUnitTestingSearchService), null),
         });
 
         internal readonly RemoteSerializationOptions Options;
@@ -137,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 RemoteProcessConfiguration.Core => descriptorCoreClr64,
                 RemoteProcessConfiguration.ServerGC => descriptor64ServerGC,
                 RemoteProcessConfiguration.Core | RemoteProcessConfiguration.ServerGC => descriptorCoreClr64ServerGC,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
         }
 
