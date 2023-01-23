@@ -77,7 +77,11 @@ namespace Microsoft.CodeAnalysis
                     _knownAssemblyPathsBySimpleName[simpleName] = paths.Add(fullPath);
                 }
 
-                _ = _analyzerAssemblyInfoMap[fullPath] = null;
+                // Ensure that there is no cached Assembly information about this location. Long 
+                // lived processes like VS and VBCSCompiler will see the same location added as
+                // a dependency many times. Each time have to assume there is new content on disk
+                // that needs to be considered.
+                _analyzerAssemblyInfoMap[fullPath] = null;
             }
         }
 
@@ -114,9 +118,6 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         protected (AssemblyName? AssemblyName, string RealAssemblyPath) GetAssemblyInfoForPath(string originalAnalyzerPath)
         {
-            AssemblyName? assemblyName;
-            string realPath;
-            bool hasData;
             lock (_guard)
             {
                 if (!_analyzerAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out var tuple))
@@ -126,39 +127,27 @@ namespace Microsoft.CodeAnalysis
 
                 if (tuple is { } info)
                 {
-                    assemblyName = info.AssemblyName;
-                    realPath = info.RealAssemblyPath;
-                    hasData = true;
-                }
-                else
-                {
-                    assemblyName = null;
-                    realPath = "";
-                    hasData = false;
+                    return (info.AssemblyName, info.RealAssemblyPath);
                 }
             }
 
-            if (hasData)
-            {
-                return (assemblyName, realPath);
-            }
-
+            string realPath = PreparePathToLoad(originalAnalyzerPath);
+            AssemblyName? assemblyName;
             try
             {
-                realPath = PreparePathToLoad(originalAnalyzerPath);
                 assemblyName = AssemblyName.GetAssemblyName(realPath);
-
-                lock (_guard)
-                {
-                    _analyzerAssemblyInfoMap[originalAnalyzerPath] = (assemblyName, realPath);
-                }
-
             }
             catch
             {
                 // The above can fail with the assembly doesn't exist because it's corrupted, 
                 // doesn't exist on disk or is a native DLL. Those failures are handled when 
                 // the actual load is attempted. Just record the failure now.
+                assemblyName = null;
+            }
+
+            lock (_guard)
+            {
+                _analyzerAssemblyInfoMap[originalAnalyzerPath] = (assemblyName, realPath);
             }
 
             return (assemblyName, realPath);
@@ -235,6 +224,28 @@ namespace Microsoft.CodeAnalysis
         /// When <see cref="PreparePathToLoad(string)"/> is overriden this returns the most recent
         /// real path calculated for the <paramref name="originalFullPath"/>
         /// </summary>
-        internal virtual string GetRealLoadPath(string originalFullPath) => originalFullPath;
+        internal string GetRealLoadPath(string originalFullPath)
+        {
+            lock (_guard)
+            {
+                if (!_analyzerAssemblyInfoMap.TryGetValue(originalFullPath, out var tuple))
+                {
+                    throw new InvalidOperationException($"Invalid original path: {originalFullPath}");
+                }
+
+                return tuple is { } value ? value.RealAssemblyPath : originalFullPath;
+            }
+        }
+
+        internal (string OriginalAssemblyPath, string RealAssemblyPath)[] GetPathMapSnapshot()
+        {
+            lock (_guard)
+            {
+                return _analyzerAssemblyInfoMap
+                    .Select(x => (x.Key, x.Value?.RealAssemblyPath ?? ""))
+                    .OrderBy(x => x.Key)
+                    .ToArray();
+            }
+        }
     }
 }

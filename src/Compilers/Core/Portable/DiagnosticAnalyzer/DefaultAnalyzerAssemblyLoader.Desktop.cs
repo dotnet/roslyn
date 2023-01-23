@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_hookedAssemblyResolve)
                 {
-                    AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+                    AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
                     _hookedAssemblyResolve = true;
                     return true;
                 }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_hookedAssemblyResolve)
                 {
-                    AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolve;
+                    AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolve;
                     _hookedAssemblyResolve = false;
                     return true;
                 }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private Assembly? CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly? AssemblyResolve(object sender, ResolveEventArgs args)
         {
             try
             {

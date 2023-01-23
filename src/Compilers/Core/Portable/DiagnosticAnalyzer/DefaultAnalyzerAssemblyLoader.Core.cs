@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis
 
         internal AssemblyLoadContext CompilerLoadContext => _compilerLoadContext;
 
-        internal DefaultAnalyzerAssemblyLoader()
-            : this(null)
-        {
-        }
-
         internal DefaultAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext = null)
         {
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
@@ -95,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                     return LoadFromAssemblyPath(loadPath);
                 }
 
-                // Next prefer dependencies that other analyzers registered. Ideally this would not
+                // Next prefer registered dependencies from other directories. Ideally this would not
                 // be necessary but msbuild target defaults have caused a number of customers to 
                 // fall into this path. See discussion here for where it comes up
                 // https://github.com/dotnet/roslyn/issues/56442

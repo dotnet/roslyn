@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis
         private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
 
         /// <summary>
-        /// This is a map of the original full path to the _most recent_ shadow copy of that path. Useful
-        /// for tests to verify that we are loading from the correct places.
-        /// </summary>
-        private readonly ConcurrentDictionary<string, string> _pathMap = new();
-
-        /// <summary>
         /// Used to generate unique names for per-assembly directories. Should be updated with <see cref="Interlocked.Increment(ref int)"/>.
         /// </summary>
         private int _assemblyDirectoryId;
@@ -123,21 +117,8 @@ namespace Microsoft.CodeAnalysis
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(originalFullPath, assemblyDirectory);
-            _pathMap[originalFullPath] = shadowCopyPath;
             return shadowCopyPath;
         }
-
-        internal override string GetRealLoadPath(string originalFullPath)
-        {
-            if (!_pathMap.TryGetValue(originalFullPath, out var loadPath))
-            {
-                throw new InvalidOperationException($"Invalid path {originalFullPath}");
-            }
-
-            return loadPath;
-        }
-
-        internal KeyValuePair<string, string>[] GetPathMapSnapshot() => _pathMap.ToArray();
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
         {
