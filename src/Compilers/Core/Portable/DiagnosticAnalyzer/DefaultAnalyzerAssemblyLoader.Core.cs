@@ -38,20 +38,28 @@ namespace Microsoft.CodeAnalysis
                "System.Collections.Concurrent",
                "System.Collections.Immutable",
                "System.Console",
+#if !NET6_0_OR_GREATER
                "System.Diagnostics.Debug",
+#endif
                "System.Diagnostics.StackTrace",
                "System.Diagnostics.Tracing",
                "System.IO.Compression",
+#if !NET6_0_OR_GREATER
                "System.IO.FileSystem",
+#endif
                "System.Linq",
                "System.Linq.Expressions",
                "System.Memory",
                "System.Reflection.Metadata",
                "System.Reflection.Primitives",
+#if !NET6_0_OR_GREATER
                "System.Resources.ResourceManager",
+#endif
                "System.Runtime",
                "System.Runtime.CompilerServices.Unsafe",
+#if !NET6_0_OR_GREATER
                "System.Runtime.Extensions",
+#endif
                "System.Runtime.InteropServices",
                "System.Runtime.InteropServices.RuntimeInformation",
                "System.Runtime.Loader",
@@ -63,7 +71,9 @@ namespace Microsoft.CodeAnalysis
                "System.Text.Encoding.Extensions",
                "System.Text.RegularExpressions",
                "System.Threading",
+#if !NET6_0_OR_GREATER
                "System.Threading.Tasks",
+#endif
                "System.Threading.Tasks.Parallel",
                "System.Threading.Thread",
                "System.Threading.ThreadPool",
@@ -134,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // The analyzer didn't explicitly register this dependency. Most likely the
                     // assembly we're trying to load here is netstandard or a similar framework
-                    // assembly. In this case, we want to load it in compiler's ALC to avoid any 
+                    // assembly. In this case, we want to load it in compiler's ALC to avoid any
                     // potential type mismatch issue. Otherwise, if this is truly an unknown assembly,
                     // we assume both compiler and default ALC will fail to load it.
                     return _compilerLoadContext.LoadFromAssemblyName(assemblyName);
