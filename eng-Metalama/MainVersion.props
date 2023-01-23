@@ -2,10 +2,6 @@
     <PropertyGroup>
         <MainVersion>2023.0.100</MainVersion>
         <PackageVersionSuffix>-rc</PackageVersionSuffix>
-		<!-- The major and minor version must match Roslyn's ones.  -->
-        <MajorVersion>4</MajorVersion>
-        <MinorVersion>4</MinorVersion>
-        <RoslynPatchVersion>0</RoslynPatchVersion>
-        <RoslynVersion>$(MajorVersion).$(MinorVersion).$(RoslynPatchVersion)</RoslynVersion>
+        <RoslynVersion>4.4.0</RoslynVersion>
     </PropertyGroup>
 </Project>
