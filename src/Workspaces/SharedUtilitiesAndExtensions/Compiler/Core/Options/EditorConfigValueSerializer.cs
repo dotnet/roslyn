@@ -85,5 +85,22 @@ namespace Microsoft.CodeAnalysis.Options
         public static EditorConfigValueSerializer<CodeStyleOption2<string>> CodeStyle(CodeStyleOption2<string> defaultValue)
             => new(parseValue: str => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, defaultValue, out var result) ? result : new Optional<CodeStyleOption2<string>>(),
                    serializeValue: value => value.Value.ToLowerInvariant() + CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue));
+
+        public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>() where T : struct, Enum
+        {
+            return new EditorConfigValueSerializer<T>(
+                parseValue: parseValue,
+                serializeValue: value => value.ToString());
+
+            Optional<T> parseValue(string value)
+            {
+                if (Enum.TryParse<T>(value, out var parsedValue))
+                {
+                    return new Optional<T>(parsedValue);
+                }
+
+                return new Optional<T>();
+            }
+        }
     }
 }
