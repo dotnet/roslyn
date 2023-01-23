@@ -68,14 +68,14 @@
         <note />
       </trans-unit>
       <trans-unit id="Make_field_required">
-        <source>Make field required</source>
-        <target state="new">Make field required</target>
-        <note />
+        <source>Make field 'required'</source>
+        <target state="new">Make field 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_property_required">
-        <source>Make property required</source>
-        <target state="new">Make property required</target>
-        <note />
+        <source>Make property 'required'</source>
+        <target state="new">Make property 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
