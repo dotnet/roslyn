@@ -48,15 +48,11 @@ internal sealed class CSharpMakeFieldOrPropertyRequiredCodeFixProvider : SyntaxE
 
         var node = root.FindNode(span);
 
-        if (node is PropertyDeclarationSyntax propertyDeclaration)
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        var fieldOrPropertySymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+        if (fieldOrPropertySymbol is IPropertySymbol propertySymbol)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
-
-            if (propertySymbol is null)
-                return;
-
             var setMethod = propertySymbol.SetMethod;
 
             // Property must have a `set` or `init` accessor in order to be able to be required
@@ -71,15 +67,8 @@ internal sealed class CSharpMakeFieldOrPropertyRequiredCodeFixProvider : SyntaxE
 
             RegisterCodeFix(context, CSharpCodeFixesResources.Make_property_required, nameof(CSharpCodeFixesResources.Make_property_required));
         }
-        else if (node is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax })
+        else if (fieldOrPropertySymbol is IFieldSymbol fieldSymbol)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var fieldSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-
-            if (fieldSymbol is null)
-                return;
-
             var containingTypeVisibility = fieldSymbol.ContainingType.GetResultantVisibility();
             var accessibility = fieldSymbol.DeclaredAccessibility;
 
