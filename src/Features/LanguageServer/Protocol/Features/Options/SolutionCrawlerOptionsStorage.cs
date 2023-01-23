@@ -14,7 +14,7 @@ internal static class SolutionCrawlerOptionsStorage
     /// Option to turn configure background analysis scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
-        "SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default);
+        "SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<BackgroundAnalysisScope>());
 
     /// <summary>
     /// Option to turn configure background analysis scope for the current solution.
