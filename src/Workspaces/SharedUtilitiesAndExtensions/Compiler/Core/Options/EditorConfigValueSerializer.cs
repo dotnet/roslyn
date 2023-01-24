@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private static readonly EditorConfigValueSerializer<bool?> s_nullableBoolean = new(
             parseValue: ParseNullableBoolean,
-            serializeValue: nullableBoolean => nullableBoolean.ToString());
+            serializeValue: nullableBoolean => nullableBoolean == null ? "null" : nullableBoolean.ToString());
 
         private static Optional<bool?> ParseNullableBoolean(string str)
         {

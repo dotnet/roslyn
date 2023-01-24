@@ -14,11 +14,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options;
 
 public class OptionSerializerTests
 {
-    [Theory]
-    [CombinatorialData]
-    public void SerializationAndDeserializationForNullableBoolean(bool? value)
+    [Theory, CombinatorialData]
+    public void SerializationAndDeserializationForNullableBoolean([CombinatorialValues(true, false, null)] bool? value)
     {
-        var options = new List<IOption2>()
+        var options = new IOption2[]
         {
             CompletionViewOptions.EnableArgumentCompletionSnippets,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
@@ -35,10 +34,10 @@ public class OptionSerializerTests
                     Assert.Equal("null", serializedValue);
                     break;
                 case true:
-                    Assert.Equal("true", serializedValue);
+                    Assert.Equal("True", serializedValue);
                     break;
                 case false:
-                    Assert.Equal("false", serializedValue);
+                    Assert.Equal("False", serializedValue);
                     break;
                 default:
                     throw ExceptionUtilities.Unreachable();
@@ -48,5 +47,11 @@ public class OptionSerializerTests
             Assert.True(success, $"Can't parse option: {option.Name}, value: {serializedValue}");
             Assert.Equal(value, parsedResult);
         }
+    }
+
+    [Fact]
+    public void SerializationAndDeserializationForStruct()
+    {
+
     }
 }
