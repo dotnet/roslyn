@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     },
                     PreferConditionalDelegateCall = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
                 },
-                
+
                 new VisualBasicSyntaxFormattingOptions()
                 {
                     Common = SyntaxFormattingOptions.CommonOptions.Default with
