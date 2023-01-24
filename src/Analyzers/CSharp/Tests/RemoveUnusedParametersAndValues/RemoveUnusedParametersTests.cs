@@ -1693,5 +1693,18 @@ public class C : ICustomMarshaler
     public Class(int [|x|]) => throw new System.Exception();
 }");
         }
+
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsLocalFunctionExpressionBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public void Method()
+    {
+        void LocalMethod(int [|x|]) => throw new System.Exception();
+    }
+}");
+        }
     }
 }
