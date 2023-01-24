@@ -5,8 +5,10 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 
@@ -32,6 +34,18 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
         protected override bool IsIfConditionalDirective(SyntaxNode node)
             => node is IfDirectiveTriviaSyntax;
+
+        protected override bool ReturnsThrow(SyntaxNode node)
+        {
+            //var syntaxFacts = CSharpSyntaxFacts.Instance;
+            var methodSyntax = (MethodDeclarationSyntax)node;
+            if (methodSyntax.ExpressionBody is null)
+            {
+                return false;
+            }
+
+            return methodSyntax.ExpressionBody.Expression is ThrowExpressionSyntax;
+        }
 
         protected override CodeStyleOption2<UnusedValuePreference> GetUnusedValueExpressionStatementOption(AnalyzerOptionsProvider provider)
             => ((CSharpAnalyzerOptionsProvider)provider).UnusedValueExpressionStatement;
