@@ -103,10 +103,9 @@ namespace Microsoft.CodeAnalysis.Options
                     return new Optional<T?>(null);
                 }
 
-                var optional = ParseValueForEnum<T>(str);
-                if (optional.HasValue)
+                if (Enum.TryParse<T>(str, out var parsedValue))
                 {
-                    return new Optional<T?>(optional.Value);
+                    return new Optional<T?>(parsedValue);
                 }
 
                 return new Optional<T?>();
