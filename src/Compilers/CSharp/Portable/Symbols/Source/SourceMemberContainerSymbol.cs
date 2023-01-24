@@ -2144,10 +2144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Locations.Length == 1 || IsPartial)
                 {
-                    if (membersByName.TryGetValue(indexerName, out var symbol))
+#pragma warning disable CA1854 //Prefer a 'TryGetValue' call over a Dictionary indexer access guarded by a 'ContainsKey' check to avoid double lookup
+                    if (membersByName.ContainsKey(indexerName))
+#pragma warning restore CA1854
                     {
                         // The name of the indexer is reserved - it can only be used by other indexers.
-                        Debug.Assert(!symbol.Any(SymbolExtensions.IsIndexer));
+                        Debug.Assert(!membersByName[indexerName].Any(SymbolExtensions.IsIndexer));
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.Locations[0], this, indexerName);
                     }
                 }

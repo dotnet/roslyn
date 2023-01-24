@@ -463,14 +463,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 // The expression in the tuple could not be assigned a slot (for example, `a?.b`),
                                                 // so we had to create a slot for the tuple element instead.
                                                 // We'll remember that so that we can apply any learnings to the expression.
-                                                if (!originalInputMap.TryGetValue(outputSlot, out var boundExpression))
+#pragma warning disable CA1854 //Prefer a 'TryGetValue' call over a Dictionary indexer access guarded by a 'ContainsKey' check to avoid double lookup
+                                                if (!originalInputMap.ContainsKey(outputSlot))
+#pragma warning restore CA1854
                                                 {
                                                     originalInputMap.Add(outputSlot,
                                                         ((BoundTupleExpression)expression).Arguments[originalTupleElement.TupleElementIndex]);
                                                 }
                                                 else
                                                 {
-                                                    Debug.Assert(boundExpression == ((BoundTupleExpression)expression).Arguments[originalTupleElement.TupleElementIndex]);
+                                                    Debug.Assert(originalInputMap[outputSlot] == ((BoundTupleExpression)expression).Arguments[originalTupleElement.TupleElementIndex]);
                                                 }
                                             }
                                         }
