@@ -4,12 +4,13 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <BaseOutputPath>../../artifacts/bin</BaseOutputPath>
+    <ArtifactsPath>../../artifacts</ArtifactsPath>
+    <BaseOutputPath>$(ArtifactsPath)/bin</BaseOutputPath>
 
     <!-- Publishing settings -->
     <SelfContained>False</SelfContained>
-    <PublishDir Condition = "'$(RuntimeIdentifier)' != ''">../../artifacts/publish/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
-    <PublishDir Condition = "'$(RuntimeIdentifier)' == ''">../../artifacts/publish/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
+    <PublishDir Condition = "'$(RuntimeIdentifier)' != ''">$(ArtifactsPath)/publish/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
+    <PublishDir Condition = "'$(RuntimeIdentifier)' == ''">$(ArtifactsPath)/publish/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
     <!-- Set the minimum runtime to a .NET 7 prerelease so that prerelease SDKs will be considered during rollForward. -->
     <RuntimeFrameworkVersion>7.0.0-preview.7.22362.8</RuntimeFrameworkVersion>
     <RollForward>LatestMajor</RollForward>
