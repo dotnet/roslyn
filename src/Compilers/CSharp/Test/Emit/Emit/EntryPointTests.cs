@@ -1644,10 +1644,10 @@ class Program
         }
 
         [Fact]
-        public void AbstractEntryPoint()
+        public void AbstractEntryPointWithoutImplementation()
         {
             var source = @"
-interface Program
+interface IProgram
 {
     static abstract void Main();
 }";
@@ -1655,6 +1655,27 @@ interface Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
+        }
+
+        [Fact]
+        public void AbstractEntryPointWithImplementation()
+        {
+            var source = @"
+using System;
+
+interface IProgram
+{
+    static abstract void Main();
+}
+
+class Program : IProgram
+{
+    public static void Main() => Console.WriteLine(""Hello World!"");
+}";
+
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
+
+            CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "Hello World!" : null);
         }
     }
 }
