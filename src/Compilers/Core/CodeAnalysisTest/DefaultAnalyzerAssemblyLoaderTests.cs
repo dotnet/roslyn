@@ -127,6 +127,48 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
 #endif
 
+    /// <summary>
+    /// Contains the bulk of our analyzer / generator loading tests.
+    /// </summary>
+    /// <remarks>
+    /// These tests often have quirks associated with fundamental limitation issues around either 
+    /// .NET Framework, .NET Core or our own legacy decisions. Rather than repeating a specific rationale
+    /// at all the tests that hit them, the common are outlined below and referenced with the following 
+    /// comment style within the test.
+    ///
+    ///    // See limitation 1
+    ///
+    /// This allows us to provide central description of the limitations that can be easily referenced in the impacted
+    /// tests. For all the descriptions below assume that A.dll depends on B.dll. 
+    ///
+    /// Limitation 1: .NET Framework probing path.
+    ///
+    /// The .NET Framework assembly loader will only call AppDomain.AssemblyResolve when it cannot satifisfy a load
+    /// request. One of the places the assembly loader will always consider when looking for dependecies of A.dll
+    /// is the directory that A.dll was loading from (it's added to the probing path). Than means if B.dll is in the
+    /// same directory then the runtime will silently load it without a way for us to intervene.
+    ///
+    /// Note: this only applies when A.dll is in the Load or LoadFrom context which is always true for these tests
+    /// 
+    /// Limitation 2: Dependency is already loaded.
+    ///
+    /// Similar to Limitation 1 is when the dependency, B.dll, is already present in the Load or LoadFrom context 
+    /// then that will be used. The runtime will not attempt to load a better version (an exact match for example).
+    ///
+    /// Limitation 3: Shadow copy breaks up directories
+    ///
+    /// The shadow copy loader strategy is to put every analyzer dependency into a different shadow directory. That 
+    /// means if A.dll and B.dll are in the same directory for a normal load, they are in different directories 
+    /// during a shadow copy load.
+    /// 
+    /// This causes significant issues in .NET Framework because we don't have the ability to know where a load
+    /// is coming from. The AppDomain.AssemblyResolve event just requests "B, Version=1.0.0.0" but gives no context 
+    /// as to where the request is coming from. That means we often end up loading a different copy of B.dll in a
+    /// shadow load scenario. 
+    /// 
+    /// Long term this is something that needs to be addressed. Tracked by https://github.com/dotnet/roslyn/issues/66532
+    ///
+    /// </remarks>
     public sealed class DefaultAnalyzerAssemblyLoaderTests : TestBase
     {
         public ITestOutputHelper TestOutputHelper { get; }
@@ -337,11 +379,7 @@ Delta: Gamma: Beta: Test B
                 }
                 else
                 {
-                    // In .NET Framework we cannot prevent the load of Alpha. Once Beta is loaded 
-                    // into the LoadFrom it's directory is added to the probing path for Beta's
-                    // dependencies. When Beta causes an implicit load of Alpha the runtime will just
-                    // grab it from the probing path and there is no way for us to stop it. It's 
-                    // a limitation that we have to accept
+                    // See limitation 1
                     writeMethod.Invoke(b, new object[] { sb, "Test B" });
                     var actual = sb.ToString();
                     Assert.Equal(@"Delta: Gamma: Beta: Test B
@@ -460,7 +498,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/81108")]
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory(bool shadowLoad)
         {
@@ -529,7 +567,7 @@ Delta: Gamma: Beta: Test B
 
                 if (ExecutionConditionUtil.IsDesktop && loader is ShadowCopyAnalyzerAssemblyLoader)
                 {
-                    // In desktop + shadow we lose the ability to related dlls in the same directory
+                    // See limitation 3
                     VerifyDependencyAssemblies(
                         loader,
                         deltaFile1.Path,
@@ -709,9 +747,8 @@ Delta: Epsilon: Test E
                 }
                 else
                 {
-                    // The Epsilon.dll has Delta.dll (v2) next to it in the directory. The .NET Framework 
-                    // will implicitly load this due to normal probing rules. No way for us to intercept
-                    // this and we end up with v2 here where it wasn't specified as a dependency.
+                    // See limitation 1
+                    // The Epsilon.dll has Delta.dll (v2) next to it in the directory. 
                     Assert.Throws<InvalidOperationException>(() => loader.GetRealLoadPath(testFixture.Delta2.Path));
 
                     // Fake the dependency so we can verify the rest of the load
@@ -763,6 +800,7 @@ Delta: Epsilon: Test E
                 }
                 else
                 {
+                    // See limitation 1
                     // Delta2B and Delta2 have the same version, but we prefer Delta2 because it's in the same directory as Epsilon.
                     VerifyDependencyAssemblies(
                         loader,
@@ -803,6 +841,7 @@ Delta: Epsilon: Test E
 
 #else
 
+                // See limitation 2
                 // In non-core, we cache by assembly identity; since we don't use multiple AppDomains we have no
                 // way to load different assemblies with the same identity, no matter what. Thus, we'll get the
                 // same assembly for both of these.
@@ -845,9 +884,7 @@ Delta: Epsilon: Test E
                 }
                 else
                 {
-                    // This is another case where the private probing path wins on .NET framework and
-                    // there is no way for us to work around it. It works in shadow copying because 
-                    // the DLls are not side by side 
+                    // See limitation 2
                     Assert.Throws<InvalidOperationException>(() => loader.GetRealLoadPath(testFixture.Delta2.Path));
 
                     // Fake the dependency so we can verify the rest of the load
@@ -905,7 +942,7 @@ Delta: Epsilon: Test E
                 }
                 else
                 {
-                    // Epsilon wants Delta2, but since Delta1 is in the same directory, we prefer Delta1 over Delta2.
+                    // See limitation 2
                     VerifyDependencyAssemblies(
                         loader,
                         delta1File.Path,
@@ -1196,7 +1233,7 @@ Delta.2: Test D2
                 loader.AddDependencyLocation(deltaCopy.Path);
                 Assembly? delta = loader.LoadFromPath(deltaCopy.Path);
 
-                if (loader is ShadowCopyAnalyzerAssemblyLoader)
+                if (loader is ShadowCopyAnalyzerAssemblyLoader || !ExecutionConditionUtil.IsWindows)
                 {
                     File.Delete(deltaCopy.Path);
                 }
