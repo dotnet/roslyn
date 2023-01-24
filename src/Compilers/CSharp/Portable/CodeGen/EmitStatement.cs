@@ -1862,8 +1862,7 @@ oneMoreTime:
                     casesBuilder.Add((value, GetLabelClone(label)));
                 }
 
-                var lengthBasedSwitchData = node.LengthBasedStringSwitchDataOpt;
-                if (lengthBasedSwitchData is not null)
+                if (node.LengthBasedStringSwitchDataOpt is not null)
                 {
                     // We don't currently produce switch dispatches inside `fault` handler
                     throw ExceptionUtilities.Unreachable();
