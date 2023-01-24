@@ -39,7 +39,7 @@ internal static class CompletionOptionsStorage
     public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new("CompletionOptions_TriggerOnTypingLetters", CompletionOptions.Default.TriggerOnTypingLetters);
     public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new("CompletionOptions_TriggerOnDeletion", CompletionOptions.Default.TriggerOnDeletion);
     public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior = new("CompletionOptions_EnterKeyBehavior", CompletionOptions.Default.EnterKeyBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<EnterKeyRule>());
-    public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior = new("CompletionOptions_SnippetsBehavior", CompletionOptions.Default.SnippetsBehavior);
+    public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior = new("CompletionOptions_SnippetsBehavior", CompletionOptions.Default.SnippetsBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<SnippetsRule>());
     public static readonly PerLanguageOption2<bool> ShowNameSuggestions = new("CompletionOptions_ShowNameSuggestions", CompletionOptions.Default.ShowNameSuggestions);
 
     //Dev16 options
