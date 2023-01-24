@@ -1910,7 +1910,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            VisitRvalue(node.InitializerExpressionOpt);
+            foreach (var initializer in node.Initializers)
+            {
+                VisitRvalue(initializer);
+            }
             return null;
         }
 
@@ -1919,14 +1922,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitCollectionLiteralDictionaryElement(BoundCollectionLiteralDictionaryElement node)
+        public override BoundNode VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
         {
             VisitRvalue(node.Key);
             VisitRvalue(node.Value);
             return null;
         }
 
-        public override BoundNode VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
+        public override BoundNode VisitSpreadInitializer(BoundSpreadInitializer node)
         {
             VisitRvalue(node.Expression);
             return null;

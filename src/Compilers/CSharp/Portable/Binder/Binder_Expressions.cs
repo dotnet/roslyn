@@ -5899,7 +5899,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCollectionLiteralExpression(
                 syntax,
                 constructor,
-                new BoundCollectionInitializerExpression(syntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), targetType),
+                implicitReceiver,
+                initializerBuilder.ToImmutableAndFree(),
                 targetType);
         }
 
@@ -5983,7 +5984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                                 args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
                                 diagnostics: diagnostics);
-                            return new BoundCollectionLiteralSpreadElement(
+                            return new BoundSpreadInitializer(
                                 spreadElementSyntax,
                                 element,
                                 enumeratorInfo,
@@ -6048,7 +6049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: Handle static property, inaccessible property, ref returning property, wrong number of args, etc.
                 key = createConversion(key, indexer.Parameters[0].Type, diagnostics);
                 value = createConversion(value, indexer.Type, diagnostics);
-                return new BoundCollectionLiteralDictionaryElement(syntax, indexer, key, value, resultKind, indexer.Type) { WasCompilerGenerated = true };
+                return new BoundDictionaryElementInitializer(syntax, indexer, key, value, resultKind, indexer.Type) { WasCompilerGenerated = true };
             }
 
             BoundExpression createConversion(

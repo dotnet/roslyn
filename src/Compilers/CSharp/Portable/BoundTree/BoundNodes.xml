@@ -134,7 +134,7 @@
   </Node>
 
   <!--
-  This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method.
+  This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method
   It does not survive past initial binding.
   -->
   <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
@@ -1799,7 +1799,7 @@
   </Node>
 
   <!--
-  This node is used to represent a target-typed object creation expression.
+  This node is used to represent a target-typed object creation expression
   It does not survive past initial binding.
   -->
   <Node Name="BoundUnconvertedObjectCreationExpression" Base="BoundExpression">
@@ -1850,8 +1850,19 @@
   </Node>
 
   <Node Name="BoundCollectionLiteralExpression" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Constructor" Type="MethodSymbol" Null="disallow"/>
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" Null="allow"/>
+    <!-- An expression placeholder value representing the initialized object or collection. -->
+    <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" />
+    <!--
+      Valid initializers are of the following types:
+      - BoundExpression: element added with array or span element assignment
+      - BoundCollectionElementInitializer: element added with applicable Add() method
+      - BoundDictionaryElementInitializer: element added with applicable indexer assignment
+      - BoundSpreadInitializer: enumerable elements added with specific initializer
+    -->
+    <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 
   <!-- 
@@ -1975,7 +1986,8 @@
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
   </Node>
 
-  <Node Name="BoundCollectionLiteralDictionaryElement" Base="BoundExpression">
+  <!-- BoundCollectionLiteralExpression initializer representing an element added with an applicable indexer assignment. -->
+  <Node Name="BoundDictionaryElementInitializer" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
@@ -1984,7 +1996,8 @@
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
 
-  <Node Name="BoundCollectionLiteralSpreadElement" Base="BoundExpression">
+  <!-- BoundCollectionLiteralExpression initializer representing an enumerable with elements added with a specific initializer. -->
+  <Node Name="BoundSpreadInitializer" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Expression" Type="BoundExpression"/>

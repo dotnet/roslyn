@@ -3427,7 +3427,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
-            Visit(node.InitializerExpressionOpt);
+            foreach (var initializer in node.Initializers)
+            {
+                switch (initializer)
+                {
+                    case BoundCollectionElementInitializer collectionElementInitializer:
+                        VisitCollectionElementInitializer(collectionElementInitializer, node.Type, delayCompletionForType: false);
+                        break;
+                    case BoundDictionaryElementInitializer dictionaryElementInitializer:
+                        VisitRvalue(dictionaryElementInitializer.Key);
+                        VisitRvalue(dictionaryElementInitializer.Value);
+                        // PROTOTYPE: Visit indexer method, similar to visiting Add() in VisitCollectionElementInitializer above.
+                        break;
+                    case BoundSpreadInitializer spreadInitializer:
+                        VisitRvalue(spreadInitializer.Expression);
+                        // PROTOTYPE: Visit enumerator element initializer.
+                        break;
+                    default:
+                        VisitRvalue(initializer);
+                        break;
+                }
+            }
+
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
             return null;
         }
@@ -3438,7 +3459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitCollectionLiteralDictionaryElement(BoundCollectionLiteralDictionaryElement node)
+        public override BoundNode? VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
         {
             VisitRvalue(node.Key);
             VisitRvalue(node.Value);
