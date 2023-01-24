@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options;
 
 public class OptionSerializerTests
 {
+    private const string invaildOption = "Hello I can't be a valid option value";
+
     [Theory, CombinatorialData]
     public void SerializationAndDeserializationForNullableBoolean([CombinatorialValues(true, false, null)] bool? value)
     {
@@ -59,6 +61,8 @@ public class OptionSerializerTests
             var success = serializer.TryParse(serializedValue, out var parsedResult);
             Assert.True(success, $"Can't parse option: {option.Name}, value: {serializedValue}");
             Assert.Equal(value, parsedResult);
+
+            VerifyInvalidParse(option);
         }
     }
 
@@ -86,6 +90,8 @@ public class OptionSerializerTests
             // The default value for Enum option should not be null.
             Contract.ThrowIfNull(defaultValue, $"Option: {option.Name}");
             VerifyEnumValues(option, defaultValue.GetType());
+
+            VerifyInvalidParse(option);
         }
     }
 
@@ -114,6 +120,8 @@ public class OptionSerializerTests
             var success = serializer.TryParse(nullValue, out var deserializedResult);
             Assert.True(success, $"Can't parse option for null. Option: {option.Name}");
             Assert.Null(deserializedResult);
+
+            VerifyInvalidParse(option);
         }
     }
 
@@ -129,5 +137,11 @@ public class OptionSerializerTests
             Assert.True(success, $"Can't parse option: {option.Name}, value: {serializedValue}");
             Assert.Equal(enumValue, deserializedResult);
         }
+    }
+
+    private static void VerifyInvalidParse(IOption2 option)
+    {
+        var serializer = option.Definition.Serializer;
+        Assert.False(serializer.TryParse(invaildOption, out _));
     }
 }
