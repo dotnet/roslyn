@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         protected override void RemoveAdornmentFromAdornmentLayer_CallOnlyOnUIThread(SnapshotSpan span)
         {
             var lineSpan = new SnapshotSpan(span.Start.GetContainingLine().Start, span.End.GetContainingLine().End);
+            // No longer call RemoveAdornmentsByVisualSpan since it has its own intersection logic that interferes
+            // with multiple blank lines.
             AdornmentLayer.RemoveMatchingAdornments(e =>
             {
                 if (!e.VisualSpan.HasValue)
