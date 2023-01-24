@@ -1752,109 +1752,190 @@ public class C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
+        comp.VerifyEmitDiagnostics();
+
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+        verifier.VerifyIL("C.M", """
+{
+  // Code size      221 (0xdd)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      "a"
+  IL_0006:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_000b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0010:  brtrue     IL_0095
+  IL_0015:  ldarg.0
+  IL_0016:  ldstr      "ab"
+  IL_001b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0020:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0025:  brtrue.s   IL_009d
+  IL_0027:  ldarg.0
+  IL_0028:  ldstr      "abc"
+  IL_002d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0032:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0037:  brtrue.s   IL_00a5
+  IL_0039:  ldarg.0
+  IL_003a:  ldstr      "abcd"
+  IL_003f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0044:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0049:  brtrue.s   IL_00ad
+  IL_004b:  ldarg.0
+  IL_004c:  ldstr      "abcde"
+  IL_0051:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0056:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_005b:  brtrue.s   IL_00b5
+  IL_005d:  ldarg.0
+  IL_005e:  ldstr      "abcdef"
+  IL_0063:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0068:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_006d:  brtrue.s   IL_00bd
+  IL_006f:  ldarg.0
+  IL_0070:  ldstr      "abcdefg"
+  IL_0075:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_007a:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_007f:  brtrue.s   IL_00c5
+  IL_0081:  ldarg.0
+  IL_0082:  ldstr      "abcdefgh"
+  IL_0087:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_008c:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0091:  brtrue.s   IL_00cd
+  IL_0093:  br.s       IL_00d5
+  IL_0095:  ldstr      "a"
+  IL_009a:  stloc.0
+  IL_009b:  br.s       IL_00db
+  IL_009d:  ldstr      "ab"
+  IL_00a2:  stloc.0
+  IL_00a3:  br.s       IL_00db
+  IL_00a5:  ldstr      "abc"
+  IL_00aa:  stloc.0
+  IL_00ab:  br.s       IL_00db
+  IL_00ad:  ldstr      "abcd"
+  IL_00b2:  stloc.0
+  IL_00b3:  br.s       IL_00db
+  IL_00b5:  ldstr      "abcde"
+  IL_00ba:  stloc.0
+  IL_00bb:  br.s       IL_00db
+  IL_00bd:  ldstr      "abcdef"
+  IL_00c2:  stloc.0
+  IL_00c3:  br.s       IL_00db
+  IL_00c5:  ldstr      "abcdefg"
+  IL_00ca:  stloc.0
+  IL_00cb:  br.s       IL_00db
+  IL_00cd:  ldstr      "abcdefgh"
+  IL_00d2:  stloc.0
+  IL_00d3:  br.s       IL_00db
+  IL_00d5:  ldstr      "default"
+  IL_00da:  stloc.0
+  IL_00db:  ldloc.0
+  IL_00dc:  ret
+}
+""");
+    }
+
+    [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
+    internal void BucketSizeOne_MissingReadOnlySpanIndexer()
+    {
+        var source = """
+public class C
+{
+    public static string M(System.ReadOnlySpan<char> o)
+    {
+        return o switch
+        {
+            "a" => "a",
+            "ab" => "ab",
+            "abc" => "abc",
+            "abcd" => "abcd",
+            "abcde" => "abcde",
+            "abcdef" => "abcdef",
+            "abcdefg" => "abcdefg",
+            "abcdefgh" => "abcdefgh",
+            _ => "default"
+        };
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__get_Item);
         comp.VerifyEmitDiagnostics();
 
         var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
         verifier.VerifyIL("C.M", """
 {
-  // Code size      303 (0x12f)
+  // Code size      221 (0xdd)
   .maxstack  2
-  .locals init (string V_0,
-                int V_1,
-                char V_2)
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "int System.Span<char>.Length.get"
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
-  IL_0009:  ldc.i4.1
-  IL_000a:  sub
-  IL_000b:  switch    (
-        IL_0035,
-        IL_004f,
-        IL_0069,
-        IL_0080,
-        IL_0097,
-        IL_00ab,
-        IL_00bf,
-        IL_00d3)
-  IL_0030:  br         IL_0127
-  IL_0035:  ldarg.0
-  IL_0036:  ldstr      "a"
-  IL_003b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_0040:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0045:  brtrue     IL_00e7
-  IL_004a:  br         IL_0127
-  IL_004f:  ldarg.0
-  IL_0050:  ldstr      "ab"
-  IL_0055:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_005a:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_005f:  brtrue     IL_00ef
-  IL_0064:  br         IL_0127
-  IL_0069:  ldarg.0
-  IL_006a:  ldstr      "abc"
-  IL_006f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_0074:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0079:  brtrue.s   IL_00f7
-  IL_007b:  br         IL_0127
-  IL_0080:  ldarg.0
-  IL_0081:  ldstr      "abcd"
-  IL_0086:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_008b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0090:  brtrue.s   IL_00ff
-  IL_0092:  br         IL_0127
-  IL_0097:  ldarg.0
-  IL_0098:  ldstr      "abcde"
-  IL_009d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_00a2:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_00a7:  brtrue.s   IL_0107
-  IL_00a9:  br.s       IL_0127
-  IL_00ab:  ldarg.0
-  IL_00ac:  ldstr      "abcdef"
-  IL_00b1:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_00b6:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_00bb:  brtrue.s   IL_010f
-  IL_00bd:  br.s       IL_0127
-  IL_00bf:  ldarg.0
-  IL_00c0:  ldstr      "abcdefg"
-  IL_00c5:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_00ca:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_00cf:  brtrue.s   IL_0117
-  IL_00d1:  br.s       IL_0127
-  IL_00d3:  ldarg.0
-  IL_00d4:  ldstr      "abcdefgh"
-  IL_00d9:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_00de:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_00e3:  brtrue.s   IL_011f
-  IL_00e5:  br.s       IL_0127
-  IL_00e7:  ldstr      "a"
-  IL_00ec:  stloc.0
-  IL_00ed:  br.s       IL_012d
-  IL_00ef:  ldstr      "ab"
-  IL_00f4:  stloc.0
-  IL_00f5:  br.s       IL_012d
-  IL_00f7:  ldstr      "abc"
-  IL_00fc:  stloc.0
-  IL_00fd:  br.s       IL_012d
-  IL_00ff:  ldstr      "abcd"
-  IL_0104:  stloc.0
-  IL_0105:  br.s       IL_012d
-  IL_0107:  ldstr      "abcde"
-  IL_010c:  stloc.0
-  IL_010d:  br.s       IL_012d
-  IL_010f:  ldstr      "abcdef"
-  IL_0114:  stloc.0
-  IL_0115:  br.s       IL_012d
-  IL_0117:  ldstr      "abcdefg"
-  IL_011c:  stloc.0
-  IL_011d:  br.s       IL_012d
-  IL_011f:  ldstr      "abcdefgh"
-  IL_0124:  stloc.0
-  IL_0125:  br.s       IL_012d
-  IL_0127:  ldstr      "default"
-  IL_012c:  stloc.0
-  IL_012d:  ldloc.0
-  IL_012e:  ret
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      "a"
+  IL_0006:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_000b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0010:  brtrue     IL_0095
+  IL_0015:  ldarg.0
+  IL_0016:  ldstr      "ab"
+  IL_001b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0020:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0025:  brtrue.s   IL_009d
+  IL_0027:  ldarg.0
+  IL_0028:  ldstr      "abc"
+  IL_002d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0032:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0037:  brtrue.s   IL_00a5
+  IL_0039:  ldarg.0
+  IL_003a:  ldstr      "abcd"
+  IL_003f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0044:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0049:  brtrue.s   IL_00ad
+  IL_004b:  ldarg.0
+  IL_004c:  ldstr      "abcde"
+  IL_0051:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0056:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_005b:  brtrue.s   IL_00b5
+  IL_005d:  ldarg.0
+  IL_005e:  ldstr      "abcdef"
+  IL_0063:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0068:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_006d:  brtrue.s   IL_00bd
+  IL_006f:  ldarg.0
+  IL_0070:  ldstr      "abcdefg"
+  IL_0075:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_007a:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_007f:  brtrue.s   IL_00c5
+  IL_0081:  ldarg.0
+  IL_0082:  ldstr      "abcdefgh"
+  IL_0087:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_008c:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0091:  brtrue.s   IL_00cd
+  IL_0093:  br.s       IL_00d5
+  IL_0095:  ldstr      "a"
+  IL_009a:  stloc.0
+  IL_009b:  br.s       IL_00db
+  IL_009d:  ldstr      "ab"
+  IL_00a2:  stloc.0
+  IL_00a3:  br.s       IL_00db
+  IL_00a5:  ldstr      "abc"
+  IL_00aa:  stloc.0
+  IL_00ab:  br.s       IL_00db
+  IL_00ad:  ldstr      "abcd"
+  IL_00b2:  stloc.0
+  IL_00b3:  br.s       IL_00db
+  IL_00b5:  ldstr      "abcde"
+  IL_00ba:  stloc.0
+  IL_00bb:  br.s       IL_00db
+  IL_00bd:  ldstr      "abcdef"
+  IL_00c2:  stloc.0
+  IL_00c3:  br.s       IL_00db
+  IL_00c5:  ldstr      "abcdefg"
+  IL_00ca:  stloc.0
+  IL_00cb:  br.s       IL_00db
+  IL_00cd:  ldstr      "abcdefgh"
+  IL_00d2:  stloc.0
+  IL_00d3:  br.s       IL_00db
+  IL_00d5:  ldstr      "default"
+  IL_00da:  stloc.0
+  IL_00db:  ldloc.0
+  IL_00dc:  ret
 }
 """);
     }

@@ -1284,7 +1284,7 @@ oneMoreTime:
                 // switch dispatch on lengthTemp using fallThroughLabel and cases:
                 //   lengthConstant -> corresponding label
                 _builder.EmitIntegerSwitchJumpTable(
-                    lengthBasedSwitchInfo.LengthBasedJumpTable.lengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                    lengthBasedSwitchInfo.LengthBasedJumpTable.lengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
                     fallThroughLabel, stringLength, int32Type.PrimitiveTypeCode);
 
                 FreeTemp(stringLength);
@@ -1321,7 +1321,7 @@ oneMoreTime:
                     // switch dispatch on charTemp using fallThroughLabel and cases:
                     //   charConstant -> corresponding label
                     _builder.EmitIntegerSwitchJumpTable(
-                        charJumpTable.charCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                        charJumpTable.charCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
                         fallThroughLabel, charTemp, charType.PrimitiveTypeCode);
                 }
 
@@ -1338,7 +1338,7 @@ oneMoreTime:
                     // switch dispatch on keyTemp using fallThroughLabel and cases:
                     //   stringConstant -> corresponding label
                     EmitStringSwitchJumpTable(
-                        stringJumpTable.stringCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                        stringJumpTable.stringCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
                         fallThroughLabel, keyTemp, syntaxNode, keyType);
                 }
             }
@@ -1885,7 +1885,7 @@ oneMoreTime:
 
                 return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone, lengthBasedSwitchData);
 
-                ImmutableArray<(ConstantValue value, LabelSymbol label)> cloneCases(ImmutableArray<(ConstantValue value, LabelSymbol label)> cases)
+                ImmutableArray<(T value, LabelSymbol label)> cloneCases<T>(ImmutableArray<(T value, LabelSymbol label)> cases)
                 {
                     return cases.SelectAsArray(c => (c.value, (LabelSymbol)GetLabelClone(c.label)));
                 }
