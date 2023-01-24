@@ -87,20 +87,41 @@ namespace Microsoft.CodeAnalysis.Options
                    serializeValue: value => value.Value.ToLowerInvariant() + CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue));
 
         public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>() where T : struct, Enum
-        {
-            return new EditorConfigValueSerializer<T>(
-                parseValue: parseValue,
+            => new EditorConfigValueSerializer<T>(
+                parseValue: ParseValueForEnum<T>,
                 serializeValue: value => value.ToString());
 
-            Optional<T> parseValue(string value)
+        public static EditorConfigValueSerializer<T?> CreateSerializerForNullableEnum<T>() where T : struct, Enum
+        {
+            return new EditorConfigValueSerializer<T?>(
+                parseValue: ParseValueForNullableEnum,
+                serializeValue: value => value == null ? "null" : value.ToString());
+
+            Optional<T?> ParseValueForNullableEnum(string str)
             {
-                if (Enum.TryParse<T>(value, out var parsedValue))
+                if (str == "null")
                 {
-                    return new Optional<T>(parsedValue);
+                    return new Optional<T?>(null);
                 }
 
-                return new Optional<T>();
+                var optional = ParseValueForEnum<T>(str);
+                if (optional.HasValue)
+                {
+                    return new Optional<T?>(optional.Value);
+                }
+
+                return new Optional<T?>();
             }
+        }
+
+        private static Optional<T> ParseValueForEnum<T>(string str) where T : struct, Enum
+        {
+            if (Enum.TryParse<T>(str, out var parsedValue))
+            {
+                return new Optional<T>(parsedValue);
+            }
+
+            return new Optional<T>();
         }
     }
 }

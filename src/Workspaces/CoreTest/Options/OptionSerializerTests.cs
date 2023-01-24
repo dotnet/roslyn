@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -84,16 +85,49 @@ public class OptionSerializerTests
             var defaultValue = option.DefaultValue;
             // The default value for Enum option should not be null.
             Contract.ThrowIfNull(defaultValue, $"Option: {option.Name}");
-            var possibleEnumValues = defaultValue.GetType().GetEnumValues();
+            VerifyEnumValues(option, defaultValue.GetType());
+        }
+    }
+
+    [Fact]
+    public void SerializationAndDeserializationForNullableEnum()
+    {
+        var options = new IOption2[]
+        {
+            SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption,
+        };
+
+        foreach (var option in options)
+        {
+            var type = option.Definition.Type;
+            var enumType = Nullable.GetUnderlyingType(type);
+            // We are testing an nullable enum type, so the enum type can't be null.
+            Contract.ThrowIfNull(enumType, $"Option: {option.Name}");
+
+            // Test enum values
+            VerifyEnumValues(option, enumType);
+
+            // Test null
             var serializer = option.Definition.Serializer;
-            foreach (var enumValue in possibleEnumValues)
-            {
-                var serializedValue = serializer.Serialize(enumValue);
-                Assert.Equal(enumValue.ToString(), serializedValue);
-                var success = serializer.TryParse(serializedValue, out var deserializedResult);
-                Assert.True(success, $"Can't parse option: {option.Name}, value: {serializedValue}");
-                Assert.Equal(enumValue, deserializedResult);
-            }
+            var nullValue = serializer.Serialize(null);
+            Assert.Equal("null", nullValue);
+            var success = serializer.TryParse(nullValue, out var deserializedResult);
+            Assert.True(success, $"Can't parse option for null. Option: {option.Name}");
+            Assert.Null(deserializedResult);
+        }
+    }
+
+    private static void VerifyEnumValues(IOption2 option, Type enumType)
+    {
+        var serializer = option.Definition.Serializer;
+        var possibleEnumValues = enumType.GetEnumValues();
+        foreach (var enumValue in possibleEnumValues)
+        {
+            var serializedValue = serializer.Serialize(enumValue);
+            Assert.Equal(enumValue.ToString(), serializedValue);
+            var success = serializer.TryParse(serializedValue, out var deserializedResult);
+            Assert.True(success, $"Can't parse option: {option.Name}, value: {serializedValue}");
+            Assert.Equal(enumValue, deserializedResult);
         }
     }
 }
