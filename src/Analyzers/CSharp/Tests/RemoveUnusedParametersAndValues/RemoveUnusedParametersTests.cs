@@ -1649,12 +1649,25 @@ public class C : ICustomMarshaler
         }
 
         [Fact, WorkItem(47174, "https://github.com/dotnet/roslyn/issues/65275")]
-        public async Task TestMethodWithUnusedParameterThrows()
+        public async Task TestMethodWithUnusedParameterThrowsExpressionBOdy()
         {
             await TestDiagnosticMissingAsync(
 @"public class Class
 {
     public void Method(int [|x|]) => throw new System.Exception();
+}");
+        }
+
+        [Fact, WorkItem(47174, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsMethodBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public void Method(int [|x|])
+    {
+        throw new System.Exception();
+    }
 }");
         }
     }

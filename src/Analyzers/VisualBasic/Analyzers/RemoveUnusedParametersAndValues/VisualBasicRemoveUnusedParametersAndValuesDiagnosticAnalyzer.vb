@@ -52,6 +52,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
         End Function
 
         Protected Overrides Function ReturnsThrow(node As SyntaxNode) As Boolean
+            Dim methodStatementSyntax = TryCast(node, MethodStatementSyntax)
+            If methodStatementSyntax IsNot Nothing Then
+                Dim methodSyntax = TryCast(node.Parent, MethodBlockSyntax)
+                If methodSyntax.BlockStatement Is Nothing Then
+                    Return False
+                End If
+
+                If methodSyntax.Statements.Count = 1 Then
+                    Return TryCast(methodSyntax.Statements.First(), ThrowStatementSyntax) IsNot Nothing
+                End If
+            End If
+
             Return False
         End Function
 
