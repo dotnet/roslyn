@@ -27,6 +27,6 @@ namespace Microsoft.CodeAnalysis.ImplementType
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
             new("ImplementTypeOptions_PropertyGenerationBehavior",
-                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior);
+                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypePropertyGenerationBehavior>());
     }
 }
