@@ -94,6 +94,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             };
 
+            capabilities.CodeLensProvider = new CodeLensOptions
+            {
+                ResolveProvider = false,
+                // TODO - Code lens should support streaming
+                // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730465
+                WorkDoneProgress = false,
+            };
+
             if (!supportsVsExtensions)
             {
                 capabilities.DiagnosticOptions = new DiagnosticOptions
