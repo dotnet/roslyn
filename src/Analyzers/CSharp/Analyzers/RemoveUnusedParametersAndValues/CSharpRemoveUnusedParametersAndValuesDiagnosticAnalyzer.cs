@@ -37,18 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
         protected override bool ReturnsThrow(SyntaxNode node)
         {
-            var methodSyntax = (MethodDeclarationSyntax)node;
+            var methodSyntax = (BaseMethodDeclarationSyntax)node;
             if (methodSyntax.ExpressionBody is not null)
             {
                 return methodSyntax.ExpressionBody.Expression is ThrowExpressionSyntax;
             }
 
-            if (methodSyntax.Body is not null && methodSyntax.Body.Statements.Count == 1)
-            {
-                return methodSyntax.Body.Statements[0] is ThrowStatementSyntax;
-            }
-
-            return false;
+            return methodSyntax.Body is { Statements: [ThrowStatementSyntax] };
         }
 
         protected override CodeStyleOption2<UnusedValuePreference> GetUnusedValueExpressionStatementOption(AnalyzerOptionsProvider provider)

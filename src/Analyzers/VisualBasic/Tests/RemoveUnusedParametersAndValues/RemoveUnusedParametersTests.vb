@@ -190,13 +190,25 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
+        <Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")>
         Public Async Function TestMethodBody_OnlyThrowStatement() As Task
             Await TestDiagnosticMissingAsync(
 "imports system
 
 class C
     private sub Goo([|i|] as integer)
+        throw new Exception()
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")>
+        Public Async Function TestConstructorBody_OnlyThrowStatement() As Task
+            Await TestDiagnosticMissingAsync(
+"imports system
+
+class C
+    public sub new([|i|] as integer)
         throw new Exception()
     end sub
 end class")

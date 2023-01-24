@@ -1648,8 +1648,8 @@ public class C : ICustomMarshaler
 ");
         }
 
-        [Fact, WorkItem(47174, "https://github.com/dotnet/roslyn/issues/65275")]
-        public async Task TestMethodWithUnusedParameterThrowsExpressionBOdy()
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsExpressionBody()
         {
             await TestDiagnosticMissingAsync(
 @"public class Class
@@ -1658,7 +1658,7 @@ public class C : ICustomMarshaler
 }");
         }
 
-        [Fact, WorkItem(47174, "https://github.com/dotnet/roslyn/issues/65275")]
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
         public async Task TestMethodWithUnusedParameterThrowsMethodBody()
         {
             await TestDiagnosticMissingAsync(
@@ -1668,6 +1668,29 @@ public class C : ICustomMarshaler
     {
         throw new System.Exception();
     }
+}");
+        }
+
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsConstructorBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public Class(int [|x|])
+    {
+        throw new System.Exception();
+    }
+}");
+        }
+
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsConstructorExpressionBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public Class(int [|x|]) => throw new System.Exception();
 }");
         }
     }
