@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Options
             serializeValue: value => value ? "true" : "false");
 
         private static readonly EditorConfigValueSerializer<int> s_int32 = new(
-            parseValue:  str => int.TryParse(str, out var result) ? result : new Optional<int>(),
+            parseValue: str => int.TryParse(str, out var result) ? result : new Optional<int>(),
             serializeValue: StringExtensions.GetNumeral);
 
         private static readonly EditorConfigValueSerializer<string> s_string = new(
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private static readonly EditorConfigValueSerializer<bool?> s_nullableBoolean = new(
             parseValue: ParseNullableBoolean,
-            serializeValue: nullableBoolean => nullableBoolean == null ? "null" : nullableBoolean.ToString());
+            serializeValue: nullableBoolean => nullableBoolean == null ? "null" : nullableBoolean.Value.ToString());
 
         private static Optional<bool?> ParseNullableBoolean(string str)
         {
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             return new EditorConfigValueSerializer<T?>(
                 parseValue: ParseValueForNullableEnum,
-                serializeValue: value => value == null ? "null" : value.ToString());
+                serializeValue: value => value == null ? "null" : value.Value.ToString());
 
             Optional<T?> ParseValueForNullableEnum(string str)
             {
