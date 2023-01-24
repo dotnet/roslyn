@@ -3022,6 +3022,43 @@ class Collection<T>
         }
 
         [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
+        public void LoopWithPatternDeclaration_SlicePattern_NestedNullability()
+        {
+            var source = """
+#nullable enable
+
+string? s = "";
+
+for (var x = 0; x < 10; x++)
+{
+    var a = Infer(s);
+    if (a is [_, .. var z, _])
+    {
+        z.Element.ToString();
+    }
+
+    s = null;
+}
+
+Collection<T> Infer<T>(T t) => throw null!;
+
+class Collection<T>
+{
+    public T Element => throw null!;
+    public int Length => throw null!;
+    public T this[System.Index i] => throw null!;
+    public Collection<T> this[System.Range r] => throw null!;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.Element.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Element").WithLocation(10, 9)
+                );
+        }
+
+        [Fact, WorkItem(65976, "https://github.com/dotnet/roslyn/issues/65976")]
         public void LoopWithDeconstructionPattern()
         {
             var source = """
