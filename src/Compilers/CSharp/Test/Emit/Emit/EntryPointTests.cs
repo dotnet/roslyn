@@ -1642,5 +1642,19 @@ class Program
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
+
+        [Fact]
+        public void AbstractEntryPoint()
+        {
+            var source = @"
+interface Program
+{
+    static abstract void Main();
+}";
+
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+        }
     }
 }
