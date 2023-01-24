@@ -1654,7 +1654,8 @@ interface IProgram
 
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
             compilation.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
