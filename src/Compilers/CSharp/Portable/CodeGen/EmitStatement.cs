@@ -1819,9 +1819,8 @@ oneMoreTime:
             /// </summary>
             public static BoundBlock MakeFinallyClone(BoundTryStatement node)
             {
-                return node.FinallyBlockOpt;
-                //var cloner = new FinallyCloner();
-                //return (BoundBlock)cloner.Visit(node.FinallyBlockOpt);
+                var cloner = new FinallyCloner();
+                return (BoundBlock)cloner.Visit(node.FinallyBlockOpt);
             }
 
             public override BoundNode VisitLabelStatement(BoundLabelStatement node)
@@ -1866,21 +1865,8 @@ oneMoreTime:
                 var lengthBasedSwitchData = node.LengthBasedStringSwitchDataOpt;
                 if (lengthBasedSwitchData is not null)
                 {
-                    Debug.Assert(false, "This is unreachable at the moment");
-
-                    var oldLengthJumpTable = lengthBasedSwitchData.LengthBasedJumpTable;
-                    var lengthJumpTable = new LengthBasedStringSwitchData.LengthJumpTable(
-                        oldLengthJumpTable.nullCaseLabel is { } oldNullCaseLabel ? GetLabelClone(oldNullCaseLabel) : null,
-                        cloneCases(oldLengthJumpTable.lengthCaseLabels));
-
-                    var charJumpTables = lengthBasedSwitchData.CharBasedJumpTables
-                        .SelectAsArray(t => new LengthBasedStringSwitchData.CharJumpTable(GetLabelClone(t.label), t.selectedCharPosition, cloneCases(t.charCaseLabels)));
-
-                    var oldSringJumpTables = lengthBasedSwitchData.StringBasedJumpTables;
-                    var stringJumpTables = lengthBasedSwitchData.StringBasedJumpTables
-                        .SelectAsArray(t => new LengthBasedStringSwitchData.StringJumpTable(GetLabelClone(t.label), cloneCases(t.stringCaseLabels)));
-
-                    lengthBasedSwitchData = new LengthBasedStringSwitchData(lengthJumpTable, charJumpTables, stringJumpTables);
+                    // We don't currently produce switch dispatches inside `fault` handler
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone, lengthBasedSwitchData);
