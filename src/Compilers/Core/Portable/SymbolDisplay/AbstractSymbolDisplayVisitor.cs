@@ -89,6 +89,9 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected void AddNonNullConstantValue(ITypeSymbol type, object constantValue, bool preferNumericValueOrExpandedFlagsForEnum = false)
         {
             Debug.Assert(constantValue != null);
+
+            type = TryUnwrapNullableStruct(type);
+
             if (type.TypeKind == TypeKind.Enum)
             {
                 AddEnumConstantValue((INamedTypeSymbol)type, constantValue, preferNumericValueOrExpandedFlagsForEnum);
@@ -118,6 +121,23 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 // the literal value of the enum.
                 AddNonFlagsEnumConstantValue(enumType, constantValue);
             }
+        }
+
+        /// <summary>
+        /// Attemps to unwrap the underlying type if the given type is <see cref="System.Nullable{T}"/>
+        /// </summary>
+        private static ITypeSymbol TryUnwrapNullableStruct(ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol.TypeKind != TypeKind.Struct)
+                return typeSymbol;
+
+            var namedTypeSymbol = (INamedTypeSymbol)typeSymbol;
+            if (namedTypeSymbol.IsGenericType && namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+            {
+                return namedTypeSymbol.TypeArguments[0];
+            }
+
+            return typeSymbol;
         }
 
         /// <summary>
