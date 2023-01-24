@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options;
 
 public class OptionSerializerTests
 {
-    private const string invaildOption = "Hello I can't be a valid option value";
+    private const string invalidOption = "Hello I can't be a valid option value";
 
     [Theory, CombinatorialData]
     public void SerializationAndDeserializationForNullableBoolean([CombinatorialValues(true, false, null)] bool? value)
@@ -140,6 +140,6 @@ public class OptionSerializerTests
     private static void VerifyInvalidParse(IOption2 option)
     {
         var serializer = option.Definition.Serializer;
-        Assert.False(serializer.TryParse(invaildOption, out _));
+        Assert.False(serializer.TryParse(invalidOption, out _));
     }
 }
