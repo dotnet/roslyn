@@ -37,7 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
         protected override bool ReturnsThrow(SyntaxNode node)
         {
-            var methodSyntax = (BaseMethodDeclarationSyntax)node;
+            if (node is not BaseMethodDeclarationSyntax methodSyntax)
+            {
+                return false;
+            }
+
             if (methodSyntax.ExpressionBody is not null)
             {
                 return methodSyntax.ExpressionBody.Expression is ThrowExpressionSyntax;
