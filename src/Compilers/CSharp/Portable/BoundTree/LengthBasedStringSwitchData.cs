@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var group in inputCases.Where(c => !c.value.IsNull).GroupBy(c => c.value.StringValue!.Length))
             {
                 int stringLength = group.Key;
-                var labelForLength = CreateAndRegisterCharJumpTables(stringLength, group.ToImmutableArray(), charJumpTables, stringJumpTables);
+                var labelForLength = CreateAndRegisterCharJumpTables(stringLength, group.SelectAsArray(c => (c.value.StringValue, c.label)), charJumpTables, stringJumpTables);
                 lengthCaseLabels.Add((stringLength, labelForLength));
             }
 
@@ -162,11 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LengthBasedStringSwitchData(lengthJumpTable, charJumpTables.ToImmutableAndFree(), stringJumpTables.ToImmutableAndFree());
         }
 
-        private static LabelSymbol CreateAndRegisterCharJumpTables(int stringLength, ImmutableArray<(ConstantValue value, LabelSymbol label)> casesWithGivenLength,
+        private static LabelSymbol CreateAndRegisterCharJumpTables(int stringLength, ImmutableArray<(string value, LabelSymbol label)> casesWithGivenLength,
             ArrayBuilder<CharJumpTable> charJumpTables, ArrayBuilder<StringJumpTable> stringJumpTables)
         {
             Debug.Assert(stringLength >= 0);
-            Debug.Assert(casesWithGivenLength.All(c => c.value.StringValue!.Length == stringLength));
+            Debug.Assert(casesWithGivenLength.All(c => c.value.Length == stringLength));
             Debug.Assert(casesWithGivenLength.Length > 0);
 
             if (stringLength == 0)
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var bestCharacterPosition = selectBestCharacterIndex(stringLength, casesWithGivenLength);
             var charCaseLabels = ArrayBuilder<(char value, LabelSymbol label)>.GetInstance();
-            foreach (var group in casesWithGivenLength.GroupBy(c => c.value.StringValue![bestCharacterPosition]))
+            foreach (var group in casesWithGivenLength.GroupBy(c => c.value[bestCharacterPosition]))
             {
                 char character = group.Key;
                 var label = CreateAndRegisterStringJumpTable(group.ToImmutableArray(), stringJumpTables);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             charJumpTables.Add(charJumpTable);
             return charJumpTable.label;
 
-            static int selectBestCharacterIndex(int stringLength, ImmutableArray<(ConstantValue value, LabelSymbol label)> caseLabels)
+            static int selectBestCharacterIndex(int stringLength, ImmutableArray<(string value, LabelSymbol label)> caseLabels)
             {
                 // We pick the position that maximizes number of buckets with a single entry.
                 // We break ties by preferring lower max bucket size.
@@ -222,13 +222,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Given a position and a set of string cases of matching lengths, inspect the buckets created by inspecting
             // those strings at that position. Return the count how many buckets have a single entry and the size of the largest bucket.
-            static (int singleEntryCount, int largestBucket) positionScore(int position, ImmutableArray<(ConstantValue value, LabelSymbol label)> caseLabels)
+            static (int singleEntryCount, int largestBucket) positionScore(int position, ImmutableArray<(string value, LabelSymbol label)> caseLabels)
             {
                 var countPerChar = PooledDictionary<char, int>.GetInstance();
                 foreach (var caseLabel in caseLabels)
                 {
-                    Debug.Assert(caseLabel.value.StringValue is not null);
-                    var currentChar = caseLabel.value.StringValue[position];
+                    Debug.Assert(caseLabel.value is not null);
+                    var currentChar = caseLabel.value[position];
                     if (countPerChar.TryGetValue(currentChar, out var currentCount))
                     {
                         countPerChar[currentChar] = currentCount + 1;
@@ -246,10 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static LabelSymbol CreateAndRegisterStringJumpTable(ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, ArrayBuilder<StringJumpTable> stringJumpTables)
+        private static LabelSymbol CreateAndRegisterStringJumpTable(ImmutableArray<(string value, LabelSymbol label)> cases, ArrayBuilder<StringJumpTable> stringJumpTables)
         {
-            Debug.Assert(cases.Length > 0 && cases.All(c => !c.value.IsNull));
-            var stringJumpTable = new StringJumpTable(label: new GeneratedLabelSymbol("string-dispatch"), cases.SelectAsArray(c => (c.value.StringValue!, c.label)));
+            Debug.Assert(cases.Length > 0 && cases.All(c => c.value is not null));
+            var stringJumpTable = new StringJumpTable(label: new GeneratedLabelSymbol("string-dispatch"), cases.SelectAsArray(c => (c.value, c.label)));
             stringJumpTables.Add(stringJumpTable);
             return stringJumpTable.label;
         }

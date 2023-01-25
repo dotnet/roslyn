@@ -1862,18 +1862,14 @@ oneMoreTime:
                     casesBuilder.Add((value, GetLabelClone(label)));
                 }
 
-                if (node.LengthBasedStringSwitchDataOpt is not null)
+                var lengthBasedSwitchData = node.LengthBasedStringSwitchDataOpt;
+                if (lengthBasedSwitchData is not null)
                 {
                     // We don't currently produce switch dispatches inside `fault` handler
                     throw ExceptionUtilities.Unreachable();
                 }
 
                 return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone, lengthBasedSwitchData);
-
-                ImmutableArray<(T value, LabelSymbol label)> cloneCases<T>(ImmutableArray<(T value, LabelSymbol label)> cases)
-                {
-                    return cases.SelectAsArray(c => (c.value, (LabelSymbol)GetLabelClone(c.label)));
-                }
             }
 
             public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)

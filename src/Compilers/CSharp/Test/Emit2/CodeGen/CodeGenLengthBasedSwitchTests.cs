@@ -10517,6 +10517,7 @@ assert("Y");
 assert(null, "default");
 assert("", "default");
 assert("other", "default");
+assert("3", "default");
 System.Console.Write("RAN");
 
 void assert(string input, string expected = null)
