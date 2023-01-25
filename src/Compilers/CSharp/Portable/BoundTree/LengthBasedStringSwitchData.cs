@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var group in inputCases.Where(c => !c.value.IsNull).GroupBy(c => c.value.StringValue!.Length))
             {
                 int stringLength = group.Key;
-                var labelForLength = CreateAndRegisterCharJumpTables(stringLength, group.SelectAsArray(c => (c.value.StringValue, c.label)), charJumpTables, stringJumpTables);
+                var labelForLength = CreateAndRegisterCharJumpTables(stringLength, group.SelectAsArray(c => (c.value.StringValue!, c.label)), charJumpTables, stringJumpTables);
                 lengthCaseLabels.Add((stringLength, labelForLength));
             }
 
