@@ -134,4 +134,19 @@ public static class MetalamaCompilerAnnotations
         }
     }
 
+    private const string _includeInReferenceAssemblyAnnotationKind = "Metalama.Compiler.IncludeInReferenceAssembly";
+
+    /// <summary>
+    /// Gets an annotation that means that the declaration of the target syntax node should be included in a reference assembly,
+    /// even if it otherwise wouldn't be due to its accessibility.
+    /// </summary>
+    public static SyntaxAnnotation IncludeInReferenceAssemblyAnnotation { get; } = new(_includeInReferenceAssemblyAnnotationKind);
+
+    /// <summary>
+    /// Adds an annotation that means that the declaration of the target syntax node should be included in a reference assembly,
+    /// even if it otherwise wouldn't be due to its accessibility.
+    /// </summary>
+    public static T WithIncludeInReferenceAssemblyAnnotation<T>(this T syntaxNode)
+        where T : SyntaxNode
+        => syntaxNode.WithAdditionalAnnotations(IncludeInReferenceAssemblyAnnotation);
 }
