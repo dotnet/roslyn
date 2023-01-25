@@ -2430,8 +2430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If testData IsNot Nothing Then
-                moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                testData.Module = moduleBeingBuilt
+                moduleBeingBuilt.SetTestData(testData)
             End If
 
             Return moduleBeingBuilt

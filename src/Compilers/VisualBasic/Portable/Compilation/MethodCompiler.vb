@@ -1657,9 +1657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' We will only save the IL builders when running tests.
-                If moduleBuilder.SaveTestData Then
-                    moduleBuilder.SetMethodTestData(method, builder.GetSnapshot())
-                End If
+                moduleBuilder.TestData?.SetMethodILBuilder(method, builder.GetSnapshot())
 
                 Dim stateMachineHoistedLocalSlots As ImmutableArray(Of EncHoistedLocalInfo) = Nothing
                 Dim stateMachineAwaiterSlots As ImmutableArray(Of Cci.ITypeReference) = Nothing

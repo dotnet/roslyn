@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
-        // Only set when running tests to allow realized IL for a given method to be looked up by method.
-        internal ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> TestData { get; private set; }
+        // Only set when running tests to allow inspection of the emitted data.
+        internal CompilationTestData TestData { get; private set; }
 
         internal EmitOptions EmitOptions { get; }
 
@@ -504,17 +504,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        internal bool SaveTestData => TestData != null;
-
-        internal void SetMethodTestData(IMethodSymbolInternal method, ILBuilder builder)
-        {
-            TestData.Add(method, new CompilationTestData.MethodData(builder, method));
-        }
-
-        internal void SetMethodTestData(ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> methods)
+        internal void SetTestData(CompilationTestData testData)
         {
             Debug.Assert(TestData == null);
-            TestData = methods;
+            TestData = testData;
+            testData.Module = this;
         }
 
         public int GetTypeDefinitionGeneration(Cci.INamedTypeDefinition typeDef)
