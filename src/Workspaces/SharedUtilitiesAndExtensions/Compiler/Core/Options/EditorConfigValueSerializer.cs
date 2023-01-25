@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Options
             => str.Replace("\r", "\\r").Replace("\n", "\\n");
 
         private static readonly EditorConfigValueSerializer<bool> s_bool = new(
-            parseValue: str => bool.TryParse(str, out var result) ? result : new Optional<bool>(),
+            parseValue: ParseBoolean,
             serializeValue: value => value ? "true" : "false");
 
         private static readonly EditorConfigValueSerializer<int> s_int32 = new(
@@ -41,14 +41,18 @@ namespace Microsoft.CodeAnalysis.Options
                 return value.Value ? "true" : "false";
             });
 
+        private static Optional<bool> ParseBoolean(string str)
+            => bool.TryParse(str, out var result) ? result : new Optional<bool>();
+
         private static Optional<bool?> ParseNullableBoolean(string str)
         {
-            if (bool.TryParse(str, out var result))
+            if (str.Equals("null", StringComparison.InvariantCultureIgnoreCase))
             {
-                return new Optional<bool?>(result);
+                return new Optional<bool?>(null);
             }
 
-            return str.Equals("null", StringComparison.InvariantCultureIgnoreCase) ? new Optional<bool?>(null) : new Optional<bool?>();
+            var optionalBool = ParseBoolean(str);
+            return optionalBool.HasValue ? new Optional<bool?>(optionalBool.Value) : new Optional<bool?>();
         }
 
         public static EditorConfigValueSerializer<T> Default<T>()
