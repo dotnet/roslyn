@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <MicrosoftBuildLocatorVersion>1.5.5</MicrosoftBuildLocatorVersion>
-    <MicrosoftCodeAnalysisVersion>4.5.0-2.22577.2</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>4.6.0-dev</MicrosoftCodeAnalysisVersion>
     <MicrosoftCodeAnalysisCSharpFeaturesVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpFeaturesVersion>
     <MicrosoftCodeAnalysisLanguageServerProtocolVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisLanguageServerProtocolVersion>
     <MicrosoftCodeAnalysisCSharpLanguageServerProtocolVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpLanguageServerProtocolVersion>
@@ -15,6 +15,6 @@
     <MicrosoftVisualStudioCompositionVersion>17.2.41</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioLanguageServerProtocolVersion>17.5.20-preview</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <NerdbankStreamsVersion>2.9.112</NerdbankStreamsVersion>
-    <StreamJsonRpcVersion>2.14.17-alpha</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>2.14.20</StreamJsonRpcVersion>
   </PropertyGroup>
 </Project>
