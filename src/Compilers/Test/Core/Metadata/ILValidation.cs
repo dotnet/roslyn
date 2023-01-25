@@ -399,9 +399,7 @@ namespace Roslyn.Test.Utilities
                 if (e.Name == "entry" && e.Parent.Name == "sequencePoints")
                 {
                     var documentId = e.Attribute("document").Value;
-                    
                     var source = getSource(documentId);
-                    Assert.NotNull(source);
 
                     add(Convert.ToInt32(e.Attribute("offset").Value, 16), "sequence point: " + SnippetFromSpan(source, e));
                 }

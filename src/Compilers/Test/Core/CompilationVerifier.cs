@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     var documentMap = ILValidation.GetDocumentIdToPathMap(xmlDocument);
 
                     markers = sequencePointsSource ?
-                        ILValidation.GetSequencePointMarkers(xmlMethod, id => _compilation.SyntaxTrees.FirstOrDefault(tree => tree.FilePath == documentMap[id])?.GetText()) :
+                        ILValidation.GetSequencePointMarkers(xmlMethod, id => _compilation.SyntaxTrees.Single(tree => tree.FilePath == documentMap[id]).GetText()) :
                         ILValidation.GetSequencePointMarkers(xmlMethod);
                 }
             }
