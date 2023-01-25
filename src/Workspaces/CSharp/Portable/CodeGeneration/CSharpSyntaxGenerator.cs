@@ -365,11 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var accessors = new List<AccessorDeclarationSyntax>();
 
-            if (getAccessor is not null)
-                accessors.Add((AccessorDeclarationSyntax)getAccessor);
-
-            if (setAccessor is not null)
-                accessors.Add((AccessorDeclarationSyntax)setAccessor);
+            accessors.AddIfNotNull((AccessorDeclarationSyntax?)getAccessor);
+            accessors.AddIfNotNull((AccessorDeclarationSyntax?)setAccessor);
 
             var actualModifiers = modifiers - (DeclarationModifiers.ReadOnly | DeclarationModifiers.WriteOnly);
 
