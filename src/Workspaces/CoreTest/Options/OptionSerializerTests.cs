@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -19,8 +20,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options;
 
 public class OptionSerializerTests
 {
-    private const string invalidOption = "Hello I can't be a valid option value";
-
     [Theory, CombinatorialData]
     public void SerializationAndDeserializationForNullableBool([CombinatorialValues(true, false, null)] bool? value)
     {
@@ -62,8 +61,6 @@ public class OptionSerializerTests
                 Assert.True(success, $"Can't parse option: {option.Name}, value: {possibleString}");
                 Assert.Equal(value, parsedResult);
             }
-
-            VerifyInvalidParse(option);
         }
     }
 
@@ -92,7 +89,8 @@ public class OptionSerializerTests
             Contract.ThrowIfNull(defaultValue, $"Option: {option.Name}");
             VerifyEnumValues(option, defaultValue.GetType());
 
-            VerifyInvalidParse(option);
+            // Test invalid cases
+            VerifyEnumInvalidParse(option, defaultValue.GetType());
         }
     }
 
@@ -122,7 +120,8 @@ public class OptionSerializerTests
             Assert.True(success, $"Can't parse option for null. Option: {option.Name}");
             Assert.Null(deserializedResult);
 
-            VerifyInvalidParse(option);
+            // Test invalid cases
+            VerifyEnumInvalidParse(option, enumType);
         }
     }
 
@@ -140,9 +139,16 @@ public class OptionSerializerTests
         }
     }
 
-    private static void VerifyInvalidParse(IOption2 option)
+    private static void VerifyEnumInvalidParse(IOption2 option, Type enumType)
     {
         var serializer = option.Definition.Serializer;
-        Assert.False(serializer.TryParse(invalidOption, out _));
+        var possibleEnumValues = enumType.GetEnumValues();
+        foreach (var enumValue in possibleEnumValues)
+        {
+            var intValue = (int)enumValue;
+            Assert.False(serializer.TryParse(intValue.ToString(), out _));
+        }
+
+        Assert.False(serializer.TryParse(enumType.GetEnumNames().Join(","), out _));
     }
 }
