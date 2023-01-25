@@ -165,11 +165,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (previousPrologue != null)
                 {
-                    prologue = new BoundSequencePoint(original.Syntax, previousPrologue);
+                    prologue = BoundSequencePoint.CreateHidden(previousPrologue);
                 }
                 else if (rewriter.Factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol)
                 {
                     prologue = BoundSequencePoint.CreateHidden();
+                }
+
+                if (previousEpilogue != null)
+                {
+                    epilogue = BoundSequencePoint.CreateHidden(previousEpilogue);
                 }
             }
         }
