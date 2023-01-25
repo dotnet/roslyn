@@ -15,20 +15,19 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
+    internal partial class AnalyzerAssemblyLoader
     {
         private readonly AssemblyLoadContext _compilerLoadContext;
-        private readonly object _guard = new object();
         private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(StringComparer.Ordinal);
 
         internal AssemblyLoadContext CompilerLoadContext => _compilerLoadContext;
 
-        internal DefaultAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext = null)
+        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext = null)
         {
-            _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
+            _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
         }
 
-        protected override Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath)
+        private partial Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath)
         {
             DirectoryLoadContext? loadContext;
 
@@ -45,6 +44,9 @@ namespace Microsoft.CodeAnalysis
             return loadContext.LoadFromAssemblyName(assemblyName);
         }
 
+        private partial bool IsMatch(AssemblyName requestedName, AssemblyName candidateName) =>
+            requestedName.Name == candidateName.Name;
+
         internal DirectoryLoadContext[] GetDirectoryLoadContextsSnapshot()
         {
             lock (_guard)
@@ -56,10 +58,10 @@ namespace Microsoft.CodeAnalysis
         internal sealed class DirectoryLoadContext : AssemblyLoadContext
         {
             internal string Directory { get; }
-            private readonly DefaultAnalyzerAssemblyLoader _loader;
+            private readonly AnalyzerAssemblyLoader _loader;
             private readonly AssemblyLoadContext _compilerLoadContext;
 
-            public DirectoryLoadContext(string directory, DefaultAnalyzerAssemblyLoader loader, AssemblyLoadContext compilerLoadContext)
+            public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader, AssemblyLoadContext compilerLoadContext)
             {
                 Directory = directory;
                 _loader = loader;

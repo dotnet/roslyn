@@ -23,21 +23,25 @@ namespace Microsoft.CodeAnalysis
     /// csc.exe and vbc.exe. In scenarios where support for updating or deleting
     /// the analyzer on disk is required a different loader should be used.
     /// </remarks>
-    internal class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
+    internal partial class AnalyzerAssemblyLoader
     {
-        private readonly object _guard = new();
         private bool _hookedAssemblyResolve;
 
-        internal DefaultAnalyzerAssemblyLoader()
+        internal AnalyzerAssemblyLoader()
         {
         }
 
-        protected override Assembly? Load(AssemblyName assemblyName, string _)
+        private partial Assembly? Load(AssemblyName assemblyName, string assemblyOriginalPath)
         {
             EnsureResolvedHooked();
 
             return AppDomain.CurrentDomain.Load(assemblyName);
         }
+
+        private partial bool IsMatch(AssemblyName requestedName, AssemblyName candidateName) =>
+            candidateName.Name == requestedName.Name &&
+            candidateName.Version >= requestedName.Version &&
+            candidateName.GetPublicKeyToken().AsSpan().SequenceEqual(requestedName.GetPublicKeyToken().AsSpan());
 
         internal bool EnsureResolvedHooked()
         {
