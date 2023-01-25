@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // work queue for updating UI state
             _updateViewModelStateQueue = new AsyncBatchingWorkQueue<ViewModelStateDataChange>(
-                DelayTimeSpan.NearImmediate,
+                DelayTimeSpan.Short,
                 UpdateViewModelStateAsync,
                 asyncListener,
                 CancellationToken);

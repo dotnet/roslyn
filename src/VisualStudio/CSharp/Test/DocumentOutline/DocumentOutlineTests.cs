@@ -73,9 +73,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         }
 
         [WpfTheory]
-        [InlineData(SortOption.Name)]
-        [InlineData(SortOption.Location)]
-        [InlineData(SortOption.Type)]
+        [CombinatorialData]
         internal async Task TestSortDocumentSymbolData(SortOption sortOption)
         {
             var (_, _, items) = await InitializeMocksAndDataModelAndUIItems(TestCode);

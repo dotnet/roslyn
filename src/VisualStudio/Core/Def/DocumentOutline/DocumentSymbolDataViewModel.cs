@@ -67,8 +67,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _isSelected = isSelected;
         }
 
+        private static readonly PropertyChangedEventArgs _isExpandedPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(IsExpanded));
+        private static readonly PropertyChangedEventArgs _isSelectedPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(IsSelected));
+
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            => PropertyChanged?.Invoke(this, propertyName switch
+            {
+                nameof(IsExpanded) => _isExpandedPropertyChangedEventArgs,
+                nameof(IsSelected) => _isSelectedPropertyChangedEventArgs,
+                _ => new PropertyChangedEventArgs(propertyName)
+            });
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
