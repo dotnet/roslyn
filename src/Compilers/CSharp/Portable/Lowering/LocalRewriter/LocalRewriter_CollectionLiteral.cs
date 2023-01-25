@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -17,15 +18,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
-            var syntax = node.Syntax;
             var collectionType = node.Type;
-            var constructor = node.Constructor;
+            var initializers = node.Initializers;
+            if (collectionType is ArrayTypeSymbol) // PROTOTYPE: Span<T> and ReadOnlySpan<T> should also use this code path.
+            {
+                if (initializers.Any(e => e.Kind == BoundKind.CollectionLiteralSpreadOperator))
+                {
+                    // A collection literal with a spread operator cannot be lowered to an array initializer
+                    // because the array size is not known at compile time. Instead, the array is created
+                    // from an intermediate List<T> is created.
+                    throw ExceptionUtilities.Unreachable(); // PROTOTYPE: ...
+                }
 
+                return VisitCollectionLiteralArrayExpression(node);
+            }
+
+            var syntax = node.Syntax;
+            var constructor = node.Constructor;
             BoundExpression rewrittenReceiver = constructor.IsDefaultValueTypeConstructor()
                 ? new BoundDefaultExpression(syntax, collectionType)
                 : new BoundObjectCreationExpression(syntax, constructor);
 
-            var initializers = node.Initializers;
             if (initializers.IsEmpty)
             {
                 return rewrittenReceiver;
@@ -36,25 +49,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out boundAssignmentToTemp, isKnownToReferToTempIfReferenceType: true);
             rewrittenReceiver = temp;
 
-            var loweredInitializers = ArrayBuilder<BoundExpression>.GetInstance(initializers.Length);
-
             var placeholder = node.Placeholder;
             AddPlaceholderReplacement(placeholder, rewrittenReceiver);
 
-            // Rewrite initializer expressions.
+            var loweredInitializers = ArrayBuilder<BoundExpression>.GetInstance(initializers.Length);
+
             foreach (var initializer in initializers)
             {
                 BoundExpression? rewrittenInitializer;
                 switch (initializer)
                 {
-                    case BoundCollectionElementInitializer collectionElementInitializer:
-                        rewrittenInitializer = MakeCollectionInitializer(rewrittenReceiver, collectionElementInitializer);
+                    case BoundCollectionLiteralElement element:
+                        // PROTOTYPE: See MakeCollectionInitializer() which explicitly handles an extension method Add() with 'ref this' parameter.
+                        rewrittenInitializer = MakeCollectionLiteralElement(element);
                         break;
-                    case BoundDictionaryElementInitializer dictionaryElement:
+                    case BoundCollectionLiteralDictionaryElement dictionaryElement:
                         rewrittenInitializer = MakeCollectionLiteralDictionaryElement(rewrittenReceiver, dictionaryElement);
                         break;
-                    case BoundSpreadInitializer spreadInitializer:
-                        rewrittenInitializer = MakeCollectionLiteralSpreadInitializer(rewrittenReceiver, spreadInitializer);
+                    case BoundCollectionLiteralSpreadOperator spreadInitializer:
+                        rewrittenInitializer = MakeCollectionLiteralSpreadOperator(spreadInitializer);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
@@ -80,7 +93,75 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionType);
         }
 
-        private BoundExpression MakeCollectionLiteralDictionaryElement(BoundExpression rewrittenReceiver, BoundDictionaryElementInitializer initializer)
+        private BoundExpression VisitCollectionLiteralArrayExpression(BoundCollectionLiteralExpression node)
+        {
+            var arrayType = (ArrayTypeSymbol?)node.Type;
+            Debug.Assert(arrayType is { });
+
+            var elementType = arrayType.ElementType;
+            var syntax = node.Syntax;
+            var initializers = node.Initializers;
+
+            int n = initializers.Length;
+            BoundArrayInitialization? initialization = null;
+
+            if (n > 0)
+            {
+                initialization = new BoundArrayInitialization(
+                    syntax,
+                    isInferred: false,
+                    initializers.SelectAsArray(e => rewriteInitializer(e)));
+            }
+
+            return new BoundArrayCreation(
+                syntax,
+                ImmutableArray.Create<BoundExpression>(
+                    new BoundLiteral(
+                        syntax,
+                        ConstantValue.Create(n),
+                        _compilation.GetSpecialType(SpecialType.System_Int32))),
+                initialization,
+                arrayType)
+            { WasCompilerGenerated = true };
+
+            BoundExpression rewriteInitializer(BoundExpression initializer)
+            {
+                switch (initializer)
+                {
+                    case BoundCollectionLiteralElement element:
+                        var rewrittenInitializer = VisitExpression(element.Expression);
+                        Debug.Assert(rewrittenInitializer is { });
+                        return rewrittenInitializer;
+
+                    case BoundCollectionLiteralDictionaryElement dictionaryElement:
+                        var rewrittenKey = VisitExpression(dictionaryElement.Key);
+                        var rewrittenValue = VisitExpression(dictionaryElement.Value);
+                        throw ExceptionUtilities.Unreachable(); // PROTOTYPE: Combine with new KeyValuePair<TKey, TValue(...).
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
+                }
+            }
+        }
+
+        private BoundExpression MakeCollectionLiteralElement(BoundCollectionLiteralElement initializer)
+        {
+            var rewrittenExpression = VisitExpression(initializer.Expression);
+            Debug.Assert(rewrittenExpression is { });
+
+            var addElementPlaceholder = initializer.AddElementPlaceholder;
+            Debug.Assert(addElementPlaceholder is { });
+
+            AddPlaceholderReplacement(addElementPlaceholder, rewrittenExpression);
+            // PROTOTYPE: See MakeCollectionInitializer() which explicitly handles an extension method Add() with 'ref this' parameter.
+            var rewrittenInitializer = VisitExpression(initializer.AddMethodInvocation);
+            RemovePlaceholderReplacement(addElementPlaceholder);
+
+            Debug.Assert(rewrittenInitializer is { });
+            return rewrittenInitializer;
+        }
+
+        private BoundExpression MakeCollectionLiteralDictionaryElement(BoundExpression rewrittenReceiver, BoundCollectionLiteralDictionaryElement initializer)
         {
             var syntax = initializer.Syntax;
             var indexer = initializer.Indexer;
@@ -112,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isCompoundAssignment: false);
         }
 
-        private BoundExpression MakeCollectionLiteralSpreadInitializer(BoundExpression rewrittenReceiver, BoundSpreadInitializer initializer)
+        private BoundExpression MakeCollectionLiteralSpreadOperator(BoundCollectionLiteralSpreadOperator initializer)
         {
             var enumeratorInfo = initializer.EnumeratorInfoOpt;
             Debug.Assert(enumeratorInfo is { });

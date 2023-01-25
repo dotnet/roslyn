@@ -1922,14 +1922,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
+        public override BoundNode VisitCollectionLiteralElement(BoundCollectionLiteralElement node)
+        {
+            VisitRvalue(node.Expression);
+            return null;
+        }
+
+        public override BoundNode VisitCollectionLiteralDictionaryElement(BoundCollectionLiteralDictionaryElement node)
         {
             VisitRvalue(node.Key);
             VisitRvalue(node.Value);
             return null;
         }
 
-        public override BoundNode VisitSpreadInitializer(BoundSpreadInitializer node)
+        public override BoundNode VisitCollectionLiteralSpreadOperator(BoundCollectionLiteralSpreadOperator node)
         {
             VisitRvalue(node.Expression);
             return null;

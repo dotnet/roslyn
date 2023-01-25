@@ -5867,17 +5867,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeBadExpressionForObjectCreation(node, typeParameter, analyzedArguments, initializerOpt, typeSyntax, diagnostics);
         }
 
+#nullable enable
         private BoundExpression BindCollectionLiteralExpression(CollectionCreationExpressionSyntax syntax, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
         {
             // Follows approach from BindCollectionInitializerExpression.
 
-            // PROTOTYPE: Test types other than NamedTypeSymbols such as arrays and type parameters.
-            // PROTOTYPE: Test constructor with all optional parameters; with params parameter.
-            var constructor = ((NamedTypeSymbol)targetType).Constructors.SingleOrDefault(c => c.ParameterCount == 0);
-            if (constructor is null)
+            // PROTOTYPE: Test type parameter as collection type.
+            MethodSymbol? constructor = null;
+            bool useAdd = false;
+            if (targetType is NamedTypeSymbol namedType)
             {
-                // PROTOTYPE: Report error.
-                return BadExpression(syntax);
+                // PROTOTYPE: Test constructor with all optional parameters; with params parameter.
+                constructor = namedType.Constructors.SingleOrDefault(c => c.ParameterCount == 0);
+                if (constructor is null)
+                {
+                    // PROTOTYPE: Report error.
+                    return BadExpression(syntax);
+                }
+                useAdd = true;
             }
 
             bool hasEnumerableInitializerType = CollectionInitializerTypeImplementsIEnumerable(targetType, syntax, diagnostics);
@@ -5893,7 +5900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var elementInitializer in syntax.Elements)
             {
                 initializerBuilder.Add(
-                    BindCollectionLiteralElement(elementInitializer, hasEnumerableInitializerType, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver));
+                    BindCollectionLiteralElement(elementInitializer, hasEnumerableInitializerType, useAdd: useAdd, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver));
             }
 
             return new BoundCollectionLiteralExpression(
@@ -5906,7 +5913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCollectionLiteralElement(
             CollectionElementSyntax syntax,
-            bool hasEnumerableInitializerType,
+            bool hasEnumerableInitializerType, // PROTOTYPE: Remove if not used.
+            bool useAdd,
             Binder collectionInitializerAddMethodBinder,
             BindingDiagnosticBag diagnostics,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver)
@@ -5917,26 +5925,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var elementSyntax = expressionElementSyntax.Expression;
                         var element = BindValue(elementSyntax, diagnostics, BindValueKind.RValue);
-
                         var elementType = element.Type;
+                        Debug.Assert(elementType is { });
+
+                        // PROTOTYPE: Should only check IsKeyValuePair() if the target type is a dictionary.
                         if (elementType.IsKeyValuePair())
                         {
                             // PROTOTYPE: Create the BoundPropertyAccess expressions for key and value in lowering.
                             var key = getPropertyValue(expressionElementSyntax, element, "Key", diagnostics);
                             var value = getPropertyValue(expressionElementSyntax, element, "Value", diagnostics);
-                            return bindDictionaryElementInitializer(syntax, implicitReceiver, key, value, diagnostics);
+                            return bindCollectionLiteralDictionaryElement(syntax, implicitReceiver, key, value, diagnostics);
                         }
                         else
                         {
-                            BoundExpression result = BindCollectionInitializerElementAddMethod(
+                            BoundValuePlaceholder? addElementPlaceholder = null;
+                            BoundExpression? addMethodInvocation = null;
+                            if (useAdd)
+                            {
+                                addElementPlaceholder = new BoundValuePlaceholder(elementSyntax, elementType);
+                                addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
+                                    elementSyntax,
+                                    implicitReceiver,
+                                    methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                                    args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
+                                    diagnostics: diagnostics);
+                            }
+                            return new BoundCollectionLiteralElement(
                                 elementSyntax,
-                                ImmutableArray.Create(element),
-                                hasEnumerableInitializerType,
-                                collectionInitializerAddMethodBinder,
-                                diagnostics,
-                                implicitReceiver);
-                            result.WasCompilerGenerated = true;
-                            return result;
+                                element,
+                                elementPlaceholder: null, // PROTOTYPE: ...
+                                elementConversion: null, // PROTOTYPE: ...
+                                addElementPlaceholder: addElementPlaceholder,
+                                addMethodInvocation: addMethodInvocation,
+                                type: elementType) // PROTOTYPE: Why does this expression have a type?
+                            { WasCompilerGenerated = true };
                         }
                     }
 
@@ -5944,7 +5966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var key = BindValue(dictionaryElementSyntax.KeyExpression, diagnostics, BindValueKind.RValue);
                         var value = BindValue(dictionaryElementSyntax.ValueExpression, diagnostics, BindValueKind.RValue);
-                        return bindDictionaryElementInitializer(syntax, implicitReceiver, key, value, diagnostics);
+                        return bindCollectionLiteralDictionaryElement(syntax, implicitReceiver, key, value, diagnostics);
                     }
 
                 case SpreadElementSyntax spreadElementSyntax:
@@ -5959,6 +5981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetEnumeratorInfoAndInferCollectionElementType(spreadElementSyntax, elementSyntax, ref builder, ref element, isAsync: false, diagnostics, out _);
                         var enumeratorInfo = builder.Build(default);
                         var enumeratorElementType = enumeratorInfo.ElementType;
+                        // PROTOTYPE: Should only check IsKeyValuePair() if the target type is a dictionary.
                         if (enumeratorElementType.IsKeyValuePair())
                         {
                             // PROTOTYPE: Handle.
@@ -5977,14 +6000,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             element = ConvertForEachCollection(element, conversion, collectionType, diagnostics);
                             var addElementPlaceholder = new BoundValuePlaceholder(elementSyntax, enumeratorInfo.ElementType);
-
                             var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
                                 elementSyntax,
                                 implicitReceiver,
                                 methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
                                 args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
                                 diagnostics: diagnostics);
-                            return new BoundSpreadInitializer(
+                            return new BoundCollectionLiteralSpreadOperator(
                                 spreadElementSyntax,
                                 element,
                                 enumeratorInfo,
@@ -5992,7 +6014,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 elementConversion: null, // PROTOTYPE: ...
                                 addElementPlaceholder: addElementPlaceholder,
                                 addMethodInvocation: addMethodInvocation,
-                                type: enumeratorInfo.CollectionType) { WasCompilerGenerated = true };
+                                type: enumeratorInfo.CollectionType) // PROTOTYPE: Why does this expression have a type?
+                            { WasCompilerGenerated = true };
                         }
                     }
 
@@ -6024,7 +6047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundPropertyAccess(expressionElementSyntax, receiver, property, lookupResult.Kind, property.Type) { WasCompilerGenerated = true };
             }
 
-            BoundExpression bindDictionaryElementInitializer(
+            BoundExpression bindCollectionLiteralDictionaryElement(
                 CollectionElementSyntax syntax,
                 BoundExpression receiver,
                 BoundExpression key,
@@ -6047,9 +6070,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // PROTOTYPE: Handle static property, inaccessible property, ref returning property, wrong number of args, etc.
+                // PROTOTYPE: Handle indexer with optional parameters, indexer with 'params' parameter.
                 key = createConversion(key, indexer.Parameters[0].Type, diagnostics);
                 value = createConversion(value, indexer.Type, diagnostics);
-                return new BoundDictionaryElementInitializer(syntax, indexer, key, value, resultKind, indexer.Type) { WasCompilerGenerated = true };
+                return new BoundCollectionLiteralDictionaryElement(syntax, indexer, key, value, resultKind, indexer.Type) { WasCompilerGenerated = true };
             }
 
             BoundExpression createConversion(
@@ -6068,6 +6092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, wasCompilerGenerated: true, destination: destinationType, diagnostics: diagnostics, hasErrors: hasErrors);
             }
         }
+#nullable disable
 
         /// <summary>
         /// Given the type containing constructors, gets the list of candidate instance constructors and uses overload resolution to determine which one should be called.

@@ -3434,12 +3434,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundCollectionElementInitializer collectionElementInitializer:
                         VisitCollectionElementInitializer(collectionElementInitializer, node.Type, delayCompletionForType: false);
                         break;
-                    case BoundDictionaryElementInitializer dictionaryElementInitializer:
+                    case BoundCollectionLiteralDictionaryElement dictionaryElementInitializer:
                         VisitRvalue(dictionaryElementInitializer.Key);
                         VisitRvalue(dictionaryElementInitializer.Value);
                         // PROTOTYPE: Visit indexer method, similar to visiting Add() in VisitCollectionElementInitializer above.
                         break;
-                    case BoundSpreadInitializer spreadInitializer:
+                    case BoundCollectionLiteralSpreadOperator spreadInitializer:
                         VisitRvalue(spreadInitializer.Expression);
                         // PROTOTYPE: Visit enumerator element initializer.
                         break;
@@ -3459,7 +3459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitDictionaryElementInitializer(BoundDictionaryElementInitializer node)
+        public override BoundNode? VisitCollectionLiteralDictionaryElement(BoundCollectionLiteralDictionaryElement node)
         {
             VisitRvalue(node.Key);
             VisitRvalue(node.Value);

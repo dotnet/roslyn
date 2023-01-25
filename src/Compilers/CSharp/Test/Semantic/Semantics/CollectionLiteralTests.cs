@@ -47,7 +47,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Array()
+        public void Array_Empty()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] a = Create();
+                        Console.WriteLine(a.Length);
+                    }
+                    static int[] Create() => [];
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "0");
+            verifier.VerifyIL("Program.Create", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  newarr     "int"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Array_WithElements()
         {
             string source = """
                 using System;
@@ -64,56 +91,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(source, expectedOutput: "(2, 2, 3)");
             verifier.VerifyIL("Program.Create", """
                 {
-                  // Code size       90 (0x5a)
-                  .maxstack  2
-                  .locals init (System.Collections.Generic.List<object> V_0,
-                                System.Collections.Generic.List<int>.Enumerator V_1,
-                                int V_2)
-                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0005:  stloc.0
-                  IL_0006:  ldloc.0
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  box        "int"
-                  IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_0012:  call       "System.Collections.Generic.List<int> Program.Create2()"
-                  IL_0017:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
-                  IL_001c:  stloc.1
-                  .try
-                  {
-                    IL_001d:  br.s       IL_0033
-                    IL_001f:  ldloca.s   V_1
-                    IL_0021:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
-                    IL_0026:  stloc.2
-                    IL_0027:  ldloc.0
-                    IL_0028:  ldloc.2
-                    IL_0029:  box        "int"
-                    IL_002e:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                    IL_0033:  ldloca.s   V_1
-                    IL_0035:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
-                    IL_003a:  brtrue.s   IL_001f
-                    IL_003c:  leave.s    IL_004c
-                  }
-                  finally
-                  {
-                    IL_003e:  ldloca.s   V_1
-                    IL_0040:  constrained. "System.Collections.Generic.List<int>.Enumerator"
-                    IL_0046:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_004b:  endfinally
-                  }
-                  IL_004c:  ldloc.0
-                  IL_004d:  ldc.i4.2
-                  IL_004e:  box        "int"
-                  IL_0053:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_0058:  ldloc.0
-                  IL_0059:  ret
+                  // Code size       15 (0xf)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.2
+                  IL_0009:  stelem.i4
+                  IL_000a:  dup
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ldc.i4.3
+                  IL_000d:  stelem.i4
+                  IL_000e:  ret
                 }
                 """);
         }
 
+        // PROTOTYPE: Test array creation with k:v and ..e elements.
+
         // PROTOTYPE: Test with type that implements IEnumerable, not IEnumerable<T>.
         // PROTOTYPE: Test with different collection types: class, struct, array, string, etc.
         // PROTOTYPE: Test with types that are not constructible: non-collection type, static type, interface, abstract type, type parameter, etc.
-        // PROTOTYPE: Test with type parameter T where T : new(), IEnumerable<U>, and with struct, class, or neither constraint.
+        // PROTOTYPE: Test with type parameter T collection type where T : new(), IEnumerable<U>, and with struct, class, or neither constraint.
         // PROTOTYPE: Test with explicit cast rather than target type, with collection type, or base type, etc.
         // PROTOTYPE: Test with Nullable<T> where T is a collection type. See also LocalRewriter.VisitConversion() which has special handling for ConversionKind.ObjectCreation with Nullable<T>.
         // PROTOTYPE: Test with missing constructor; inaccessible constructor; implicit (default) constructor; constructor with unexpected parameters; constructor with optional parameters; constructor with params parameter.
