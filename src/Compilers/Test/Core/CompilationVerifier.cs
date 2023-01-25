@@ -549,9 +549,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
         {
-            // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
-            // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
-
             var methodData = _testData.GetMethodData(qualifiedMethodName);
 
             Dictionary<int, string> markers = null;
