@@ -417,12 +417,10 @@ namespace Roslyn.Test.Utilities
                 return "<hidden>";
             }
 
-            var lines = text.Lines;
-
-            var startLine = Convert.ToInt32(sequencePointXml.Attribute("startLine").Value);
-            var startColumn = Convert.ToInt32(sequencePointXml.Attribute("startColumn").Value);
-            var endLine = Convert.ToInt32(sequencePointXml.Attribute("endLine").Value);
-            var endColumn = Convert.ToInt32(sequencePointXml.Attribute("endColumn").Value);
+            var startLine = Convert.ToInt32(sequencePointXml.Attribute("startLine").Value) - 1;
+            var startColumn = Convert.ToInt32(sequencePointXml.Attribute("startColumn").Value) - 1;
+            var endLine = Convert.ToInt32(sequencePointXml.Attribute("endLine").Value) - 1;
+            var endColumn = Convert.ToInt32(sequencePointXml.Attribute("endColumn").Value) - 1;
 
             var lineSpan = new LinePositionSpan(new(startLine, startColumn), new(endLine, endColumn));
             var span = text.Lines.GetTextSpan(lineSpan);
@@ -439,8 +437,8 @@ namespace Roslyn.Test.Utilities
             static string TruncateEnd(string text, int maxLength)
                 => (text.Length < maxLength) ? text : text.Substring(text.Length - maxLength - 1, maxLength);
 
-            var start = subtext.Lines[0].ToString()[(startColumn - 1)..];
-            var end = subtext.Lines[^1].ToString()[..(endColumn - 1)];
+            var start = subtext.Lines[0].ToString();
+            var end = subtext.Lines[^1].ToString();
             return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
         }
     }
