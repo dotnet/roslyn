@@ -12021,6 +12021,28 @@ ref struct MyRefStruct { }
         }
 
         [Fact]
+        [WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        public async Task DoNotProvideMemberOnSystemVoid()
+        {
+            var source = @"
+class C
+{
+    void M1(){}
+    void M2()
+    {
+        this.M1().$$
+    }
+}
+
+public static class Extension
+{
+    public static bool ExtMethod(this object x) => false;
+}
+";
+            await VerifyItemIsAbsentAsync(MakeMarkup(source), "ExtMethod");
+        }
+
+        [Fact]
         public async Task NoSymbolCompletionsInEnumBaseList()
         {
             var source = "enum E : $$";

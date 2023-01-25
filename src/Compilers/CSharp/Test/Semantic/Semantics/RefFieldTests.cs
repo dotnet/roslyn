@@ -25623,10 +25623,13 @@ public class A
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(17, 6));
         }
 
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
+        [InlineData(10)]
         [InlineData(11)]
+        [InlineData(12)]
         [InlineData(int.MinValue)]
         [InlineData(int.MaxValue)]
         public void RefSafetyRulesAttribute_Version(int version)
@@ -25658,12 +25661,100 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
     static ref int F2(out int i) => ref A.F1(out i);
 }";
             var comp = CreateCompilation(sourceB, references: new[] { refA });
-            comp.VerifyDiagnostics();
+            if (version == 11)
+            {
+                comp.VerifyDiagnostics();
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
+                    //     static ref int F2(out int i) => ref A.F1(out i);
+                    Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+            }
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
-            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, version == 11 ? ScopedKind.ScopedRef : ScopedKind.None);
 
-            Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
+            Assert.Equal(version == 11, method.ContainingModule.UseUpdatedEscapeRules);
+        }
+
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
+        [Fact]
+        public void RefSafetyRulesAttribute_UnrecognizedConstructor_NoArguments()
+        {
+            // [module: RefSafetyRules()]
+            var sourceA = """
+                .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+                .assembly '<<GeneratedFileName>>' { }
+                .module '<<GeneratedFileName>>.dll'
+                .custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor() = ( 01 00 00 00 ) 
+                .class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                }
+                .class public A
+                {
+                  .method public static int32& F1([out] int32& i) { ldnull throw }
+                }
+                """;
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB = """
+                class B
+                {
+                    static ref int F2(out int i) => ref A.F1(out i);
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyDiagnostics(
+                // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
+                //     static ref int F2(out int i) => ref A.F1(out i);
+                Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+
+            var method = comp.GetMember<MethodSymbol>("A.F1");
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None);
+
+            Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
+        }
+
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
+        [Fact]
+        public void RefSafetyRulesAttribute_UnrecognizedConstructor_StringArgument()
+        {
+            // [module: RefSafetyRules("11")]
+            var sourceA = """
+                .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+                .assembly '<<GeneratedFileName>>' { }
+                .module '<<GeneratedFileName>>.dll'
+                .custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(string) = {string('11')}
+                .class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor(string version) cil managed { ret }
+                }
+                .class public A
+                {
+                  .method public static int32& F1([out] int32& i) { ldnull throw }
+                }
+                """;
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB = """
+                class B
+                {
+                    static ref int F2(out int i) => ref A.F1(out i);
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyDiagnostics(
+                // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
+                //     static ref int F2(out int i) => ref A.F1(out i);
+                Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+
+            var method = comp.GetMember<MethodSymbol>("A.F1");
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None);
+
+            Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
         }
 
         /// <summary>
