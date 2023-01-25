@@ -7,23 +7,28 @@ using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
 Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 
-// TODO - Decide how and where we're logging.  For now just logging stderr (vscode reads stdout for LSP messages).
-//     1.  File logs for feedback
-//     2.  Logs to vscode output window.
-//     3.  Telemetry
-// Also decide how we configure logging (env variables, extension settings, etc.)
-// https://github.com/microsoft/vscode-csharp-next/issues/12
+var minimumLogLevel = GetLogLevel(args);
+
+// Before we initialize the LSP server we can't send LSP log messages.
+// Create a console logger as a fallback to use before the LSP server starts.
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
-    builder.SetMinimumLevel(LogLevel.Trace);
-    builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
+    builder.SetMinimumLevel(minimumLogLevel);
+    builder.AddProvider(new AggregateLoggerProvider(fallbackLoggerFactory:
+        // Add a console logger as a fallback for when the LSP server has not finished initializing.
+        LoggerFactory.Create(builder =>
+        {
+            builder.SetMinimumLevel(minimumLogLevel);
+            builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
+        })
+    ));
 });
-var logger = loggerFactory.CreateLogger<ILogger>();
 
 LaunchDebuggerIfEnabled(args);
 
@@ -36,20 +41,41 @@ MSBuildLocator.RegisterInstance(msbuildInstances.First());
 
 var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync().ConfigureAwait(false);
 var hostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
+
 using (var workspace = await LanguageServerWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, hostServices, loggerFactory).ConfigureAwait(false))
 {
-    var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, hostServices, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
+    var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, hostServices, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
 
-    await jsonRpc.StartAsync().ConfigureAwait(false);
+    await server.StartAsync().ConfigureAwait(false);
 }
+
+loggerFactory.Dispose();
 
 return;
 
-void LaunchDebuggerIfEnabled(string[] args)
+static LogLevel GetLogLevel(string[] args)
+{
+    var logLevelIndex = Array.IndexOf(args, "--logLevel") + 1;
+    if (logLevelIndex > 0)
+    {
+        var level = args[logLevelIndex];
+        return level switch
+        {
+            "off" => LogLevel.None,
+            "minimal" => LogLevel.Information,
+            "messages" => LogLevel.Debug,
+            "verbose" => LogLevel.Trace,
+            _ => throw new InvalidOperationException($"Unexpected logLevel argument {level}"),
+        };
+    }
+
+    return LogLevel.Information;
+}
+
+static void LaunchDebuggerIfEnabled(string[] args)
 {
     if (args.Contains("--debug") && !Debugger.IsAttached)
     {
-        logger.LogInformation("Launching debugger...");
         _ = Debugger.Launch();
     }
 }
