@@ -1568,7 +1568,7 @@ public class Program
             verify(RetargetingView(comp, assignments, references));
 
             var c = CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped);
-            
+
             c.VerifyMethodBody("Program.M(Base, Derived)", @"
 {
   // Code size       17 (0x11)
