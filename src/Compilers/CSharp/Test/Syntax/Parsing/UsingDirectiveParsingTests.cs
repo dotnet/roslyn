@@ -1123,6 +1123,401 @@ struct A { }";
         }
 
         [Fact]
+        public void AliasUsingDirectivePredefinedTypePointer3()
+        {
+            var text = @"
+using unsafe X = int*;
+
+namespace N
+{
+    using Y = X;
+}";
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,5): hidden CS8019: Unnecessary using directive.
+                //     using Y = X;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X;").WithLocation(6, 5),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     using Y = X;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.NameEquals);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                        }
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingDirectivePredefinedTypePointer4()
+        {
+            var text = @"
+using unsafe X = int*;
+
+namespace N
+{
+    using unsafe Y = X;
+}";
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,5): hidden CS8019: Unnecessary using directive.
+                //     using unsafe Y = X;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe Y = X;").WithLocation(6, 5));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.UnsafeKeyword);
+                        N(SyntaxKind.NameEquals);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                        }
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingDirectivePredefinedTypePointer5()
+        {
+            var text = @"
+using X = int*;
+
+namespace N
+{
+    using unsafe Y = X;
+}";
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = int*;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 11),
+                // (6,5): hidden CS8019: Unnecessary using directive.
+                //     using unsafe Y = X;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe Y = X;").WithLocation(6, 5));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.UnsafeKeyword);
+                        N(SyntaxKind.NameEquals);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                        }
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingDirectivePredefinedTypePointer6()
+        {
+            var text = @"
+using unsafe X = int*;
+
+namespace N
+{
+    using Y = X[];
+}";
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,5): hidden CS8019: Unnecessary using directive.
+                //     using Y = X[];
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X[];").WithLocation(6, 5),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     using Y = X[];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.NameEquals);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                        }
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingDirectivePredefinedTypePointer7()
+        {
+            var text = @"
+using unsafe X = int*;
+
+namespace N
+{
+    using unsafe Y = X[];
+}";
+            UsingTree(text);
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,5): hidden CS8019: Unnecessary using directive.
+                //     using unsafe Y = X[];
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe Y = X[];").WithLocation(6, 5));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.UnsafeKeyword);
+                        N(SyntaxKind.NameEquals);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                        }
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void AliasUsingDirectiveTuple()
         {
             var text = @"using x = (int, int);";
