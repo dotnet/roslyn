@@ -1018,13 +1018,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Else
                 Dim accessors = New List(Of AccessorBlockSyntax)
 
-                If getAccessor IsNot Nothing Then
-                    accessors.Add(DirectCast(getAccessor, AccessorBlockSyntax))
-                End If
-
-                If setAccessor IsNot Nothing Then
-                    accessors.Add(DirectCast(setAccessor, AccessorBlockSyntax))
-                End If
+                accessors.AddIfNotNull(DirectCast(getAccessor, AccessorBlockSyntax))
+                accessors.AddIfNotNull(DirectCast(setAccessor, AccessorBlockSyntax))
 
                 Return SyntaxFactory.PropertyBlock(
                     propertyStatement:=statement,
