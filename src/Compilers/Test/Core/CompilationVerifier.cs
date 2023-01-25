@@ -464,6 +464,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
+            XCData expectedIL,
+            bool realIL = false,
+            string sequencePoints = null,
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0)
+        {
+            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false);
+        }
+
+        /// <summary>
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// </summary>
+        public CompilationVerifier VerifyIL(
+            string qualifiedMethodName,
             string expectedIL,
             bool realIL = false,
             string sequencePoints = null,
