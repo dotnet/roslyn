@@ -2747,20 +2747,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return _list
         End Function
 
-        Private Shared Function GetTypeParameters(typeParameterNames As IEnumerable(Of String)) As TypeParameterListSyntax
-            If typeParameterNames Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim typeParameterList = SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameterNames.Select(Function(name) SyntaxFactory.TypeParameter(name))))
-
-            If typeParameterList.Parameters.Count = 0 Then
-                typeParameterList = Nothing
-            End If
-
-            Return typeParameterList
-        End Function
-
         Private Protected Overrides Function TypeParameter(name As String) As SyntaxNode
             Return SyntaxFactory.TypeParameter(name)
         End Function

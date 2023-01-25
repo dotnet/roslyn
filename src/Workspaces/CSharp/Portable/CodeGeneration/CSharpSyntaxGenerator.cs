@@ -1738,9 +1738,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxFactory.Identifier(typeParameter.Name));
         }
 
-        private TypeParameterListSyntax? AsTypeParameterList(IEnumerable<string>? typeParameterNames)
-            => AsTypeParameterList(typeParameterNames?.Select(n => TypeParameter(n)));
-
         private static TypeParameterListSyntax? AsTypeParameterList(IEnumerable<SyntaxNode>? typeParameterNodes)
         {
             var typeParameters = typeParameterNodes != null
