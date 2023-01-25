@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return false;
             }
 
-            return Enum.TryParse<T>(str, out result);
+            return Enum.TryParse(str, ignoreCase: true, out result);
         }
     }
 }
