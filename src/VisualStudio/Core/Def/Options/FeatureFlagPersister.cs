@@ -46,13 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             return true;
         }
 
-        public bool TryPersist(string flagName, object? value)
+        public void Persist(string flagName, object? value)
         {
-            if (_featureFlags == null)
-            {
-                return false;
-            }
-
             if (value is not bool flag)
             {
                 throw ExceptionUtilities.UnexpectedValue(value);
@@ -60,14 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
 
             try
             {
-                ((IVsFeatureFlags2)_featureFlags).EnableFeatureFlag(flagName, flag);
+                ((IVsFeatureFlags2?)_featureFlags)?.EnableFeatureFlag(flagName, flag);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
-                return false;
             }
-
-            return true;
         }
     }
 }

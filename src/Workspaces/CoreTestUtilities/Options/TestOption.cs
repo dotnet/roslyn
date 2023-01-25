@@ -17,3 +17,22 @@ internal class TestOption : IOption
     public bool IsPerLanguage { get; set; }
     public ImmutableArray<OptionStorageLocation> StorageLocations { get; set; }
 }
+
+#pragma warning disable RS0030 // Do not used banned APIs
+
+internal class TestOption<T> : Option<T>
+{
+    public TestOption(string feature = "test", string name = "test", T? defaultValue = default, OptionStorageLocation[]? storageLocations = null)
+        : base(feature, name, defaultValue!, storageLocations ?? Array.Empty<OptionStorageLocation>())
+    {
+    }
+}
+
+internal class PerLanguageTestOption<T> : PerLanguageOption<T>
+{
+    public PerLanguageTestOption(string feature = "test", string name = "test", T? defaultValue = default, OptionStorageLocation[]? storageLocations = null)
+        : base(feature, name, defaultValue!, storageLocations ?? Array.Empty<OptionStorageLocation>())
+    {
+    }
+}
+#pragma warning restore

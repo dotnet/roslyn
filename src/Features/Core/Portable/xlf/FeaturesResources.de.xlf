@@ -3465,7 +3465,7 @@ Bei Verwendung des Formatbezeichners "d" ohne weitere benutzerdefinierte Formatb
       </trans-unit>
       <trans-unit id="else_statement">
         <source>else statement</source>
-        <target state="new">else statement</target>
+        <target state="translated">„else“-Anweisung</target>
         <note />
       </trans-unit>
       <trans-unit id="embedded">

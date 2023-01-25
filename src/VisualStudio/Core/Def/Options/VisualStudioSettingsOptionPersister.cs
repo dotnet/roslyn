@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                 return true;
             }
 
-            if (_readFallbacks.TryGetValue(optionKey.Option.OptionDefinition.ConfigName, out var lazyReadFallback))
+            if (_readFallbacks.TryGetValue(optionKey.Option.Definition.ConfigName, out var lazyReadFallback))
             {
                 var fallbackResult = lazyReadFallback.Value.TryRead(optionKey.Language, (storageKey, storageType) => TryReadOptionValue(optionKey, storageKey, storageType));
                 if (fallbackResult.HasValue)
@@ -171,13 +171,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             return default;
         }
 
-        public bool TryPersist(OptionKey2 optionKey, string storageKey, object? value)
+        public Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
         {
-            if (_settingManager == null)
-            {
-                Debug.Fail("Manager field is unexpectedly null.");
-                return false;
-            }
+            Contract.ThrowIfNull(_settingManager);
 
             RecordObservedValueToWatchForChanges(optionKey, storageKey, optionKey.Option.Type);
 
@@ -194,9 +190,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                     value = valueToSerialize.CreateXElement().ToString();
                 }
             }
+            else if (value is ImmutableArray<string> stringArray)
+            {
+                value = stringArray.IsDefault ? null : stringArray.ToArray();
+            }
 
-            _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
-            return true;
+            return _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
         }
     }
 }

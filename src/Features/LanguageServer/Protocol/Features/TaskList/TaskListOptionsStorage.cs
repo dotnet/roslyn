@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.TaskList
 {
     internal static class TaskListOptionsStorage
     {
-        public static readonly Option2<ImmutableArray<string>> Descriptors = new("TaskListOptionsStorage", "Descriptors", TaskListOptions.Default.Descriptors);
-        public static readonly Option2<bool> ComputeTaskListItemsForClosedFiles = new("TaskListOptionsStorage", "ComputeTaskListItemsForClosedFiles", defaultValue: true);
+        public static readonly Option2<ImmutableArray<string>> Descriptors = new("TaskListOptionsStorage_Descriptors", TaskListOptions.Default.Descriptors);
+        public static readonly Option2<bool> ComputeTaskListItemsForClosedFiles = new("TaskListOptionsStorage_ComputeTaskListItemsForClosedFiles", defaultValue: true);
 
         public static TaskListOptions GetTaskListOptions(this IGlobalOptionService globalOptions)
             => new()

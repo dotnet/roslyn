@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentCreation.Expanded,
                     currentCreation.ArgsToParamsOpt,
                     currentCreation.DefaultArguments,
-                    currentCreation.ConstantValue,
+                    currentCreation.ConstantValueOpt,
                     currentCreation.InitializerExpressionOpt,
                     type);
 

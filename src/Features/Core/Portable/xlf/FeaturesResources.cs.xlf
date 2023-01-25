@@ -3465,7 +3465,7 @@ Pokud se specifikátor formátu d použije bez dalších specifikátorů vlastn�
       </trans-unit>
       <trans-unit id="else_statement">
         <source>else statement</source>
-        <target state="new">else statement</target>
+        <target state="translated">příkaz else</target>
         <note />
       </trans-unit>
       <trans-unit id="embedded">

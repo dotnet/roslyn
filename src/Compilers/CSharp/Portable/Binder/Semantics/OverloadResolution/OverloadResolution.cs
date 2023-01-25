@@ -2456,7 +2456,7 @@ outerDefault:
             // choice after we received customer reports of problems in the space.
             // https://github.com/dotnet/roslyn/issues/55345
             if (_binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) &&
-                node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
+                node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValueOpt: null })
             {
                 switch ((conv1.Kind, conv2.Kind))
                 {

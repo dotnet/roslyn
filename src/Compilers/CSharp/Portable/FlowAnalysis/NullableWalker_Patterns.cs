@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromAnyNullPatterns(slot, expression.Type, pattern);
         }
 
-        private void VisitPatternForRewriting(BoundPattern pattern)
+        private void VisitForRewriting(BoundNode node)
         {
-            // Don't let anything under the pattern actually affect current state,
+            // Don't let anything under the node actually affect current state,
             // as we're only visiting for nullable information.
             Debug.Assert(!IsConditionalState);
             var currentState = State;
-            VisitWithoutDiagnostics(pattern);
+            VisitWithoutDiagnostics(node);
             SetState(currentState);
         }
 
@@ -137,12 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/35041 We only need to do this when we're rewriting, so we
             // can get information for any nodes in the pattern.
-            VisitPatternForRewriting(pattern);
+            VisitForRewriting(pattern);
 
             switch (pattern)
             {
                 case BoundConstantPattern cp:
-                    bool isExplicitNullCheck = cp.Value.ConstantValue == ConstantValue.Null;
+                    bool isExplicitNullCheck = cp.Value.ConstantValueOpt == ConstantValue.Null;
                     if (isExplicitNullCheck)
                     {
                         // Since we're not branching on this null test here, we just infer the top level
@@ -282,7 +282,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var label in node.SwitchLabels)
             {
                 TakeIncrementalSnapshot(label);
-                VisitPatternForRewriting(label.Pattern);
+                VisitForRewriting(label.Pattern);
+
+                if (!State.Reachable && label.WhenClause != null)
+                {
+                    // Unreachable when clauses are not visited in `LearnFromDecisionDag`.
+                    VisitForRewriting(label.WhenClause);
+                }
+
                 VisitLabel(label.Label, node);
             }
 
@@ -428,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         }
                                         Debug.Assert(!IsConditionalState);
                                         Unsplit();
-                                        State[outputSlot] = NullableFlowState.NotNull;
+                                        SetState(ref State, outputSlot, NullableFlowState.NotNull);
                                         addToTempMap(output, outputSlot, e.Type);
                                         break;
                                     }
@@ -519,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
-                                        this.State[outputSlot] = NullableFlowState.NotNull; // Slice value is assumed to be never null
+                                        SetState(ref this.State, outputSlot, NullableFlowState.NotNull); // Slice value is assumed to be never null
                                         break;
                                     }
                                 case BoundDagAssignmentEvaluation e:
@@ -549,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
                                     break;
                                 case BoundDagNonNullTest t:
-                                    var inputMaybeNull = this.StateWhenTrue[inputSlot].MayBeNull();
+                                    var inputMaybeNull = GetState(ref this.StateWhenTrue, inputSlot).MayBeNull();
 
                                     if (inputSlot > 0)
                                     {
@@ -622,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (foundTemp) // in erroneous programs, we might not have seen a temp defined.
                             {
                                 var (tempSlot, tempType) = tempSlotAndType;
-                                var tempState = this.State[tempSlot];
+                                var tempState = GetState(ref this.State, tempSlot);
                                 if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                                 {
                                     var value = TypeWithState.Create(tempType, tempState);
@@ -647,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        if (w.WhenExpression != null && w.WhenExpression.ConstantValue != ConstantValue.True)
+                        if (w.WhenExpression != null && w.WhenExpression.ConstantValueOpt != ConstantValue.True)
                         {
                             VisitCondition(w.WhenExpression);
                             Debug.Assert(this.IsConditionalState);
@@ -865,7 +872,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(getStateForArm(arm, labelStateMap));
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
                 TakeIncrementalSnapshot(arm);
-                VisitPatternForRewriting(arm.Pattern);
+                VisitForRewriting(arm.Pattern);
+
+                if (!State.Reachable && arm.WhenClause != null)
+                {
+                    // Unreachable when clauses are not visited in `LearnFromDecisionDag`.
+                    VisitForRewriting(arm.WhenClause);
+                }
+
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
                 SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
@@ -987,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
-            VisitPatternForRewriting(node.Pattern);
+            VisitForRewriting(node.Pattern);
             var hasStateWhenNotNull = VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull);
             var expressionState = ResultType;
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, hasStateWhenNotNull ? conditionalStateWhenNotNull : null);

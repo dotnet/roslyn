@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
-        <target state="new">Make type partial</target>
+        <target state="translated">型を部分的にする</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">

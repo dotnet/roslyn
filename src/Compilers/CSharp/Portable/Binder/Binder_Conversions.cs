@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CheckOverflowAtRuntime,
                         explicitCastInCode: isCast && !wasCompilerGenerated,
                         conversionGroupOpt,
-                        convertedSwitch.ConstantValue,
+                        convertedSwitch.ConstantValueOpt,
                         destination,
                         hasErrors);
                 }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CheckOverflowAtRuntime,
                         explicitCastInCode: isCast && !wasCompilerGenerated,
                         conversionGroupOpt,
-                        convertedConditional.ConstantValue,
+                        convertedConditional.ConstantValueOpt,
                         destination,
                         hasErrors);
                 }
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         unconvertedSource.Syntax,
                         interpolationData: null,
                         BindInterpolatedStringParts(unconvertedSource, diagnostics),
-                        unconvertedSource.ConstantValue,
+                        unconvertedSource.ConstantValueOpt,
                         unconvertedSource.Type,
                         unconvertedSource.HasErrors);
                 }
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   node.Binder.CheckOverflowAtRuntime,
                                   explicitCastInCode: isCast && !wasCompilerGenerated,
                                   conversionGroupOpt,
-                                  expr.ConstantValue,
+                                  expr.ConstantValueOpt,
                                   destination)
             { WasCompilerGenerated = wasCompilerGenerated };
 
@@ -787,29 +787,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambdaParameter = lambdaSymbol.Parameters[p];
                 var delegateParameter = delegateParameters[p];
 
-                // If synthesizing a delegate with `decimal`/`DateTime` default value,
-                // check that the corresponding `*ConstantAttribute` is available.
-                if (isSynthesized && delegateParameter.ExplicitDefaultConstantValue is { } defaultValue &&
-                    // Skip reporting this diagnostic if already reported in `SourceComplexParameterSymbolBase.DefaultSyntaxValue`.
-                    lambdaParameter is not SourceComplexParameterSymbolBase
-                    {
-                        ExplicitDefaultConstantValue.IsDecimal: true,
-                        DefaultValueFromAttributes: ConstantValue.NotAvailable
-                    })
+                if (isSynthesized)
                 {
-                    WellKnownMember? member = defaultValue.SpecialType switch
+                    // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                    // check that the corresponding `*ConstantAttribute` is available.
+                    if (delegateParameter.ExplicitDefaultConstantValue is { } defaultValue &&
+                        // Skip reporting this diagnostic if already reported in `SourceComplexParameterSymbolBase.DefaultSyntaxValue`.
+                        lambdaParameter is not SourceComplexParameterSymbolBase
+                        {
+                            ExplicitDefaultConstantValue.IsDecimal: true,
+                            DefaultValueFromAttributes: ConstantValue.NotAvailable
+                        })
                     {
-                        SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
-                        SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
-                        _ => null
-                    };
-                    if (member != null)
+                        WellKnownMember? member = defaultValue.SpecialType switch
+                        {
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            _ => null
+                        };
+                        if (member != null)
+                        {
+                            reportUseSiteDiagnosticForSynthesizedAttribute(
+                                lambdaSymbol,
+                                lambdaParameter,
+                                member.GetValueOrDefault(),
+                                diagnostics);
+                        }
+                    }
+
+                    // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
+                    if (delegateParameter.HasUnscopedRefAttribute)
                     {
-                        ReportUseSiteDiagnosticForSynthesizedAttribute(
-                            lambdaSymbol.DeclaringCompilation,
-                            member.GetValueOrDefault(),
-                            diagnostics,
-                            lambdaParameter.Locations.FirstOrDefault() ?? lambdaSymbol.SyntaxNode.Location);
+                        reportUseSiteDiagnosticForSynthesizedAttribute(
+                            lambdaSymbol,
+                            lambdaParameter,
+                            WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                            diagnostics);
                     }
                 }
 
@@ -833,6 +846,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
                     }
                 }
+            }
+
+            static void reportUseSiteDiagnosticForSynthesizedAttribute(
+                LambdaSymbol lambdaSymbol,
+                ParameterSymbol lambdaParameter,
+                WellKnownMember member,
+                BindingDiagnosticBag diagnostics)
+            {
+                ReportUseSiteDiagnosticForSynthesizedAttribute(
+                    lambdaSymbol.DeclaringCompilation,
+                    member,
+                    diagnostics,
+                    lambdaParameter.Locations.FirstOrDefault() ?? lambdaSymbol.SyntaxNode.Location);
             }
         }
 
@@ -1536,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: Some conversions can produce errors or warnings depending on checked/unchecked.
             // TODO: Fold conversions on enums and strings too.
 
-            var sourceConstantValue = source.ConstantValue;
+            var sourceConstantValue = source.ConstantValueOpt;
             if (sourceConstantValue == null)
             {
                 if (conversion.Kind == ConversionKind.DefaultLiteral)

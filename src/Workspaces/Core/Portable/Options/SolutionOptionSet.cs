@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal sealed class SolutionOptionSet : OptionSet
     {
-        private readonly ILegacyGlobalOptionService _globalOptions;
+        private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
 
         /// <summary>
-        /// Cached values read from global options translated to public values.
+        /// Cached values read from global options. Stores internal values of options.
         /// </summary>
         private ImmutableDictionary<OptionKey, object?> _values;
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Options
             ImmutableDictionary<OptionKey, object?> values,
             ImmutableHashSet<OptionKey> changedOptionKeys)
         {
-            _globalOptions = globalOptions;
+            _legacyGlobalOptions = globalOptions;
             _values = values;
             _changedOptionKeys = changedOptionKeys;
         }
@@ -45,73 +45,43 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-        private protected override object? GetOptionCore(OptionKey optionKey)
+        internal override object? GetInternalOptionValue(OptionKey optionKey)
         {
             if (_values.TryGetValue(optionKey, out var value))
             {
                 return value;
             }
 
-            // Global options store internal representation of code style options. Translate to public representation.
-            var internalValue = _globalOptions.GetOption(optionKey);
-            value = internalValue is ICodeStyleOption codeStyleOption ? codeStyleOption.AsPublicCodeStyleOption() : internalValue;
+            value = (optionKey.Option is IOption2 internallyDefinedOption)
+                ? _legacyGlobalOptions.GlobalOptions.GetOption<object?>(new OptionKey2(internallyDefinedOption, optionKey.Language))
+                : _legacyGlobalOptions.GetExternallyDefinedOption(optionKey);
 
             return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
         }
 
-        public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
+        internal override OptionSet WithChangedOptionInternal(OptionKey optionKey, object? internalValue)
         {
-            // translate possibly internal value to public value:
-            if (value is ICodeStyleOption codeStyleOption)
-            {
-                value = codeStyleOption.AsPublicCodeStyleOption();
-            }
-
             // Make sure we first load this in current optionset
-            var currentValue = GetOption(optionKey);
+            var currentInternalValue = GetInternalOptionValue(optionKey);
 
             // Check if the new value is the same as the current value.
-            if (Equals(value, currentValue))
+            if (Equals(internalValue, currentInternalValue))
             {
                 // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
-                return new SolutionOptionSet(_globalOptions, _values, _changedOptionKeys);
+                return new SolutionOptionSet(_legacyGlobalOptions, _values, _changedOptionKeys);
             }
 
             return new SolutionOptionSet(
-                _globalOptions,
-                _values.SetItem(optionKey, value),
+                _legacyGlobalOptions,
+                _values.SetItem(optionKey, internalValue),
                 _changedOptionKeys.Add(optionKey));
         }
 
-        /// <summary>
-        /// Gets a list of all the options that were changed.
-        /// </summary>
-        internal IEnumerable<OptionKey> GetChangedOptionKeys()
-            => _changedOptionKeys;
-
         internal (ImmutableArray<KeyValuePair<OptionKey2, object?>> internallyDefined, ImmutableArray<KeyValuePair<OptionKey, object?>> externallyDefined) GetChangedOptions()
         {
-            var internallyDefined = _changedOptionKeys.Where(key => key.Option is IOption2).SelectAsArray(key => KeyValuePairUtil.Create(new OptionKey2((IOption2)key.Option, key.Language), GetOption(key)));
-            var externallyDefined = _changedOptionKeys.Where(key => key.Option is not IOption2).SelectAsArray(key => KeyValuePairUtil.Create(key, GetOption(key)));
+            var internallyDefined = _changedOptionKeys.Where(key => key.Option is IOption2).SelectAsArray(key => KeyValuePairUtil.Create(new OptionKey2((IOption2)key.Option, key.Language), _values[key]));
+            var externallyDefined = _changedOptionKeys.Where(key => key.Option is not IOption2).SelectAsArray(key => KeyValuePairUtil.Create(key, _values[key]));
             return (internallyDefined, externallyDefined);
-        }
-
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
-        {
-            if (optionSet == this)
-            {
-                yield break;
-            }
-
-            foreach (var key in GetChangedOptionKeys())
-            {
-                var currentValue = optionSet?.GetOption(key);
-                var changedValue = this.GetOption(key);
-                if (!object.Equals(currentValue, changedValue))
-                {
-                    yield return key;
-                }
-            }
         }
     }
 }

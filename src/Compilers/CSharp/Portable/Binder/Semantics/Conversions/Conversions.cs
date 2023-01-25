@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -33,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         protected override CSharpCompilation Compilation { get { return _binder.Compilation; } }
-#nullable disable
 
         protected override ConversionsBase WithNullabilityCore(bool includeNullability)
         {
@@ -90,6 +90,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
+                if (invoke.Parameters.Any(p => p.HasUnscopedRefAttribute))
+                {
+                    Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                        Compilation,
+                        WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                        ref useSiteInfo);
+                }
             }
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
@@ -99,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resolution.Free();
             return conversion;
         }
+#nullable disable
 
         public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

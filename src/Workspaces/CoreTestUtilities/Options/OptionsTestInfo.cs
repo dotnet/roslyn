@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-internal readonly record struct OptionsTestInfo(IOption2 Option, string? ContainingAssemblyLanguage, List<string> Accessors, bool IsPublic)
+internal readonly record struct OptionsTestInfo(IOption2 Option, string? ContainingAssemblyLanguage, List<(string qualifiedName, bool isPublic, IOption2 option)> Accessors)
 {
     public static Dictionary<string, OptionsTestInfo> CollectOptions(string directory)
     {
@@ -39,6 +39,10 @@ internal readonly record struct OptionsTestInfo(IOption2 Option, string? Contain
                 {
                     foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
                     {
+                        if (field.Name.Contains("SpacingAfterMethodDeclarationName"))
+                        {
+                        }
+
                         if (typeof(IOption2).IsAssignableFrom(field.FieldType))
                         {
                             Assert.False(type.IsGenericType, "Option should not be defined in a generic type");
@@ -51,19 +55,14 @@ internal readonly record struct OptionsTestInfo(IOption2 Option, string? Contain
                             var accessor = type.FullName + "." + unmangledName;
                             var isPublic = type.IsPublic && (isBackingField ? type.GetProperty(unmangledName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!.GetMethod!.IsPublic : field.IsPublic);
 
-                            var configName = option.OptionDefinition.ConfigName;
+                            var configName = option.Definition.ConfigName;
                             if (result.TryGetValue(configName, out var optionInfo))
                             {
-                                optionInfo.Accessors.Add(accessor);
-
-                                if (isPublic)
-                                {
-                                    optionInfo = optionInfo with { IsPublic = true };
-                                }
+                                optionInfo.Accessors.Add((accessor, isPublic, option));
                             }
                             else
                             {
-                                optionInfo = new OptionsTestInfo(option, language, new List<string> { accessor }, isPublic);
+                                optionInfo = new OptionsTestInfo(option, language, new List<(string, bool, IOption2)> { (accessor, isPublic, option) });
                             }
 
                             result[configName] = optionInfo;

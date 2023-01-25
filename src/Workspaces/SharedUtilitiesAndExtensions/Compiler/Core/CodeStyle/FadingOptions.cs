@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class FadingOptions
     {
-        public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new("FadingOptions", "FadeOutUnusedImports", defaultValue: true);
-        public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new("FadingOptions", "FadeOutUnreachableCode", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new("FadingOptions_FadeOutUnusedImports", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new("FadingOptions_FadeOutUnreachableCode", defaultValue: true);
     }
 }

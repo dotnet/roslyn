@@ -11,13 +11,11 @@ internal sealed class ColorSchemeOptions
     internal const string ColorSchemeSettingKey = "TextEditor.Roslyn.ColorSchemeName";
 
     public static readonly Option2<ColorSchemeName> ColorScheme = new(
-        "ColorSchemeOptions",
-        "ColorSchemeName",
+        "ColorSchemeOptions_ColorSchemeName",
         defaultValue: ColorSchemeName.VisualStudio2019);
 
     public static readonly Option2<UseEnhancedColors> LegacyUseEnhancedColors = new(
-        "ColorSchemeOptions",
-        "LegacyUseEnhancedColors",
+        "ColorSchemeOptions_LegacyUseEnhancedColors",
         defaultValue: UseEnhancedColors.Default);
 
     public enum UseEnhancedColors

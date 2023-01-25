@@ -8,11 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -203,14 +201,12 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a method declaration matching an existing method symbol.
+        /// Creates a operator or conversion declaration matching an existing method symbol.
         /// </summary>
         public SyntaxNode OperatorDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode>? statements = null)
         {
-            if (method.MethodKind != MethodKind.UserDefinedOperator)
-            {
+            if (method.MethodKind is not (MethodKind.UserDefinedOperator or MethodKind.Conversion))
                 throw new ArgumentException("Method is not an operator.");
-            }
 
             var decl = OperatorDeclaration(
                 GetOperatorKind(method),
@@ -259,23 +255,40 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a parameter declaration.
         /// </summary>
-        public abstract SyntaxNode ParameterDeclaration(
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public SyntaxNode ParameterDeclaration(
             string name,
             SyntaxNode? type = null,
             SyntaxNode? initializer = null,
-            RefKind refKind = RefKind.None);
+            RefKind refKind = RefKind.None)
+        {
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        private protected abstract SyntaxNode ParameterDeclaration(
+            string name,
+            SyntaxNode? type,
+            SyntaxNode? initializer,
+            RefKind refKind,
+            bool isExtension,
+            bool isParams);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
         /// </summary>
         public SyntaxNode ParameterDeclaration(IParameterSymbol symbol, SyntaxNode? initializer = null)
         {
-            return ParameterDeclaration(
+            var parameter = ParameterDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
                 initializer is not null ? initializer :
                 symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
-                symbol.RefKind);
+                symbol.RefKind,
+                isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
+                symbol.IsParams);
+
+            return parameter;
         }
 
         private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
@@ -581,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Ordinary:
                             return MethodDeclaration(method);
 
-                        case MethodKind.UserDefinedOperator:
+                        case MethodKind.UserDefinedOperator or MethodKind.Conversion:
                             return OperatorDeclaration(method);
                     }
 
@@ -628,13 +641,12 @@ namespace Microsoft.CodeAnalysis.Editing
                                 members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration));
                             break;
                         case TypeKind.Delegate:
-                            var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
-                            if (invoke != null)
+                            if (type.GetMembers("Invoke") is [IMethodSymbol invoke, ..])
                             {
                                 declaration = DelegateDeclaration(
                                     type.Name,
                                     parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
-                                    returnType: TypeExpression(invoke.ReturnType),
+                                    returnType: invoke.ReturnsVoid ? null : TypeExpression(invoke.ReturnType),
                                     accessibility: type.DeclaredAccessibility,
                                     modifiers: DeclarationModifiers.From(type));
                             }

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitCatchBlock(node);
             }
 
-            if (node.ExceptionFilterOpt.ConstantValue?.BooleanValue == false)
+            if (node.ExceptionFilterOpt.ConstantValueOpt?.BooleanValue == false)
             {
                 return null;
             }

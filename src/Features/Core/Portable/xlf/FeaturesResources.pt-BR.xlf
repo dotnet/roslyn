@@ -3465,7 +3465,7 @@ Se o especificador de formato "d" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="else_statement">
         <source>else statement</source>
-        <target state="new">else statement</target>
+        <target state="translated">outra declaração</target>
         <note />
       </trans-unit>
       <trans-unit id="embedded">
