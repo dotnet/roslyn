@@ -1000,8 +1000,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             type As SyntaxNode,
             getAccessor As SyntaxNode,
             setAccessor As SyntaxNode,
-            Optional accessibility As Accessibility = Accessibility.NotApplicable,
-            Optional modifiers As DeclarationModifiers = Nothing) As SyntaxNode
+            accessibility As Accessibility,
+            modifiers As DeclarationModifiers) As SyntaxNode
 
             Dim asClause = SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax))
             Dim statement = SyntaxFactory.PropertyStatement(

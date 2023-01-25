@@ -353,8 +353,8 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode type,
             SyntaxNode? getAccessor,
             SyntaxNode? setAccessor,
-            Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default);
+            Accessibility accessibility,
+            DeclarationModifiers modifiers);
 
         public SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, params SyntaxNode[] accessorDeclarations)
             => WithAccessorDeclarations(declaration, (IEnumerable<SyntaxNode>)accessorDeclarations);

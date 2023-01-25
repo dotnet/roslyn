@@ -360,8 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             SyntaxNode type,
             SyntaxNode? getAccessor,
             SyntaxNode? setAccessor,
-            Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default)
+            Accessibility accessibility,
+            DeclarationModifiers modifiers)
         {
             var accessors = new List<AccessorDeclarationSyntax>();
 
