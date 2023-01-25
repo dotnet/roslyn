@@ -186,8 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var charCaseLabels = ArrayBuilder<(char value, LabelSymbol label)>.GetInstance();
             foreach (var group in casesWithGivenLength.GroupBy(c => c.value[bestCharacterPosition]))
             {
+                // When dealing with a stringLength==1 bucket, a character check gives us the final answer,
+                // no need to follow with a string check.
+                LabelSymbol label = (stringLength == 1)
+                    ? group.Single().label
+                    : CreateAndRegisterStringJumpTable(group.ToImmutableArray(), stringJumpTables);
                 char character = group.Key;
-                var label = CreateAndRegisterStringJumpTable(group.ToImmutableArray(), stringJumpTables);
                 charCaseLabels.Add((character, label));
             }
 
