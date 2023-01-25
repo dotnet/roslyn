@@ -134,12 +134,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return false;
             }
 
-            // Enum.TryParse has a strange behavior.
-            // > enum F { A = 1, B = 2, C = 3 }
-            // > Enum.TryParse<F>("A, B", out var x)
-            // > true
-            // > x C
-            // block this case.
+            // Enum.TryParse parses every enum as flags enum, we don't want to multiple values to be specified for enums are not flags.
             if (str.Contains(","))
             {
                 return false;
