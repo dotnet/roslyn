@@ -1912,26 +1912,28 @@ Position GetName for item '2'
             verifier.VerifyIL("Program.Call2<T>",
 @"
 {
-  // Code size       53 (0x35)
+  // Code size       55 (0x37)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  box        ""T""
-  IL_0006:  brfalse.s  IL_0034
-  IL_0008:  ldarga.s   V_0
-  IL_000a:  ldloca.s   V_0
-  IL_000c:  initobj    ""T""
-  IL_0012:  ldloc.0
-  IL_0013:  box        ""T""
-  IL_0018:  brtrue.s   IL_0022
-  IL_001a:  ldobj      ""T""
-  IL_001f:  stloc.0
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  ldarga.s   V_0
-  IL_0024:  call       ""int Program.GetOffset<T>(ref T)""
-  IL_0029:  constrained. ""T""
-  IL_002f:  callvirt   ""void IMoveable.GetName(int)""
-  IL_0034:  ret
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_0024
+  IL_0012:  ldobj      ""T""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_0024
+  IL_0022:  pop
+  IL_0023:  ret
+  IL_0024:  ldarga.s   V_0
+  IL_0026:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""void IMoveable.GetName(int)""
+  IL_0036:  ret
 }
 ");
         }
@@ -2064,10 +2066,9 @@ Position GetName for item '2'
             verifier.VerifyIL("Program.Call2<T>",
 @"
 {
-  // Code size       77 (0x4d)
+  // Code size       53 (0x35)
   .maxstack  2
-  .locals init (T V_0,
-            T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldloca.s   V_0
   IL_0003:  initobj    ""T""
@@ -2082,19 +2083,11 @@ Position GetName for item '2'
   IL_001f:  brtrue.s   IL_0023
   IL_0021:  pop
   IL_0022:  ret
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  initobj    ""T""
-  IL_002b:  ldloc.1
-  IL_002c:  box        ""T""
-  IL_0031:  brtrue.s   IL_003b
-  IL_0033:  ldobj      ""T""
-  IL_0038:  stloc.1
-  IL_0039:  ldloca.s   V_1
-  IL_003b:  ldarg.0
-  IL_003c:  call       ""int Program.GetOffset<T>(ref T)""
-  IL_0041:  constrained. ""T""
-  IL_0047:  callvirt   ""void IMoveable.GetName(int)""
-  IL_004c:  ret
+  IL_0023:  ldarg.0
+  IL_0024:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0029:  constrained. ""T""
+  IL_002f:  callvirt   ""void IMoveable.GetName(int)""
+  IL_0034:  ret
 }
 ");
         }
@@ -30622,6 +30615,271 @@ Position Slice for item '-2'
   IL_00e5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
   IL_00ea:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00ef:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(66162, "https://github.com/dotnet/roslyn/issues/66162")]
+        public void GenericTypeParameterAsReceiver_Call_Nullable()
+        {
+            var source = @"
+using System;
+
+#pragma warning disable CS0659 // 'Item' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+    
+struct Item
+{
+    public int Count;
+
+    public override bool Equals(object obj)
+    {
+        Console.WriteLine(""Position Equals for item '{0}'"", Count);
+        return base.Equals(obj);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Item? item1 = new Item {Count = 1};
+        Call1(item1);
+        Item? item2 = new Item {Count = 2};
+        Call2(ref item2);
+    }
+
+    static void Call1<T>(T item)
+    {
+        item.Equals(GetOffset(ref item));
+    }
+
+    static void Call2<T>(ref T item)
+    {
+        item.Equals(GetOffset(ref item));
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(object)new Item {Count = --value};
+        return 0;
+    }
+}
+";
+            // The output doesn't match the expectation, see https://github.com/dotnet/roslyn/issues/66162
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position Equals for item '1'
+Position Equals for item '2'
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Call1<T>",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001a
+  IL_0012:  ldobj      ""T""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldarga.s   V_0
+  IL_001c:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0021:  box        ""int""
+  IL_0026:  constrained. ""T""
+  IL_002c:  callvirt   ""bool object.Equals(object)""
+  IL_0031:  pop
+  IL_0032:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Call2<T>",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0019
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldarg.0
+  IL_001a:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_001f:  box        ""int""
+  IL_0024:  constrained. ""T""
+  IL_002a:  callvirt   ""bool object.Equals(object)""
+  IL_002f:  pop
+  IL_0030:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(66162, "https://github.com/dotnet/roslyn/issues/66162")]
+        public void GenericTypeParameterAsReceiver_Call_Nullable_Async()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS0659 // 'Item' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+    
+struct Item
+{
+    public int Count;
+
+    public override bool Equals(object obj)
+    {
+        Console.WriteLine(""Position Equals for item '{0}'"", Count);
+        return base.Equals(obj);
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Item? item1 = new Item {Count = 1};
+        await Call1(item1);
+    }
+
+    static async Task Call1<T>(T item)
+    {
+        item.Equals(await GetOffsetAsync(GetOffset(ref item)));
+    }
+
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(object)new Item {Count = --value};
+        return 0;
+    }
+
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    static async Task<int> GetOffsetAsync(int i)
+    {
+        return i;
+    }
+}
+";
+
+            // The output doesn't match the expectation, see https://github.com/dotnet/roslyn/issues/66162
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position Equals for item '1'
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<Call1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      247 (0xf7)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                T V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Call1>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0068
+    IL_000a:  ldloca.s   V_2
+    IL_000c:  initobj    ""T""
+    IL_0012:  ldloc.2
+    IL_0013:  box        ""T""
+    IL_0018:  brtrue.s   IL_0026
+    IL_001a:  ldarg.0
+    IL_001b:  ldarg.0
+    IL_001c:  ldfld      ""T Program.<Call1>d__1<T>.item""
+    IL_0021:  stfld      ""T Program.<Call1>d__1<T>.<>7__wrap1""
+    IL_0026:  ldarg.0
+    IL_0027:  ldflda     ""T Program.<Call1>d__1<T>.item""
+    IL_002c:  call       ""int Program.GetOffset<T>(ref T)""
+    IL_0031:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_0036:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_003b:  stloc.3
+    IL_003c:  ldloca.s   V_3
+    IL_003e:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0043:  brtrue.s   IL_0084
+    IL_0045:  ldarg.0
+    IL_0046:  ldc.i4.0
+    IL_0047:  dup
+    IL_0048:  stloc.0
+    IL_0049:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
+    IL_004e:  ldarg.0
+    IL_004f:  ldloc.3
+    IL_0050:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
+    IL_0055:  ldarg.0
+    IL_0056:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
+    IL_005b:  ldloca.s   V_3
+    IL_005d:  ldarg.0
+    IL_005e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Call1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Call1>d__1<T>)""
+    IL_0063:  leave      IL_00f6
+    IL_0068:  ldarg.0
+    IL_0069:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
+    IL_006e:  stloc.3
+    IL_006f:  ldarg.0
+    IL_0070:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
+    IL_0075:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_007b:  ldarg.0
+    IL_007c:  ldc.i4.m1
+    IL_007d:  dup
+    IL_007e:  stloc.0
+    IL_007f:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
+    IL_0084:  ldloca.s   V_3
+    IL_0086:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_008b:  stloc.1
+    IL_008c:  ldloca.s   V_2
+    IL_008e:  initobj    ""T""
+    IL_0094:  ldloc.2
+    IL_0095:  box        ""T""
+    IL_009a:  brtrue.s   IL_00a4
+    IL_009c:  ldarg.0
+    IL_009d:  ldflda     ""T Program.<Call1>d__1<T>.<>7__wrap1""
+    IL_00a2:  br.s       IL_00aa
+    IL_00a4:  ldarg.0
+    IL_00a5:  ldflda     ""T Program.<Call1>d__1<T>.item""
+    IL_00aa:  ldloc.1
+    IL_00ab:  box        ""int""
+    IL_00b0:  constrained. ""T""
+    IL_00b6:  callvirt   ""bool object.Equals(object)""
+    IL_00bb:  pop
+    IL_00bc:  ldarg.0
+    IL_00bd:  ldflda     ""T Program.<Call1>d__1<T>.<>7__wrap1""
+    IL_00c2:  initobj    ""T""
+    IL_00c8:  leave.s    IL_00e3
+  }
+  catch System.Exception
+  {
+    IL_00ca:  stloc.s    V_4
+    IL_00cc:  ldarg.0
+    IL_00cd:  ldc.i4.s   -2
+    IL_00cf:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
+    IL_00da:  ldloc.s    V_4
+    IL_00dc:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00e1:  leave.s    IL_00f6
+  }
+  IL_00e3:  ldarg.0
+  IL_00e4:  ldc.i4.s   -2
+  IL_00e6:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
+  IL_00eb:  ldarg.0
+  IL_00ec:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
+  IL_00f1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00f6:  ret
 }
 ");
         }

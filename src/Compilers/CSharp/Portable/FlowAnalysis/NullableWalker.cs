@@ -2977,6 +2977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (stmt is BoundLocalFunctionStatement localFunc)
                     {
+                        TakeIncrementalSnapshot(localFunc);
                         VisitLocalFunctionStatement(localFunc);
                     }
                 }

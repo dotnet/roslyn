@@ -31,7 +31,7 @@ class C
         var x1 = stackalloc RefS[10];
         var x2 = stackalloc RefG<string>[10];
         var x3 = stackalloc RefG<int>[10];
-        var x4 = stackalloc System.TypedReference[10]; // Note: this should be disallowed by adding a dummy field to the ref assembly for TypedReference
+        var x4 = stackalloc System.TypedReference[10];
         var x5 = stackalloc System.ArgIterator[10];
         var x6 = stackalloc System.RuntimeArgumentHandle[10];
 
@@ -62,6 +62,9 @@ class C
                 // (10,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('RefG<string>')
                 //         var x2 = stackalloc RefG<string>[10];
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "RefG<string>").WithArguments("RefG<string>").WithLocation(10, 29),
+                // (12,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('TypedReference')
+                //         var x4 = stackalloc System.TypedReference[10];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(12, 29),
                 // (16,22): error CS0611: Array elements cannot be of type 'RefS'
                 //         var y1 = new RefS[10];
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(16, 22),
