@@ -4014,7 +4014,7 @@ enum E : sbyte
 
 struct S
 {
-    void P(E? e = null, E? f = E.A, E? g = E.A | E.B, E? h = (E)(-3))
+    void P(E? e = null, E? f = E.A, E? g = E.A | E.B, E?h = 0, E? i = (E)(-3))
     {
     }
 }";
@@ -4042,7 +4042,7 @@ struct S
 
             TestSymbolDescription(text, findSymbol,
                 format,
-                @"void S.P(E? e = null, E? f = E.A, E? g = E.A | E.B, E? h = (E)-3)",
+                @"void S.P(E? e = null, E? f = E.A, E? g = E.A | E.B, E? h = E.C, E? i = (E)-3)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -4083,6 +4083,18 @@ struct S
                 SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation, //|
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //.
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation, //,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //?
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, //=
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.

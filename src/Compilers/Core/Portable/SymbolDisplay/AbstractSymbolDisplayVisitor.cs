@@ -90,7 +90,10 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         {
             Debug.Assert(constantValue != null);
 
-            type = TryUnwrapNullableStruct(type);
+            if (ITypeSymbolHelpers.IsNullableType(type))
+            {
+                type = ITypeSymbolHelpers.GetNullableUnderlyingType(type);
+            }
 
             if (type.TypeKind == TypeKind.Enum)
             {
@@ -121,23 +124,6 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 // the literal value of the enum.
                 AddNonFlagsEnumConstantValue(enumType, constantValue);
             }
-        }
-
-        /// <summary>
-        /// Attemps to unwrap the underlying type if the given type is <see cref="System.Nullable{T}"/>
-        /// </summary>
-        private static ITypeSymbol TryUnwrapNullableStruct(ITypeSymbol typeSymbol)
-        {
-            if (typeSymbol.TypeKind != TypeKind.Struct)
-                return typeSymbol;
-
-            var namedTypeSymbol = (INamedTypeSymbol)typeSymbol;
-            if (namedTypeSymbol.IsGenericType && namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
-            {
-                return namedTypeSymbol.TypeArguments[0];
-            }
-
-            return typeSymbol;
         }
 
         /// <summary>
