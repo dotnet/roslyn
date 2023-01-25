@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1556,6 +1557,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EnsureStackState(cookie); // implicit label here 
 
             SetStackDepth(origStack); // alternative is evaluated with original stack 
+
+            var unwrappedSequence = node.ReferenceTypeReceiver;
+
+            while (unwrappedSequence is BoundSequence sequence)
+            {
+                unwrappedSequence = sequence.Value;
+            }
+
+            if (unwrappedSequence is BoundLocal { LocalSymbol: { } localSymbol })
+            {
+                ShouldNotSchedule(localSymbol);
+            }
+
             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 
@@ -2214,7 +2228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return null; }
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             throw new NotImplementedException();
         }
