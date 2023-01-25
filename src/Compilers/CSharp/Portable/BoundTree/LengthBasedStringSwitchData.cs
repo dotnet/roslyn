@@ -84,45 +84,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal struct LengthJumpTable
         {
-            public readonly LabelSymbol? nullCaseLabel;
-            public ImmutableArray<(int value, LabelSymbol label)> lengthCaseLabels;
+            public readonly LabelSymbol? NullCaseLabel;
+            public readonly ImmutableArray<(int value, LabelSymbol label)> LengthCaseLabels;
 
             public LengthJumpTable(LabelSymbol? nullCaseLabel, ImmutableArray<(int value, LabelSymbol label)> lengthCaseLabels)
             {
                 Debug.Assert(lengthCaseLabels.Length > 0);
 
-                this.nullCaseLabel = nullCaseLabel;
-                this.lengthCaseLabels = lengthCaseLabels;
+                this.NullCaseLabel = nullCaseLabel;
+                this.LengthCaseLabels = lengthCaseLabels;
             }
         }
 
         internal struct CharJumpTable
         {
-            public readonly LabelSymbol label;
-            public readonly int selectedCharPosition;
-            public readonly ImmutableArray<(char value, LabelSymbol label)> charCaseLabels;
+            public readonly LabelSymbol Label;
+            public readonly int SelectedCharPosition;
+            public readonly ImmutableArray<(char value, LabelSymbol label)> CharCaseLabels;
 
             internal CharJumpTable(LabelSymbol label, int selectedCharPosition, ImmutableArray<(char value, LabelSymbol label)> charCaseLabels)
             {
                 Debug.Assert(charCaseLabels.Length > 0);
 
-                this.label = label;
-                this.selectedCharPosition = selectedCharPosition;
-                this.charCaseLabels = charCaseLabels;
+                this.Label = label;
+                this.SelectedCharPosition = selectedCharPosition;
+                this.CharCaseLabels = charCaseLabels;
             }
         }
 
         internal struct StringJumpTable
         {
-            public readonly LabelSymbol label;
-            public readonly ImmutableArray<(string value, LabelSymbol label)> stringCaseLabels;
+            public readonly LabelSymbol Label;
+            public readonly ImmutableArray<(string value, LabelSymbol label)> StringCaseLabels;
 
             internal StringJumpTable(LabelSymbol label, ImmutableArray<(string value, LabelSymbol label)> stringCaseLabels)
             {
                 Debug.Assert(stringCaseLabels.Length > 0);
 
-                this.label = label;
-                this.stringCaseLabels = stringCaseLabels;
+                this.Label = label;
+                this.StringCaseLabels = stringCaseLabels;
             }
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool ShouldGenerateLengthBasedSwitch(int labelsCount)
         {
             return SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(labelsCount) &&
-                StringBasedJumpTables.All(t => t.stringCaseLabels.Length <= 5);
+                StringBasedJumpTables.All(t => t.StringCaseLabels.Length <= 5);
         }
 
         internal static LengthBasedStringSwitchData Create(ImmutableArray<(ConstantValue value, LabelSymbol label)> inputCases)
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var charJumpTable = new CharJumpTable(label: new GeneratedLabelSymbol("char-dispatch"), bestCharacterPosition, charCaseLabels.ToImmutableAndFree());
             charJumpTables.Add(charJumpTable);
-            return charJumpTable.label;
+            return charJumpTable.Label;
 
             static int selectBestCharacterIndex(int stringLength, ImmutableArray<(string value, LabelSymbol label)> caseLabels)
             {
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(cases.Length > 0 && cases.All(c => c.value is not null));
             var stringJumpTable = new StringJumpTable(label: new GeneratedLabelSymbol("string-dispatch"), cases.SelectAsArray(c => (c.value, c.label)));
             stringJumpTables.Add(stringJumpTable);
-            return stringJumpTable.label;
+            return stringJumpTable.Label;
         }
 
 #if DEBUG
@@ -259,25 +259,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = new StringBuilder();
             builder.AppendLine("Length dispatch:");
-            builder.AppendLine($"Buckets: {string.Join(", ", StringBasedJumpTables.Select(t => t.stringCaseLabels.Length))}");
-            builder.AppendLine($"  case null: {readable(LengthBasedJumpTable.nullCaseLabel)}");
-            dump(LengthBasedJumpTable.lengthCaseLabels);
+            builder.AppendLine($"Buckets: {string.Join(", ", StringBasedJumpTables.Select(t => t.StringCaseLabels.Length))}");
+            builder.AppendLine($"  case null: {readable(LengthBasedJumpTable.NullCaseLabel)}");
+            dump(LengthBasedJumpTable.LengthCaseLabels);
             builder.AppendLine();
 
             builder.AppendLine("Char dispatches:");
             foreach (var charJumpTable in CharBasedJumpTables)
             {
-                builder.AppendLine($"Label {readable(charJumpTable.label)}:");
-                builder.AppendLine($"  Selected char position: {charJumpTable.selectedCharPosition}:");
-                dump(charJumpTable.charCaseLabels!);
+                builder.AppendLine($"Label {readable(charJumpTable.Label)}:");
+                builder.AppendLine($"  Selected char position: {charJumpTable.SelectedCharPosition}:");
+                dump(charJumpTable.CharCaseLabels!);
             }
             builder.AppendLine();
 
             builder.AppendLine("String dispatches:");
             foreach (var stringJumpTable in StringBasedJumpTables)
             {
-                builder.AppendLine($"Label {readable(stringJumpTable.label)}:");
-                dump(stringJumpTable.stringCaseLabels!);
+                builder.AppendLine($"Label {readable(stringJumpTable.Label)}:");
+                dump(stringJumpTable.StringCaseLabels!);
             }
             builder.AppendLine();
 

@@ -1263,7 +1263,7 @@ oneMoreTime:
                     // if (keyTemp is null)
                     //   goto nullCaseLabel; OR goto fallThroughLabel;
                     _builder.EmitLoad(keyTemp);
-                    _builder.EmitBranch(ILOpCode.Brfalse, lengthBasedSwitchInfo.LengthBasedJumpTable.nullCaseLabel ?? fallThroughLabel, ILOpCode.Brtrue);
+                    _builder.EmitBranch(ILOpCode.Brfalse, lengthBasedSwitchInfo.LengthBasedJumpTable.NullCaseLabel ?? fallThroughLabel, ILOpCode.Brtrue);
                 }
 
                 // var stringLength = keyTemp.Length;
@@ -1284,7 +1284,7 @@ oneMoreTime:
                 // switch dispatch on lengthTemp using fallThroughLabel and cases:
                 //   lengthConstant -> corresponding label
                 _builder.EmitIntegerSwitchJumpTable(
-                    lengthBasedSwitchInfo.LengthBasedJumpTable.lengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
+                    lengthBasedSwitchInfo.LengthBasedJumpTable.LengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
                     fallThroughLabel, stringLength, int32Type.PrimitiveTypeCode);
 
                 FreeTemp(stringLength);
@@ -1298,7 +1298,7 @@ oneMoreTime:
                 foreach (var charJumpTable in lengthBasedSwitchInfo.CharBasedJumpTables)
                 {
                     // label for CharJumpTable:
-                    _builder.MarkLabel(charJumpTable.label);
+                    _builder.MarkLabel(charJumpTable.Label);
 
                     //   charTemp = keyTemp[selectedCharPosition];
                     if (isSpanOrReadOnlySpan)
@@ -1309,7 +1309,7 @@ oneMoreTime:
                     {
                         _builder.EmitLoad(keyTemp);
                     }
-                    _builder.EmitIntConstant(charJumpTable.selectedCharPosition);
+                    _builder.EmitIntConstant(charJumpTable.SelectedCharPosition);
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
                     emitMethodRef(indexerRef);
                     if (isSpanOrReadOnlySpan)
@@ -1321,7 +1321,7 @@ oneMoreTime:
                     // switch dispatch on charTemp using fallThroughLabel and cases:
                     //   charConstant -> corresponding label
                     _builder.EmitIntegerSwitchJumpTable(
-                        charJumpTable.charCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
+                        charJumpTable.CharCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
                         fallThroughLabel, charTemp, charType.PrimitiveTypeCode);
                 }
 
@@ -1333,12 +1333,12 @@ oneMoreTime:
                 foreach (var stringJumpTable in lengthBasedSwitchInfo.StringBasedJumpTables)
                 {
                     // label for StringJumpTable:
-                    _builder.MarkLabel(stringJumpTable.label);
+                    _builder.MarkLabel(stringJumpTable.Label);
 
                     // switch dispatch on keyTemp using fallThroughLabel and cases:
                     //   stringConstant -> corresponding label
                     EmitStringSwitchJumpTable(
-                        stringJumpTable.stringCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
+                        stringJumpTable.StringCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
                         fallThroughLabel, keyTemp, syntaxNode, keyType);
                 }
             }
