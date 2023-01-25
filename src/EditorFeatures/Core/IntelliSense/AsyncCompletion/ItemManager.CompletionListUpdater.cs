@@ -266,20 +266,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         list.Add(matchResult);
 
-                        // Collect all the preferred items from Pythia and regular items matched defaults provided by WLC.
-                        // We will use this info next to "promote" regular default items to "preferred" state on behalf of
-                        // WLC to provide a coherent IntelliCode completion experience.
-                        if (matchResult.CompletionItem.IsPreferredItem())
+                        if (!_snapshotData.Defaults.IsEmpty)
                         {
-                            includedPreferredItems.Add(matchResult.CompletionItem.FilterText);
-                        }
-                        else
-                        {
-                            var defaultIndex = unmatchedDefaults.IndexOf(matchResult.CompletionItem.FilterText);
-                            if (defaultIndex >= 0)
+                            // Collect all the preferred items from Pythia and regular items matched defaults provided by WLC.
+                            // We will use this info next to "promote" regular default items to "preferred" state on behalf of
+                            // WLC to provide a coherent IntelliCode completion experience.
+                            if (matchResult.CompletionItem.IsPreferredItem())
                             {
-                                unmatchedDefaults = unmatchedDefaults.RemoveAt(defaultIndex);
-                                includedDefaults.Add(matchResult);
+                                includedPreferredItems.Add(matchResult.CompletionItem.FilterText);
+                            }
+                            else
+                            {
+                                var defaultIndex = unmatchedDefaults.IndexOf(matchResult.CompletionItem.FilterText);
+                                if (defaultIndex >= 0)
+                                {
+                                    unmatchedDefaults = unmatchedDefaults.RemoveAt(defaultIndex);
+                                    includedDefaults.Add(matchResult);
+                                }
                             }
                         }
                     }
@@ -316,8 +319,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
-                // This ensures promoted default items are sorted in the same relative order and (would have been) before other
-                // items from initial sorted list of all. 
+                // This ensures promoted items are sorted in the same relative order as in defaults list, as well as before all
+                // items from initial sorted list (by giving them negative value as index). 
                 // e.g. if Defaults.Length = 3, we set index of Defaults[0] to -3, Defaults[1] to -2, etc. where the last one is -1.
                 // All other items have original index >= 0.
                 int DefaultIndexToFabricatedOriginalSortedIndex(int i)
