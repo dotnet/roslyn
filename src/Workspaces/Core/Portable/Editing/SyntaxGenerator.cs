@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode ParameterDeclaration(IParameterSymbol symbol, SyntaxNode? initializer = null)
         {
-            var parameter = ParameterDeclaration(
+            return ParameterDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
                 initializer is not null ? initializer :
@@ -287,8 +287,6 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.RefKind,
                 isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
                 symbol.IsParams);
-
-            return parameter;
         }
 
         private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
@@ -322,14 +320,41 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode>? getAccessorStatements = null,
             IEnumerable<SyntaxNode>? setAccessorStatements = null)
         {
+            var propertyAccessibility = property.DeclaredAccessibility;
+            var getMethodSymbol = property.GetMethod;
+            var setMethodSymbol = property.SetMethod;
+
+            SyntaxNode? getAccessor = null;
+            SyntaxNode? setAccessor = null;
+
+            if (getMethodSymbol is not null)
+            {
+                var getMethodAccessibility = getMethodSymbol.DeclaredAccessibility;
+                getAccessor = GetAccessorDeclaration(getMethodAccessibility < propertyAccessibility ? getMethodAccessibility : Accessibility.NotApplicable, getAccessorStatements);
+            }
+
+            if (setMethodSymbol is not null)
+            {
+                var setMethodAccessibility = setMethodSymbol.DeclaredAccessibility;
+                setAccessor = SetAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements);
+            }
+
             return PropertyDeclaration(
                     property.Name,
                     TypeExpression(property.Type),
-                    property.DeclaredAccessibility,
-                    DeclarationModifiers.From(property),
-                    getAccessorStatements,
-                    setAccessorStatements);
+                    getAccessor,
+                    setAccessor,
+                    propertyAccessibility,
+                    DeclarationModifiers.From(property));
         }
+
+        internal abstract SyntaxNode PropertyDeclaration(
+            string name,
+            SyntaxNode type,
+            SyntaxNode? getAccessor,
+            SyntaxNode? setAccessor,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default);
 
         public SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, params SyntaxNode[] accessorDeclarations)
             => WithAccessorDeclarations(declaration, (IEnumerable<SyntaxNode>)accessorDeclarations);
