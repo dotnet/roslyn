@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Options
                    serializeValue: value => value.Value.ToLowerInvariant() + CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue));
 
         public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>() where T : struct, Enum
-            => new EditorConfigValueSerializer<T>(
+            => new(
                 parseValue: ParseValueForEnum<T>,
                 serializeValue: value => value.ToString());
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Options
             // > true
             // > x C
             // block this case.
-            if (str.Contains(',', StringComparison.InvariantCultureIgnoreCase))
+            if (str.Contains(","))
             {
                 return false;
             }

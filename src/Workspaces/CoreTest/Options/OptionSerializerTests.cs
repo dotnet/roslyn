@@ -56,9 +56,12 @@ public class OptionSerializerTests
                     throw ExceptionUtilities.Unreachable();
             }
 
-            var success = serializer.TryParse(serializedValue, out var parsedResult);
-            Assert.True(success, $"Can't parse option: {option.Name}, value: {serializedValue}");
-            Assert.Equal(value, parsedResult);
+            foreach (var possibleString in new[] { serializedValue, serializedValue.ToUpper() })
+            {
+                var success = serializer.TryParse(possibleString, out var parsedResult);
+                Assert.True(success, $"Can't parse option: {option.Name}, value: {possibleString}");
+                Assert.Equal(value, parsedResult);
+            }
 
             VerifyInvalidParse(option);
         }
