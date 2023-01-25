@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     DeclarationModifiers.From(property));
         }
 
-        internal abstract SyntaxNode PropertyDeclaration(
+        private protected abstract SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
             SyntaxNode? getAccessor,

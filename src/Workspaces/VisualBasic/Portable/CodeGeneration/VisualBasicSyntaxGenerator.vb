@@ -995,7 +995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 modifiers)
         End Function
 
-        Friend Overrides Function PropertyDeclaration(
+        Private Protected Overrides Function PropertyDeclaration(
             name As String,
             type As SyntaxNode,
             getAccessor As SyntaxNode,

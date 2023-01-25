@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return PropertyDeclaration(name, type, getAccessor, setAccessor, accessibility, modifiers);
         }
 
-        internal override SyntaxNode PropertyDeclaration(
+        private protected override SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
             SyntaxNode? getAccessor,
