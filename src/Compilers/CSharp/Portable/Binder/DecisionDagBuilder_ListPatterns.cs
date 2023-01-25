@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class DecisionDagBuilder
     {
-        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+        // PROTOTYPE: Move to DecisionDagBuilder. This is not the whole thing anyways.
+        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundIndexableListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || list.HasErrors || list.InputType.IsErrorType() ||
                          input.Type.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&

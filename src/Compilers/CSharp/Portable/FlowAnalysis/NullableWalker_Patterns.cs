@@ -83,8 +83,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Pattern);
             return null;
         }
+        
+        public override BoundNode VisitIndexableListPattern(BoundIndexableListPattern node)
+        {
+            return VisitListPattern(node);
+        }
 
-        public override BoundNode VisitListPattern(BoundListPattern node)
+        public override BoundNode VisitEnumerableListPattern(BoundEnumerableListPattern node)
+        {
+            return VisitListPattern(node);
+        }
+        
+        private BoundNode VisitListPattern(BoundListPattern node)
         {
             VisitAndUnsplitAll(node.Subpatterns);
             Visit(node.VariableAccess);
@@ -500,6 +510,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                 case BoundDagIndexEvaluation e:
                                     addTemp(e, e.Property.Type);
+                                    break;
+                                case BoundDagElementEvaluation e:
+                                    addTemp(e, this.compilation.GetSpecialType(SpecialType.System_Boolean), index: 0);
+                                    addTemp(e, e.ElementType, index: 1);
+                                    break;
+                                case BoundDagEnumeratorEvaluation e:
+                                    addTemp(e, e.GetEnumeratorMethod.ReturnType, index: 0);
+                                    addTemp(e, compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_Buffer_T).Construct(e.ElementType), index: 1);
                                     break;
                                 case BoundDagIndexerEvaluation e:
                                     {

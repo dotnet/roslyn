@@ -315,6 +315,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverPlaceholder = null;
                 argumentPlaceholder = null;
             }
+            else if (TypeSymbol.Equals(inputType.OriginalDefinition, Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T), TypeCompareKind.ConsiderEverything2))
+            {
+                // PROTOTYPE: struct enumerators and IEnumerable
+                // PROTOTYPE: consider using ForEachEnumeratorInfo
+                return bindEnumerableListPattern();
+                BoundEnumerableListPattern bindEnumerableListPattern()
+                {
+                    var getEnumeratorMethod = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).SymbolAsMember((NamedTypeSymbol)inputType);
+                    elementType = ((NamedTypeSymbol)inputType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
+                        node.Patterns, inputType: narrowedType, elementType: elementType,
+                        permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
+                    BindPatternDesignation(
+                        node.Designation,
+                        declType: TypeWithAnnotations.Create(narrowedType, NullableAnnotation.NotAnnotated),
+                        permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
+                        out Symbol? variableSymbol, out BoundExpression? variableAccess);
+                    return new BoundEnumerableListPattern(node, getEnumeratorMethod, elementType: elementType,
+                        subpatterns, hasSlice: sawSlice, variableSymbol, variableAccess, inputType, narrowedType, hasErrors);
+                }
+            }
             else
             {
                 hasErrors |= !BindLengthAndIndexerForListPattern(node, narrowedType, diagnostics, out indexerAccess, out lengthAccess, out receiverPlaceholder, out argumentPlaceholder);
@@ -333,9 +354,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
                 out Symbol? variableSymbol, out BoundExpression? variableAccess);
 
-            return new BoundListPattern(
-                syntax: node, subpatterns: subpatterns, hasSlice: sawSlice, lengthAccess: lengthAccess,
-                indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder, variable: variableSymbol,
+            return new BoundIndexableListPattern(
+                syntax: node, lengthAccess: lengthAccess,
+                indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder, 
+                subpatterns: subpatterns, hasSlice: sawSlice, variable: variableSymbol,
                 variableAccess: variableAccess, inputType: inputType, narrowedType: narrowedType, hasErrors);
         }
 

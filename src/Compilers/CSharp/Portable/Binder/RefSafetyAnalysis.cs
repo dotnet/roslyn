@@ -508,10 +508,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitListPattern(BoundListPattern node)
+        public override BoundNode? VisitEnumerableListPattern(BoundEnumerableListPattern node)
         {
             SetPatternLocalScopes(node);
-            return base.VisitListPattern(node);
+            return base.VisitEnumerableListPattern(node);
+        }
+
+        public override BoundNode? VisitIndexableListPattern(BoundIndexableListPattern node)
+        {
+            SetPatternLocalScopes(node);
+            return base.VisitIndexableListPattern(node);
         }
 
         public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)

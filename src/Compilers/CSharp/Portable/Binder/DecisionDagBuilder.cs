@@ -292,8 +292,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundSlicePattern:
                     output = input;
                     return Tests.True.Instance;
-                case BoundListPattern list:
+                case BoundIndexableListPattern list:
                     return MakeTestsAndBindingsForListPattern(input, list, out output, bindings);
+                case BoundEnumerableListPattern list:
+                    return MakeTestsAndBindingsForEnumerableListPattern(input, list, out output, bindings);
                 case BoundRecursivePattern recursive:
                     return MakeTestsAndBindingsForRecursivePattern(input, recursive, out output, bindings);
                 case BoundITuplePattern iTuple:
@@ -310,6 +312,75 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
+        }
+
+        private Tests MakeTestsAndBindingsForEnumerableListPattern(BoundDagTemp input, BoundEnumerableListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+        {
+            var syntax = list.Syntax;
+            var subpatterns = list.Subpatterns;
+            var tests = ArrayBuilder<Tests>.GetInstance();
+            output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
+
+            if (list.HasErrors)
+            {
+                tests.Add(new Tests.One(new BoundDagTypeTest(list.Syntax, ErrorType(), input, hasErrors: true)));
+            }
+            else if (subpatterns is [BoundSlicePattern { Pattern: null }])
+            {
+            }
+            else
+            {
+                var enumeratorEvaluation = new BoundDagEnumeratorEvaluation(syntax, list.GetEnumeratorMethod, list.ElementType, input);
+                // PROTOTYPE: Will be only used to call Dispose during lowering
+                // var enumeratorTemp = new BoundDagTemp(syntax, list.GetEnumeratorMethod.ReturnType, enumeratorEvaluation, index: 0);
+                var bufferType = _compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_Buffer_T).Construct(list.ElementType);
+                var bufferTemp = new BoundDagTemp(syntax, bufferType, enumeratorEvaluation, index: 1);
+
+                tests.Add(new Tests.One(enumeratorEvaluation));
+
+                // PROTOTYPE: tests.Add(!input.TryGetNonEnumeratedCount || count >=/== N)
+                // PROTOTYPE: Could result in suboptimal codegen, as an alternative, it could use Buffer.ProbeCount(N) or some such
+
+                int index = 0;
+                foreach (BoundPattern subpattern in subpatterns)
+                {
+                    if (subpattern is BoundSlicePattern slice)
+                    {
+                        index -= subpatterns.Length - 1;
+
+                        if (slice.Pattern is not null)
+                        {
+                            // PROTOTYPE: Use Buffer.Slice?
+                            // PROTOTYPE: Could return Span/IEnumerable or both and select using explicit type [.. ROS<int>] which is also considered for arrays
+                            throw new NotImplementedException();
+                        }
+
+                        continue;
+                    }
+
+                    var elementEvaluation = new BoundDagElementEvaluation(subpattern.Syntax, index++, list.ElementType, bufferTemp);
+                    var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), elementEvaluation, index: 0);
+                    var elementTemp = new BoundDagTemp(syntax, list.ElementType, elementEvaluation, index: 1);
+                    tests.Add(new Tests.One(elementEvaluation));
+                    tests.Add(new Tests.One(new BoundDagValueTest(subpattern.Syntax, ConstantValue.True, successTemp)));
+                    tests.Add(MakeTestsAndBindings(elementTemp, subpattern, bindings));
+                }
+
+                if (!list.HasSlice)
+                {
+                    var elementEvaluation = new BoundDagElementEvaluation(syntax, index, list.ElementType, bufferTemp);
+                    var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), elementEvaluation, index: 0);
+                    tests.Add(new Tests.One(elementEvaluation));
+                    tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.False, successTemp)));
+                }
+            }
+
+            if (list.VariableAccess is not null)
+            {
+                bindings.Add(new BoundPatternBinding(list.VariableAccess, input));
+            }
+
+            return Tests.AndSequence.Create(tests);
         }
 
         private Tests MakeTestsAndBindingsForITuplePattern(

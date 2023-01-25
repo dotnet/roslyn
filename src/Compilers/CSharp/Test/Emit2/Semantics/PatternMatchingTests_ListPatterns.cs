@@ -17,6 +17,111 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class PatternMatchingTests_ListPatterns : PatternMatchingTestBase
 {
+    // PROTOTYPE: Wrap entire dag in a try-finally for disposal, possibly one per each enumerator instance in case Dispose throws.
+    // PROTOTYPE: Compute buffer size based on forthcoming element evaluations
+    // PROTOTYPE: Subsumption checking is different for enumerable list-patterns because we cannot test the length upfront.
+    // PROTOTYPE: Instead, we would try to find alternative indexes and rewrite the input temps everywhere which will cause the values to merge.
+    // PROTOTYPE: It's possible we could get rid of double dag building and synthesized nodes only if we accept regression in Subsumption_03 and the like.
+    // PROTOTYPE: As an optimization, we can avoid checking TryGetElementAt where it's guaranteed to fail or succeed based on previous tests.
+
+    [Fact]
+    public void EnumerableListPattern()
+    {
+        var source = """
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    public class Buffer<T>
+    {
+        public Buffer(IEnumerator<T> enumerator)
+        {
+        }
+        public bool TryGetElementAt(int index, out T element)
+        {
+            element = default;
+            return false;
+        }
+    }
+}
+
+class C
+{
+    public bool Test1(IEnumerable<int> seq) => seq is [10, 20];
+    public bool Test2(IEnumerable<int> seq) => seq is [..,2];
+    public bool Test3(IEnumerable<int> seq) => seq is [1,..];
+    public bool Test4(IEnumerable<int> seq) => seq is [1,..,2];
+}
+""";
+        var comp = CreateCompilation(source);
+        AssertEx.Multiple(
+            () => VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 != null ? [1] : [11]
+[1]: t1 = DagEnumeratorEvaluation(t0); [2]
+[2]: t2 = DagElementEvaluation(t1); [3]
+[3]: t2 == True ? [4] : [11]
+[4]: t2 == 10 ? [5] : [11]
+[5]: t3 = DagElementEvaluation(t1); [6]
+[6]: t3 == True ? [7] : [11]
+[7]: t3 == 20 ? [8] : [11]
+[8]: t4 = DagElementEvaluation(t1); [9]
+[9]: t4 == False ? [10] : [11]
+[10]: leaf <isPatternSuccess> `[10, 20]`
+[11]: leaf <isPatternFailure> `[10, 20]`
+", index: 0)
+        );
+        comp.VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp);
+        AssertEx.Multiple(
+            () => verifier.VerifyIL("C.Test1", """
+{
+  // Code size       69 (0x45)
+  .maxstack  3
+  .locals init (System.Runtime.CompilerServices.Buffer<int> V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                bool V_4)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_003f
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0009:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>)"
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementAt(int, out int)"
+  IL_0018:  brfalse.s  IL_003f
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.s   10
+  IL_001d:  bne.un.s   IL_003f
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.1
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementAt(int, out int)"
+  IL_0028:  brfalse.s  IL_003f
+  IL_002a:  ldloc.2
+  IL_002b:  ldc.i4.s   20
+  IL_002d:  bne.un.s   IL_003f
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4.2
+  IL_0031:  ldloca.s   V_3
+  IL_0033:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementAt(int, out int)"
+  IL_0038:  brtrue.s   IL_003f
+  IL_003a:  ldc.i4.1
+  IL_003b:  stloc.s    V_4
+  IL_003d:  br.s       IL_0042
+  IL_003f:  ldc.i4.0
+  IL_0040:  stloc.s    V_4
+  IL_0042:  ldloc.s    V_4
+  IL_0044:  ret
+}
+""")
+        );
+    }
+
     [Fact]
     public void ListPattern()
     {

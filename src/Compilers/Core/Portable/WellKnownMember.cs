@@ -536,6 +536,10 @@ namespace Microsoft.CodeAnalysis
         System_MissingMethodException__ctor,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
+        System_Runtime_CompilerServices_Buffer_T__ctor,
+        // PROTOTYPE: Split into TryGetFromStart/TryGetFromEnd
+        System_Runtime_CompilerServices_Buffer_T__TryGetElementAt,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

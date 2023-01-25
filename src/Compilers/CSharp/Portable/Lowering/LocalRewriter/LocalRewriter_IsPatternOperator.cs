@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundLeafDecisionDagNode n:
                             return n.Label == whenTrueLabel;
                         case BoundEvaluationDecisionDagNode e:
+                            // PROTOTYPE: Only if enumerator needs disposal
+                            if (e.Evaluation is BoundDagEnumeratorEvaluation)
+                                return false;
                             node = e.Next;
                             break;
                         case BoundTestDecisionDagNode t:

@@ -1447,7 +1447,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (node.Kind)
             {
-                case BoundKind.ListPattern:
+                case BoundKind.IndexableListPattern:
+                case BoundKind.EnumerableListPattern:
                 case BoundKind.RecursivePattern:
                 case BoundKind.DeclarationPattern:
                     {
@@ -1845,7 +1846,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
                         }
-                    case BoundKind.ListPattern:
+                    case BoundKind.IndexableListPattern:
+                    case BoundKind.EnumerableListPattern:
                         {
                             var pat = (BoundListPattern)pattern;
                             foreach (BoundPattern p in pat.Subpatterns)

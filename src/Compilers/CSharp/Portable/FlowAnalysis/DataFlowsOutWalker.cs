@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (node.Kind)
                 {
-                    case BoundKind.ListPattern:
+                    case BoundKind.IndexableListPattern:
+                    case BoundKind.EnumerableListPattern:
                     case BoundKind.RecursivePattern:
                     case BoundKind.DeclarationPattern:
                         {

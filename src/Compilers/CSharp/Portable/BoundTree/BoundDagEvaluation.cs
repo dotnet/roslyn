@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagAssignmentEvaluation => null,
+                    BoundDagEnumeratorEvaluation e => e.GetEnumeratorMethod,
+                    BoundDagElementEvaluation e => e.ElementType,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
 
@@ -129,6 +131,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private partial void Validate()
         {
             Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
+        }
+    }
+
+    partial class BoundDagElementEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                this.Index == ((BoundDagElementEvaluation)obj).Index;
         }
     }
 

@@ -1549,6 +1549,14 @@
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
     <Field Name="Index" Type="int"/>
   </Node>
+  <Node Name="BoundDagElementEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Index" Type="int"/>
+    <Field Name="ElementType" Type="TypeSymbol"/>
+  </Node>
+  <Node Name="BoundDagEnumeratorEvaluation" Base="BoundDagEvaluation">
+    <Field Name="GetEnumeratorMethod" Type="MethodSymbol"/>
+    <Field Name="ElementType" Type="TypeSymbol"/>
+  </Node>
 
   <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation" HasValidate="true">
     <Field Name="IndexerType" Type="TypeSymbol"/>
@@ -2275,9 +2283,15 @@
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
-  <Node Name="BoundListPattern" Base="BoundObjectPattern" HasValidate="true">
+  <AbstractNode Name="BoundListPattern" Base="BoundObjectPattern">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
+  </AbstractNode>
+  <Node Name="BoundEnumerableListPattern" Base="BoundListPattern">
+    <Field Name="GetEnumeratorMethod" Type="MethodSymbol"/>
+    <Field Name="ElementType" Type="TypeSymbol"/>
+  </Node>
+  <Node Name="BoundIndexableListPattern" Base="BoundListPattern" HasValidate="true">
     <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
     <!--
