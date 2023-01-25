@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -30,16 +31,24 @@ namespace Microsoft.CodeAnalysis.Options
 
         private static readonly EditorConfigValueSerializer<bool?> s_nullableBoolean = new(
             parseValue: ParseNullableBoolean,
-            serializeValue: nullableBoolean => nullableBoolean == null ? "null" : nullableBoolean.Value.ToString());
+            serializeValue: value =>
+            {
+                if (value == null)
+                {
+                    return "null";
+                }
+
+                return value.Value ? "true" : "false";
+            });
 
         private static Optional<bool?> ParseNullableBoolean(string str)
         {
-            if (bool.TryParse(str, out var booleanValue))
+            if (bool.TryParse(str, out var result))
             {
-                return new Optional<bool?>(booleanValue);
+                return new Optional<bool?>(result);
             }
 
-            return str == "null" ? new Optional<bool?>(null) : new Optional<bool?>();
+            return str.Equals("null", StringComparison.InvariantCultureIgnoreCase) ? new Optional<bool?>(null) : new Optional<bool?>();
         }
 
         public static EditorConfigValueSerializer<T> Default<T>()
@@ -96,14 +105,14 @@ namespace Microsoft.CodeAnalysis.Options
                 parseValue: ParseValueForNullableEnum,
                 serializeValue: value => value == null ? "null" : value.Value.ToString());
 
-            Optional<T?> ParseValueForNullableEnum(string str)
+            static Optional<T?> ParseValueForNullableEnum(string str)
             {
-                if (str == "null")
+                if (str.Equals("null", StringComparison.InvariantCultureIgnoreCase))
                 {
                     return new Optional<T?>(null);
                 }
 
-                if (Enum.TryParse<T>(str, out var parsedValue))
+                if (TryParseEnum<T>(str, out var parsedValue))
                 {
                     return new Optional<T?>(parsedValue);
                 }
@@ -114,12 +123,35 @@ namespace Microsoft.CodeAnalysis.Options
 
         private static Optional<T> ParseValueForEnum<T>(string str) where T : struct, Enum
         {
-            if (Enum.TryParse<T>(str, out var parsedValue))
+            if (TryParseEnum<T>(str, out var result))
             {
-                return new Optional<T>(parsedValue);
+                return new Optional<T>(result);
             }
 
             return new Optional<T>();
+        }
+
+        private static bool TryParseEnum<T>(string str, out T result) where T : struct, Enum
+        {
+            result = default;
+            // Block any int value.
+            if (int.TryParse(str, out _))
+            {
+                return false;
+            }
+
+            // Enum.TryParse has a strange behavior.
+            // > enum F { A = 1, B = 2, C = 3 }
+            // > Enum.TryParse<F>("A, B", out var x)
+            // > true
+            // > x C
+            // block this case.
+            if (str.Contains(',', StringComparison.InvariantCultureIgnoreCase))
+            {
+                return false;
+            }
+
+            return Enum.TryParse<T>(str, out result);
         }
     }
 }

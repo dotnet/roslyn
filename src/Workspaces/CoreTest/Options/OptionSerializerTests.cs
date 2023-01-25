@@ -22,7 +22,7 @@ public class OptionSerializerTests
     private const string invalidOption = "Hello I can't be a valid option value";
 
     [Theory, CombinatorialData]
-    public void SerializationAndDeserializationForNullableBoolean([CombinatorialValues(true, false, null)] bool? value)
+    public void SerializationAndDeserializationForNullableBool([CombinatorialValues(true, false, null)] bool? value)
     {
         var options = new IOption2[]
         {
@@ -47,10 +47,10 @@ public class OptionSerializerTests
                     Assert.Equal("null", serializedValue);
                     break;
                 case true:
-                    Assert.Equal("True", serializedValue);
+                    Assert.Equal("true", serializedValue);
                     break;
                 case false:
-                    Assert.Equal("False", serializedValue);
+                    Assert.Equal("false", serializedValue);
                     break;
                 default:
                     throw ExceptionUtilities.Unreachable();
