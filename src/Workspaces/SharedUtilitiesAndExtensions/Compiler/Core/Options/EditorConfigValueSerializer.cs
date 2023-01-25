@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>() where T : struct, Enum
             => new(
-                parseValue: ParseValueForEnum<T>,
+                parseValue: str => TryParseEnum<T>(str, out var result) ? new Optional<T>(result) : new Optional<T>(),
                 serializeValue: value => value.ToString());
 
         public static EditorConfigValueSerializer<T?> CreateSerializerForNullableEnum<T>() where T : struct, Enum
@@ -119,16 +119,6 @@ namespace Microsoft.CodeAnalysis.Options
 
                 return new Optional<T?>();
             }
-        }
-
-        private static Optional<T> ParseValueForEnum<T>(string str) where T : struct, Enum
-        {
-            if (TryParseEnum<T>(str, out var result))
-            {
-                return new Optional<T>(result);
-            }
-
-            return new Optional<T>();
         }
 
         private static bool TryParseEnum<T>(string str, out T result) where T : struct, Enum
