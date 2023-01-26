@@ -41,9 +41,7 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            //Thread.Sleep(5000);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList, FeatureAttribute.InlineDiagnostics }, HangMitigatingCancellationToken);
-            //Thread.Sleep(5000);
 
             var (count, tags) = await TestServices.InlineDiagnostics.EnsureInlineDiagnosticsCountAndLocation(HangMitigatingCancellationToken);
             Assert.Equal(expected: 1, actual: count);
@@ -55,7 +53,7 @@ class Program
             Assert.Equal(expected: 0, actual: countAfterDeletion);
         }
 
-        /*[IdeFact]
+        [IdeFact]
         public async Task TestInlineDiagnosticsMultipleBlankLines()
         {
             await TestServices.InlineDiagnostics.EnableOptionsAsync(LanguageName, cancellationToken: HangMitigatingCancellationToken);
@@ -67,25 +65,21 @@ class Program
     public void Method()
     {
         
-        $$
+$$
     }
 }
 ", HangMitigatingCancellationToken);
 
-            Thread.Sleep(60000);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList, FeatureAttribute.InlineDiagnostics }, HangMitigatingCancellationToken);
-            Thread.Sleep(60000);
 
             var (count, tags) = await TestServices.InlineDiagnostics.EnsureInlineDiagnosticsCountAndLocation(HangMitigatingCancellationToken);
             Assert.Equal(expected: 1, actual: count);
             Assert.Equal(expected: "compiler warning", actual: tags[0].ErrorType);
 
-            Thread.Sleep(5000);
-            await TestServices.Input.SendAsync((VirtualKeyCode.CONTROL, VirtualKeyCode.VK_L), HangMitigatingCancellationToken);
-            Thread.Sleep(5000);
+            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList, FeatureAttribute.InlineDiagnostics }, HangMitigatingCancellationToken);
             var (countAfterDeletion, _) = await TestServices.InlineDiagnostics.EnsureInlineDiagnosticsCountAndLocation(HangMitigatingCancellationToken);
             Assert.Equal(expected: 0, actual: countAfterDeletion);
-        }*/
+        }
     }
 }
