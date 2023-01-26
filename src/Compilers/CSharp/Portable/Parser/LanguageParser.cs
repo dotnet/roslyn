@@ -1011,6 +1011,88 @@ tryAgain:
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
+        private delegate PostSkipAction SkipBadTokens<TNode>(LanguageParser parser, ref SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind kind) where TNode : GreenNode;
+
+
+        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
+            ref SyntaxToken openToken,
+            SyntaxKind closeTokenKind,
+            Func<LanguageParser, bool> isPossibleElement,
+            Func<LanguageParser, TNode> parseElement,
+            SkipBadTokens<TNode> skipBadTokens,
+            bool allowTrailingSeparator) where TNode : GreenNode
+        {
+            return ParseSeparatedSyntaxList<TNode>(
+                ref openToken,
+                SyntaxKind.CommaToken,
+                closeTokenKind,
+                isPossibleElement,
+                parseElement,
+                skipBadTokens,
+                allowTrailingSeparator)
+        }
+
+        private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
+            ref SyntaxToken openToken,
+            SyntaxKind separatorTokenKind,
+            SyntaxKind closeTokenKind,
+            Func<LanguageParser, bool> isPossibleElement,
+            Func<LanguageParser, TNode> parseElement,
+            SkipBadTokens<TNode> skipBadTokens,
+            bool allowTrailingSeparator) where TNode : GreenNode
+        {
+            var argNodes = _pool.AllocateSeparated<TNode>();
+
+tryAgain:
+            if (this.CurrentToken.Kind != closeTokenKind)
+            {
+                if (isPossibleElement(this) || this.CurrentToken.Kind == separatorTokenKind)
+                {
+                    // first argument
+                    argNodes.Add(parseElement(this));
+
+                    // comma + argument or end?
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
+                    {
+                        if (this.CurrentToken.Kind == closeTokenKind)
+                        {
+                            break;
+                        }
+                        else if (this.CurrentToken.Kind == separatorTokenKind || isPossibleElement(this))
+                        {
+                            argNodes.AddSeparator(this.EatToken(separatorTokenKind));
+
+                            if (allowTrailingSeparator)
+                            {
+                                // check for exit case after legal trailing comma
+                                if (this.CurrentToken.Kind == closeTokenKind)
+                                {
+                                    break;
+                                }
+                                else if (!isPossibleElement(this))
+                                {
+                                    goto tryAgain;
+                                }
+                            }
+
+                            argNodes.Add(parseElement(this));
+                        }
+                        else if (skipBadTokens(this, ref openToken, argNodes, separatorTokenKind) == PostSkipAction.Abort)
+                        {
+                            break;
+                        }
+                    }
+                }
+                else if (skipBadTokens(this, ref openToken, argNodes, SyntaxKind.IdentifierToken) == PostSkipAction.Continue)
+                {
+                    goto tryAgain;
+                }
+            }
+
+            return _pool.ToListAndFree(argNodes);
+        }
+
         private PostSkipAction SkipBadAttributeArgumentTokens(ref SyntaxToken openParen, SeparatedSyntaxListBuilder<AttributeArgumentSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
