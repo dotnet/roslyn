@@ -12186,8 +12186,7 @@ done:;
                 static @this => @this.IsPossibleVariableInitializer(),
                 static @this => @this.ParseVariableInitializer(),
                 static (@this, openBrace, list, expectedKind, closeKind) => skipBadArrayInitializerTokens(@this, openBrace, list, expectedKind, closeKind),
-                allowTrailingSeparator: true,
-                expectedKind: SyntaxKind.CommaToken);
+                allowTrailingSeparator: true);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ArrayInitializerExpression,
@@ -12976,8 +12975,7 @@ done:;
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
-            bool requireOneElement = false,
-            SyntaxKind expectedKind = SyntaxKind.IdentifierToken) where TNode : GreenNode
+            bool requireOneElement = false) where TNode : GreenNode
         {
             return ParseSeparatedSyntaxList(
                 ref openToken,
@@ -12987,8 +12985,7 @@ done:;
                 parseElement,
                 skipBadTokens,
                 allowTrailingSeparator,
-                requireOneElement,
-                expectedKind);
+                requireOneElement);
         }
 
         private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
@@ -12999,8 +12996,7 @@ done:;
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
-            bool requireOneElement = false,
-            SyntaxKind expectedKind = SyntaxKind.IdentifierToken) where TNode : GreenNode
+            bool requireOneElement = false) where TNode : GreenNode
         {
             var argNodes = _pool.AllocateSeparated<TNode>();
 
@@ -13044,6 +13040,7 @@ tryAgain:
                         }
                         else
                         {
+                            // Something we didn't recognize, try to skip tokens, reporting that we expected a separator here.
                             (openToken, var action) = skipBadTokens(this, openToken, argNodes, separatorTokenKind, closeTokenKind);
                             if (action == PostSkipAction.Abort)
                                 break;
@@ -13052,7 +13049,11 @@ tryAgain:
                 }
                 else
                 {
-                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, expectedKind, closeTokenKind);
+                    // Something we didn't recognize, try to skip tokens, reporting that we expected an identifier here.
+                    // While 'identifier' may not be completely accurate in terms of what the list needs, it's a
+                    // generally good 'catch all' indicating that some name/expr was needed, where something else
+                    // invalid was found.
+                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, SyntaxKind.IdentifierToken, closeTokenKind);
                     if (action == PostSkipAction.Continue)
                         goto tryAgain;
                 }
