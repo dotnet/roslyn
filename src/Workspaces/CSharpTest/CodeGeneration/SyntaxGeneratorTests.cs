@@ -2305,6 +2305,42 @@ public class C { } // end").Members[0];
                 """);
         }
 
+        [Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")]
+        public void TestPropertyDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public int Prop { get; protected set; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var property = type.GetMembers("Prop").Single();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "public global::System.Int32 Prop { get; protected set; }");
+        }
+
+        [Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")]
+        public void TestPropertyDeclarationFromSymbol2()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public int Prop { protected get; set; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var property = type.GetMembers("Prop").Single();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "public global::System.Int32 Prop { protected get; set; }");
+        }
+
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements
