@@ -12004,7 +12004,7 @@ tryAgain:
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseAnonymousTypeMemberInitializer(),
-                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(ref openBrace, list, expectedKind),
+                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
                 allowTrailingSeparator: true);
 
             return _syntaxFactory.AnonymousObjectCreationExpression(
@@ -12130,7 +12130,7 @@ tryAgain:
                 // Skip bad starting tokens until we find a valid start, if possible
                 while (!IsPossibleExpression() && CurrentToken.Kind != SyntaxKind.CommaToken)
                 {
-                    (openBrace, var action) = SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.IdentifierToken);
+                    (openBrace, var action) = SkipBadInitializerListTokens(openBrace, list, SyntaxKind.IdentifierToken);
                     if (action == PostSkipAction.Abort)
                     {
                         foundStart = false;
@@ -12164,7 +12164,7 @@ tryAgain:
                         }
                         else
                         {
-                            (openBrace, var action) = SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.CommaToken);
+                            (openBrace, var action) = SkipBadInitializerListTokens(openBrace, list, SyntaxKind.CommaToken);
                             if (action == PostSkipAction.Abort)
                             {
                                 break;
@@ -12245,7 +12245,7 @@ tryAgain:
                         }
                         else
                         {
-                            (startToken, var action) = this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.CommaToken);
+                            (startToken, var action) = this.SkipBadInitializerListTokens(startToken, list, SyntaxKind.CommaToken);
                             if (action == PostSkipAction.Abort)
                             {
                                 break;
@@ -12255,7 +12255,7 @@ tryAgain:
                 }
                 else
                 {
-                    (startToken, var action) = this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.IdentifierToken);
+                    (startToken, var action) = this.SkipBadInitializerListTokens(startToken, list, SyntaxKind.IdentifierToken);
                     if (action == PostSkipAction.Continue)
                     {
                         goto tryAgain;
@@ -12297,7 +12297,7 @@ tryAgain:
             }
         }
 
-        private (SyntaxToken startToken, PostSkipAction action) SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
+        private (SyntaxToken startToken, PostSkipAction action) SkipBadInitializerListTokens<T>(SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
             where T : CSharpSyntaxNode
         {
             var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
@@ -12332,73 +12332,19 @@ tryAgain:
         private InitializerExpressionSyntax ParseComplexElementInitializer()
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var initializers = _pool.AllocateSeparated<ExpressionSyntax>();
-
-            DiagnosticInfo closeBraceError;
-            this.ParseExpressionsForComplexElementInitializer(ref openBrace, initializers, out closeBraceError);
-            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-            if (closeBraceError != null)
-            {
-                closeBrace = WithAdditionalDiagnostics(closeBrace, closeBraceError);
-            }
+            var initializers = this.ParseCommaSeparatedSyntaxList(
+                ref openBrace,
+                SyntaxKind.CloseBraceToken,
+                static @this => @this.IsPossibleExpression(),
+                static @this => @this.ParseExpressionCore(),
+                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
+                allowTrailingSeparator: false);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ComplexElementInitializerExpression,
                 openBrace,
-                _pool.ToListAndFree(initializers),
-                closeBrace);
-        }
-
-        private void ParseExpressionsForComplexElementInitializer(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, out DiagnosticInfo closeBraceError)
-        {
-            closeBraceError = null;
-
-            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
-            {
-tryAgain:
-                if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    // first argument
-                    list.Add(this.ParseExpressionCore());
-
-                    // additional arguments
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleExpression())
-                        {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                            {
-                                closeBraceError = MakeError(this.CurrentToken, ErrorCode.ERR_ExpressionExpected);
-                                break;
-                            }
-                            list.Add(this.ParseExpressionCore());
-                            continue;
-                        }
-                        else
-                        {
-                            (openBrace, var action) = this.SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.CommaToken);
-                            if (action == PostSkipAction.Abort)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    (openBrace, var action) = this.SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.IdentifierToken);
-                    if (action == PostSkipAction.Continue)
-                    {
-                        goto tryAgain;
-                    }
-                }
-            }
+                initializers,
+                this.EatToken(SyntaxKind.CloseBraceToken));
         }
 
         private bool IsImplicitlyTypedArray()
