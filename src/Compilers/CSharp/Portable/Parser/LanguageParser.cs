@@ -912,8 +912,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(list.Count > 0);
                 SyntaxToken? tmp = null;
                 return @this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
-                    p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
+                    static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
                     SyntaxKind.IdentifierToken);
             }
         }
@@ -964,8 +964,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 LanguageParser @this, SyntaxToken openParen, SeparatedSyntaxListBuilder<AttributeArgumentSyntax> list, SyntaxKind expected)
             {
                 var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
-                    p => p.CurrentToken.Kind == SyntaxKind.CloseParenToken || p.IsTerminator(),
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
+                    static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseParenToken || p.IsTerminator(),
                     expected);
                 return (openParen, action);
             }
@@ -1827,8 +1827,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             PostSkipAction skipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
             {
                 return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
-                    p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
+                    static (p, _) => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
                     expected);
             }
         }
@@ -1910,8 +1910,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 CSharpSyntaxNode tmp = null;
                 Debug.Assert(list.Count > 0);
                 return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleTypeParameterConstraint(),
-                    p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleTypeParameterConstraint(),
+                    static (p, _) => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
                     expected);
             }
         }
@@ -3778,8 +3778,8 @@ parse_member_name:;
         private PostSkipAction SkipBadAccessorListTokens(ref SyntaxToken openBrace, SyntaxListBuilder<AccessorDeclarationSyntax> list, ErrorCode error)
         {
             return this.SkipBadListTokensWithErrorCode(ref openBrace, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CloseBraceToken && !p.IsPossibleAccessor(),
-                p => p.IsTerminator(),
+                static p => p.CurrentToken.Kind != SyntaxKind.CloseBraceToken && !p.IsPossibleAccessor(),
+                static p => p.IsTerminator(),
                 error);
         }
 
@@ -3853,15 +3853,16 @@ parse_member_name:;
             ref T startToken,
             SeparatedSyntaxListBuilder<TNode> list,
             Func<LanguageParser, bool> isNotExpectedFunction,
-            Func<LanguageParser, bool> abortFunction,
-            SyntaxKind expected)
+            Func<LanguageParser, SyntaxKind, bool> abortFunction,
+            SyntaxKind expected,
+            SyntaxKind closeKind = SyntaxKind.None)
             where T : CSharpSyntaxNode
             where TNode : CSharpSyntaxNode
         {
             // We're going to cheat here and pass the underlying SyntaxListBuilder of "list" to the helper method so that
             // it can append skipped trivia to the last element, regardless of whether that element is a node or a token.
             GreenNode trailingTrivia;
-            var action = this.SkipBadListTokensWithExpectedKindHelper(list.UnderlyingBuilder, isNotExpectedFunction, abortFunction, expected, out trailingTrivia);
+            var action = this.SkipBadListTokensWithExpectedKindHelper(list.UnderlyingBuilder, isNotExpectedFunction, abortFunction, expected, closeKind, out trailingTrivia);
             if (trailingTrivia != null)
             {
                 startToken = AddTrailingSkippedSyntax(startToken, trailingTrivia);
@@ -3894,18 +3895,19 @@ parse_member_name:;
         private PostSkipAction SkipBadListTokensWithExpectedKindHelper(
             SyntaxListBuilder list,
             Func<LanguageParser, bool> isNotExpectedFunction,
-            Func<LanguageParser, bool> abortFunction,
+            Func<LanguageParser, SyntaxKind, bool> abortFunction,
             SyntaxKind expected,
+            SyntaxKind closeKind,
             out GreenNode trailingTrivia)
         {
             if (list.Count == 0)
             {
-                return SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, out trailingTrivia);
+                return SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, closeKind, out trailingTrivia);
             }
             else
             {
                 GreenNode lastItemTrailingTrivia;
-                var action = SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, out lastItemTrailingTrivia);
+                var action = SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, closeKind, out lastItemTrailingTrivia);
                 if (lastItemTrailingTrivia != null)
                 {
                     AddTrailingSkippedSyntax(list, lastItemTrailingTrivia);
@@ -3941,8 +3943,9 @@ parse_member_name:;
 
         private PostSkipAction SkipBadTokensWithExpectedKind(
             Func<LanguageParser, bool> isNotExpectedFunction,
-            Func<LanguageParser, bool> abortFunction,
+            Func<LanguageParser, SyntaxKind, bool> abortFunction,
             SyntaxKind expected,
+            SyntaxKind closeKind,
             out GreenNode trailingTrivia)
         {
             var nodes = _pool.Allocate();
@@ -3950,7 +3953,7 @@ parse_member_name:;
             var action = PostSkipAction.Continue;
             while (isNotExpectedFunction(this))
             {
-                if (abortFunction(this))
+                if (abortFunction(this, closeKind))
                 {
                     action = PostSkipAction.Abort;
                     break;
@@ -4213,9 +4216,9 @@ parse_member_name:;
                 LanguageParser @this, SyntaxToken open, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
             {
                 var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(),
-                    p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
-                    expected);
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(),
+                    static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
+                    expected, closeKind);
                 return (open, action);
             }
         }
@@ -4763,8 +4766,8 @@ parse_member_name:;
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                p => p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
+                static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
                 expected);
         }
 
@@ -5300,8 +5303,8 @@ tryAgain:
         private PostSkipAction SkipBadEnumMemberListTokens(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
-                p => p.CurrentToken.Kind is not SyntaxKind.CommaToken and not SyntaxKind.SemicolonToken && !p.IsPossibleEnumMemberDeclaration(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                static p => p.CurrentToken.Kind is not SyntaxKind.CommaToken and not SyntaxKind.SemicolonToken && !p.IsPossibleEnumMemberDeclaration(),
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
                 expected);
         }
 
@@ -5513,8 +5516,8 @@ tryAgain:
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                p => p.CurrentToken.Kind == SyntaxKind.GreaterThanToken || p.IsTerminator(),
+                static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.GreaterThanToken || p.IsTerminator(),
                 expected);
         }
 
@@ -5909,8 +5912,8 @@ tryAgain:
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleType(),
-                p => p.CurrentToken.Kind == SyntaxKind.GreaterThanToken || p.IsTerminator(),
+                static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleType(),
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.GreaterThanToken || p.IsTerminator(),
                 expected);
         }
 
@@ -6801,9 +6804,12 @@ done:
 
             PostSkipAction skipBadFunctionPointerTokens()
             {
-                return SkipBadTokensWithExpectedKind(isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                                                     abortFunction: p => p.IsTerminator(),
-                                                     expected: SyntaxKind.CommaToken, trailingTrivia: out _);
+                return SkipBadTokensWithExpectedKind(
+                    isNotExpectedFunction: static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                    abortFunction: static (p, _) => p.IsTerminator(),
+                    expected: SyntaxKind.CommaToken,
+                    closeKind: SyntaxKind.None,
+                    trailingTrivia: out _);
             }
         }
 #nullable disable
@@ -7137,8 +7143,8 @@ done:;
         private PostSkipAction SkipBadArrayRankSpecifierTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
+                static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
                 expected);
         }
 
@@ -7254,8 +7260,8 @@ done:;
                 Debug.Assert(list.Count > 0);
                 return SkipBadSeparatedListTokensWithExpectedKind(ref tmp,
                     list,
-                    isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                    abortFunction: p => p.IsTerminator(),
+                    isNotExpectedFunction: static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                    abortFunction: static (p, _) => p.IsTerminator(),
                     expected: SyntaxKind.CommaToken);
             }
 
@@ -8197,9 +8203,10 @@ done:;
                 // We know we have a bad statement, so it can't be a local
                 // function, meaning we shouldn't consider accessibility
                 // modifiers to be the start of a statement
-                p => !p.IsPossibleStatement(acceptAccessibilityMods: false),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                static p => !p.IsPossibleStatement(acceptAccessibilityMods: false),
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
                 expected,
+                closeKind: SyntaxKind.None,
                 out trailingTrivia
             );
         }
@@ -8710,8 +8717,8 @@ done:;
                     return (startToken, PostSkipAction.Abort);
 
                 var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                    p => p.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.SemicolonToken || p.IsTerminator(),
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
+                    static (p, _) => p.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.SemicolonToken || p.IsTerminator(),
                     expected);
                 return (startToken, action);
             }
@@ -11109,9 +11116,10 @@ done:;
                 }
 
                 var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleArgumentExpression(),
-                p => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
-                expected);
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleArgumentExpression(),
+                    static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
+                    expected,
+                    closeKind);
                 return (open, action);
             }
         }
@@ -12112,8 +12120,8 @@ done:;
             where T : CSharpSyntaxNode
         {
             var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
                 expected);
             return (startToken, action);
         }
@@ -12237,8 +12245,8 @@ done:;
                 LanguageParser @this, SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
             {
                 var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
-                    p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
+                    static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
                     expected);
                 return (openBrace, action);
             }
@@ -12510,9 +12518,10 @@ done:;
                 LanguageParser @this, SyntaxToken openParen, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
             {
                 var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleLambdaParameter(),
-                    p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
-                    expected);
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleLambdaParameter(),
+                    static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
+                    expected,
+                    closeKind);
                 return (openParen, action);
             }
         }
@@ -12892,8 +12901,8 @@ done:;
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                p => p.CurrentToken.Kind == SyntaxKind.CloseParenToken
+                static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseParenToken
                     || p.CurrentToken.Kind == SyntaxKind.SemicolonToken
                     || p.IsCurrentTokenQueryContextualKeyword
                     || p.IsTerminator(),
