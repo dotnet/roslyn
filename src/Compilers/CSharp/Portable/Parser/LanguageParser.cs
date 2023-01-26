@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.ParseAttributes(attributes);
 
             var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
-            if (inExpressionContext && parseAsCollectionLiteral())
+            if (inExpressionContext && shouldParseAsCollectionLiteral())
             {
                 // we're in an expression and we've seen `[A, B].`  This is actually the start of a collection literal
                 // that someone is explicitly accessing a member off of.
@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return _syntaxFactory.AttributeList(openBracket, location, _pool.ToListAndFree(attributes), closeBracket);
 
-            bool parseAsCollectionLiteral()
+            bool shouldParseAsCollectionLiteral()
             {
                 // `[A, B].` is a member access off of a collection literal. 
                 if (this.CurrentToken.Kind == SyntaxKind.DotToken)
@@ -12109,9 +12109,11 @@ tryAgain:
         private CollectionElementSyntax ParseCollectionElement()
         {
             var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
+            if (dotDotToken != null)
+                return _syntaxFactory.SpreadElement(dotDotToken, this.ParseExpressionCore());
 
             ExpressionSyntax expression;
-            if (dotDotToken is null && SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
             {
                 var keyword = this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken);
                 var identifier = ConvertToIdentifier(keyword).WithDiagnosticsGreen(keyword.GetDiagnostics());
@@ -12122,14 +12124,10 @@ tryAgain:
                 expression = this.ParseExpressionCore();
             }
 
-            if (dotDotToken != null)
-                return _syntaxFactory.SpreadElement(dotDotToken, expression);
-
             var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
-            if (colonToken != null)
-                return _syntaxFactory.DictionaryElement(expression, colonToken, this.ParseExpressionCore());
-
-            return _syntaxFactory.ExpressionElement(expression);
+            return colonToken != null
+                ? _syntaxFactory.DictionaryElement(expression, colonToken, this.ParseExpressionCore())
+                : _syntaxFactory.ExpressionElement(expression);
         }
 
         private bool IsAnonymousType()

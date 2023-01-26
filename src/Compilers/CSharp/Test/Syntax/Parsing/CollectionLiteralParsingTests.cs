@@ -1870,6 +1870,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void DictionaryWithQuery1()
+        {
+            UsingExpression("[from x in y select x : c]");
+
+            EOF();
+        }
+
+        [Fact]
+        public void DictionaryWithQuery2()
+        {
+            UsingExpression("[a : from x in y select x]");
+
+            EOF();
+        }
+
+        [Fact]
+        public void DictionaryWithQuery3()
+        {
+            UsingExpression("[from a in b select a : from x in y select x]");
+
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAmbiguity1()
+        {
+            UsingExpression("[a ? [b] : c]");
+
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAmbiguity2()
+        {
+            UsingExpression("[(a ? [b]) : c]");
+
+            EOF();
+        }
+
+        [Fact]
+        public void SpreadOfQuery()
+        {
+            UsingExpression("[.. from x in y select x]");
+
+            EOF();
+        }
+
+        [Fact]
         public void InvokedCollectionLiteral1()
         {
             UsingExpression("[A, B]()");
