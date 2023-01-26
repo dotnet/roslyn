@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var closeParenToken = this.EatToken(SyntaxKind.CloseParenToken);
 
                 parsePropertyPatternClause(out PropertyPatternClauseSyntax? propertyPatternClause0);
-                TryParseSimpleDesignation(out VariableDesignationSyntax? designation0, whenIsKeyword);
+                var designation0 = TryParseSimpleDesignation(whenIsKeyword);
 
                 if (type == null &&
                     propertyPatternClause0 == null &&
@@ -329,27 +329,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (parsePropertyPatternClause(out PropertyPatternClauseSyntax? propertyPatternClause))
             {
-                TryParseSimpleDesignation(out VariableDesignationSyntax? designation0, whenIsKeyword);
-                return _syntaxFactory.RecursivePattern(type, positionalPatternClause: null, propertyPatternClause, designation0);
+                return _syntaxFactory.RecursivePattern(
+                    type, positionalPatternClause: null, propertyPatternClause,
+                    TryParseSimpleDesignation(whenIsKeyword));
             }
 
             if (type != null)
             {
-                if (TryParseSimpleDesignation(out VariableDesignationSyntax? designation, whenIsKeyword))
-                {
+                var designation = TryParseSimpleDesignation(whenIsKeyword);
+                if (designation != null)
                     return _syntaxFactory.DeclarationPattern(type, designation);
-                }
-                else
-                {
-                    // We normally prefer an expression rather than a type in a pattern.
-                    if (ConvertTypeToExpression(type, out var expression))
-                    {
-                        expression = ParseExpressionContinued(expression, precedence);
-                        return _syntaxFactory.ConstantPattern(expression);
-                    }
 
-                    return _syntaxFactory.TypePattern(type);
-                }
+                // We normally prefer an expression rather than a type in a pattern.
+                return ConvertTypeToExpression(type, out var expression)
+                    ? _syntaxFactory.ConstantPattern(ParseExpressionContinued(expression, precedence))
+                    : _syntaxFactory.TypePattern(type);
             }
 
             // let the caller fall back to parsing an expression
@@ -374,16 +368,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool TryParseSimpleDesignation([NotNullWhen(true)] out VariableDesignationSyntax? designationResult, bool whenIsKeyword)
+        private VariableDesignationSyntax? TryParseSimpleDesignation(bool whenIsKeyword)
         {
-            if (this.IsTrueIdentifier() && this.IsValidPatternDesignation(whenIsKeyword))
-            {
-                designationResult = ParseSimpleDesignation();
-                return true;
-            }
-
-            designationResult = null;
-            return false;
+            return this.IsTrueIdentifier() && this.IsValidPatternDesignation(whenIsKeyword)
+                ? ParseSimpleDesignation()
+                : null;
         }
 
         private bool IsValidPatternDesignation(bool whenIsKeyword)
@@ -613,10 +602,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 static @this => @this.ParsePattern(Precedence.Conditional),
                 static (@this, openBracket, list, expectedKind, closeKind) => @this.SkipBadPatternListTokens(openBracket, list, expectedKind, closeKind),
                 allowTrailingSeparator: true);
-            var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
 
-            TryParseSimpleDesignation(out VariableDesignationSyntax? designation, whenIsKeyword);
-            return _syntaxFactory.ListPattern(openBracket, list, closeBracket, designation);
+            return _syntaxFactory.ListPattern(
+                openBracket,
+                list,
+                this.EatToken(SyntaxKind.CloseBracketToken),
+                TryParseSimpleDesignation(whenIsKeyword));
         }
     }
 }

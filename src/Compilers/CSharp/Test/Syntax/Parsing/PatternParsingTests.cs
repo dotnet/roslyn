@@ -11965,6 +11965,16 @@ switch (e)
                                                     }
                                                 }
                                                 N(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.Subpattern);
+                                                {
+                                                    M(SyntaxKind.ConstantPattern);
+                                                    {
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                    }
+                                                }
                                                 M(SyntaxKind.CloseParenToken);
                                             }
                                         }
@@ -12044,6 +12054,16 @@ switch (e)
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.Subpattern);
+                                    {
+                                        M(SyntaxKind.ConstantPattern);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                        }
+                                    }
                                     M(SyntaxKind.CloseParenToken);
                                 }
                             }
