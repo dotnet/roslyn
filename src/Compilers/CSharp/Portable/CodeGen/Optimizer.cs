@@ -400,8 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
-        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals =
-            new Dictionary<LocalSymbol, LocalDefUseInfo>();
+        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
         // we do that by placing a fake dummy local at one end of a branch and force that it is accessible at another.
