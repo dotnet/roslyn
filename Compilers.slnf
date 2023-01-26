@@ -45,6 +45,7 @@
       "src\\Compilers\\Test\\Core\\Microsoft.CodeAnalysis.Test.Utilities.csproj",
       "src\\Tools\\AnalyzerRunner\\AnalyzerRunner.csproj",
       "src\\Tools\\ExternalAccess\\RazorCompiler\\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj",
+      "src\\Tools\\ExternalAccess\\RazorCompilerTest\\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\BoundTreeGenerator\\CompilersBoundTreeGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpErrorFactsGenerator\\CSharpErrorFactsGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpSyntaxGenerator\\CSharpSyntaxGenerator.csproj",
