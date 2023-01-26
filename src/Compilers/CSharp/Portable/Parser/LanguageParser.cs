@@ -995,96 +995,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private delegate (SyntaxToken openToken, PostSkipAction action) SkipBadTokens<TNode>(
-            LanguageParser parser, SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind expectedKind, SyntaxKind closeTokenKind) where TNode : GreenNode;
-
-        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
-            ref SyntaxToken openToken,
-            SyntaxKind closeTokenKind,
-            Func<LanguageParser, bool> isPossibleElement,
-            Func<LanguageParser, TNode> parseElement,
-            SkipBadTokens<TNode> skipBadTokens,
-            bool allowTrailingSeparator) where TNode : GreenNode
-        {
-            return ParseSeparatedSyntaxList<TNode>(
-                ref openToken,
-                SyntaxKind.CommaToken,
-                closeTokenKind,
-                isPossibleElement,
-                parseElement,
-                skipBadTokens,
-                allowTrailingSeparator);
-        }
-
-        private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
-            ref SyntaxToken openToken,
-            SyntaxKind separatorTokenKind,
-            SyntaxKind closeTokenKind,
-            Func<LanguageParser, bool> isPossibleElement,
-            Func<LanguageParser, TNode> parseElement,
-            SkipBadTokens<TNode> skipBadTokens,
-            bool allowTrailingSeparator) where TNode : GreenNode
-        {
-            var argNodes = _pool.AllocateSeparated<TNode>();
-
-tryAgain:
-            if (this.CurrentToken.Kind != closeTokenKind)
-            {
-                if (isPossibleElement(this) || this.CurrentToken.Kind == separatorTokenKind)
-                {
-                    // first argument
-                    argNodes.Add(parseElement(this));
-
-                    // comma + argument or end?
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (this.CurrentToken.Kind == closeTokenKind)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == separatorTokenKind || isPossibleElement(this))
-                        {
-                            argNodes.AddSeparator(this.EatToken(separatorTokenKind));
-
-                            if (allowTrailingSeparator)
-                            {
-                                // check for exit case after legal trailing comma
-                                if (this.CurrentToken.Kind == closeTokenKind)
-                                {
-                                    break;
-                                }
-                                else if (!isPossibleElement(this))
-                                {
-                                    goto tryAgain;
-                                }
-                            }
-
-                            argNodes.Add(parseElement(this));
-                        }
-                        else
-                        {
-                            (openToken, var action) = skipBadTokens(this, openToken, argNodes, separatorTokenKind, closeTokenKind);
-                            if (action == PostSkipAction.Abort)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, SyntaxKind.IdentifierToken, closeTokenKind);
-                    if (action == PostSkipAction.Continue)
-                    {
-                        goto tryAgain;
-                    }
-                }
-            }
-
-            return _pool.ToListAndFree(argNodes);
-        }
-
         private bool IsPossibleAttributeArgument()
         {
             return this.IsPossibleExpression();
@@ -13158,6 +13068,97 @@ tryAgain:
             Debug.Assert(_syntaxFactoryContext.QueryDepth > 0);
             _syntaxFactoryContext.QueryDepth--;
         }
+
+        private delegate (SyntaxToken openToken, PostSkipAction action) SkipBadTokens<TNode>(
+            LanguageParser parser, SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind expectedKind, SyntaxKind closeTokenKind) where TNode : GreenNode;
+
+        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
+            ref SyntaxToken openToken,
+            SyntaxKind closeTokenKind,
+            Func<LanguageParser, bool> isPossibleElement,
+            Func<LanguageParser, TNode> parseElement,
+            SkipBadTokens<TNode> skipBadTokens,
+            bool allowTrailingSeparator) where TNode : GreenNode
+        {
+            return ParseSeparatedSyntaxList<TNode>(
+                ref openToken,
+                SyntaxKind.CommaToken,
+                closeTokenKind,
+                isPossibleElement,
+                parseElement,
+                skipBadTokens,
+                allowTrailingSeparator);
+        }
+
+        private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
+            ref SyntaxToken openToken,
+            SyntaxKind separatorTokenKind,
+            SyntaxKind closeTokenKind,
+            Func<LanguageParser, bool> isPossibleElement,
+            Func<LanguageParser, TNode> parseElement,
+            SkipBadTokens<TNode> skipBadTokens,
+            bool allowTrailingSeparator) where TNode : GreenNode
+        {
+            var argNodes = _pool.AllocateSeparated<TNode>();
+
+tryAgain:
+            if (this.CurrentToken.Kind != closeTokenKind)
+            {
+                if (isPossibleElement(this) || this.CurrentToken.Kind == separatorTokenKind)
+                {
+                    // first argument
+                    argNodes.Add(parseElement(this));
+
+                    // comma + argument or end?
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
+                    {
+                        if (this.CurrentToken.Kind == closeTokenKind)
+                        {
+                            break;
+                        }
+                        else if (this.CurrentToken.Kind == separatorTokenKind || isPossibleElement(this))
+                        {
+                            argNodes.AddSeparator(this.EatToken(separatorTokenKind));
+
+                            if (allowTrailingSeparator)
+                            {
+                                // check for exit case after legal trailing comma
+                                if (this.CurrentToken.Kind == closeTokenKind)
+                                {
+                                    break;
+                                }
+                                else if (!isPossibleElement(this))
+                                {
+                                    goto tryAgain;
+                                }
+                            }
+
+                            argNodes.Add(parseElement(this));
+                        }
+                        else
+                        {
+                            (openToken, var action) = skipBadTokens(this, openToken, argNodes, separatorTokenKind, closeTokenKind);
+                            if (action == PostSkipAction.Abort)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, SyntaxKind.IdentifierToken, closeTokenKind);
+                    if (action == PostSkipAction.Continue)
+                    {
+                        goto tryAgain;
+                    }
+                }
+            }
+
+            return _pool.ToListAndFree(argNodes);
+        }
+
 
         private DisposableResetPoint GetDisposableResetPoint(bool resetOnDispose)
             => new DisposableResetPoint(this, resetOnDispose, GetResetPoint());
