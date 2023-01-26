@@ -4315,28 +4315,28 @@ parse_member_name:;
                 closeKind,
                 static @this => @this.IsPossibleParameter(),
                 static @this => @this.ParseParameter(),
-                static (@this, open, nodes, expectedKind, closeKind) => @this.SkipBadParameterListTokens(open, nodes, expectedKind, closeKind),
+                static (@this, open, nodes, expectedKind, closeKind) => skipBadParameterListTokens(@this, open, nodes, expectedKind, closeKind),
                 allowTrailingSeparator: false);
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
 
             return parameters;
+
+            static (SyntaxToken open, PostSkipAction action) skipBadParameterListTokens(
+                LanguageParser @this, SyntaxToken open, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
+            {
+                var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(),
+                    p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
+                    expected);
+                return (open, action);
+            }
         }
 
         private bool IsEndOfParameterList()
         {
             return this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken;
-        }
-
-        private (SyntaxToken open, PostSkipAction action) SkipBadParameterListTokens(
-            SyntaxToken open, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
-        {
-            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(),
-                p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
-                expected);
-            return (open, action);
         }
 
         private bool IsPossibleParameter()
