@@ -1540,13 +1540,9 @@ class C
                 // (1,15): error CS1525: Invalid expression term ','
                 // 0 with { X 3 =,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 15),
-                // (1,16): error CS1733: Expected expression
-                // 0 with { X 3 =,
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 16),
                 // (1,16): error CS1513: } expected
                 // 0 with { X 3 =,
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 16)
-            );
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 16));
 
             N(SyntaxKind.WithExpression);
             {

@@ -11985,57 +11985,13 @@ done:;
         private WithExpressionSyntax ParseWithExpression(ExpressionSyntax receiverExpression, SyntaxToken withKeyword)
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-
-            var list = _pool.AllocateSeparated<ExpressionSyntax>();
-            if (CurrentToken.Kind != SyntaxKind.CloseBraceToken)
-            {
-                bool foundStart = true;
-                // Skip bad starting tokens until we find a valid start, if possible
-                while (!IsPossibleExpression() && CurrentToken.Kind != SyntaxKind.CommaToken)
-                {
-                    (openBrace, var action) = SkipBadInitializerListTokens(openBrace, list, SyntaxKind.IdentifierToken, SyntaxKind.CloseBraceToken);
-                    if (action == PostSkipAction.Abort)
-                    {
-                        foundStart = false;
-                        break;
-                    }
-                }
-
-                if (foundStart)
-                {
-                    // First
-                    list.Add(ParseExpressionCore());
-
-                    // Rest
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                        {
-                            break;
-                        }
-                        else if (IsPossibleExpression() || CurrentToken.Kind == SyntaxKind.CommaToken)
-                        {
-                            list.AddSeparator(EatToken(SyntaxKind.CommaToken));
-
-                            // check for exit case after legal trailing comma
-                            if (CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                            {
-                                break;
-                            }
-                            list.Add(ParseExpressionCore());
-                        }
-                        else
-                        {
-                            (openBrace, var action) = SkipBadInitializerListTokens(openBrace, list, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken);
-                            if (action == PostSkipAction.Abort)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            var list = this.ParseCommaSeparatedSyntaxList(
+                ref openBrace,
+                SyntaxKind.CloseBraceToken,
+                static @this => @this.IsPossibleExpression(),
+                static @this => @this.ParseExpressionCore(),
+                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind, closeKind),
+                allowTrailingSeparator: true);
 
             return _syntaxFactory.WithExpression(
                 receiverExpression,
@@ -12043,7 +11999,7 @@ done:;
                 _syntaxFactory.InitializerExpression(
                     SyntaxKind.WithInitializerExpression,
                     openBrace,
-                    _pool.ToListAndFree(list),
+                    list,
                     this.EatToken(SyntaxKind.CloseBraceToken)));
         }
 
