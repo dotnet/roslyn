@@ -4227,10 +4227,8 @@ parse_member_name:;
                 return (ParameterListSyntax)this.EatNode();
             }
 
-            var parameters = _pool.AllocateSeparated<ParameterSyntax>();
-
-            this.ParseParameterList(out var open, parameters, out var close, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
-            return _syntaxFactory.ParameterList(open, _pool.ToListAndFree(parameters), close);
+            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
+            return _syntaxFactory.ParameterList(open, parameters, close);
         }
 
         internal BracketedParameterListSyntax ParseBracketedParameterList()
@@ -4240,10 +4238,8 @@ parse_member_name:;
                 return (BracketedParameterListSyntax)this.EatNode();
             }
 
-            var parameters = _pool.AllocateSeparated<ParameterSyntax>();
-
-            this.ParseParameterList(out var open, parameters, out var close, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken);
-            return _syntaxFactory.BracketedParameterList(open, _pool.ToListAndFree(parameters), close);
+            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken);
+            return _syntaxFactory.BracketedParameterList(open, parameters, close);
         }
 
         private static bool CanReuseParameterList(CSharp.Syntax.ParameterListSyntax list)
@@ -4302,9 +4298,8 @@ parse_member_name:;
             return true;
         }
 
-        private void ParseParameterList(
+        private SeparatedSyntaxList<ParameterSyntax> ParseParameterList(
             out SyntaxToken open,
-            SeparatedSyntaxListBuilder<ParameterSyntax> nodes,
             out SyntaxToken close,
             SyntaxKind openKind,
             SyntaxKind closeKind)
@@ -4314,49 +4309,18 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfParameterList;
 
-            if (this.CurrentToken.Kind != closeKind)
-            {
-tryAgain:
-                if (this.IsPossibleParameter() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    // first parameter
-                    var parameter = this.ParseParameter();
-                    nodes.Add(parameter);
-
-                    // additional parameters
-                    while (true)
-                    {
-                        if (this.CurrentToken.Kind == closeKind)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleParameter())
-                        {
-                            nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            parameter = this.ParseParameter();
-                            if (parameter.IsMissing && this.IsPossibleParameter())
-                            {
-                                // ensure we always consume tokens
-                                parameter = AddTrailingSkippedSyntax(parameter, this.EatToken());
-                            }
-
-                            nodes.Add(parameter);
-                            continue;
-                        }
-                        else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
-                }
-            }
+            var parameters = ParseCommaSeparatedSyntaxList<ParameterSyntax>(
+                ref open,
+                closeKind,
+                static @this => @this.IsPossibleParameter(),
+                static @this => @this.ParseParameter(),
+                static (@this, open, nodes, kind) => @this.SkipBadParameterListTokens(open, nodes, kind, closeKind),
+                allowTrailingSeparator: false);
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
+
+            return parameters;
         }
 
         private bool IsEndOfParameterList()
@@ -4364,13 +4328,14 @@ tryAgain:
             return this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken;
         }
 
-        private PostSkipAction SkipBadParameterListTokens(
-            ref SyntaxToken open, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
+        private (SyntaxToken open, PostSkipAction action) SkipBadParameterListTokens(
+            SyntaxToken open, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
         {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
+            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(),
                 p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
                 expected);
+            return (open, action);
         }
 
         private bool IsPossibleParameter()
