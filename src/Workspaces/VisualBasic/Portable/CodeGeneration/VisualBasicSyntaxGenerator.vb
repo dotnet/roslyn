@@ -987,11 +987,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional getAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
             Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
+            Return PropertyDeclaration(
+                identifier,
+                type,
+                If(Not modifiers.IsWriteOnly, CreateGetAccessorBlock(getAccessorStatements), Nothing),
+                If(Not modifiers.IsReadOnly, CreateSetAccessorBlock(type, setAccessorStatements), Nothing),
+                accessibility,
+                modifiers)
+        End Function
+
+        Private Protected Overrides Function PropertyDeclaration(
+            name As String,
+            type As SyntaxNode,
+            getAccessor As SyntaxNode,
+            setAccessor As SyntaxNode,
+            accessibility As Accessibility,
+            modifiers As DeclarationModifiers) As SyntaxNode
+
             Dim asClause = SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax))
             Dim statement = SyntaxFactory.PropertyStatement(
                 attributeLists:=Nothing,
                 modifiers:=GetModifierList(accessibility, modifiers And s_propertyModifiers, declaration:=Nothing, DeclarationKind.Property),
-                identifier:=identifier.ToIdentifierToken(),
+                identifier:=name.ToIdentifierToken(),
                 parameterList:=Nothing,
                 asClause:=asClause,
                 initializer:=Nothing,
@@ -1002,13 +1019,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Else
                 Dim accessors = New List(Of AccessorBlockSyntax)
 
-                If Not modifiers.IsWriteOnly Then
-                    accessors.Add(CreateGetAccessorBlock(getAccessorStatements))
-                End If
-
-                If Not modifiers.IsReadOnly Then
-                    accessors.Add(CreateSetAccessorBlock(type, setAccessorStatements))
-                End If
+                accessors.AddIfNotNull(DirectCast(getAccessor, AccessorBlockSyntax))
+                accessors.AddIfNotNull(DirectCast(setAccessor, AccessorBlockSyntax))
 
                 Return SyntaxFactory.PropertyBlock(
                     propertyStatement:=statement,
