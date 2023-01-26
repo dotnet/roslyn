@@ -11983,7 +11983,7 @@ done:;
 
 #nullable enable
 
-        private ExpressionSyntax ParseWithExpression(ExpressionSyntax receiverExpression, SyntaxToken withKeyword)
+        private WithExpressionSyntax ParseWithExpression(ExpressionSyntax receiverExpression, SyntaxToken withKeyword)
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
