@@ -84,5 +84,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
             => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics));
+
+        public void SetFileLoggingDirectory(string? logDirectory)
+            => throw new NotImplementedException();
     }
 }
