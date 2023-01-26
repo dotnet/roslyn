@@ -259,8 +259,11 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  # temp disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+  # in our CI builds
   # https://github.com/NuGet/Home/issues/12373
+  $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -280,7 +283,7 @@ function BuildSolution() {
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=false `
+      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
       $suppressExtensionDeployment `
