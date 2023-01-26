@@ -12163,8 +12163,7 @@ done:;
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
                 static (@this, openBrace, list, expectedKind, _) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
-                allowTrailingSeparator: false,
-                trailingSeparatorError: ErrorCode.ERR_ExpressionExpected);
+                allowTrailingSeparator: false);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ComplexElementInitializerExpression,
@@ -12225,17 +12224,13 @@ done:;
 
             // NOTE:  This loop allows " { <initexpr>, } " but not " { , } "
 
-            // NOTE: Most separated list parsing routines default to just saying they expect an identifier between
-            // elements in the case of error.  To maintain compat with legacy behavior here this code instead reports
-            // 'syntax error'.  This is accomplished by passing in `expectedKind: SyntaxKind.CommaToken`.
             var list = this.ParseCommaSeparatedSyntaxList(
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleVariableInitializer(),
                 static @this => @this.ParseVariableInitializer(),
-                static (@this, openBrace, list, expectedKind, _) => skipBadArrayInitializerTokens(@this, openBrace, list, expectedKind),
-                allowTrailingSeparator: true,
-                expectedKind: SyntaxKind.CommaToken);
+                static (@this, openBrace, list, _, _) => skipBadArrayInitializerTokens(@this, openBrace, list),
+                allowTrailingSeparator: true);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ArrayInitializerExpression,
@@ -12244,12 +12239,15 @@ done:;
                 this.EatToken(SyntaxKind.CloseBraceToken));
 
             static (SyntaxToken openBrace, PostSkipAction action) skipBadArrayInitializerTokens(
-                LanguageParser @this, SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
+                LanguageParser @this, SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list)
             {
+                // NOTE: Most separated list parsing routines default to just saying they expect an identifier between
+                // elements in the case of error.  To maintain compat with legacy behavior here this code instead reports
+                // 'syntax error'.  This is accomplished by passing in `expected: SyntaxKind.CommaToken`.
                 var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                     static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
                     static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
-                    expected);
+                    expected: SyntaxKind.CommaToken);
                 return (openBrace, action);
             }
         }
@@ -13022,9 +13020,7 @@ done:;
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
-            bool requireOneElement = false,
-            SyntaxKind expectedKind = SyntaxKind.IdentifierToken,
-            ErrorCode? trailingSeparatorError = null) where TNode : GreenNode
+            bool requireOneElement = false) where TNode : GreenNode
         {
             return ParseSeparatedSyntaxList(
                 ref openToken,
@@ -13034,9 +13030,7 @@ done:;
                 parseElement,
                 skipBadTokens,
                 allowTrailingSeparator,
-                requireOneElement,
-                expectedKind,
-                trailingSeparatorError);
+                requireOneElement);
         }
 
         private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
@@ -13047,9 +13041,7 @@ done:;
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
-            bool requireOneElement = false,
-            SyntaxKind expectedKind = SyntaxKind.IdentifierToken,
-            ErrorCode? trailingSeparatorError = null) where TNode : GreenNode
+            bool requireOneElement = false) where TNode : GreenNode
         {
             var argNodes = _pool.AllocateSeparated<TNode>();
 
@@ -13074,18 +13066,7 @@ tryAgain:
                         }
                         else if (this.CurrentToken.Kind == separatorTokenKind || isPossibleElement(this))
                         {
-                            var separator = this.EatToken(separatorTokenKind);
-
-                            if (!allowTrailingSeparator && trailingSeparatorError != null && this.CurrentToken.Kind == closeTokenKind)
-                            {
-                                // Caller wants a specialized error here instead of whatever error their normal parse function would produce.
-                                separator = WithAdditionalDiagnostics(
-                                    separator, MakeError(separator.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(), this.CurrentToken.Width, trailingSeparatorError.Value));
-                                argNodes.AddSeparator(separator);
-                                break;
-                            }
-
-                            argNodes.AddSeparator(separator);
+                            argNodes.AddSeparator(this.EatToken(separatorTokenKind));
 
                             if (allowTrailingSeparator)
                             {
@@ -13112,7 +13093,7 @@ tryAgain:
                 }
                 else
                 {
-                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, expectedKind, closeTokenKind);
+                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, SyntaxKind.IdentifierToken, closeTokenKind);
                     if (action == PostSkipAction.Continue)
                         goto tryAgain;
                 }
