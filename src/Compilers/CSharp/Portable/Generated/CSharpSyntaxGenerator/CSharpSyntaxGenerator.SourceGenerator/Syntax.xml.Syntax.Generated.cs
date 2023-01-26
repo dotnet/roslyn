@@ -13367,6 +13367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.IncompleteMember"/></description></item>
     /// </list>
     /// </remarks>
+    [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
     public sealed partial class IncompleteMemberSyntax : MemberDeclarationSyntax
     {
         private SyntaxNode? attributeLists;

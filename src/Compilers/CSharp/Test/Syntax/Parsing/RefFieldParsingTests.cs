@@ -560,16 +560,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "S");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.FieldDeclaration);
                 {
@@ -599,17 +607,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.FieldDeclaration);
                 {

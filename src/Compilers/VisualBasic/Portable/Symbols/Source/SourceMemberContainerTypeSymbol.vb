@@ -31,7 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             PrivateProtected = CUShort(Accessibility.ProtectedAndFriend)
             [Public] = CUShort(Accessibility.Public)
             AccessibilityMask = &H7
-
             [Class] = CUShort(TypeKind.Class) << TypeKindShift
             [Structure] = CUShort(TypeKind.Structure) << TypeKindShift
             [Interface] = CUShort(TypeKind.Interface) << TypeKindShift
@@ -2609,6 +2608,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case SyntaxKind.EventBlock
                     Dim eventDecl = DirectCast(memberSyntax, EventBlockSyntax)
                     CreateEvent(eventDecl.EventStatement, eventDecl, binder, diagBag.DiagnosticBag, members)
+
+                Case SyntaxKind.IncompleteMember
+                    Dim incompleteMemberSyntax As IncompleteMemberSyntax = DirectCast(memberSyntax, IncompleteMemberSyntax)
+
+                    ' Don't produce modifier diagnostics for incomplete members.
+                    Dim modifiers = binder.DecodeModifiers(incompleteMemberSyntax.Modifiers, SourceMemberFlags.None, ERRID.ERR_BadDimFlags1, If(IsValueType, Accessibility.Public, Accessibility.Private), New DiagnosticBag())
+
+                    AddMember(New SourceIncompleteFieldSymbol(Me, modifiers.AllFlags, incompleteMemberSyntax), binder, members, omitDiagnostics:=True)
 
                 Case Else
                     If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then

@@ -1945,16 +1945,24 @@ ref scoped int c;
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -2929,16 +2937,24 @@ ref scoped var;
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -5698,17 +5714,25 @@ scoped ref var (a, b) = M;
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "var");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -5767,18 +5791,26 @@ scoped ref readonly var (a, b) = M;
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "var");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -11487,17 +11519,25 @@ scoped ref struct B { }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
@@ -11559,12 +11599,20 @@ readonly scoped record struct C();
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.RecordStructDeclaration);
                 {
@@ -11878,7 +11926,7 @@ readonly scoped record struct C();
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -11892,10 +11940,18 @@ readonly scoped record struct C();
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
@@ -11904,7 +11960,7 @@ readonly scoped record struct C();
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -11927,14 +11983,22 @@ readonly scoped record struct C();
                         N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
@@ -14408,12 +14472,20 @@ ref struct R2
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R2");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -14467,17 +14539,25 @@ ref struct R2
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R2");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -14528,12 +14608,20 @@ ref struct R2
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R2");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -14596,17 +14684,25 @@ ref struct R2
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R2");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -14721,12 +14817,20 @@ ref struct R2
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R2");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -14744,12 +14848,20 @@ ref struct R2
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -14804,12 +14916,20 @@ ref struct R2
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R2");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.EventFieldDeclaration);
                     {

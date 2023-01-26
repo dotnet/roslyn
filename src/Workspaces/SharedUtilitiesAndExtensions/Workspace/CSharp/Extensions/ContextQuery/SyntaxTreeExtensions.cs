@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -597,8 +598,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 // ref $$
                 // readonly ref $$
-                if (container is IncompleteMemberSyntax incompleteMember)
-                    return incompleteMember.Type.IsKind(SyntaxKind.RefType);
+                if (container is VariableDeclarationSyntax variableDeclaration)
+                    return variableDeclaration.Type.IsKind(SyntaxKind.RefType) && variableDeclaration.Parent is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax;
 
                 if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
@@ -1871,17 +1872,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // scoped |
             // The compiler parses this as an identifier whose parent is:
-            // - ExpressionStatementSyntax when in method declaration.
-            // - IncompleteMemberSyntax when in top-level code and there are no class declarations after it.
-            // - BaseTypeDeclarationSyntax if it comes after scoped
-            // - VariableDeclarationSyntax for `scoped X` inside method declaration
-            if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.Parent is VariableDeclarationSyntax or ExpressionStatementSyntax or IncompleteMemberSyntax)
+            // - ExpressionStatementSyntax for `void M() { scoped | }`.
+            // - VariableDeclarationSyntax for `void M() { scoped X | }` and `scoped` in top-level code
+            if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent.IsKind(SyntaxKind.IdentifierName) &&
+                token.Parent.Parent is VariableDeclarationSyntax or ExpressionStatementSyntax)
             {
                 return true;
             }
 
-            // scoped v|
-            if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent is IncompleteMemberSyntax)
+            // scoped | (in top level code when followed by ref struct)
+            // scoped v| (in top level code when followed by partial struct)
+            if (token.IsKind(SyntaxKind.ScopedKeyword) &&
+                (token.Parent is ScopedTypeSyntax || CSharpSyntaxFacts.Instance.IsIncompleteFieldDeclaration(token.Parent)))
             {
                 return true;
             }

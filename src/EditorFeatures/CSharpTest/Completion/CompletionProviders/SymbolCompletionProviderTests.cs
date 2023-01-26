@@ -11982,7 +11982,7 @@ ref struct MyRefStruct { }
         }
 
         [Fact]
-        public async Task AfterScopedGlobalStatement_FollowedByType()
+        public async Task AfterScopedGlobalStatement_FollowedByRefStruct()
         {
             var source = @"
 scoped $$
@@ -11990,6 +11990,32 @@ scoped $$
 ref struct MyRefStruct { }
 ";
             await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_FollowedByStruct()
+        {
+            var source = @"
+using System;
+
+scoped $$
+
+struct S { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_FollowedByPartialStruct()
+        {
+            var source = @"
+using System;
+
+scoped $$
+
+partial struct S { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
         }
 
         [Fact]

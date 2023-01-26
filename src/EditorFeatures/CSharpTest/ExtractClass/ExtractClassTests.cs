@@ -2441,7 +2441,7 @@ internal class MyBase<T1, T3>
             var input = @"
 class C
 {
-    pub[||] {|CS1519:int|} Foo = 0;
+    {|CS0246:pub|}[||] {|CS1519:int|} Foo = 0;
 }
 ";
             await new Test
@@ -2457,7 +2457,7 @@ class C
             var input = @"
 class C
 {
-    pub[||] {|CS1519:int|} Foo()
+    {|CS0246:pub|}[||] {|CS1519:int|} Foo()
     {
         return 5;
     }

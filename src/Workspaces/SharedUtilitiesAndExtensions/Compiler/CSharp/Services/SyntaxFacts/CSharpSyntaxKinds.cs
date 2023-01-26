@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int AsyncKeyword => (int)SyntaxKind.AsyncKeyword;
         public int IdentifierToken => (int)SyntaxKind.IdentifierToken;
         public int GlobalKeyword => (int)SyntaxKind.GlobalKeyword;
-        public int IncompleteMember => (int)SyntaxKind.IncompleteMember;
         public int HashToken => (int)SyntaxKind.HashToken;
 
         public int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;

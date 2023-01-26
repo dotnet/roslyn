@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -25,21 +26,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             {
                 var attributeList = token.GetRequiredParent();
                 var parentSyntax = attributeList.Parent;
-                switch (parentSyntax)
-                {
-                    case CompilationUnitSyntax:
-                    case BaseNamespaceDeclarationSyntax:
-                    // The case where the parent of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
-                    // [$$
-                    // class Goo {
-                    // for these cases is necessary check if they Parent is CompilationUnitSyntax
-                    case BaseTypeDeclarationSyntax baseType when baseType.Parent is CompilationUnitSyntax:
-                    // The case where the parent of attributeList is IncompleteMemberSyntax(See test: ), like:
-                    // [$$
-                    // for that case is necessary check if they Parent is CompilationUnitSyntax
-                    case IncompleteMemberSyntax incompleteMember when incompleteMember.Parent is CompilationUnitSyntax:
-                        return true;
-                }
+                if (parentSyntax is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
+                    return true;
+
+                // The case where the parent of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
+                // [$$
+                // class Goo {
+                // for these cases is necessary check if they Parent is CompilationUnitSyntax
+                if (parentSyntax is BaseTypeDeclarationSyntax { Parent: CompilationUnitSyntax })
+                    return true;
+
+                // The case where the parent of attributeList is an incomplete FieldDeclarationSyntax(See test: TestInOuterAttribute), like:
+                // [$$
+                // for that case is necessary check if they Parent is CompilationUnitSyntax
+                if (CSharpSyntaxFacts.Instance.IsIncompleteFieldDeclaration(parentSyntax) && parentSyntax.Parent is CompilationUnitSyntax)
+                    return true;
             }
 
             return false;

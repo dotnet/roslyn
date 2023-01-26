@@ -131,7 +131,10 @@ class C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
                 // (16,3): error CS1003: Syntax error, ']' expected
                 // [b
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3),
+                // (16,3): error CS1031: Type expected
+                // [b
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(16, 3)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -154,12 +157,20 @@ class C
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "asas");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "asas");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -209,7 +220,7 @@ class C
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -223,6 +234,18 @@ class C
                         }
                         M(SyntaxKind.CloseBracketToken);
                     }
+                    M(SyntaxKind.VariableDeclaration);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -562,7 +585,7 @@ int x = 0;
 using goo.bar;
 ";
             UsingTree(test,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // garbage
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1)
                 );
@@ -715,28 +738,36 @@ class Test : Itest
                             M(SyntaxKind.CloseBraceToken);
                         }
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.TupleType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.TupleElement);
+                            N(SyntaxKind.TupleType);
                             {
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.TupleElement);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                 }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CommaToken);
-                            M(SyntaxKind.TupleElement);
+                            M(SyntaxKind.VariableDeclarator);
                             {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
+                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -1198,13 +1229,21 @@ aeu";
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -1526,7 +1565,6 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                 // C operator +(C lhs, C rhs) {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 29)
                 );
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.OperatorDeclaration);
@@ -1780,7 +1818,7 @@ e
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -1794,10 +1832,18 @@ e
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "e");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2939,13 +2985,21 @@ Console.WriteLine();
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "alias");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3139,17 +3193,25 @@ scoped readonly ref struct C { }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
@@ -3158,12 +3220,20 @@ scoped readonly ref struct C { }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {

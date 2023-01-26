@@ -70,8 +70,9 @@ public class A : Attribute { }
 ";
 
             CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
-                // (5,1): error CS1519: Unexpected token '}', member declaration expected.
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}"));
+                // (4,7): error CS1031: Type expected
+                //    [A]
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 7));
         }
 
         [Fact]

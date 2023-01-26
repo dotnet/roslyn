@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                    or "IDE1007"
                     or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
                     or "IDE0005_gen" // this diagnostic is hidden and not configurable.
                     or "RE0001"
@@ -458,9 +457,6 @@ dotnet_diagnostic.IDE1005.severity = %value%
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
 
-# IDE1007
-dotnet_diagnostic.IDE1007.severity = %value%
-
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -630,9 +626,6 @@ dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
-
-# IDE1007
-dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%

@@ -1452,7 +1452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Global statements don't declare anything, even though they inherit from MemberDeclarationSyntax.
                     return null;
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 case SyntaxKind.IncompleteMember:
+#pragma warning restore CS0618 // Type or member is obsolete
                     // Incomplete members don't declare any symbols.
                     return null;
 
@@ -1696,7 +1698,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.FieldDeclaration:
                     throw new ArgumentException(CSharpResources.InvalidGetDeclarationNameMultipleDeclarators);
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 case SyntaxKind.IncompleteMember:
+#pragma warning restore CS0618 // Type or member is obsolete
                     // There is no name - that's why it's an incomplete member.
                     return null;
 

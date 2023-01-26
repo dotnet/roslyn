@@ -9,6 +9,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LineSeparators;
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
 
         private static bool IsBadNode(SyntaxNode node)
         {
-            if (node is IncompleteMemberSyntax)
+            if (CSharpSyntaxFacts.Instance.IsIncompleteFieldDeclaration(node))
             {
                 return true;
             }

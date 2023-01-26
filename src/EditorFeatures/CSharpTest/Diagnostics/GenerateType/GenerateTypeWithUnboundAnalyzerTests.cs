@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
+            => (null, new GenerateTypeCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
             => FlattenActions(codeActions);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
     public Goo
 }
 
-internal class Goo
+public class Goo
 {
 }",
 index: 1);

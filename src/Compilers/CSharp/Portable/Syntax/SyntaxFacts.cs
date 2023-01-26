@@ -220,8 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case DeclarationExpression:
                         return ((DeclarationExpressionSyntax)parent).Type == node;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+                    // This is no longer produced by the parser. But keeping the check since it's a public API
                     case IncompleteMember:
                         return ((IncompleteMemberSyntax)parent).Type == node;
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
             }
 

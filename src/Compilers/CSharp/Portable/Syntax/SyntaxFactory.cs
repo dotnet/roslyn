@@ -2345,11 +2345,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (lastNode.IsKind(SyntaxKind.IncompleteMember))
-            {
-                return false;
-            }
-
             // All top-level constructs but global statement (i.e. extern alias, using directive, global attribute, and declarations)
             // should have a closing token (semicolon, closing brace or bracket) to be complete.
             if (!lastNode.IsKind(SyntaxKind.GlobalStatement))

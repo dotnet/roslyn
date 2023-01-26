@@ -366,19 +366,28 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -402,13 +411,21 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "async");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
@@ -526,14 +543,22 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "async");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
@@ -604,15 +629,23 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
                         N(SyntaxKind.AsyncKeyword);
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "async");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
@@ -684,29 +717,38 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.LessThanToken);
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierToken, "Task");
+                                N(SyntaxKind.TypeArgumentList);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
                                 }
-                                M(SyntaxKind.GreaterThanToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
@@ -730,37 +772,46 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.QualifiedName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.QualifiedName);
                             {
-                                N(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.GenericName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.TypeArgumentList);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.LessThanToken);
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.IdentifierToken, "Tasks");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Task");
+                                    N(SyntaxKind.TypeArgumentList);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.LessThanToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
                                     }
-                                    M(SyntaxKind.GreaterThanToken);
                                 }
                             }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
@@ -784,38 +835,47 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.StaticKeyword);
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.QualifiedName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.QualifiedName);
                             {
-                                N(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.GenericName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.TypeArgumentList);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.LessThanToken);
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.IdentifierToken, "Tasks");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Task");
+                                    N(SyntaxKind.TypeArgumentList);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.LessThanToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
                                     }
-                                    M(SyntaxKind.GreaterThanToken);
                                 }
                             }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
@@ -888,29 +948,38 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierToken, "Task");
+                                N(SyntaxKind.TypeArgumentList);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "T");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
@@ -1117,7 +1186,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.EventFieldDeclaration);
                     {
@@ -1126,26 +1195,35 @@ class C
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "async");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "async");
                             }
                         }
                         M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -1589,13 +1667,21 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.EventDeclaration);
                     {
@@ -1940,13 +2026,21 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -2091,13 +2185,21 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
@@ -2121,13 +2223,21 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -2160,20 +2270,36 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
@@ -2192,9 +2318,9 @@ class C
                 // (3,5): error CS1585: Member modifier 'public' must precede the member type and name
                 //     public
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "public").WithArguments("public").WithLocation(3, 5),
-                // (3,11): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
+                // (3,11): error CS1031: Type expected
                 //     public
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(3, 11),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 11),
                 // (3,11): error CS1513: } expected
                 //     public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 11));
@@ -2206,17 +2332,37 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.PublicKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
@@ -2255,13 +2401,21 @@ class",
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.ClassDeclaration);
                     {
@@ -2307,13 +2461,21 @@ namespace",
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
@@ -2351,32 +2513,40 @@ namespace",
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "Program");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.PublicKeyword);
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "Task");
-                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.GenericName);
+                                N(SyntaxKind.IdentifierToken, "Task");
+                                N(SyntaxKind.TypeArgumentList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "IReadOnlyCollection");
-                                    N(SyntaxKind.TypeArgumentList);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.GenericName);
                                     {
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.IdentifierToken, "IReadOnlyCollection");
+                                        N(SyntaxKind.TypeArgumentList);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "ProjectConfiguration");
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "ProjectConfiguration");
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
                                         }
-                                        N(SyntaxKind.GreaterThanToken);
                                     }
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }

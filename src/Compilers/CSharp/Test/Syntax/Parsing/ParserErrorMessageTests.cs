@@ -6020,9 +6020,9 @@ class MyClass
                 // (6,15): error CS1513: } expected
                 //         if (b)
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15),
-                // (9,1): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
-                // 
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
+                // (8,11): error CS1031: Type expected
+                //     public
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(8, 11),
                 // (8,11): error CS1513: } expected
                 //     public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 11),

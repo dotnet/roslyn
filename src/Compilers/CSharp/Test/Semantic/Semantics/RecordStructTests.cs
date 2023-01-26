@@ -9779,9 +9779,15 @@ public class C
                 // (10,47): error CS1597: Semicolon after method or accessor block is not valid
                 //         var b = a with { Nested = { A = 20 } };
                 Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(10, 47),
+                // (11,24): error CS0426: The type name 'Write' does not exist in the type 'Console'
+                //         System.Console.Write(b);
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Write").WithArguments("Write", "System.Console").WithLocation(11, 24),
                 // (11,29): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
                 //         System.Console.Write(b);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(11, 29),
+                // (11,30): error CS0246: The type or namespace name 'b' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(b);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "b").WithArguments("b").WithLocation(11, 30),
                 // (11,31): error CS8124: Tuple must contain at least two elements.
                 //         System.Console.Write(b);
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(11, 31),

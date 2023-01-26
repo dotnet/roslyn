@@ -3680,5 +3680,137 @@ class X
             var typeInfo = model.GetTypeInfo(lambda.Body);
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
         }
+
+        [Fact, WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")]
+        public void BindingIncompleteMember_TypeNotFound()
+        {
+            var compilation = CreateCompilation("""
+                class C
+                {
+                    Directory //<-- want errors on Directory
+                    private int i; 
+                }
+                """);
+
+            compilation.VerifyDiagnostics(
+                // (3,5): error CS0246: The type or namespace name 'Directory' could not be found (are you missing a using directive or an assembly reference?)
+                //     Directory //<-- want errors on Directory
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Directory").WithArguments("Directory").WithLocation(3, 5),
+                // (4,5): error CS1585: Member modifier 'private' must precede the member type and name
+                //     private int i; 
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(4, 5),
+                // (4,17): warning CS0169: The field 'C.i' is never used
+                //     private int i; 
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i").WithLocation(4, 17));
+        }
+
+        [Fact, WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")]
+        public void BindingIncompleteMember_TypeIsFound()
+        {
+            var compilation = CreateCompilation("""
+                using System.IO;
+
+                class C
+                {
+                    Directory //<-- want errors on Directory
+                    private int i; 
+                }
+                """);
+
+            compilation.VerifyDiagnostics(
+                // (6,1): error CS0723: Cannot declare a variable of static type 'Directory'
+                //     private int i; 
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "").WithArguments("System.IO.Directory").WithLocation(6, 1),
+                // (6,5): error CS1585: Member modifier 'private' must precede the member type and name
+                //     private int i; 
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(6, 5),
+                // (6,17): warning CS0169: The field 'C.i' is never used
+                //     private int i; 
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i").WithLocation(6, 17));
+        }
+
+        [Fact, WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")]
+        public void BindingIncompleteMember_TypeHasNoOtherMembers()
+        {
+            var compilation = CreateCompilation("""
+                public class Program
+                {
+                    public class Inner
+                    {
+                    }
+                }
+
+                class Test
+                {
+                    Inner
+                }
+                """);
+            compilation.VerifyDiagnostics(
+                // (10,5): error CS0246: The type or namespace name 'Inner' could not be found (are you missing a using directive or an assembly reference?)
+                //     Inner
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inner").WithArguments("Inner").WithLocation(10, 5),
+                // (11,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(11, 1));
+        }
+
+        [Fact, WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")]
+        public void BindingIncompleteMember_Attribute()
+        {
+            var compilation = CreateCompilation("""
+                class C
+                {
+                    [My]
+                }
+
+                class C2
+                {
+                    [MyAttribute]
+                }
+                """);
+            compilation.VerifyDiagnostics(
+                // (3,6): error CS0246: The type or namespace name 'MyAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("MyAttribute").WithLocation(3, 6),
+                // (3,6): error CS0246: The type or namespace name 'My' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("My").WithLocation(3, 6),
+                // (3,9): error CS1031: Type expected
+                //     [My]
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 9),
+                // (8,6): error CS0246: The type or namespace name 'MyAttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [MyAttribute]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyAttribute").WithArguments("MyAttributeAttribute").WithLocation(8, 6),
+                // (8,6): error CS0246: The type or namespace name 'MyAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [MyAttribute]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyAttribute").WithArguments("MyAttribute").WithLocation(8, 6),
+                // (8,18): error CS1031: Type expected
+                //     [MyAttribute]
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(8, 18));
+        }
+
+        [Fact, WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")]
+        public void BindingIncompleteMember_AttributeArgument()
+        {
+            var compilation = CreateCompilation("""
+                class C
+                {
+                    [My(List)]
+                }
+                """);
+            compilation.VerifyDiagnostics(
+                    // (3,6): error CS0246: The type or namespace name 'MyAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [My(List)]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("MyAttribute").WithLocation(3, 6),
+                    // (3,6): error CS0246: The type or namespace name 'My' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [My(List)]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("My").WithLocation(3, 6),
+                    // (3,9): error CS0103: The name 'List' does not exist in the current context
+                    //     [My(List)]
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "List").WithArguments("List").WithLocation(3, 9),
+                    // (3,15): error CS1031: Type expected
+                    //     [My(List)]
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 15));
+        }
     }
 }

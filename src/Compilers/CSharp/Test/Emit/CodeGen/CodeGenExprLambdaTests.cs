@@ -3800,7 +3800,10 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,84): error CS0501: '<invalid-global-code>.<invalid-global-code>()' must declare a body because it is not marked abstract, extern, or partial
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84));
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.<invalid-global-code>()").WithLocation(2, 84),
+                // (2,93): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(2, 93));
         }
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]

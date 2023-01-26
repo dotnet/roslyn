@@ -440,31 +440,56 @@ class C
         public void TestAttributeWithGarbageAfterStart()
         {
             var text = "[ $";
-            var file = this.ParseTree(text);
+            var compilation = CreateCompilation(text);
+            var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
+
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[0].Kind());
-            Assert.Equal(3, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
+            Assert.Equal(SyntaxKind.FieldDeclaration, file.Members[0].Kind());
+
+            compilation.VerifyDiagnostics(
+                // (1,3): error CS1001: Identifier expected
+                // [ $
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "$").WithLocation(1, 3),
+                // (1,3): error CS1056: Unexpected character '$'
+                // [ $
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 3),
+                // (1,4): error CS1003: Syntax error, ']' expected
+                // [ $
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 4),
+                // (1,4): error CS1031: Type expected
+                // [ $
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 4));
         }
 
         [Fact]
         public void TestAttributeWithGarbageAfterName()
         {
             var text = "[a $";
-            var file = this.ParseTree(text);
+            var compilation = CreateCompilation(text);
+            var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[0].Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal(SyntaxKind.FieldDeclaration, file.Members[0].Kind());
+
+            compilation.VerifyDiagnostics(
+                // (1,2): error CS0246: The type or namespace name 'aAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [a $
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("aAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+                // [a $
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(1, 2),
+                // (1,4): error CS1056: Unexpected character '$'
+                // [a $
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 4),
+                // (1,5): error CS1003: Syntax error, ']' expected
+                // [a $
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 5),
+                // (1,5): error CS1031: Type expected
+                // [a $
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 5));
         }
 
         [Fact]
@@ -1369,7 +1394,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[1].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, file.Errors()[0].Code);
@@ -1424,7 +1449,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[1].Kind());
             Assert.Equal(3, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, file.Errors()[0].Code);
@@ -1483,7 +1508,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(1, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, file.Errors()[0].Code);
         }
@@ -2807,7 +2832,7 @@ class C
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
         }
@@ -2823,7 +2848,7 @@ class C
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
         }
@@ -2840,7 +2865,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[1].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
@@ -2858,7 +2883,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[1].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
@@ -6486,7 +6511,7 @@ class C
             Assert.Equal(text, file.ToFullString());
 
             var incompleteMemberDecl = file.ChildNodesAndTokens()[0];
-            Assert.Equal(SyntaxKind.IncompleteMember, incompleteMemberDecl.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, incompleteMemberDecl.Kind());
             Assert.False(incompleteMemberDecl.IsMissing);
 
             var attributeDecl = incompleteMemberDecl.ChildNodesAndTokens()[0];

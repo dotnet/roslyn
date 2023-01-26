@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 if (useFullSpan || node.Span.Contains(position))
                 {
                     var kind = node.Kind();
-                    if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is MemberDeclarationSyntax))
+                    if (kind != SyntaxKind.GlobalStatement && node is MemberDeclarationSyntax)
                     {
                         return node;
                     }
@@ -803,8 +803,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 case SyntaxKind.IdentifierName:
                     var identifier = ((IdentifierNameSyntax)node).Identifier;
                     return identifier.IsMissing ? missingTokenPlaceholder : identifier.Text;
-                case SyntaxKind.IncompleteMember:
-                    return missingTokenPlaceholder;
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                     return GetName(((BaseNamespaceDeclarationSyntax)node).Name, options);
@@ -842,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                     }
                     else
                     {
-                        Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);
+                        Debug.Fail($"Unexpected kind {memberDeclaration.Kind()}");
                         name = "?";
                     }
                 }
@@ -1519,6 +1517,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             }
 
             return syntaxTree.IsInInactiveRegion(position, cancellationToken);
+        }
+
+        public bool IsIncompleteFieldDeclaration([NotNullWhen(true)] SyntaxNode? node)
+        {
+            return node is FieldDeclarationSyntax { Declaration.Variables: [{ Identifier.IsMissing: true }] };
         }
 
         #region IsXXX members

@@ -112,7 +112,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public ReadOnly Property IdentifierToken As Integer = SyntaxKind.IdentifierToken Implements ISyntaxKinds.IdentifierToken
         Public ReadOnly Property GlobalKeyword As Integer = SyntaxKind.GlobalKeyword Implements ISyntaxKinds.GlobalKeyword
-        Public ReadOnly Property IncompleteMember As Integer = SyntaxKind.IncompleteMember Implements ISyntaxKinds.IncompleteMember
         Public ReadOnly Property HashToken As Integer = SyntaxKind.HashToken Implements ISyntaxKinds.HashToken
 
         Public ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement Implements ISyntaxKinds.ExpressionStatement

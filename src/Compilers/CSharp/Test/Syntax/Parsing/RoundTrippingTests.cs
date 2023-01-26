@@ -1606,7 +1606,16 @@ class A
 {
     [global:";
 
-            ParseAndRoundTripping(text, errorCount: 3);
+            ParseAndRoundTripping(text, errorCount: 4);
+            SyntaxFactory.ParseCompilationUnit(text).ErrorsAndWarnings().Verify(
+                // error CS1001: Identifier expected
+                TestBase.Diagnostic(ErrorCode.ERR_IdentifierExpected).WithLocation(1, 1),
+                // error CS1003: Syntax error, ']' expected
+                TestBase.Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]").WithLocation(1, 1),
+                // error CS1031: Type expected
+                TestBase.Diagnostic(ErrorCode.ERR_TypeExpected).WithLocation(1, 1),
+                // error CS1513: } expected
+                TestBase.Diagnostic(ErrorCode.ERR_RbraceExpected).WithLocation(1, 1));
         }
 
         [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]

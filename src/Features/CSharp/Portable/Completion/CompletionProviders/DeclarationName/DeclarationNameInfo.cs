@@ -332,7 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private static bool IsIncompleteMemberDeclaration(SyntaxToken token, SemanticModel semanticModel,
             CancellationToken cancellationToken, out NameDeclarationInfo result)
         {
+#pragma warning disable CS0618 // PROTOTYPE: TODO for IncompleteMember
             result = IsLastTokenOfType<IncompleteMemberSyntax>(token, semanticModel,
+#pragma warning restore CS0618
                 i => i.Type,
                 i => i.Modifiers,
                 GetPossibleMemberDeclarations,

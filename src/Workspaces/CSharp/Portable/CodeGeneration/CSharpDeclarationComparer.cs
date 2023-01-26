@@ -142,9 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.ConversionOperatorDeclaration:
                     return Compare((ConversionOperatorDeclarationSyntax)x, (ConversionOperatorDeclarationSyntax)y);
 
-                case SyntaxKind.IncompleteMember:
-                    // Since these are incomplete members they are considered to be equal
-                    return 0;
                 case SyntaxKind.GlobalStatement:
                     // for REPL, don't mess with order, just put new one at the end.
                     return 1;

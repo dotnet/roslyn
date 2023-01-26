@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasReturnWithExpression = SyntaxFacts.HasReturnWithExpression(topLevelStatement);
                     }
                 }
-                else if (!hasGlobalMembers && member.Kind() != SyntaxKind.IncompleteMember)
+                else if (!hasGlobalMembers)
                 {
                     hasGlobalMembers = true;
                 }

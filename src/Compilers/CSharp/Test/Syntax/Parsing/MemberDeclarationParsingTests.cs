@@ -34,13 +34,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ParsePrivate()
         {
             UsingDeclaration("private", options: null,
-                // (1,8): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
+                // (1,8): error CS1031: Type expected
                 // private
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 8)
                 );
-            N(SyntaxKind.IncompleteMember);
+
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.PrivateKeyword);
+                M(SyntaxKind.VariableDeclaration);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -122,14 +135,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(1, 3),
                     // (1,1): error CS1073: Unexpected token '='
                     // x = x + 1;
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "x").WithArguments("=").WithLocation(1, 1)
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "x ").WithArguments("=").WithLocation(1, 1)
                     );
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -786,35 +807,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // async Task<SomeNamespace.SomeType Method();
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 41)
                     );
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.AsyncKeyword);
-                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "Task");
-                        N(SyntaxKind.TypeArgumentList);
+                        N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.QualifiedName);
+                            N(SyntaxKind.IdentifierToken, "Task");
+                            N(SyntaxKind.TypeArgumentList);
                             {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "SomeType");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    N(SyntaxKind.IdentifierToken, "Method");
                                 }
-                                N(SyntaxKind.DotToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "SomeType");
-                                }
+                                M(SyntaxKind.GreaterThanToken);
                             }
-                            M(SyntaxKind.CommaToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Method");
-                            }
-                            M(SyntaxKind.GreaterThanToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -837,35 +866,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // public Task<SomeNamespace.SomeType Method();
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 42)
                     );
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "Task");
-                        N(SyntaxKind.TypeArgumentList);
+                        N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.QualifiedName);
+                            N(SyntaxKind.IdentifierToken, "Task");
+                            N(SyntaxKind.TypeArgumentList);
                             {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "SomeType");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    N(SyntaxKind.IdentifierToken, "Method");
                                 }
-                                N(SyntaxKind.DotToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "SomeType");
-                                }
+                                M(SyntaxKind.GreaterThanToken);
                             }
-                            M(SyntaxKind.CommaToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Method");
-                            }
-                            M(SyntaxKind.GreaterThanToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -885,30 +922,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // async Task<SomeNamespace. Method();
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 33)
                     );
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.AsyncKeyword);
-                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "Task");
-                        N(SyntaxKind.TypeArgumentList);
+                        N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.QualifiedName);
+                            N(SyntaxKind.IdentifierToken, "Task");
+                            N(SyntaxKind.TypeArgumentList);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.QualifiedName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    }
                                     N(SyntaxKind.DotToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "Method");
                                     }
-                                    M(SyntaxKind.GreaterThanToken);
                                 }
+                                M(SyntaxKind.GreaterThanToken);
                             }
                         }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -928,30 +973,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // public Task<SomeNamespace. Method();
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 34)
                     );
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "Task");
-                        N(SyntaxKind.TypeArgumentList);
+                        N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.QualifiedName);
+                            N(SyntaxKind.IdentifierToken, "Task");
+                            N(SyntaxKind.TypeArgumentList);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.QualifiedName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Method");
+                                    }
                                 }
-                                N(SyntaxKind.DotToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "Method");
-                                }
+                                M(SyntaxKind.GreaterThanToken);
                             }
-                            M(SyntaxKind.GreaterThanToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
@@ -1260,18 +1313,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingDeclaration("required Prop { get; }", options: RequiredMembersOptions,
                 // (1,1): error CS1073: Unexpected token '{'
                 // required Prop { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required Prop").WithArguments("{").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required Prop ").WithArguments("{").WithLocation(1, 1),
                 // (1,15): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 // required Prop { get; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 15)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "Prop");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Prop");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -1308,15 +1369,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingDeclaration("required required { get; }", options: RequiredMembersOptions,
                 // (1,1): error CS1073: Unexpected token '{'
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments("{").WithLocation(1, 1),
-                // (1,19): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required ").WithArguments("{").WithLocation(1, 1),
+                // (1,19): error CS1031: Type expected
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 19)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
+                M(SyntaxKind.VariableDeclaration);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -1327,19 +1400,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingDeclaration("required required Prop { get; }", options: RequiredMembersOptions,
                 // (1,1): error CS1073: Unexpected token '{'
                 // required required Prop { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required Prop").WithArguments("{").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required Prop ").WithArguments("{").WithLocation(1, 1),
                 // (1,24): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 // required required Prop { get; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 24)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "Prop");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Prop");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -1428,13 +1509,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // required Field;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 15)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "Field");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Field");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -1469,14 +1558,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,1): error CS1073: Unexpected token ';'
                 // required required;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments(";").WithLocation(1, 1),
-                // (1,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                // (1,18): error CS1031: Type expected
                 // required required;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 18)
+                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 18)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
+                M(SyntaxKind.VariableDeclaration);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -1805,13 +1906,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // required string
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 16)
             );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
-                N(SyntaxKind.PredefinedType);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.StringKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -1825,13 +1934,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // required C
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 11)
             );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -1845,12 +1962,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // required
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 9)
             );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "required");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "required");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -1859,13 +1984,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierIncompleteMember_05()
         {
             UsingDeclaration("required", options: RequiredMembersOptions,
-                // (1,9): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
+                // (1,9): error CS1031: Type expected
                 // required
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 9)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 9)
             );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
+                M(SyntaxKind.VariableDeclaration);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -5856,28 +5993,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     UsingDeclaration("N.I. int(int x) => x;", options: options.WithLanguageVersion(version), errors);
 
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.QualifiedName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
                             N(SyntaxKind.QualifiedName);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.QualifiedName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "N");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "N");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "I");
+                                    }
                                 }
                                 N(SyntaxKind.DotToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "I");
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
-                            N(SyntaxKind.DotToken);
-                            M(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.VariableDeclarator);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     EOF();
                 }

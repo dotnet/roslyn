@@ -13,12 +13,17 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class SyntaxNodeTests
+    public class SyntaxNodeTests : ParsingTests
     {
+        public SyntaxNodeTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         [WorkItem(565382, "https://developercommunity.visualstudio.com/content/problem/565382/compiling-causes-a-stack-overflow-error.html")]
         public void TestLargeFluentCallWithDirective()
@@ -1027,10 +1032,37 @@ using goo.bar;
         [Fact]
         public void TestGetNextTokenExcludingSkippedTokens()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(
+            var tree = UsingTree(
 @"garbage
 using goo.bar;
-");
+",
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // garbage
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "goo");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "bar");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
             Assert.Equal(6, tokens.Count);
 
@@ -1132,7 +1164,34 @@ using goo.bar;
 @"garbage
 using goo.bar;
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var tree = UsingTree(text,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // garbage
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "goo");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "bar");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
 
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();

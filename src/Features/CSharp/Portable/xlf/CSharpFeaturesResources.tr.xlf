@@ -657,11 +657,6 @@
         <target state="translated">öznitelik hedefi</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_name_0_does_not_exist_in_the_current_context">
-        <source>The name '{0}' does not exist in the current context.</source>
-        <target state="translated">'{0}' adı geçerli bağlamda yok.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">Özellikler</target>

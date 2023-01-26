@@ -186,7 +186,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int FieldDeclaration { get; }
         int PropertyDeclaration { get; }
 
-        int IncompleteMember { get; }
         int TypeArgumentList { get; }
         int ParameterList { get; }
 

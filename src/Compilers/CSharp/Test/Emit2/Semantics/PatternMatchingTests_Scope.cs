@@ -3115,6 +3115,12 @@ public class X
                 // (11,33): error CS1002: ; expected
                 //     void Test2(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "var").WithLocation(11, 33),
+                // (9,33): error CS0246: The type or namespace name 'x1' could not be found (are you missing a using directive or an assembly reference?)
+                //     void Test1(object o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x1").WithArguments("x1").WithLocation(9, 33),
+                // (9,38): error CS0246: The type or namespace name 'o' could not be found (are you missing a using directive or an assembly reference?)
+                //     void Test1(object o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "o").WithArguments("o").WithLocation(9, 38),
                 // (11,33): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //     void Test2(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(11, 33),
@@ -3124,13 +3130,13 @@ public class X
                 // (9,29): error CS0103: The name 'let' does not exist in the current context
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(9, 29),
-                // (9,29): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (9,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(9, 29),
                 // (11,29): error CS0103: The name 'let' does not exist in the current context
                 //     void Test2(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(11, 29),
-                // (11,29): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (11,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     void Test2(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(11, 29),
                 // (15,29): error CS0841: Cannot use local variable 'x4' before it is declared
@@ -3236,6 +3242,9 @@ public class X
     // (11,29): error CS1002: ; expected
     //     bool this[int o] => let var x2 = o;
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "var").WithLocation(11, 29),
+    // (9,23): error CS0246: The type or namespace name 'x1' could not be found (are you missing a using directive or an assembly reference?)
+    //     bool Test1 => let x1 = 11;
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x1").WithArguments("x1").WithLocation(9, 23),
     // (11,29): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
     //     bool this[int o] => let var x2 = o;
     Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(11, 29),
@@ -3251,7 +3260,7 @@ public class X
     // (15,19): error CS0841: Cannot use local variable 'x4' before it is declared
     //     bool Test4 => x4 && 4 is int x4;
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(15, 19),
-    // (18,29): error CS0128: A local variable named 'x5' is already defined in this scope
+    // (18,29): error CS0128: A local variable or function named 'x5' is already defined in this scope
     //                   52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(18, 29),
     // (24,26): error CS0103: The name 'x7' does not exist in the current context

@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30002, IDEDiagnosticIds.UnboundIdentifierId, BC30182, BC30451, BC30456, BC32042, BC32043, BC32045, BC40056)
+                Return ImmutableArray.Create(BC30002, BC30182, BC30451, BC30456, BC32042, BC32043, BC32045, BC40056)
             End Get
         End Property
 

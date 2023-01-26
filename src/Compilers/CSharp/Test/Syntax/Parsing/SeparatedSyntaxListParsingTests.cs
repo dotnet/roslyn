@@ -362,90 +362,122 @@ class M<,> { }
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.NewKeyword);
-                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "C");
-                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.OmittedTypeArgument);
+                                N(SyntaxKind.IdentifierToken, "C");
+                                N(SyntaxKind.TypeArgumentList);
                                 {
-                                    N(SyntaxKind.OmittedTypeArgumentToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.OmittedTypeArgument);
+                                    {
+                                        N(SyntaxKind.OmittedTypeArgumentToken);
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.TupleType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.TupleElement);
+                            N(SyntaxKind.TupleType);
                             {
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.TupleElement);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                 }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CommaToken);
-                            M(SyntaxKind.TupleElement);
+                            M(SyntaxKind.VariableDeclarator);
                             {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
+                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.NewKeyword);
-                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "C");
-                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.OmittedTypeArgument);
+                                N(SyntaxKind.IdentifierToken, "C");
+                                N(SyntaxKind.TypeArgumentList);
                                 {
-                                    N(SyntaxKind.OmittedTypeArgumentToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.OmittedTypeArgument);
+                                    {
+                                        N(SyntaxKind.OmittedTypeArgumentToken);
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.OmittedTypeArgument);
+                                    {
+                                        N(SyntaxKind.OmittedTypeArgumentToken);
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.OmittedTypeArgument);
-                                {
-                                    N(SyntaxKind.OmittedTypeArgumentToken);
-                                }
-                                N(SyntaxKind.GreaterThanToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.TupleType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.TupleElement);
+                            N(SyntaxKind.TupleType);
                             {
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.TupleElement);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                 }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CommaToken);
-                            M(SyntaxKind.TupleElement);
+                            M(SyntaxKind.VariableDeclarator);
                             {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
+                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -671,18 +703,36 @@ class M<,> { }
 ";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (4,9): error CS0308: The non-generic type 'C' cannot be used with type arguments
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("C", "type").WithLocation(4, 9),
                 // (4,12): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
                 //     new C<>();
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 12),
+                // (4,12): warning CS0109: The member 'C.' does not hide an accessible member. The new keyword is not required.
+                //     new C<>();
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "").WithArguments("C.").WithLocation(4, 12),
+                // (4,12): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //     new C<>();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(4, 12),
                 // (4,13): error CS8124: Tuple must contain at least two elements.
                 //     new C<>();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 13),
                 // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     new C<>();
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 14),
+                // (5,9): error CS0308: The non-generic type 'C' cannot be used with type arguments
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<, >").WithArguments("C", "type").WithLocation(5, 9),
                 // (5,14): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
                 //     new C<, >();
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(5, 14),
+                // (5,14): warning CS0109: The member 'C.' does not hide an accessible member. The new keyword is not required.
+                //     new C<, >();
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "").WithArguments("C.").WithLocation(5, 14),
+                // (5,14): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //     new C<, >();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 14),
                 // (5,15): error CS8124: Tuple must contain at least two elements.
                 //     new C<, >();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 15),

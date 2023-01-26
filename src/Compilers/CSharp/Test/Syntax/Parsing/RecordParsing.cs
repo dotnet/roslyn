@@ -1281,12 +1281,20 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "with");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "with");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
@@ -3816,12 +3824,20 @@ class C(int X, int Y)
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "partial");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.RecordStructDeclaration);
                 {
@@ -3903,9 +3919,21 @@ class C(int X, int Y)
             verifyParsedAsRecord();
 
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'ref fields' is not available in C# 8.0. Please use language version 11.0 or greater.
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ref record").WithArguments("ref fields", "11.0").WithLocation(1, 1),
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // ref record struct S;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
+                // (1,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 5),
+                // (1,12): error CS9064: Target runtime doesn't support ref fields.
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(1, 12),
+                // (1,12): error CS9059: A ref field can only be declared in a ref struct.
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(1, 12),
                 // (1,20): error CS1514: { expected
                 // ref record struct S;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
@@ -3925,16 +3953,24 @@ class C(int X, int Y)
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "record");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {

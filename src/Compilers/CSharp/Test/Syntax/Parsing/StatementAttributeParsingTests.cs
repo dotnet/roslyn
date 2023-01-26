@@ -7479,7 +7479,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.AttributeList);
                         {
@@ -7493,41 +7493,57 @@ class C
                             }
                             N(SyntaxKind.CloseBracketToken);
                         }
-                        N(SyntaxKind.QualifiedName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.QualifiedName);
                             {
-                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
                             }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "y");
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.TupleType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.TupleElement);
+                            N(SyntaxKind.TupleType);
                             {
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.TupleElement);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                 }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CommaToken);
-                            M(SyntaxKind.TupleElement);
+                            M(SyntaxKind.VariableDeclarator);
                             {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
+                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }

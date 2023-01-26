@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 {
                     return memberDeclaration switch
                     {
-                        FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
+                        FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Where(v => !v.Identifier.IsMissing).AsImmutable<SyntaxNode>(),
                         EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
-                        IncompleteMemberSyntax or GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
+                        GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
                         _ => ImmutableArray.Create<SyntaxNode>(memberDeclaration),
                     };
                 }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 // malformed syntax nodes.
                 // Consider pub[||] static int Foo;
                 // Which has 2 member nodes (an incomplete and a field), but we'd only expect one
-                return members.Any(m => m is GlobalStatementSyntax or IncompleteMemberSyntax)
+                return members.Any(m => m is GlobalStatementSyntax or VariableDeclaratorSyntax { Identifier.IsMissing: true })
                     ? ImmutableArray<SyntaxNode>.Empty
                     : members;
             }

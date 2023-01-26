@@ -498,7 +498,7 @@ End Class")
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
+                Return (Nothing,
                         New VisualBasicSpellCheckCodeFixProvider())
             End Function
 

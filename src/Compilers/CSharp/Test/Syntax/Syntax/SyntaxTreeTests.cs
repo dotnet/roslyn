@@ -1001,9 +1001,9 @@ namespace ns {}
             var test = "using ns1; p using ns2;";
 
             UsingTree(test, TestOptions.Regular,
-                // (1,12): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // using ns1; p using ns2;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 12)
+                    // (1,12): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // using ns1; p using ns2;
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 12)
                 );
 
             N(SyntaxKind.CompilationUnit);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix - The prefix is required since this file is referenced in projects that can't access syntax nodes
@@ -822,7 +824,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         Parameter = 8908,
         TypeParameterList = 8909,
         TypeParameter = 8910,
+
+        [Obsolete("Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.")]
         IncompleteMember = 8916,
+
         ArrowExpressionClause = 8917,
         Interpolation = 8918, // part of an interpolated string
         InterpolatedStringText = 8919,

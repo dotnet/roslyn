@@ -173,7 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             switch (diagnosticId)
             {
                 case CS0103:
-                case IDEDiagnosticIds.UnboundIdentifierId:
                 case CS0246:
                 case CS0305:
                 case CS0308:

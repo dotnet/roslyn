@@ -620,7 +620,7 @@ namespace B;
 System.Console.WriteLine();";
 
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                    // (3,16): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,16): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                     // System.Console.WriteLine();
                     Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 16),
                     // (3,26): error CS8124: Tuple must contain at least two elements.

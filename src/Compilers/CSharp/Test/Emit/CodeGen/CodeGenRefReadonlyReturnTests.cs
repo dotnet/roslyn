@@ -504,9 +504,18 @@ class Program
                 // (6,25): error CS1031: Type expected
                 //     static ref readonly ref int M(int x)
                 Diagnostic(ErrorCode.ERR_TypeExpected, "ref").WithLocation(6, 25),
+                // (6,25): error CS0106: The modifier 'static' is not valid for this item
+                //     static ref readonly ref int M(int x)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("static").WithLocation(6, 25),
                 // (13,25): error CS0106: The modifier 'readonly' is not valid for this item
                 //     static readonly int M1(int x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("readonly").WithLocation(13, 25),
+                // (6,25): error CS9064: Target runtime doesn't support ref fields.
+                //     static ref readonly ref int M(int x)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(6, 25),
+                // (6,25): error CS9059: A ref field can only be declared in a ref struct.
+                //     static ref readonly ref int M(int x)
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(6, 25),
                 // (15,20): error CS0120: An object reference is required for the non-static field, method, or property 'Program.M(int)'
                 //         return ref M(x);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "M").WithArguments("Program.M(int)").WithLocation(15, 20),

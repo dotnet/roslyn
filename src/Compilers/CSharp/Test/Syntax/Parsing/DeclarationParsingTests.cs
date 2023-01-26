@@ -96,15 +96,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingStaticInWrongOrder()
         {
             var text = "static using a;";
-            var file = this.ParseFile(text);
+            var compilation = CreateCompilation(text);
+            var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToFullString());
 
-            var errors = file.Errors();
-            Assert.True(errors.Length > 0);
-            Assert.Equal((int)ErrorCode.ERR_NamespaceUnexpected, errors[0].Code);
+            compilation.VerifyDiagnostics(
+                // (1,8): error CS1031: Type expected
+                // static using a;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "using").WithLocation(1, 8),
+                // (1,8): hidden CS8019: Unnecessary using directive.
+                // static using a;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using a;").WithLocation(1, 8),
+                // (1,14): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+                // static using a;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(1, 14));
         }
 
         [Fact]
@@ -2632,7 +2639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.IncompleteMember, cs.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
@@ -2662,7 +2669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.IncompleteMember, cs.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
         }
 
         private void TestClassMethodModifiers(params SyntaxKind[] modifiers)
@@ -2966,16 +2973,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public int P readonly => 0;
 }
 ";
-            var file = this.ParseFile(text, TestOptions.Regular);
+            var compilation = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var file = (CompilationUnitSyntax)compilation.SyntaxTrees.Single().GetRoot();
 
-            Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
 
-            Assert.Equal(3, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemicolonExpected, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[1].Code);
-            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[2].Code);
+            compilation.VerifyDiagnostics(
+                // (3,18): error CS1002: ; expected
+                //     public int P readonly => 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(3, 18),
+                // (3,27): error CS1031: Type expected
+                //     public int P readonly => 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "=>").WithLocation(3, 27),
+                // (3,27): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
+                //     public int P readonly => 0;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 27));
         }
 
         [Fact]
@@ -5741,9 +5754,6 @@ partial class PartialPartial
                 // (6,13): error CS1002: ; expected
                 //     partial partial void PM()
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(6, 13),
-                // (6,13): error CS0102: The type 'PartialPartial' already contains a definition for ''
-                //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("PartialPartial", "").WithLocation(6, 13),
                 // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     partial partial void PM();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
@@ -6172,12 +6182,20 @@ P10
                             M(SyntaxKind.CloseBraceToken);
                         }
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "P10");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "P10");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }

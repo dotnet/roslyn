@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 if (targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective)
-                    || (targetToken.Parent.IsKind(SyntaxKind.IdentifierName) && targetToken.Parent.IsParentKind(SyntaxKind.IncompleteMember)))
+                    || CSharpSyntaxFacts.Instance.IsIncompleteFieldDeclaration(targetToken.Parent?.Parent?.Parent))
                 {
                     var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();

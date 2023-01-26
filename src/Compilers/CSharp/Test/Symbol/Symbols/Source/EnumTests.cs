@@ -264,13 +264,16 @@ ValueC = 257 // Out of underlying range
             comp.VerifyDiagnostics(
                 // (2,2): error CS1513: } expected
                 // {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-                // (3,12): error CS0116: A namespace does not directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
+                // (3,12): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 //     public Red
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Red"),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Red").WithLocation(3, 12),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1),
+                // (3,12): error CS0246: The type or namespace name 'Red' could not be found (are you missing a using directive or an assembly reference?)
+                //     public Red
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Red").WithArguments("Red").WithLocation(3, 12));
             text =
 @"enum ColorA
 {

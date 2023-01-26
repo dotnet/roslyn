@@ -2387,6 +2387,9 @@ class C
                 // (4,10): error CS1519: Invalid token 'object' in class, record, struct, or interface member declaration
                 //     void object M(string e)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "object").WithArguments("object").WithLocation(4, 10),
+                // (4,5): error CS0670: Field cannot have void type
+                //     void object M(string e)
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(4, 5),
                 // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         var (x, 1) = e;            // error 8
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x, 1)").WithLocation(6, 9),

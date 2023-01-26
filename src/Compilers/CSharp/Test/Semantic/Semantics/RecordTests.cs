@@ -597,10 +597,7 @@ public record A(int i, // A
                 Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(4, 15),
                 // (4,15): error CS1001: Identifier expected
                 //     , /* C */ ) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 15),
-                // (4,15): error CS0102: The type 'A' already contains a definition for ''
-                //     , /* C */ ) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 15)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 15)
                 );
 
             var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
@@ -676,10 +673,7 @@ public record A(int, string ) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
                 // (2,29): error CS1001: Identifier expected
                 // public record A(int, string ) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 29),
-                // (2,29): error CS0102: The type 'A' already contains a definition for ''
-                // public record A(int, string ) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 29)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 29)
                 );
 
             var expectedMembers = new[]
@@ -710,10 +704,7 @@ public record A(int, int ) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
                 // (2,26): error CS1001: Identifier expected
                 // public record A(int, int ) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 26),
-                // (2,26): error CS0102: The type 'A' already contains a definition for ''
-                // public record A(int, int ) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 26)
                 );
 
             var expectedMembers = new[]
@@ -746,10 +737,7 @@ public record A(int // A
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 20),
                 // (4,18): error CS1001: Identifier expected
                 //     , int /* C */) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 18),
-                // (4,18): error CS0102: The type 'A' already contains a definition for ''
-                //     , int /* C */) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 18)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 18)
                 );
 
             var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
@@ -2864,6 +2852,9 @@ class C
                 // (6,24): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 24),
+                // (6,27): error CS0246: The type or namespace name 'r' could not be found (are you missing a using directive or an assembly reference?)
+                //     record M(record r) => r;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "r").WithArguments("r").WithLocation(6, 27),
                 // (6,28): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28),
@@ -3283,6 +3274,9 @@ record C9 : System.ICloneable
                 // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone { get; set; } // 3
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
+                // (13,5): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(13, 5),
                 // (13,10): error CS1519: Invalid token 'string' in class, record, struct, or interface member declaration
                 //     data string Clone; // 4 not yet supported
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "string").WithArguments("string").WithLocation(13, 10),

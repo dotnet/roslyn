@@ -825,6 +825,38 @@ class Test
         }
 
         [Fact]
+        public void TestIncompleteMembers()
+        {
+            var il1 = @"
+.assembly extern pe2 { }
+.assembly pe1 { }
+
+.class extern forwarder Outer
+{
+  .assembly extern pe2
+}
+";
+
+            var csharp = @"
+class Test
+{
+    Outer
+}
+";
+
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+
+            CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
+                // (4,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
+                //     Outer
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Outer").WithArguments("Outer", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 5),
+                // (5,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 1)
+                );
+        }
+
+        [Fact]
         public void LookupMissingForwardedTypeWrongCase()
         {
             var il1 = @"

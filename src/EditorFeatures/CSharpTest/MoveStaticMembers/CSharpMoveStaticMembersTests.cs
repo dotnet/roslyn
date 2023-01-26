@@ -3165,7 +3165,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        public st[||] {|CS1519:int|} TestMethod()
+        public {|CS0246:st|}[||] {|CS1519:int|} TestMethod()
         {
             return 0;
         }
@@ -3186,7 +3186,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        public st[||] {|CS1519:int|} TestField = 0;
+        public {|CS0246:st|}[||] {|CS1519:int|} TestField = 0;
     }
 }";
             await new Test("", ImmutableArray<string>.Empty, "")
@@ -3204,7 +3204,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        public st [|{|CS1519:int|} Test|]Field = 0;
+        public {|CS0246:st|} [|{|CS1519:int|} Test|]Field = 0;
     }
 }";
             await new Test("", ImmutableArray<string>.Empty, "")
@@ -3222,7 +3222,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        [|public st {|CS1519:int|} TestField = 0;|]
+        [|public {|CS0246:st|} {|CS1519:int|} TestField = 0;|]
     }
 }";
             await new Test("", ImmutableArray<string>.Empty, "")
@@ -3240,7 +3240,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        [|publicc {|CS1585:static|} int TestField = 0;|]
+        [|{|CS0246:st|} {|CS1585:static|} int TestField = 0;|]
     }
 }";
             await new Test("", ImmutableArray<string>.Empty, "")

@@ -96,7 +96,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function CanAddImportForNamespace(diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
                 Case AddImportDiagnosticIds.BC30002,
-                     IDEDiagnosticIds.UnboundIdentifierId,
                      AddImportDiagnosticIds.BC30451
                     Exit Select
                 Case Else
@@ -133,7 +132,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
                 Case AddImportDiagnosticIds.BC30002,
-                     IDEDiagnosticIds.UnboundIdentifierId,
                      AddImportDiagnosticIds.BC30451,
                      AddImportDiagnosticIds.BC32042,
                      AddImportDiagnosticIds.BC32045,

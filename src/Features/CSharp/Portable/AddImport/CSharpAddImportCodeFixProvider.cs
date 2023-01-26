@@ -159,8 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 CS0616,
                 CS1580,
                 CS1581,
-                CS8129,
-                IDEDiagnosticIds.UnboundIdentifierId);
+                CS8129);
 
         public static ImmutableArray<string> FixableDiagnosticIds =
             FixableTypeIds.Concat(ImmutableArray.Create(

@@ -4256,7 +4256,7 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="false" Override="true"/>
   </Node>
-  <Node Name="IncompleteMemberSyntax" Base="MemberDeclarationSyntax">
+  <Node Name="IncompleteMemberSyntax" Base="MemberDeclarationSyntax" ObsoleteReason="Parser no longer produces IncompleteMemberSyntax. It produces FieldDeclarationSyntax instead.">
     <Kind Name="IncompleteMember"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>

@@ -712,6 +712,144 @@ End Class
             Assert.Null(info.Type)
         End Sub
 
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingIncompleteMember_TypeNotFound()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;A&gt;
+    End Class
+    </file>
+</compilation>)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;A&gt;
+        ~~~
+BC30002: Type 'A' is not defined.
+        &lt;A&gt;
+         ~
+</expected>)
+        End Sub
+
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingIncompleteMember_TypeFound_WithoutAttributeSuffix()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;A&gt;
+    End Class
+
+    Class AAttribute 
+        Inherits System.Attribute
+    End Class
+    </file>
+</compilation>)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;A&gt;
+        ~~~
+</expected>)
+        End Sub
+
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingIncompleteMember_TypeFound_WithAttributeSuffix()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;AAttribute&gt;
+    End Class
+
+    Class AAttribute 
+        Inherits System.Attribute
+    End Class
+    </file>
+</compilation>)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;AAttribute&gt;
+        ~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingIncompleteMember_AttributeArgument()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;AAttribute(List)&gt;
+    End Class
+    </file>
+</compilation>)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;AAttribute(List)&gt;
+        ~~~~~~~~~~~~~~~~~~
+BC30002: Type 'AAttribute' is not defined.
+        &lt;AAttribute(List)&gt;
+         ~~~~~~~~~~
+BC30451: 'List' is not declared. It may be inaccessible due to its protection level.
+        &lt;AAttribute(List)&gt;
+                    ~~~~
+</expected>)
+        End Sub
+
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingTwoIncompleteMembers()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;A&gt;
+
+        &lt;B&gt;
+    End Class
+    </file>
+</compilation>)
+            Dim incompleteMembers As IncompleteMemberSyntax() = compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of IncompleteMemberSyntax).ToArray()
+            Assert.Equal(2, incompleteMembers.Length)
+            Assert.Equal("<A>", incompleteMembers(0).ToString())
+            Assert.Equal("<B>", incompleteMembers(1).ToString())
+
+            Dim classMembers = compilation.GetTypeByMetadataName("C").GetMembers()
+            Assert.Equal(3, classMembers.Length)
+
+            Assert.Equal(MethodKind.Constructor, DirectCast(classMembers(0), MethodSymbol).MethodKind)
+
+            Assert.Equal(SymbolKind.Field, classMembers(1).Kind)
+            Assert.IsType(GetType(SourceIncompleteFieldSymbol), classMembers(1))
+
+            Assert.Equal(SymbolKind.Field, classMembers(2).Kind)
+            Assert.IsType(GetType(SourceIncompleteFieldSymbol), classMembers(2))
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;A&gt;
+        ~~~
+BC30002: Type 'A' is not defined.
+        &lt;A&gt;
+         ~
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;B&gt;
+        ~~~
+BC30002: Type 'B' is not defined.
+        &lt;B&gt;
+         ~
+</expected>)
+        End Sub
     End Class
 
 End Namespace
