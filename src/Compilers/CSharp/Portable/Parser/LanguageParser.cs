@@ -12457,66 +12457,33 @@ tryAgain:
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             // NOTE:  This loop allows " { <initexpr>, } " but not " { , } "
-            var list = _pool.AllocateSeparated<ExpressionSyntax>();
+            var list = default(SeparatedSyntaxList<ExpressionSyntax>);
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-tryAgain:
-                if (this.IsPossibleVariableInitializer() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    list.Add(this.ParseVariableInitializer());
-
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                        {
-                            break;
-                        }
-                        else if (this.IsPossibleVariableInitializer() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                        {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-
-                            // check for exit case after legal trailing comma
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                            {
-                                break;
-                            }
-                            else if (!this.IsPossibleVariableInitializer())
-                            {
-                                goto tryAgain;
-                            }
-
-                            list.Add(this.ParseVariableInitializer());
-                            continue;
-                        }
-                        else if (SkipBadArrayInitializerTokens(ref openBrace, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (SkipBadArrayInitializerTokens(ref openBrace, list, SyntaxKind.CommaToken) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
-                }
+                list = this.ParseCommaSeparatedSyntaxList<ExpressionSyntax>(
+                    ref openBrace,
+                    SyntaxKind.CloseBraceToken,
+                    static @this => @this.IsPossibleVariableInitializer(),
+                    static @this => @this.ParseVariableInitializer(),
+                    static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadArrayInitializerTokens(openBrace, list, expectedKind),
+                    allowTrailingSeparator: true);
             }
-
-            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ArrayInitializerExpression,
                 openBrace,
-                _pool.ToListAndFree(list),
-                closeBrace);
+                list,
+                this.EatToken(SyntaxKind.CloseBraceToken));
         }
 
-        private PostSkipAction SkipBadArrayInitializerTokens(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
+        private (SyntaxToken openBrace, PostSkipAction action) SkipBadArrayInitializerTokens(SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
         {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
+            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
                 expected);
+            return (openBrace, action);
         }
 
         private ExpressionSyntax ParseStackAllocExpression()
