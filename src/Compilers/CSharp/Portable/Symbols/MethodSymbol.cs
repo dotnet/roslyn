@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                return IsStatic && !IsAbstract && Name == WellKnownMemberNames.EntryPointMethodName;
+                return IsStatic && !IsAbstract && !IsVirtual && Name == WellKnownMemberNames.EntryPointMethodName;
             }
         }
 
