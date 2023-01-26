@@ -8814,20 +8814,21 @@ done:;
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
-                static (@this, startToken, list, expectedKind, _) => @this.SkipBadForStatementExpressionListTokens(startToken, list, expectedKind),
+                static (@this, startToken, list, expectedKind, _) => skipBadForStatementExpressionListTokens(@this, startToken, list, expectedKind),
                 allowTrailingSeparator: false);
-        }
 
-        private (SyntaxToken startToken, PostSkipAction action) SkipBadForStatementExpressionListTokens(SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
-        {
-            if (this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.SemicolonToken)
-                return (startToken, PostSkipAction.Abort);
+            static (SyntaxToken startToken, PostSkipAction action) skipBadForStatementExpressionListTokens(
+                LanguageParser @this, SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
+            {
+                if (@this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.SemicolonToken)
+                    return (startToken, PostSkipAction.Abort);
 
-            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                p => p.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.SemicolonToken || p.IsTerminator(),
-                expected);
-            return (startToken, action);
+                var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
+                    p => p.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.SemicolonToken || p.IsTerminator(),
+                    expected);
+                return (startToken, action);
+            }
         }
 
         private CommonForEachStatementSyntax ParseForEachStatement(
@@ -12381,7 +12382,7 @@ tryAgain:
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleVariableInitializer(),
                 static @this => @this.ParseVariableInitializer(),
-                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadArrayInitializerTokens(openBrace, list, expectedKind),
+                static (@this, openBrace, list, expectedKind, closeKind) => skipBadArrayInitializerTokens(@this, openBrace, list, expectedKind),
                 allowTrailingSeparator: true);
 
             return _syntaxFactory.InitializerExpression(
@@ -12389,15 +12390,16 @@ tryAgain:
                 openBrace,
                 list,
                 this.EatToken(SyntaxKind.CloseBraceToken));
-        }
 
-        private (SyntaxToken openBrace, PostSkipAction action) SkipBadArrayInitializerTokens(SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
-        {
-            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
-                expected);
-            return (openBrace, action);
+            static (SyntaxToken openBrace, PostSkipAction action) SkipBadArrayInitializerTokens(
+                LanguageParser @this, SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
+            {
+                var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
+                    p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                    expected);
+                return (openBrace, action);
+            }
         }
 
         private ExpressionSyntax ParseStackAllocExpression()
