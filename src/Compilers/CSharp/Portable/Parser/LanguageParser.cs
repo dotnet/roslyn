@@ -11078,59 +11078,40 @@ done:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfArgumentList;
 
-            SeparatedSyntaxListBuilder<ArgumentSyntax> list = default;
-
             if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-tryAgain:
-                if (list.IsNull)
+                if (isIndexer)
                 {
-                    list = _pool.AllocateSeparated<ArgumentSyntax>();
+                    arguments = ParseCommaSeparatedSyntaxList(
+                        ref openToken,
+                        SyntaxKind.CloseBracketToken,
+                        static @this => @this.IsPossibleArgumentExpression(),
+                        static @this => @this.ParseArgumentExpression(isIndexer: true),
+                        static (@this, openToken, list, expectedKind, closeKind) => skipBadArgumentListTokens(@this, openToken, list, expectedKind, closeKind),
+                        allowTrailingSeparator: false);
                 }
-
-                if (this.IsPossibleArgumentExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                else
                 {
-                    // first argument
-                    list.Add(this.ParseArgumentExpression(isIndexer));
-
-                    // additional arguments
-                    var lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
-                            this.CurrentToken.Kind == SyntaxKind.CloseBracketToken ||
-                            this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleArgumentExpression())
-                        {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            list.Add(this.ParseArgumentExpression(isIndexer));
-                            continue;
-                        }
-                        else if (this.SkipBadArgumentListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (this.SkipBadArgumentListTokens(ref openToken, list, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
+                    arguments = ParseCommaSeparatedSyntaxList(
+                        ref openToken,
+                        SyntaxKind.CloseParenToken,
+                        static @this => @this.IsPossibleArgumentExpression(),
+                        static @this => @this.ParseArgumentExpression(isIndexer: false),
+                        static (@this, openToken, list, expectedKind, closeKind) => skipBadArgumentListTokens(@this, openToken, list, expectedKind, closeKind),
+                        allowTrailingSeparator: false);
                 }
             }
             else if (isIndexer && this.CurrentToken.Kind == closeKind)
             {
                 // An indexer always expects at least one value. And so we need to give an error
                 // for the case where we see only "[]". ParseArgumentExpression gives it.
-
-                if (list.IsNull)
-                {
-                    list = _pool.AllocateSeparated<ArgumentSyntax>();
-                }
-
+                var list = _pool.AllocateSeparated<ArgumentSyntax>();
                 list.Add(this.ParseArgumentExpression(isIndexer));
+                arguments = _pool.ToListAndFree(list);
+            }
+            else
+            {
+                arguments = default;
             }
 
             _termState = saveTerm;
@@ -11140,15 +11121,22 @@ tryAgain:
                 ? this.EatTokenAsKind(closeKind)
                 : this.EatToken(closeKind);
 
-            arguments = _pool.ToListAndFree(list);
-        }
+            return;
 
-        private PostSkipAction SkipBadArgumentListTokens(ref SyntaxToken open, SeparatedSyntaxListBuilder<ArgumentSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
-        {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
+            static (SyntaxToken open, PostSkipAction action) skipBadArgumentListTokens(
+                LanguageParser @this, SyntaxToken open, SeparatedSyntaxListBuilder<ArgumentSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
+            {
+                if (@this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken)
+                {
+                    return (open, PostSkipAction.Abort);
+                }
+
+                var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleArgumentExpression(),
                 p => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
                 expected);
+                return (open, action);
+            }
         }
 
         private bool IsEndOfArgumentList()
