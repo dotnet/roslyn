@@ -12067,83 +12067,42 @@ done:;
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
-            var initializers = _pool.AllocateSeparated<ExpressionSyntax>();
-            this.ParseObjectOrCollectionInitializerMembers(ref openBrace, initializers, out var kind);
-            Debug.Assert(initializers.Count > 0 || kind == SyntaxKind.ObjectInitializerExpression);
+            var initializers = this.ParseCommaSeparatedSyntaxList(
+                ref openBrace,
+                SyntaxKind.CloseBraceToken,
+                static @this => @this.IsInitializerMember(),
+                static @this => @this.ParseObjectOrCollectionInitializerMember(),
+                static (@this, openBrace, list, expectedKind, _) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
+                allowTrailingSeparator: true);
+
+            var kind = isObjectInitializer(initializers) ? SyntaxKind.ObjectInitializerExpression : SyntaxKind.CollectionInitializerExpression;
 
             return _syntaxFactory.InitializerExpression(
                 kind,
                 openBrace,
-                _pool.ToListAndFree(initializers),
+                initializers,
                 this.EatToken(SyntaxKind.CloseBraceToken));
-        }
 
-        private void ParseObjectOrCollectionInitializerMembers(
-            ref SyntaxToken startToken,
-            SeparatedSyntaxListBuilder<ExpressionSyntax> list,
-            out SyntaxKind kind)
-        {
-            // Empty initializer list must be parsed as an object initializer.
-            kind = SyntaxKind.ObjectInitializerExpression;
-
-            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            static bool isObjectInitializer(SeparatedSyntaxList<ExpressionSyntax> initializers)
             {
-tryAgain:
-                if (this.IsInitializerMember() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                // Empty initializer list must be parsed as an object initializer.
+                if (initializers.Count == 0)
+                    return true;
+
+                // We have at least one initializer expression.
+                // If at least one initializer expression is a named assignment, this is an object initializer.
+                // Otherwise, this is a collection initializer.
+                foreach (var expression in initializers.GetWithSeparators())
                 {
-                    // We have at least one initializer expression.
-                    // If at least one initializer expression is a named assignment, this is an object initializer.
-                    // Otherwise, this is a collection initializer.
-                    kind = SyntaxKind.CollectionInitializerExpression;
-
-                    // first argument
-                    list.Add(this.ParseObjectOrCollectionInitializerMember(ref kind));
-
-                    // additional arguments
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsInitializerMember())
-                        {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-
-                            // check for exit case after legal trailing comma
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                            {
-                                break;
-                            }
-
-                            list.Add(this.ParseObjectOrCollectionInitializerMember(ref kind));
-                            continue;
-                        }
-                        else
-                        {
-                            (startToken, var action) = this.SkipBadInitializerListTokens(startToken, list, SyntaxKind.CommaToken);
-                            if (action == PostSkipAction.Abort)
-                            {
-                                break;
-                            }
-                        }
-                    }
+                    if (expression.RawKind == (int)SyntaxKind.SimpleAssignmentExpression)
+                        return true;
                 }
-                else
-                {
-                    (startToken, var action) = this.SkipBadInitializerListTokens(startToken, list, SyntaxKind.IdentifierToken);
-                    if (action == PostSkipAction.Continue)
-                    {
-                        goto tryAgain;
-                    }
-                }
+
+                return false;
             }
-
-            // We may have invalid initializer elements. These will be reported during binding.
         }
 
-        private ExpressionSyntax ParseObjectOrCollectionInitializerMember(ref SyntaxKind kind)
+        private ExpressionSyntax ParseObjectOrCollectionInitializerMember()
         {
             if (this.IsComplexElementInitializer())
             {
@@ -12155,7 +12114,6 @@ tryAgain:
                 // [...] = { ... }
                 // [...] = ref <expr>
                 // [...] = <expr>
-                kind = SyntaxKind.ObjectInitializerExpression;
                 return this.ParseDictionaryInitializer();
             }
             else if (this.IsNamedAssignment())
@@ -12163,7 +12121,6 @@ tryAgain:
                 // Name = { ... }
                 // Name = ref <expr>
                 // Name =  <expr>
-                kind = SyntaxKind.ObjectInitializerExpression;
                 return this.ParseObjectInitializerNamedAssignment();
             }
             else
@@ -12184,7 +12141,7 @@ tryAgain:
             return (startToken, action);
         }
 
-        private ExpressionSyntax ParseObjectInitializerNamedAssignment()
+        private AssignmentExpressionSyntax ParseObjectInitializerNamedAssignment()
         {
             return _syntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
