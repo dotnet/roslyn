@@ -180,7 +180,7 @@ function Process-Arguments() {
   }
 
   if ($binaryLog -and ($binaryLogName -eq "")) {
-    $binaryLogName = "Build.binlog"
+    $script:binaryLogName = "Build.binlog"
   }
 
   $anyUnit = $testDesktop -or $testCoreClr
