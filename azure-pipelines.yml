@@ -207,7 +207,7 @@ stages:
           - src/Compilers/*
           - src/Dependencies/*
 
-  - job: Correctness_Build_Artifacts
+ - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
     pool:
       name: NetCore-Public

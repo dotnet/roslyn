@@ -224,15 +224,13 @@ function BuildSolution() {
   Write-Host "$($solution):"
 
   $bl = ""
-  if (binaryLog) {
+  if ($binaryLog) {
     $binaryLogPath = Join-Path $LogDir $binaryLogName
     $bl = "/bl:" + $binaryLogPath
-    if ($ci -and Test-Path $binaryLogPath) {
+    if ($ci -and (Test-Path $binaryLogPath)) {
       Write-LogIssue -Type "warning" -Message "Overwriting binary log file $($binaryLogPath)"
     }
-
   }
-  $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir $binaryLogName) } else { "" }
 
   if ($buildServerLog) {
     ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
