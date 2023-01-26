@@ -12391,7 +12391,7 @@ tryAgain:
                 list,
                 this.EatToken(SyntaxKind.CloseBraceToken));
 
-            static (SyntaxToken openBrace, PostSkipAction action) SkipBadArrayInitializerTokens(
+            static (SyntaxToken openBrace, PostSkipAction action) skipBadArrayInitializerTokens(
                 LanguageParser @this, SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
             {
                 var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
