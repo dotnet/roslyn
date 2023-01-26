@@ -6857,7 +6857,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Only a using alias can be 'unsafe'.</value>
   </data>
   <data name="ERR_BadNullableReferenceTypeInUsingAlias" xml:space="preserve">
-    <value>Using alias cannot be a nullable reference type..</value>
+    <value>Using alias cannot be a nullable reference type.</value>
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in this context is not supported.</value>
