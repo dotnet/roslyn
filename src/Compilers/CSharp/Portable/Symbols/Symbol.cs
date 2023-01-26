@@ -1256,10 +1256,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
         /// <summary>
         /// True if this symbol has been marked with the <see cref="ObsoleteAttribute"/> attribute. 
         /// This property returns <see cref="ThreeState.Unknown"/> if the <see cref="ObsoleteAttribute"/> attribute hasn't been cracked yet.
         /// </summary>
+#pragma warning restore CS0419
         internal ThreeState ObsoleteState
         {
             get
@@ -1286,10 +1288,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
         /// <summary>
         /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
         /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
         /// </summary>
+#pragma warning restore CS0419
         internal abstract ObsoleteAttributeData ObsoleteAttributeData { get; }
 
         /// <summary>

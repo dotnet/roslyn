@@ -746,11 +746,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => symbol.Name.StartsWith("_") &&
                (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _));
 
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
         /// <summary>
         /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.
         /// </summary>
         /// <param name="symbol"></param>
         /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
+#pragma warning restore CS0419
         public static bool IsObsolete(this ISymbol symbol)
             => symbol.GetAttributes().Any(static x => x.AttributeClass is
             {
