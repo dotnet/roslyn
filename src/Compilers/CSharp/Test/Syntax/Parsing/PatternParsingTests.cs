@@ -12727,5 +12727,66 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact, WorkItem(53011, "https://github.com/dotnet/roslyn/issues/53011")]
+        public void InvalidPropertyPattern()
+        {
+            UsingExpression(@"new object() is { {}: 1 }", TestOptions.RegularWithPatternCombinators,
+                // (1,21): error CS1003: Syntax error, ',' expected
+                // new object() is { {}: 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 21),
+                // (1,23): error CS1003: Syntax error, ',' expected
+                // new object() is { {}: 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(",").WithLocation(1, 23));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.ObjectCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.ObjectKeyword);
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PropertyPatternClause);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }
