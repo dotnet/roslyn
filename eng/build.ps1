@@ -34,6 +34,7 @@ param (
   [switch]$bootstrap,
   [string]$bootstrapConfiguration = "Release",
   [switch][Alias('bl')]$binaryLog,
+  [string]$binaryLogName = "",
   [switch]$buildServerLog,
   [switch]$ci,
   [switch]$collectDumps,
@@ -79,6 +80,7 @@ function Print-Usage() {
   Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
+  Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
   Write-Host "  -buildServerLog           Create Roslyn build server log"
   Write-Host ""
   Write-Host "Actions:"
@@ -166,11 +168,19 @@ function Process-Arguments() {
     $script:applyOptimizationData = $false
   }
 
+  if ($binaryLogName -ne "") {
+    $script:binaryLog = $true
+  }
+
   if ($ci) {
     $script:binaryLog = $true
     if ($bootstrap) {
       $script:buildServerLog = $true
     }
+  }
+
+  if ($binaryLog -and ($binaryLogName -eq "")) {
+    $binaryLogName = "Build.binlog"
   }
 
   $anyUnit = $testDesktop -or $testCoreClr
@@ -213,7 +223,16 @@ function BuildSolution() {
 
   Write-Host "$($solution):"
 
-  $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
+  $bl = ""
+  if (binaryLog) {
+    $binaryLogPath = Join-Path $LogDir $binaryLogName
+    $bl = "/bl:" + $binaryLogPath
+    if ($ci -and Test-Path $binaryLogPath) {
+      Write-LogIssue -Type "warning" -Message "Overwriting binary log file $($binaryLogPath)"
+    }
+
+  }
+  $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir $binaryLogName) } else { "" }
 
   if ($buildServerLog) {
     ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
@@ -734,7 +753,7 @@ try {
   catch
   {
     if ($ci) {
-      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
     }
     throw $_
   }
@@ -752,7 +771,7 @@ try {
   catch
   {
     if ($ci) {
-      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Build) Tests failed"
     }
     throw $_
   }
