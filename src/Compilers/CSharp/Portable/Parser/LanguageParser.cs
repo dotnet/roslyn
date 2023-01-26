@@ -12111,7 +12111,7 @@ tryAgain:
             var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
 
             ExpressionSyntax expression;
-            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind))
+            if (dotDotToken is null && SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
             {
                 var keyword = this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken);
                 var identifier = ConvertToIdentifier(keyword).WithDiagnosticsGreen(keyword.GetDiagnostics());
