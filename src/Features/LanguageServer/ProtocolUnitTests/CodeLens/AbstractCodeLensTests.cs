@@ -36,9 +36,12 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         Assert.Single(matchingCodeLenses);
 
         var matchingCodeLens = matchingCodeLenses.Single();
-        AssertEx.NotNull(matchingCodeLens.Command);
+        Assert.Null(matchingCodeLens.Command);
+
+        var resolvedCodeLens = await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, matchingCodeLens, CancellationToken.None);
+        AssertEx.NotNull(resolvedCodeLens?.Command);
 
         var expectedReferenceCountString = isCapped ? "99+" : expectedNumberOfReferences.ToString();
-        Assert.True(matchingCodeLens.Command.Title.StartsWith(expectedReferenceCountString));
+        Assert.True(resolvedCodeLens.Command.Title.StartsWith(expectedReferenceCountString));
     }
 }

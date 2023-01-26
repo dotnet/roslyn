@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 [Method(LSP.Methods.TextDocumentCodeLensName)]
 internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]?>
 {
-    /// <summary>
-    /// Command name implemented by the client and invoked when the references code lens is selected.
-    /// </summary>
-    private const string ClientReferencesCommand = "roslyn.client.peekReferences";
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CodeLensHandler()
@@ -47,36 +42,26 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
             return Array.Empty<LSP.CodeLens>();
         }
 
-        var codeLensReferencesService = document.Project.Solution.Services.GetRequiredService<ICodeLensReferencesService>();
-        using var _ = ArrayBuilder<LSP.CodeLens>.GetInstance(out var codeLenses);
+        var codeLensCache = context.GetRequiredLspService<CodeLensCache>();
+        var resultId = codeLensCache.UpdateCache(new CodeLensCache.CodeLensCacheEntry(members, request.TextDocument));
 
         // TODO - Code lenses need to be refreshed by the server when we detect solution/project wide changes.
         // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730462
 
+        using var _ = ArrayBuilder<LSP.CodeLens>.GetInstance(out var codeLenses);
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        foreach (var member in members)
+        for (var i = 0; i < members.Length; i++)
         {
-            var referenceCount = await codeLensReferencesService.GetReferenceCountAsync(document.Project.Solution, document.Id, member.Node, maxSearchResults: 99, cancellationToken).ConfigureAwait(false);
-            if (referenceCount != null)
+            var member = members[i];
+            var range = ProtocolConversions.TextSpanToRange(member.Span, text);
+            var codeLens = new LSP.CodeLens
             {
-                var range = ProtocolConversions.TextSpanToRange(member.Span, text);
-                var codeLens = new LSP.CodeLens
-                {
-                    Range = range,
-                    Command = new LSP.Command
-                    {
-                        Title = referenceCount.Value.GetDescription(),
-                        CommandIdentifier = ClientReferencesCommand,
-                        Arguments = new object[]
-                        {
-                            request.TextDocument.Uri,
-                            range.Start
-                        }
-                    }
-                };
+                Range = range,
+                Command = null,
+                Data = new CodeLensResolveData(resultId, i)
+            };
 
-                codeLenses.Add(codeLens);
-            }
+            codeLenses.Add(codeLens);
         }
 
         return codeLenses.ToArray();
