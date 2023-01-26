@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -133,7 +132,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var filteredLocations = fieldLocations.Filter(
                 (documentId, span) =>
-                    fieldDocument.Id == documentId &&
                     !span.IntersectsWith(declaratorLocation.SourceSpan) &&
                     CanEditDocument(solution, documentId, linkedFiles, canEdit));
 
