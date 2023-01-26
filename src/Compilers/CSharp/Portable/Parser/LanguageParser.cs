@@ -12113,6 +12113,7 @@ tryAgain:
             if (dotDotToken != null)
                 return _syntaxFactory.SpreadElement(dotDotToken, this.ParseExpressionCore());
 
+            // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
             ExpressionSyntax expression;
             if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
             {

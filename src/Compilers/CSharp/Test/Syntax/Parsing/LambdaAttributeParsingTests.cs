@@ -3533,21 +3533,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (1,1): error CS1073: Unexpected token 'delegate'
                     // [return: A] delegate () { return null; }
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "[return: A]").WithArguments("delegate").WithLocation(1, 1),
-                    // (1,2): error CS1003: Syntax error, ',' expected
+                    // (1,2): error CS1041: Identifier expected; 'return' is a keyword
                     // [return: A] delegate () { return null; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(",").WithLocation(1, 2),
-                    // (1,8): error CS1525: Invalid expression term ':'
-                    // [return: A] delegate () { return null; }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 8));
+                    Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "return").WithArguments("", "return").WithLocation(1, 2));
 
                 N(SyntaxKind.CollectionCreationExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.DictionaryElement);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "return");
                         }
                         N(SyntaxKind.ColonToken);
                         N(SyntaxKind.IdentifierName);
