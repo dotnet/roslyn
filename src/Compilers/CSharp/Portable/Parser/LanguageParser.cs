@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleAttributeArgument(),
                 static @this => @this.ParseAttributeArgument(),
-                static (@this, openParen, argNodes, kind) => @this.SkipBadAttributeArgumentTokens(openParen, argNodes, kind),
+                static (@this, openParen, argNodes, kind, _) => @this.SkipBadAttributeArgumentTokens(openParen, argNodes, kind),
                 allowTrailingSeparator: false);
 
             return _syntaxFactory.AttributeArgumentList(
@@ -985,14 +985,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
-        // private delegate PostSkipAction SkipBadTokens<TNode>(LanguageParser parser, ref SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind kind) where TNode : GreenNode;
+        private delegate (SyntaxToken openToken, PostSkipAction action) SkipBadTokens<TNode>(
+            LanguageParser parser, SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind expectedKind, SyntaxKind closeTokenKind) where TNode : GreenNode;
 
         private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
             Func<LanguageParser, bool> isPossibleElement,
             Func<LanguageParser, TNode> parseElement,
-            Func<LanguageParser, SyntaxToken, SeparatedSyntaxListBuilder<TNode>, SyntaxKind, (SyntaxToken openToken, PostSkipAction action)> skipBadTokens,
+            SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator) where TNode : GreenNode
         {
             return ParseSeparatedSyntaxList<TNode>(
@@ -1011,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxKind closeTokenKind,
             Func<LanguageParser, bool> isPossibleElement,
             Func<LanguageParser, TNode> parseElement,
-            Func<LanguageParser, SyntaxToken, SeparatedSyntaxListBuilder<TNode>, SyntaxKind, (SyntaxToken openToken, PostSkipAction action)> skipBadTokens,
+            SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator) where TNode : GreenNode
         {
             var argNodes = _pool.AllocateSeparated<TNode>();
@@ -1053,7 +1054,7 @@ tryAgain:
                         }
                         else
                         {
-                            (openToken, var action) = skipBadTokens(this, openToken, argNodes, separatorTokenKind);
+                            (openToken, var action) = skipBadTokens(this, openToken, argNodes, separatorTokenKind, closeTokenKind);
                             if (action == PostSkipAction.Abort)
                             {
                                 break;
@@ -1063,7 +1064,7 @@ tryAgain:
                 }
                 else
                 {
-                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, SyntaxKind.IdentifierToken);
+                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, SyntaxKind.IdentifierToken, closeTokenKind);
                     if (action == PostSkipAction.Continue)
                     {
                         goto tryAgain;
@@ -4314,7 +4315,7 @@ parse_member_name:;
                 closeKind,
                 static @this => @this.IsPossibleParameter(),
                 static @this => @this.ParseParameter(),
-                static (@this, open, nodes, kind) => @this.SkipBadParameterListTokens(open, nodes, kind, closeKind),
+                static (@this, open, nodes, expectedKind, closeKind) => @this.SkipBadParameterListTokens(open, nodes, expectedKind, closeKind),
                 allowTrailingSeparator: false);
 
             _termState = saveTerm;
