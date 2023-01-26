@@ -5475,50 +5475,52 @@ tryAgain:
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfTypeParameterList;
-            try
+
+            var open = this.EatToken(SyntaxKind.LessThanToken);
+            var parameters = this.ParseCommaSeparatedSyntaxList(
+                ref open,
+                SyntaxKind.GreaterThanToken,
+                static @this => @this.IsStartOfTypeParameter(),
+                static @this => @this.ParseTypeParameter(),
+                static (@this, open, parameters, _, _) => (open, skipBadTypeParameterListTokens(@this, parameters)),
+                allowTrailingSeparator: false,
+                requireOneElement: true);
+
+            _termState = saveTerm;
+
+            return _syntaxFactory.TypeParameterList(
+                open,
+                parameters,
+                this.EatToken(SyntaxKind.GreaterThanToken));
+
+            static PostSkipAction skipBadTypeParameterListTokens(
+                LanguageParser @this, SeparatedSyntaxListBuilder<TypeParameterSyntax> list)
             {
-                var parameters = _pool.AllocateSeparated<TypeParameterSyntax>();
-                var open = this.EatToken(SyntaxKind.LessThanToken);
-
-                // first parameter
-                parameters.Add(this.ParseTypeParameter());
-
-                // remaining parameter & commas
-                while (true)
-                {
-                    if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsCurrentTokenWhereOfConstraintClause())
-                    {
-                        break;
-                    }
-                    else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                    {
-                        parameters.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                        parameters.Add(this.ParseTypeParameter());
-                    }
-                    else if (this.SkipBadTypeParameterListTokens(parameters, SyntaxKind.CommaToken) == PostSkipAction.Abort)
-                    {
-                        break;
-                    }
-                }
-
-                var close = this.EatToken(SyntaxKind.GreaterThanToken);
-
-                return _syntaxFactory.TypeParameterList(open, parameters, close);
-            }
-            finally
-            {
-                _termState = saveTerm;
+                // Because we always parse out at least one type parameter, we always can attach errors to it, so we don't
+                // need to pass the actual less than token here.
+                CSharpSyntaxNode tmp = null;
+                Debug.Assert(list.Count > 0);
+                return @this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                    static (p, _) => p.CurrentToken.Kind == SyntaxKind.GreaterThanToken || p.IsTerminator(),
+                    SyntaxKind.CommaToken);
             }
         }
 
-        private PostSkipAction SkipBadTypeParameterListTokens(SeparatedSyntaxListBuilder<TypeParameterSyntax> list, SyntaxKind expected)
+        private bool IsStartOfTypeParameter()
         {
-            CSharpSyntaxNode tmp = null;
-            Debug.Assert(list.Count > 0);
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                static (p, _) => p.CurrentToken.Kind == SyntaxKind.GreaterThanToken || p.IsTerminator(),
-                expected);
+            if (this.IsCurrentTokenWhereOfConstraintClause())
+                return false;
+
+            // possible attributes
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
+                return true;
+
+            // Variance.
+            if (this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
+                return true;
+
+            return IsTrueIdentifier();
         }
 
         private TypeParameterSyntax ParseTypeParameter()
