@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ExpressionGenerator.GenerateExpression(value)
         End Function
 
-        Protected Overrides Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As SyntaxNode
+        Private Protected Overrides Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference)
         End Function
 
@@ -891,10 +891,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return If(parameters IsNot Nothing, SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast(Of ParameterSyntax)())), SyntaxFactory.ParameterList())
         End Function
 
-        Public Overrides Function ParameterDeclaration(name As String, Optional type As SyntaxNode = Nothing, Optional initializer As SyntaxNode = Nothing, Optional refKind As RefKind = Nothing) As SyntaxNode
+        Private Protected Overrides Function ParameterDeclaration(
+                name As String,
+                type As SyntaxNode,
+                initializer As SyntaxNode,
+                refKind As RefKind,
+                isExtension As Boolean,
+                isParams As Boolean) As SyntaxNode
+
+            Dim modifiers = GetParameterModifiers(refKind, initializer)
+            If isParams Then
+                modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.ParamArrayKeyword))
+            End If
+
+            ' isExtension not used in vb.  instead, an attribute is added at the method level.
+
             Return SyntaxFactory.Parameter(
                 attributeLists:=Nothing,
-                modifiers:=GetParameterModifiers(refKind, initializer),
+                modifiers:=modifiers,
                 identifier:=name.ToModifiedIdentifier(),
                 asClause:=If(type IsNot Nothing, SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)), Nothing),
                 [default]:=If(initializer IsNot Nothing, SyntaxFactory.EqualsValue(DirectCast(initializer, ExpressionSyntax)), Nothing))
@@ -972,11 +986,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional getAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
             Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
+            Return PropertyDeclaration(
+                identifier,
+                type,
+                If(Not modifiers.IsWriteOnly, CreateGetAccessorBlock(getAccessorStatements), Nothing),
+                If(Not modifiers.IsReadOnly, CreateSetAccessorBlock(type, setAccessorStatements), Nothing),
+                accessibility,
+                modifiers)
+        End Function
+
+        Private Protected Overrides Function PropertyDeclaration(
+            name As String,
+            type As SyntaxNode,
+            getAccessor As SyntaxNode,
+            setAccessor As SyntaxNode,
+            accessibility As Accessibility,
+            modifiers As DeclarationModifiers) As SyntaxNode
+
             Dim asClause = SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax))
             Dim statement = SyntaxFactory.PropertyStatement(
                 attributeLists:=Nothing,
                 modifiers:=GetModifierList(accessibility, modifiers And s_propertyModifiers, declaration:=Nothing, DeclarationKind.Property),
-                identifier:=identifier.ToIdentifierToken(),
+                identifier:=name.ToIdentifierToken(),
                 parameterList:=Nothing,
                 asClause:=asClause,
                 initializer:=Nothing,
@@ -987,13 +1018,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Else
                 Dim accessors = New List(Of AccessorBlockSyntax)
 
-                If Not modifiers.IsWriteOnly Then
-                    accessors.Add(CreateGetAccessorBlock(getAccessorStatements))
-                End If
-
-                If Not modifiers.IsReadOnly Then
-                    accessors.Add(CreateSetAccessorBlock(type, setAccessorStatements))
-                End If
+                accessors.AddIfNotNull(DirectCast(getAccessor, AccessorBlockSyntax))
+                accessors.AddIfNotNull(DirectCast(setAccessor, AccessorBlockSyntax))
 
                 Return SyntaxFactory.PropertyBlock(
                     propertyStatement:=statement,

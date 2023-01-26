@@ -726,7 +726,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = default) =>
             CompileAndVerify(
                 source,
                 references,
@@ -762,7 +762,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = default) =>
             CompileAndVerify(
                 source,
                 references,
@@ -799,7 +799,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
             var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, references, options, parseOptions, assemblyName: GetUniqueName());
@@ -840,7 +840,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = default) =>
             CompileAndVerify(
                 source,
                 references,
@@ -876,7 +876,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = default) =>
             CompileAndVerify(
                 source,
                 references,
@@ -913,7 +913,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
             TargetFramework targetFramework = TargetFramework.Standard,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
@@ -946,7 +946,7 @@ namespace System.Diagnostics.CodeAnalysis
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             Action<IModuleSymbol> translate(Action<ModuleSymbol> action)
             {
@@ -1449,13 +1449,13 @@ namespace System.Diagnostics.CodeAnalysis
         /// <typeparam name="T">Expected type of the exception.</typeparam>
         /// <param name="source">Program to compile and execute.</param>
         /// <param name="expectedMessage">Ignored if null.</param>
-        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, Verification verify = Verification.Passes) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, Verification verify = default) where T : Exception
         {
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
             return CompileAndVerifyException<T>(comp, expectedMessage, verify);
         }
 
-        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, Verification verify = Verification.Passes) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, Verification verify = default) where T : Exception
         {
             try
             {
@@ -2224,6 +2224,7 @@ namespace System
             public ref T this[int i] => ref arr[i];
             public override int GetHashCode() => 1;
             public int Length { get; }
+            public bool IsEmpty => Length == 0;
 
             unsafe public Span(void* pointer, int length)
             {
@@ -2235,6 +2236,13 @@ namespace System
             {
                 this.arr = arr;
                 this.Length = arr.Length;
+            }
+
+            public Span(T[] arr, int start, int length)
+            {
+                this.arr = new T[length];
+                Array.Copy(arr, start, this.arr, 0, length);
+                this.Length = length;
             }
 
             public void CopyTo(Span<T> other) { }
@@ -2288,6 +2296,7 @@ namespace System
             public ref readonly T this[int i] => ref arr[i];
             public override int GetHashCode() => 2;
             public int Length { get; }
+            public bool IsEmpty => Length == 0;
 
             unsafe public ReadOnlySpan(void* pointer, int length)
             {
@@ -2299,6 +2308,13 @@ namespace System
             {
                 this.arr = arr;
                 this.Length = arr.Length;
+            }
+
+            public ReadOnlySpan(T[] arr, int start, int length)
+            {
+                this.arr = new T[length];
+                Array.Copy(arr, start, this.arr, 0, length);
+                this.Length = length;
             }
 
             public void CopyTo(Span<T> other) { }
@@ -2366,12 +2382,12 @@ namespace System
                     return null;
                 }
 
-                if (typeof(T) == typeof(int))
+                if (typeof(T) == typeof(sbyte))
                 {
-                    var arr = new int[count];
+                    var arr = new sbyte[count];
                     for(int i = 0; i < count; i++)
                     {
-                        arr[i] = ((int*)ptr)[i];
+                        arr[i] = ((sbyte*)ptr)[i];
                     }
 
                     return (T[])(object)arr;
@@ -2383,6 +2399,72 @@ namespace System
                     for(int i = 0; i < count; i++)
                     {
                         arr[i] = ((byte*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(short))
+                {
+                    var arr = new short[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((short*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(ushort))
+                {
+                    var arr = new ushort[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((ushort*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(int))
+                {
+                    var arr = new int[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((int*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(uint))
+                {
+                    var arr = new uint[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((uint*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(long))
+                {
+                    var arr = new long[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((long*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
+                }
+
+                if (typeof(T) == typeof(ulong))
+                {
+                    var arr = new ulong[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((ulong*)ptr)[i];
                     }
 
                     return (T[])(object)arr;

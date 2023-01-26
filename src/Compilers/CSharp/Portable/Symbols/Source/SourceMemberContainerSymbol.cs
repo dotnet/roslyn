@@ -832,6 +832,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
+        internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
+
         internal SyntaxTree AssociatedSyntaxTree => declaration.Declarations[0].Location.SourceTree;
 
         internal sealed override FileIdentifier? AssociatedFileIdentifier
@@ -4477,7 +4479,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
 
-                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRef(out RefKind refKind);
+                            // Lang version check for ref-fields is done inside SourceMemberFieldSymbol;
+                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRefInField(out var refKind);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {

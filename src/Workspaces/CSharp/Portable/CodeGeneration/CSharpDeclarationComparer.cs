@@ -295,33 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result;
         }
 
-        private static bool NeitherNull(object x, object y, out int comparisonResult)
-        {
-            if (x == null && y == null)
-            {
-                comparisonResult = 0;
-                return false;
-            }
-            else if (x == null)
-            {
-                // x == null && y != null
-                comparisonResult = -1;
-                return false;
-            }
-            else if (y == null)
-            {
-                // x != null && y == null
-                comparisonResult = 1;
-                return false;
-            }
-            else
-            {
-                // x != null && y != null
-                comparisonResult = 0;
-                return true;
-            }
-        }
-
         private static bool ContainsToken(SyntaxTokenList list, SyntaxKind kind)
             => list.Contains(token => token.Kind() == kind);
 
@@ -418,24 +391,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static bool EqualIdentifierName(SyntaxToken x, SyntaxToken y, out int comparisonResult)
         {
-            if (NeitherNull(x, y, out comparisonResult))
-            {
-                comparisonResult = string.Compare(x.ValueText, y.ValueText, StringComparison.OrdinalIgnoreCase);
-            }
-
+            comparisonResult = string.Compare(x.ValueText, y.ValueText, StringComparison.OrdinalIgnoreCase);
             return comparisonResult == 0;
         }
 
         private static bool EqualOperatorPrecedence(SyntaxToken x, SyntaxToken y, out int comparisonResult)
         {
-            if (NeitherNull(x, y, out comparisonResult))
-            {
-                s_operatorPrecedenceMap.TryGetValue(x.Kind(), out var xPrecedence);
-                s_operatorPrecedenceMap.TryGetValue(y.Kind(), out var yPrecedence);
+            s_operatorPrecedenceMap.TryGetValue(x.Kind(), out var xPrecedence);
+            s_operatorPrecedenceMap.TryGetValue(y.Kind(), out var yPrecedence);
 
-                comparisonResult = xPrecedence - yPrecedence;
-            }
-
+            comparisonResult = xPrecedence - yPrecedence;
             return comparisonResult == 0;
         }
 

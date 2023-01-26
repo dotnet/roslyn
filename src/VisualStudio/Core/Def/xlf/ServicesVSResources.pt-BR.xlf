@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Analyze_source_generated_files">
         <source>Analyze source generated files</source>
-        <target state="new">Analyze source generated files</target>
+        <target state="translated">Analisar arquivos gerados pela origem</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">

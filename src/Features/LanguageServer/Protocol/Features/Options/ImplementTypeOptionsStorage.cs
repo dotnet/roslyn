@@ -21,18 +21,12 @@ namespace Microsoft.CodeAnalysis.ImplementType
           => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
                  globalOptions.CreateProvider());
 
-        private const string FeatureName = "ImplementTypeOptions";
-
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
-            new(FeatureName,
-                "InsertionBehavior",
-                defaultValue: ImplementTypeOptions.Default.InsertionBehavior,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior"));
+            new("ImplementTypeOptions_InsertionBehavior",
+                defaultValue: ImplementTypeOptions.Default.InsertionBehavior);
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
-            new(FeatureName,
-                "PropertyGenerationBehavior",
-                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior"));
+            new("ImplementTypeOptions_PropertyGenerationBehavior",
+                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior);
     }
 }

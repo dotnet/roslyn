@@ -2004,7 +2004,7 @@ class Program
                 Field("Name"),
                 Punctuation.Colon,
                 Keyword("var"),
-                Identifier("n"),
+                Local("n"),
                 Punctuation.CloseCurly,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2099,6 +2099,45 @@ class Person
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory, WorkItem(59484, "https://github.com/dotnet/roslyn/issues/59484")]
+        [CombinatorialData]
+        public async Task TestPatternVariables(TestHost testHost)
+        {
+            await TestAsync(
+                @"
+void M(object o) {
+    _ = o is [var (x, y), {} z] list;
+} 
+",
+                testHost,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("_"),
+                Operators.Equals,
+                Parameter("o"),
+                Keyword("is"),
+                Punctuation.OpenBracket,
+                Keyword("var"),
+                Punctuation.OpenParen,
+                Local("x"),
+                Punctuation.Comma,
+                Local("y"),
+                Punctuation.CloseParen,
+                Punctuation.Comma,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Local("z"),
+                Punctuation.CloseBracket,
+                Local("list"),
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
 

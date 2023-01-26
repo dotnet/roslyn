@@ -84,11 +84,11 @@ stages:
     demands: ImageOverride -equals windows.vs2022.amd64
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.4') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.5-vs-deps') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.4
+        MirrorBranch: release/dev17.5-vs-deps
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -118,12 +118,14 @@ stages:
           MainValidationBuild
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
-    - task: PowerShell@2
-      displayName: Merge main-vs-deps into source branch
-      inputs:
-        filePath: 'scripts\merge-vs-deps.ps1'
-        arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
+    # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back.
+    #
+    # - task: PowerShell@2
+    #  displayName: Merge main-vs-deps into source branch
+    #  inputs:
+    #    filePath: 'scripts\merge-vs-deps.ps1'
+    #    arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
+    #  condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable

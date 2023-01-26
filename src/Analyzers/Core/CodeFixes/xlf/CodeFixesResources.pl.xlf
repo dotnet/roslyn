@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Fix_name_violation_colon_0">
         <source>Fix name violation: {0}</source>
-        <target state="new">Fix name violation: {0}</target>
+        <target state="translated">Rozwiąż problem z naruszeniem nazwy: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -55,6 +55,11 @@
       <trans-unit id="Make_member_static">
         <source>Make static</source>
         <target state="translated">Ustaw jako statyczne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="translated">Ustaw typ jako częściowy</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
@@ -69,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Suppress_or_configure_issues">
         <source>Suppress or configure issues</source>
-        <target state="new">Suppress or configure issues</target>
+        <target state="translated">Problemy z pomijaniem lub konfigurowaniem</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

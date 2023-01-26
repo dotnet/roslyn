@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -58,7 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         internal EditorOptionsService EditorOptionsService { get; private set; }
         internal VisualStudioWorkspaceImpl Workspace { get; private set; }
         internal IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; private set; }
-        internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; private set; }
         internal AnalyzerFileWatcherService AnalyzerFileWatcherService { get; private set; }
 
         /// <summary>
@@ -138,7 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
             this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
             this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-            this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
             this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
         }
 
@@ -278,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => this.LanguageDebugInfo = null;
 
         protected virtual IVsContainedLanguage CreateContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator, VisualStudioProject project,
+            IVsTextBufferCoordinator bufferCoordinator, ProjectSystemProject project,
             IVsHierarchy hierarchy, uint itemid)
         {
             return new ContainedLanguage(

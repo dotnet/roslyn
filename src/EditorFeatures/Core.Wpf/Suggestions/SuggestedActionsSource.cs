@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return filteredSets.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull().ToImmutableArray();
             }
 
-            [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
+            [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]
             private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet, SuggestedActionsSourceProvider owner, ITextBuffer subjectBuffer)
             {
                 // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.

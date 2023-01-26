@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             return name.IsMemberBindingExpressionName();
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
             => node is ExpressionSyntax expression ? SyntaxFactory.GetStandaloneExpression(expression) : node;
 
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool IsElementAccessExpression(SyntaxNode? node)
             => node.IsKind(SyntaxKind.ElementAccessExpression);
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
             => node.ConvertToSingleLine(useElasticTrivia);
 
@@ -1363,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SyntaxTokenList GetModifiers(SyntaxNode? node)
             => node.GetModifiers();
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers)
             => node.WithModifiers(modifiers);
 

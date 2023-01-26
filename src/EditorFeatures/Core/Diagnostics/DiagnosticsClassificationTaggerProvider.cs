@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ClassificationTag _classificationTag;
         private readonly EditorOptionsService _editorOptionsService;
 
-        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Classification);
+        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(InternalFeatureOnOffOptions.Classification);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

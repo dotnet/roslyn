@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsDeclarationExpressionType(SyntaxNode node, [NotNullWhen(true)] out DeclarationExpressionSyntax? parent)
         {
             parent = node.ModifyingScopedOrRefTypeOrSelf().Parent as DeclarationExpressionSyntax;
-            return node == parent?.Type.SkipScoped(out _).SkipRef(out _);
+            return node == parent?.Type.SkipScoped(out _).SkipRef();
         }
 
         /// <summary>

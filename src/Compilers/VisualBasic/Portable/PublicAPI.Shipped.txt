@@ -4536,7 +4536,6 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.Language() -
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ReferencedAssemblyNames() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.AssemblyIdentity)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ToMetadataReference(aliases As System.Collections.Immutable.ImmutableArray(Of String) = Nothing, embedInteropTypes As Boolean = False) -> Microsoft.CodeAnalysis.CompilationReference
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(obj As Object) -> Boolean
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode() -> Integer
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Language() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.NullableContextOptions() -> Microsoft.CodeAnalysis.NullableContextOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithKind(kind As Microsoft.CodeAnalysis.SourceCodeKind) -> Microsoft.CodeAnalysis.ParseOptions

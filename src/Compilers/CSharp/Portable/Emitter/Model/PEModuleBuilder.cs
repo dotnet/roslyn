@@ -1711,10 +1711,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
-        internal SynthesizedAttributeData SynthesizeScopedRefAttribute(ParameterSymbol symbol, DeclarationScope scope)
+        internal SynthesizedAttributeData SynthesizeScopedRefAttribute(ParameterSymbol symbol, ScopedKind scope)
         {
-            Debug.Assert(scope != DeclarationScope.Unscoped);
-            Debug.Assert(!ParameterHelpers.IsRefScopedByDefault(symbol) || scope == DeclarationScope.ValueScoped);
+            Debug.Assert(scope != ScopedKind.None);
+            Debug.Assert(!ParameterHelpers.IsRefScopedByDefault(symbol) || scope == ScopedKind.ScopedValue);
             Debug.Assert(!symbol.IsThis);
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)

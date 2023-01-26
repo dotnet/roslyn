@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
                         var oldTree = oldState.GetSyntaxTree(cancellationToken);
 
                         compilationPair = compilationPair.ReplaceSyntaxTree(oldTree, tree);
-                        inProgressProject = inProgressProject.UpdateDocument(docState, textChanged: false, recalculateDependentVersions: false);
+                        inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
                     {
@@ -420,49 +420,6 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
-            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(CancellationToken cancellationToken)
-            {
-                try
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                    {
-                        var state = ReadState();
-
-                        // we are already in the final stage. just return it.
-                        var compilation = state.FinalCompilationWithGeneratedDocuments;
-                        if (compilation != null)
-                        {
-                            return compilation;
-                        }
-
-                        compilation = state.CompilationWithoutGeneratedDocuments;
-                        if (compilation == null)
-                        {
-                            // We've got nothing.  Build it from scratch :(
-                            return await BuildDeclarationCompilationFromScratchAsync(
-                                state.GeneratorInfo, cancellationToken).ConfigureAwait(false);
-                        }
-
-                        if (state is AllSyntaxTreesParsedState or FinalState)
-                        {
-                            // we have full declaration, just use it.
-                            return compilation;
-                        }
-
-                        (compilation, _, _) = await BuildDeclarationCompilationFromInProgressAsync((InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
-
-                        // We must have an in progress compilation. Build off of that.
-                        return compilation;
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-            }
-
             private async Task<CompilationInfo> GetOrBuildCompilationInfoAsync(
                 SolutionState solution,
                 bool lockGate,
@@ -634,6 +591,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(
                         state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+
                     return await FinalizeCompilationAsync(
                         solution,
                         compilationWithoutGenerators,
@@ -953,8 +911,7 @@ namespace Microsoft.CodeAnalysis
                                                 identity,
                                                 generatedSource.SourceText,
                                                 generatedSource.SyntaxTree.Options,
-                                                ProjectState.LanguageServices,
-                                                solution.Services));
+                                                ProjectState.LanguageServices));
 
                                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
                                         // was added, and an equal number must have been removed. Rather than trying to incrementally update

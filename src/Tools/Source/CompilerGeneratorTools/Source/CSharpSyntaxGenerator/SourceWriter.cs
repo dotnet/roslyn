@@ -590,7 +590,6 @@ namespace CSharpSyntaxGenerator
             WriteLine("internal static partial class SyntaxFactory");
             OpenBlock();
             WriteGreenFactories(nodes);
-            WriteGreenTypeList();
             CloseBlock();
         }
 
@@ -601,34 +600,6 @@ namespace CSharpSyntaxGenerator
                 WriteLine();
                 this.WriteGreenFactory(node, withSyntaxFactoryContext);
             }
-        }
-
-        private void WriteGreenTypeList()
-        {
-            WriteLine();
-            WriteLine("internal static IEnumerable<Type> GetNodeTypes()");
-            Indent();
-            WriteLine("=> new Type[]");
-            OpenBlock();
-
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
-            foreach (var node in nodes)
-            {
-                var nd = (Node)node;
-                if (nd.ObsoleteReason is not null)
-                {
-                    WriteLineWithoutIndent($"#pragma warning disable CS0618 // Type or member is obsolete - {nd.ObsoleteReason}");
-                    WriteLine($"typeof({node.Name}),");
-                    WriteLineWithoutIndent("#pragma warning restore CS0618 // Type or member is obsolete");
-                }
-                else
-                {
-                    WriteLine($"typeof({node.Name}),");
-                }
-            }
-
-            CloseBlock(";");
-            Unindent();
         }
 
         private void WriteGreenFactory(Node nd, bool withSyntaxFactoryContext = false)

@@ -209,33 +209,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         this.ParseSubExpression(Precedence.Relational));
             }
 
-            var resetPoint = this.GetResetPoint();
-            try
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            TypeSyntax? type = null;
+            if (LooksLikeTypeOfPattern())
             {
-                TypeSyntax? type = null;
-                if (LooksLikeTypeOfPattern())
+                type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
+                if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
                 {
-                    type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
-                    if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
-                    {
-                        // either it is not shaped like a type, or it is a constant expression.
-                        this.Reset(ref resetPoint);
-                        type = null;
-                    }
+                    // either it is not shaped like a type, or it is a constant expression.
+                    resetPoint.Reset();
+                    type = null;
                 }
-
-                var pattern = ParsePatternContinued(type, precedence, whenIsKeyword);
-                if (pattern != null)
-                    return pattern;
-
-                this.Reset(ref resetPoint);
-                var value = this.ParseSubExpression(precedence);
-                return _syntaxFactory.ConstantPattern(value);
             }
-            finally
-            {
-                this.Release(ref resetPoint);
-            }
+
+            var pattern = ParsePatternContinued(type, precedence, whenIsKeyword);
+            if (pattern != null)
+                return pattern;
+
+            resetPoint.Reset();
+            var value = this.ParseSubExpression(precedence);
+            return _syntaxFactory.ConstantPattern(value);
         }
 
         /// <summary>
@@ -373,11 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool looksLikeCast()
             {
-                var resetPoint = this.GetResetPoint();
-                bool result = this.ScanCast(forPattern: true);
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-                return result;
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                return this.ScanCast(forPattern: true);
             }
         }
 
@@ -425,15 +416,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // these all can start a pattern
                                 return false;
                             default:
-                                if (SyntaxFacts.IsBinaryExpression(tk)) return true; // `e is int and && true` is valid C# 7.0 code with `and` being a designator
+                                {
+                                    if (SyntaxFacts.IsBinaryExpression(tk)) return true; // `e is int and && true` is valid C# 7.0 code with `and` being a designator
 
-                                // If the following token could start an expression, it may be a constant pattern after a combinator.
-                                var resetPoint = this.GetResetPoint();
-                                _ = this.EatToken();
-                                var result = !CanStartExpression();
-                                this.Reset(ref resetPoint);
-                                this.Release(ref resetPoint);
-                                return result;
+                                    // If the following token could start an expression, it may be a constant pattern after a combinator.
+                                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                                    this.EatToken();
+                                    return !CanStartExpression();
+                                }
                         }
                     case SyntaxKind.UnderscoreToken: // discard is a valid pattern designation
                     default:
@@ -472,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     expr = s;
                     return true;
                 case QualifiedNameSyntax { Left: var left, dotToken: var dotToken, Right: var right }
-                            when (permitTypeArguments || !(right is GenericNameSyntax)):
+                            when (permitTypeArguments || right is not GenericNameSyntax):
                     var newLeft = ConvertTypeToExpression(left, out var leftExpr, permitTypeArguments: true) ? leftExpr : left;
                     expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newLeft, dotToken, right);
                     return true;
@@ -485,20 +475,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool LooksLikeTupleArrayType()
         {
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
-            {
                 return false;
-            }
 
-            ResetPoint resetPoint = GetResetPoint();
-            try
-            {
-                return ScanType(forPattern: true) != ScanTypeFlags.NotType;
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
+            using var _ = GetDisposableResetPoint(resetOnDispose: true);
+            return ScanType(forPattern: true) != ScanTypeFlags.NotType;
         }
 
         private PropertyPatternClauseSyntax ParsePropertyPatternClause()
@@ -542,18 +522,17 @@ tryAgain:
                     int lastTokenPosition = -1;
                     while (IsMakingProgress(ref lastTokenPosition))
                     {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
-                            this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
-                            this.CurrentToken.Kind == SyntaxKind.CloseBracketToken ||
-                            this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        if (this.CurrentToken.Kind is SyntaxKind.CloseParenToken or
+                                                      SyntaxKind.CloseBraceToken or
+                                                      SyntaxKind.CloseBracketToken or
+                                                      SyntaxKind.SemicolonToken)
                         {
                             break;
                         }
                         else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleSubpatternElement())
                         {
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
-                                this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
+                            if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken)
                             {
                                 break;
                             }
@@ -652,11 +631,11 @@ tryAgain:
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
                 // to be consumed by the switch arm. The strange side-effect of that is that the conditional
                 // expression is not permitted as a constant expression here; it would have to be parenthesized.
-                var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
-                var whenClause = ParseWhenClause(Precedence.Coalescing);
-                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                var expression = ParseExpressionCore();
-                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
+                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(
+                    ParsePattern(Precedence.Coalescing, whenIsKeyword: true),
+                    ParseWhenClause(Precedence.Coalescing),
+                    this.EatToken(SyntaxKind.EqualsGreaterThanToken),
+                    ParseExpressionCore());
 
                 // If we're not making progress, abort
                 if (switchExpressionCase.Width == 0 && this.CurrentToken.Kind != SyntaxKind.CommaToken)

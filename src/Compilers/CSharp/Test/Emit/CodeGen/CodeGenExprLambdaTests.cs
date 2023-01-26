@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             string expectedOutput = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            Verification verify = Verification.Passes) => CompileAndVerify(source, references, targetFramework: TargetFramework.Standard, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
+            Verification verify = default) => CompileAndVerify(source, references, targetFramework: TargetFramework.Standard, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
 
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
@@ -1682,8 +1682,8 @@ class Program
             CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: """
-Lambda((Parameter(x Type:System.Int32)) => Parameter(x Type:System.Int32) ReturnType:System.Int32 Type:<>f__AnonymousDelegate0)
-Lambda((Parameter(x Type:System.Int32)) => Lambda((Parameter(y Type:System.Int32)) => Parameter(y Type:System.Int32) ReturnType:System.Int32 Type:<>f__AnonymousDelegate0) ReturnType:<>f__AnonymousDelegate0 Type:System.Func`2[System.Int32,<>f__AnonymousDelegate0])
+Lambda((Parameter(x Type:System.Int32)) => Parameter(x Type:System.Int32) ReturnType:System.Int32 Type:<>f__AnonymousDelegate0`2[System.Int32,System.Int32])
+Lambda((Parameter(x Type:System.Int32)) => Lambda((Parameter(y Type:System.Int32)) => Parameter(y Type:System.Int32) ReturnType:System.Int32 Type:<>f__AnonymousDelegate0`2[System.Int32,System.Int32]) ReturnType:<>f__AnonymousDelegate0`2[System.Int32,System.Int32] Type:System.Func`2[System.Int32,<>f__AnonymousDelegate0`2[System.Int32,System.Int32]])
 """);
         }
 
