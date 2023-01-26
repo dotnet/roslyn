@@ -11893,7 +11893,7 @@ tryAgain:
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseAnonymousTypeMemberInitializer(),
-                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
+                static (@this, openBrace, list, expectedKind, _) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
                 allowTrailingSeparator: true);
 
             return _syntaxFactory.AnonymousObjectCreationExpression(
@@ -12230,7 +12230,7 @@ tryAgain:
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
-                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
+                static (@this, openBrace, list, expectedKind, _) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
                 allowTrailingSeparator: false,
                 trailingSeparatorError: ErrorCode.ERR_ExpressionExpected);
 
@@ -12301,7 +12301,7 @@ tryAgain:
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleVariableInitializer(),
                 static @this => @this.ParseVariableInitializer(),
-                static (@this, openBrace, list, expectedKind, closeKind) => skipBadArrayInitializerTokens(@this, openBrace, list, expectedKind),
+                static (@this, openBrace, list, expectedKind, _) => skipBadArrayInitializerTokens(@this, openBrace, list, expectedKind),
                 allowTrailingSeparator: true,
                 expectedKind: SyntaxKind.CommaToken);
 
