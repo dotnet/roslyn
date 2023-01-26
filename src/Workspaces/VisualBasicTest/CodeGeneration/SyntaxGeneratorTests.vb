@@ -2362,6 +2362,58 @@ End Class"))
 "Public Sub M(ParamArray arr As System.Int32())
 End Sub")
         End Sub
+
+        <Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")>
+        Public Sub TestPropertyDeclarationFromSymbol1()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Property Prop As Integer
+        Get
+        End Get
+
+        Protected Set
+        End Set
+    End Property
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("Prop").Single()
+
+            VerifySyntax(Of PropertyBlockSyntax)(Generator.Declaration(method),
+"Public Property Prop As System.Int32
+    Get
+    End Get
+
+    Protected Set
+    End Set
+End Property")
+        End Sub
+
+        <Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")>
+        Public Sub TestPropertyDeclarationFromSymbol2()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Property Prop As Integer
+        Protected Get
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("Prop").Single()
+
+            VerifySyntax(Of PropertyBlockSyntax)(Generator.Declaration(method),
+"Public Property Prop As System.Int32
+    Protected Get
+    End Get
+
+    Set
+    End Set
+End Property")
+        End Sub
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"

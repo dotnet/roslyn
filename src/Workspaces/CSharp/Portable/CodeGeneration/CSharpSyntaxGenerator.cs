@@ -344,21 +344,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode>? getAccessorStatements,
             IEnumerable<SyntaxNode>? setAccessorStatements)
         {
+            SyntaxNode? getAccessor = null;
+            SyntaxNode? setAccessor = null;
+
+            if (!modifiers.IsWriteOnly)
+                getAccessor = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, modifiers.IsAbstract ? null : getAccessorStatements);
+
+            if (!modifiers.IsReadOnly)
+                setAccessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, modifiers.IsAbstract ? null : setAccessorStatements);
+
+            return PropertyDeclaration(name, type, getAccessor, setAccessor, accessibility, modifiers);
+        }
+
+        private protected override SyntaxNode PropertyDeclaration(
+            string name,
+            SyntaxNode type,
+            SyntaxNode? getAccessor,
+            SyntaxNode? setAccessor,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers)
+        {
             var accessors = new List<AccessorDeclarationSyntax>();
-            var hasGetter = !modifiers.IsWriteOnly;
-            var hasSetter = !modifiers.IsReadOnly;
 
-            if (modifiers.IsAbstract)
-            {
-                getAccessorStatements = null;
-                setAccessorStatements = null;
-            }
-
-            if (hasGetter)
-                accessors.Add(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, getAccessorStatements));
-
-            if (hasSetter)
-                accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, setAccessorStatements));
+            accessors.AddIfNotNull((AccessorDeclarationSyntax?)getAccessor);
+            accessors.AddIfNotNull((AccessorDeclarationSyntax?)setAccessor);
 
             var actualModifiers = modifiers - (DeclarationModifiers.ReadOnly | DeclarationModifiers.WriteOnly);
 
