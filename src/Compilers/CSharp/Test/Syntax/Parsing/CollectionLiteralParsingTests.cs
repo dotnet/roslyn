@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -10,6 +11,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CollectionLiteralParsingTests : ParsingTests
     {
         public CollectionLiteralParsingTests(ITestOutputHelper output) : base(output) { }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Preview)]
+        public void CollectionLiteralParsingDoesNotProduceLangVersionError(LanguageVersion languageVersion)
+        {
+            UsingExpression("[A, B]", TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "B");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            EOF();
+        }
 
         [Fact]
         public void ExpressionDotAccess()
