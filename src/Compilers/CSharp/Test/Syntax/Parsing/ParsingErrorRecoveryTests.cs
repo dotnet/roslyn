@@ -5034,8 +5034,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+
+            file.GetDiagnostics().Verify(
+                // (1,45): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b, ; } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 45));
         }
 
         [Fact]
@@ -5179,9 +5182,14 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[1].Code);
+
+            file.GetDiagnostics().Verify(
+                // (1,45): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b, while (x) {} } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "while").WithLocation(1, 45),
+                // (1,45): error CS1002: ; expected
+                // class c { void m() { var x = new C { a = b, while (x) {} } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "while").WithLocation(1, 45));
         }
 
         [Fact]
