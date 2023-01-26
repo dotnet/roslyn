@@ -565,6 +565,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private MethodSymbol? LookupInterceptor(SyntaxNode syntax)
         {
+            if (this.InAttributeArgument)
+            {
+                return null;
+            }
+
             var span = syntax.Location.GetMappedLineSpan();
             var filePath = span.Path;
             var (line, col) = (span.StartLinePosition.Line, span.StartLinePosition.Character);
