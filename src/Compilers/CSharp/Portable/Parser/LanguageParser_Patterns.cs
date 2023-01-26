@@ -526,10 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private (SyntaxToken open, PostSkipAction action) SkipBadPatternListTokens<T>(
-            SyntaxToken open,
-            SeparatedSyntaxListBuilder<T> list,
-            SyntaxKind expected,
-            SyntaxKind closeKind)
+            SyntaxToken open, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
             where T : CSharpSyntaxNode
         {
             if (this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken)
@@ -538,8 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleSubpatternElement(),
                 static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
-                expected,
-                closeKind);
+                expectedKind, closeKind);
 
             return (open, action);
         }
