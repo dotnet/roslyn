@@ -889,56 +889,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? _syntaxFactory.AttributeTargetSpecifier(ConvertToKeyword(this.EatToken()), this.EatToken(SyntaxKind.ColonToken))
                 : null;
 
-            var attributes = _pool.AllocateSeparated<AttributeSyntax>();
-            this.ParseAttributes(attributes);
+            var attributes = this.ParseCommaSeparatedSyntaxList(
+                ref openBracket,
+                SyntaxKind.CloseBracketToken,
+                static @this => @this.IsPossibleAttribute(),
+                static @this => @this.ParseAttribute(),
+                static (@this, openBracket, list, _, _) => (openBracket, skipBadAttributeListTokens(@this, list)),
+                allowTrailingSeparator: false,
+                requireOneElement: true);
+
             return _syntaxFactory.AttributeList(
                 openBracket,
                 location,
-                _pool.ToListAndFree(attributes),
+                attributes,
                 this.EatToken(SyntaxKind.CloseBracketToken));
-        }
 
-        private void ParseAttributes(SeparatedSyntaxListBuilder<AttributeSyntax> nodes)
-        {
-            // always expect at least one attribute
-            nodes.Add(this.ParseAttribute());
-
-            // remaining attributes
-            while (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
+            static PostSkipAction skipBadAttributeListTokens(
+                LanguageParser @this, SeparatedSyntaxListBuilder<AttributeSyntax> list)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    // comma is optional, but if it is present it may be followed by another attribute
-                    nodes.AddSeparator(this.EatToken());
-
-                    // check for legal trailing comma
-                    if (this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
-                    {
-                        break;
-                    }
-
-                    nodes.Add(this.ParseAttribute());
-                }
-                else if (this.IsPossibleAttribute())
-                {
-                    // report missing comma
-                    nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                    nodes.Add(this.ParseAttribute());
-                }
-                else if (skipBadAttributeListTokens(nodes, SyntaxKind.IdentifierToken) == PostSkipAction.Abort)
-                {
-                    break;
-                }
-            }
-
-            PostSkipAction skipBadAttributeListTokens(SeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expected)
-            {
+                // Because we always parse out at least one attribute, we always can attach errors to it, so we don't
+                // need to pass the actual open bracket token here.
                 Debug.Assert(list.Count > 0);
                 SyntaxToken? tmp = null;
-                return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
+                return @this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                     p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
                     p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
-                    expected);
+                    SyntaxKind.IdentifierToken);
             }
         }
 
@@ -11082,6 +11058,7 @@ done:;
             {
                 if (isIndexer)
                 {
+                    // An indexer always expects at least one value.
                     arguments = ParseCommaSeparatedSyntaxList(
                         ref openToken,
                         SyntaxKind.CloseBracketToken,
@@ -13034,10 +13011,11 @@ done:;
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
+            bool requireOneElement = false,
             SyntaxKind expectedKind = SyntaxKind.IdentifierToken,
             ErrorCode? trailingSeparatorError = null) where TNode : GreenNode
         {
-            return ParseSeparatedSyntaxList<TNode>(
+            return ParseSeparatedSyntaxList(
                 ref openToken,
                 SyntaxKind.CommaToken,
                 closeTokenKind,
@@ -13045,6 +13023,7 @@ done:;
                 parseElement,
                 skipBadTokens,
                 allowTrailingSeparator,
+                requireOneElement,
                 expectedKind,
                 trailingSeparatorError);
         }
@@ -13057,18 +13036,22 @@ done:;
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
+            bool requireOneElement = false,
             SyntaxKind expectedKind = SyntaxKind.IdentifierToken,
             ErrorCode? trailingSeparatorError = null) where TNode : GreenNode
         {
             var argNodes = _pool.AllocateSeparated<TNode>();
 
 tryAgain:
-            if (this.CurrentToken.Kind != closeTokenKind)
+            if (this.CurrentToken.Kind != closeTokenKind || requireOneElement)
             {
-                if (isPossibleElement(this) || this.CurrentToken.Kind == separatorTokenKind)
+                if (isPossibleElement(this) || this.CurrentToken.Kind == separatorTokenKind || requireOneElement)
                 {
                     // first argument
                     argNodes.Add(parseElement(this));
+
+                    // now that we've gotten one element, we don't require any more.
+                    requireOneElement = false;
 
                     // comma + argument or end?
                     int lastTokenPosition = -1;
@@ -13112,9 +13095,7 @@ tryAgain:
                         {
                             (openToken, var action) = skipBadTokens(this, openToken, argNodes, separatorTokenKind, closeTokenKind);
                             if (action == PostSkipAction.Abort)
-                            {
                                 break;
-                            }
                         }
                     }
                 }
@@ -13122,15 +13103,12 @@ tryAgain:
                 {
                     (openToken, var action) = skipBadTokens(this, openToken, argNodes, expectedKind, closeTokenKind);
                     if (action == PostSkipAction.Continue)
-                    {
                         goto tryAgain;
-                    }
                 }
             }
 
             return _pool.ToListAndFree(argNodes);
         }
-
 
         private DisposableResetPoint GetDisposableResetPoint(bool resetOnDispose)
             => new DisposableResetPoint(this, resetOnDispose, GetResetPoint());
