@@ -222,9 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case IncompleteMember:
                         return ((IncompleteMemberSyntax)parent).Type == node;
-
-                    case UsingDirective:
-                        return ((UsingDirectiveSyntax)parent).Type == node;
                 }
             }
 
@@ -246,6 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (parent.Kind())
                     {
+                        case UsingDirective:
+                            return ((UsingDirectiveSyntax)parent).Type == node;
+
                         case QualifiedName:
                             // left of QN is namespace or type.  Note: when you have "a.b.c()", then
                             // "a.b" is not a qualified name, it is a member access expression.

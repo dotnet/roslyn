@@ -2115,6 +2115,36 @@ class C
         }
 
         [Fact]
+        public void UsingDirectiveDynamic1()
+        {
+            var text = @"
+using dynamic;";
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using dynamic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using dynamic;").WithLocation(2, 1),
+                // (2,7): error CS0246: The type or namespace name 'dynamic' could not be found (are you missing a using directive or an assembly reference?)
+                // using dynamic;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic").WithLocation(2, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "dynamic");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void AliasUsingDirectiveDynamic1()
         {
             var text = @"

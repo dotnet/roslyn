@@ -891,15 +891,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we were looking up "dynamic" or "nint" at the topmost level and didn't find anything good,
             // use that particular type (assuming the /langversion is supported).
-            if ((object)qualifierOpt == null &&
+            if (qualifierOpt is null &&
                 !IsViableType(result))
             {
                 if (node.Identifier.ValueText == "dynamic")
                 {
-                    if ((node.Parent == null ||
-                          node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as attribute type
-                          SyntaxFacts.IsInTypeOnlyContext(node)) &&
-                        Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                    if (dynamicAllowed())
                     {
                         bindingResult = Compilation.DynamicType;
                         ReportUseSiteDiagnosticForDynamic(diagnostics, node);
@@ -936,6 +933,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
+
+            bool dynamicAllowed()
+            {
+                if (Compilation.LanguageVersion < MessageID.IDS_FeatureDynamic.RequiredVersion())
+                    return false;
+
+                if (node.Parent == null)
+                    return true;
+
+                // dynamic not allowed as attribute type
+                if (node.Parent.Kind() == SyntaxKind.Attribute)
+                    return false;
+
+                if (SyntaxFacts.IsInTypeOnlyContext(node))
+                    return true;
+
+                // using X = dynamic; is legal.
+                if (node.Parent is UsingDirectiveSyntax { Alias: not null })
+                    return true;
+
+                return false;
+            }
         }
 
         /// <summary>
