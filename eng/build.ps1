@@ -776,7 +776,7 @@ try {
   catch
   {
     if ($ci) {
-      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Build) Tests failed"
+      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
     }
     throw $_
   }
