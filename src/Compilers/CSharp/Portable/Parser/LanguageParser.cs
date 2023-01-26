@@ -12091,15 +12091,37 @@ tryAgain:
 
         private bool IsPossibleCollectionElement()
         {
+            if (this.IsPossibleExpression())
+                return true;
+
             // Checking for ':' is for error recovery when someone has a dictionary element and is missing the key part.
-            return this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.ColonToken;
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
+                return true;
+
+            // Checking for `keyword:` is for error recovery when typing a dictionary element, but the partial
+            // identifier happens to match a keyword.
+            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+                return true;
+
+            return false;
         }
 
         private CollectionElementSyntax ParseCollectionElement()
         {
             var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
 
-            var expression = this.ParseExpressionCore();
+            ExpressionSyntax expression;
+            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind))
+            {
+                var keyword = this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken);
+                var identifier = ConvertToIdentifier(keyword).WithDiagnosticsGreen(keyword.GetDiagnostics());
+                expression = _syntaxFactory.IdentifierName(identifier);
+            }
+            else
+            {
+                expression = this.ParseExpressionCore();
+            }
+
             if (dotDotToken != null)
                 return _syntaxFactory.SpreadElement(dotDotToken, expression);
 
