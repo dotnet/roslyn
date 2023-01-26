@@ -925,21 +925,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     nodes.Add(this.ParseAttribute());
                 }
-                else if (this.SkipBadAttributeListTokens(nodes, SyntaxKind.IdentifierToken) == PostSkipAction.Abort)
+                else if (skipBadAttributeListTokens(nodes, SyntaxKind.IdentifierToken) == PostSkipAction.Abort)
                 {
                     break;
                 }
             }
-        }
 
-        private PostSkipAction SkipBadAttributeListTokens(SeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expected)
-        {
-            Debug.Assert(list.Count > 0);
-            SyntaxToken? tmp = null;
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
-                expected);
+            PostSkipAction skipBadAttributeListTokens(SeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expected)
+            {
+                Debug.Assert(list.Count > 0);
+                SyntaxToken? tmp = null;
+                return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
+                    p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
+                    expected);
+            }
         }
 
         private bool IsPossibleAttribute()
@@ -976,13 +976,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleAttributeArgument(),
                 static @this => @this.ParseAttributeArgument(),
-                static (@this, openParen, argNodes, kind, _) => @this.SkipBadAttributeArgumentTokens(openParen, argNodes, kind),
+                static (@this, openParen, argNodes, kind, _) => skipBadAttributeArgumentTokens(@this, openParen, argNodes, kind),
                 allowTrailingSeparator: false);
 
             return _syntaxFactory.AttributeArgumentList(
                 openParen,
                 argNodes,
                 this.EatToken(SyntaxKind.CloseParenToken));
+
+            static (SyntaxToken openParen, PostSkipAction action) skipBadAttributeArgumentTokens(
+                LanguageParser @this, SyntaxToken openParen, SeparatedSyntaxListBuilder<AttributeArgumentSyntax> list, SyntaxKind expected)
+            {
+                var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
+                    p => p.CurrentToken.Kind == SyntaxKind.CloseParenToken || p.IsTerminator(),
+                    expected);
+                return (openParen, action);
+            }
         }
 
         private delegate (SyntaxToken openToken, PostSkipAction action) SkipBadTokens<TNode>(
@@ -1073,15 +1083,6 @@ tryAgain:
             }
 
             return _pool.ToListAndFree(argNodes);
-        }
-
-        private (SyntaxToken openParen, PostSkipAction action) SkipBadAttributeArgumentTokens(SyntaxToken openParen, SeparatedSyntaxListBuilder<AttributeArgumentSyntax> list, SyntaxKind expected)
-        {
-            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseParenToken || p.IsTerminator(),
-                expected);
-            return (openParen, action);
         }
 
         private bool IsPossibleAttributeArgument()
@@ -1929,21 +1930,21 @@ tryAgain:
                     list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
                     continue;
                 }
-                else if (this.SkipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                else if (skipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {
                     break;
                 }
             }
 
             return _syntaxFactory.BaseList(colon, _pool.ToListAndFree(list));
-        }
 
-        private PostSkipAction SkipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
-        {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
-                p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
-                expected);
+            PostSkipAction skipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
+            {
+                return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
+                    p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
+                    expected);
+            }
         }
 
         private bool IsCurrentTokenWhereOfConstraintClause()
@@ -2005,7 +2006,7 @@ tryAgain:
                             bounds.Add(this.ParseTypeParameterConstraint());
                         }
                     }
-                    else if (this.SkipBadTypeParameterConstraintTokens(bounds, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                    else if (skipBadTypeParameterConstraintTokens(bounds, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                     {
                         break;
                     }
@@ -2017,6 +2018,16 @@ tryAgain:
                 name,
                 colon,
                 _pool.ToListAndFree(bounds));
+
+            PostSkipAction skipBadTypeParameterConstraintTokens(SeparatedSyntaxListBuilder<TypeParameterConstraintSyntax> list, SyntaxKind expected)
+            {
+                CSharpSyntaxNode tmp = null;
+                Debug.Assert(list.Count > 0);
+                return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleTypeParameterConstraint(),
+                    p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
+                    expected);
+            }
         }
 
         private bool IsPossibleTypeParameterConstraint()
@@ -2078,16 +2089,6 @@ tryAgain:
 
                 _ => _syntaxFactory.TypeConstraint(this.ParseType()),
             };
-        }
-
-        private PostSkipAction SkipBadTypeParameterConstraintTokens(SeparatedSyntaxListBuilder<TypeParameterConstraintSyntax> list, SyntaxKind expected)
-        {
-            CSharpSyntaxNode tmp = null;
-            Debug.Assert(list.Count > 0);
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleTypeParameterConstraint(),
-                p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
-                expected);
         }
 
         private bool IsPossibleMemberStart()
