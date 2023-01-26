@@ -11891,6 +11891,9 @@ switch (e)
             var source = @"_ = this is Program { P1: (1,  }";
             var expectedErrors = new[]
             {
+                // (1,32): error CS8504: Pattern missing
+                // _ = this is Program { P1: (1,  }
+                Diagnostic(ErrorCode.ERR_MissingPattern, "}").WithLocation(1, 32),
                 // (1,32): error CS1026: ) expected
                 // _ = this is Program { P1: (1,  }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 32),
@@ -11986,6 +11989,9 @@ switch (e)
                 // (1,1): error CS1073: Unexpected token '}'
                 // _ = i is (1,   }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = i is (1,   ").WithArguments("}").WithLocation(1, 1),
+                // (1,16): error CS8504: Pattern missing
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_MissingPattern, "}").WithLocation(1, 16),
                 // (1,16): error CS1026: ) expected
                 // _ = i is (1,   }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 16),
