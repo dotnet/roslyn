@@ -12221,13 +12221,18 @@ tryAgain:
         private InitializerExpressionSyntax ParseComplexElementInitializer()
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+
+            // Historically, if we have a trailing separator here, we have reported a special error of "expression
+            // expected" instead of "invalid expression term".  To preserve that, we pass `trailingSeparatorError:
+            // ErrorCode.ERR_ExpressionExpected` below.
             var initializers = this.ParseCommaSeparatedSyntaxList(
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
                 static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind),
-                allowTrailingSeparator: false);
+                allowTrailingSeparator: false,
+                trailingSeparatorError: ErrorCode.ERR_ExpressionExpected);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ComplexElementInitializerExpression,
@@ -13084,7 +13089,8 @@ tryAgain:
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
-            SyntaxKind expectedKind = SyntaxKind.IdentifierToken) where TNode : GreenNode
+            SyntaxKind expectedKind = SyntaxKind.IdentifierToken,
+            ErrorCode? trailingSeparatorError = null) where TNode : GreenNode
         {
             return ParseSeparatedSyntaxList<TNode>(
                 ref openToken,
@@ -13094,7 +13100,8 @@ tryAgain:
                 parseElement,
                 skipBadTokens,
                 allowTrailingSeparator,
-                expectedKind);
+                expectedKind,
+                trailingSeparatorError);
         }
 
         private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
@@ -13105,7 +13112,8 @@ tryAgain:
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
-            SyntaxKind expectedKind = SyntaxKind.IdentifierToken) where TNode : GreenNode
+            SyntaxKind expectedKind = SyntaxKind.IdentifierToken,
+            ErrorCode? trailingSeparatorError = null) where TNode : GreenNode
         {
             var argNodes = _pool.AllocateSeparated<TNode>();
 
@@ -13127,7 +13135,18 @@ tryAgain:
                         }
                         else if (this.CurrentToken.Kind == separatorTokenKind || isPossibleElement(this))
                         {
-                            argNodes.AddSeparator(this.EatToken(separatorTokenKind));
+                            var separator = this.EatToken(separatorTokenKind);
+
+                            if (!allowTrailingSeparator && trailingSeparatorError != null && this.CurrentToken.Kind == closeTokenKind)
+                            {
+                                // Caller wants a specialized error here instead of whatever error their normal parse function would produce.
+                                separator = WithAdditionalDiagnostics(
+                                    separator, MakeError(separator.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(), this.CurrentToken.Width, trailingSeparatorError.Value));
+                                argNodes.AddSeparator(separator);
+                                break;
+                            }
+
+                            argNodes.AddSeparator(separator);
 
                             if (allowTrailingSeparator)
                             {
