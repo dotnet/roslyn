@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
             var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
             if (visibleSpanOpt == null)
             {
-                // Couldn't find anything visible, just fall back to tagging all hint locations
+                // Couldn't find anything visible, just fall back to tagging all brace locations
                 return base.GetSpansToTag(textView, subjectBuffer);
             }
 
