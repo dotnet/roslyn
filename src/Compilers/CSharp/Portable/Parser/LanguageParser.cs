@@ -11999,61 +11999,24 @@ tryAgain:
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
 
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var expressions = _pool.AllocateSeparated<AnonymousObjectMemberDeclaratorSyntax>();
-            this.ParseAnonymousTypeMemberInitializers(ref openBrace, ref expressions);
+            var expressions = default(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>);
+
+            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            {
+                expressions = ParseCommaSeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(
+                    ref openBrace,
+                    SyntaxKind.CloseBraceToken,
+                    static @this => @this.IsPossibleExpression(),
+                    static @this => @this.ParseAnonymousTypeMemberInitializer(),
+                    static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(ref openBrace, list, expectedKind),
+                    allowTrailingSeparator: true);
+            }
+
             return _syntaxFactory.AnonymousObjectCreationExpression(
                 @new,
                 openBrace,
-                _pool.ToListAndFree(expressions),
+                expressions,
                 this.EatToken(SyntaxKind.CloseBraceToken));
-        }
-
-        private void ParseAnonymousTypeMemberInitializers(ref SyntaxToken openBrace, ref SeparatedSyntaxListBuilder<AnonymousObjectMemberDeclaratorSyntax> list)
-        {
-            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
-            {
-tryAgain:
-                if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    // first argument
-                    list.Add(this.ParseAnonymousTypeMemberInitializer());
-
-                    // additional arguments
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleExpression())
-                        {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-
-                            // check for exit case after legal trailing comma
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                            {
-                                break;
-                            }
-                            else if (!this.IsPossibleExpression())
-                            {
-                                goto tryAgain;
-                            }
-
-                            list.Add(this.ParseAnonymousTypeMemberInitializer());
-                            continue;
-                        }
-                        else if (this.SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (this.SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.IdentifierToken) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
-                }
-            }
         }
 
         private AnonymousObjectMemberDeclaratorSyntax ParseAnonymousTypeMemberInitializer()
@@ -12172,7 +12135,8 @@ tryAgain:
                 // Skip bad starting tokens until we find a valid start, if possible
                 while (!IsPossibleExpression() && CurrentToken.Kind != SyntaxKind.CommaToken)
                 {
-                    if (SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.IdentifierToken) == PostSkipAction.Abort)
+                    (openBrace, var action) = SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.IdentifierToken);
+                    if (action == PostSkipAction.Abort)
                     {
                         foundStart = false;
                         break;
@@ -12203,9 +12167,13 @@ tryAgain:
                             }
                             list.Add(ParseExpressionCore());
                         }
-                        else if (SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                        else
                         {
-                            break;
+                            (openBrace, var action) = SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.CommaToken);
+                            if (action == PostSkipAction.Abort)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -12280,15 +12248,23 @@ tryAgain:
                             list.Add(this.ParseObjectOrCollectionInitializerMember(ref kind));
                             continue;
                         }
-                        else if (this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                        else
                         {
-                            break;
+                            (startToken, var action) = this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.CommaToken);
+                            if (action == PostSkipAction.Abort)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
-                else if (this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.IdentifierToken) == PostSkipAction.Continue)
+                else
                 {
-                    goto tryAgain;
+                    (startToken, var action) = this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.IdentifierToken);
+                    if (action == PostSkipAction.Continue)
+                    {
+                        goto tryAgain;
+                    }
                 }
             }
 
@@ -12326,13 +12302,14 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
+        private (SyntaxToken startToken, PostSkipAction action) SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
             where T : CSharpSyntaxNode
         {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
+            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
                 expected);
+            return (startToken, action);
         }
 
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
@@ -12408,15 +12385,23 @@ tryAgain:
                             list.Add(this.ParseExpressionCore());
                             continue;
                         }
-                        else if (this.SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                        else
                         {
-                            break;
+                            (openBrace, var action) = this.SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.CommaToken);
+                            if (action == PostSkipAction.Abort)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
-                else if (this.SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.IdentifierToken) == PostSkipAction.Continue)
+                else
                 {
-                    goto tryAgain;
+                    (openBrace, var action) = this.SkipBadInitializerListTokens(ref openBrace, list, SyntaxKind.IdentifierToken);
+                    if (action == PostSkipAction.Continue)
+                    {
+                        goto tryAgain;
+                    }
                 }
             }
         }
