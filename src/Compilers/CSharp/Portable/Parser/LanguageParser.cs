@@ -12654,7 +12654,7 @@ tryAgain:
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleLambdaParameter(),
                 static @this => @this.ParseLambdaParameter(),
-                static (@this, openParen, nodes, expectedKind, closeKind) => @this.SkipBadLambdaParameterListTokens(openParen, nodes, expectedKind, closeKind),
+                static (@this, openParen, nodes, expectedKind, closeKind) => skipBadLambdaParameterListTokens(@this, openParen, nodes, expectedKind, closeKind),
                 allowTrailingSeparator: false);
 
             _termState = saveTerm;
@@ -12663,6 +12663,16 @@ tryAgain:
                 openParen,
                 nodes,
                 this.EatToken(SyntaxKind.CloseParenToken));
+
+            static (SyntaxToken openParen, PostSkipAction action) skipBadLambdaParameterListTokens(
+                LanguageParser @this, SyntaxToken openParen, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
+            {
+                var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
+                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleLambdaParameter(),
+                    p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
+                    expected);
+                return (openParen, action);
+            }
         }
 
         private bool IsPossibleLambdaParameter()
@@ -12689,15 +12699,6 @@ tryAgain:
                 default:
                     return IsPredefinedType(this.CurrentToken.Kind);
             }
-        }
-
-        private (SyntaxToken openParen, PostSkipAction action) SkipBadLambdaParameterListTokens(SyntaxToken openParen, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
-        {
-            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleLambdaParameter(),
-                p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
-                expected);
-            return (openParen, action);
         }
 
         private ParameterSyntax ParseLambdaParameter()
