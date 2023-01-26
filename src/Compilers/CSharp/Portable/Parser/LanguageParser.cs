@@ -970,56 +970,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return null;
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var argNodes = _pool.AllocateSeparated<AttributeArgumentSyntax>();
 
-tryAgain:
-            if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
-            {
-                if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    // first argument
-                    argNodes.Add(this.ParseAttributeArgument());
-
-                    // comma + argument or end?
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleAttributeArgument())
-                        {
-                            argNodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            argNodes.Add(this.ParseAttributeArgument());
-                        }
-                        else if (this.SkipBadAttributeArgumentTokens(ref openParen, argNodes, SyntaxKind.CommaToken) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (this.SkipBadAttributeArgumentTokens(ref openParen, argNodes, SyntaxKind.IdentifierToken) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
-                }
-            }
+            var argNodes = this.ParseCommaSeparatedSyntaxList<AttributeArgumentSyntax>(
+                ref openParen,
+                SyntaxKind.CloseParenToken,
+                static @this => @this.IsPossibleAttributeArgument(),
+                static @this => @this.ParseAttributeArgument(),
+                static (@this, openParen, argNodes, kind) => @this.SkipBadAttributeArgumentTokens(openParen, argNodes, kind),
+                allowTrailingSeparator: false);
 
             return _syntaxFactory.AttributeArgumentList(
                 openParen,
-                _pool.ToListAndFree(argNodes),
+                argNodes,
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
-        private delegate PostSkipAction SkipBadTokens<TNode>(LanguageParser parser, ref SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind kind) where TNode : GreenNode;
-
+        // private delegate PostSkipAction SkipBadTokens<TNode>(LanguageParser parser, ref SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind kind) where TNode : GreenNode;
 
         private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
             Func<LanguageParser, bool> isPossibleElement,
             Func<LanguageParser, TNode> parseElement,
-            SkipBadTokens<TNode> skipBadTokens,
+            Func<LanguageParser, SyntaxToken, SeparatedSyntaxListBuilder<TNode>, SyntaxKind, (SyntaxToken openToken, PostSkipAction action)> skipBadTokens,
             bool allowTrailingSeparator) where TNode : GreenNode
         {
             return ParseSeparatedSyntaxList<TNode>(
@@ -1029,7 +1002,7 @@ tryAgain:
                 isPossibleElement,
                 parseElement,
                 skipBadTokens,
-                allowTrailingSeparator)
+                allowTrailingSeparator);
         }
 
         private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
@@ -1038,7 +1011,7 @@ tryAgain:
             SyntaxKind closeTokenKind,
             Func<LanguageParser, bool> isPossibleElement,
             Func<LanguageParser, TNode> parseElement,
-            SkipBadTokens<TNode> skipBadTokens,
+            Func<LanguageParser, SyntaxToken, SeparatedSyntaxListBuilder<TNode>, SyntaxKind, (SyntaxToken openToken, PostSkipAction action)> skipBadTokens,
             bool allowTrailingSeparator) where TNode : GreenNode
         {
             var argNodes = _pool.AllocateSeparated<TNode>();
@@ -1078,27 +1051,36 @@ tryAgain:
 
                             argNodes.Add(parseElement(this));
                         }
-                        else if (skipBadTokens(this, ref openToken, argNodes, separatorTokenKind) == PostSkipAction.Abort)
+                        else
                         {
-                            break;
+                            (openToken, var action) = skipBadTokens(this, openToken, argNodes, separatorTokenKind);
+                            if (action == PostSkipAction.Abort)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
-                else if (skipBadTokens(this, ref openToken, argNodes, SyntaxKind.IdentifierToken) == PostSkipAction.Continue)
+                else
                 {
-                    goto tryAgain;
+                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, SyntaxKind.IdentifierToken);
+                    if (action == PostSkipAction.Continue)
+                    {
+                        goto tryAgain;
+                    }
                 }
             }
 
             return _pool.ToListAndFree(argNodes);
         }
 
-        private PostSkipAction SkipBadAttributeArgumentTokens(ref SyntaxToken openParen, SeparatedSyntaxListBuilder<AttributeArgumentSyntax> list, SyntaxKind expected)
+        private (SyntaxToken openParen, PostSkipAction action) SkipBadAttributeArgumentTokens(SyntaxToken openParen, SeparatedSyntaxListBuilder<AttributeArgumentSyntax> list, SyntaxKind expected)
         {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
+            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseParenToken || p.IsTerminator(),
                 expected);
+            return (openParen, action);
         }
 
         private bool IsPossibleAttributeArgument()
