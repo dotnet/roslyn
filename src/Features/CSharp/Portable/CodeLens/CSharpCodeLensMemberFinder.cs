@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeLens;
 
 [ExportLanguageService(typeof(ICodeLensMemberFinder), LanguageNames.CSharp), Shared]
-internal class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
+internal sealed class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,67 +29,67 @@ internal class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<CodeLensMember>.GetInstance(out var codeLensNodes);
-        var visitor = new CSharpCodeLensVisitor(codeLensNodes.Add);
+        var visitor = new CSharpCodeLensVisitor(codeLensNodes);
 
         visitor.Visit(root);
 
         return codeLensNodes.ToImmutable();
     }
 
-    private class CSharpCodeLensVisitor : CSharpSyntaxWalker
+    private sealed class CSharpCodeLensVisitor : CSharpSyntaxWalker
     {
-        private readonly Action<CodeLensMember> _memberFoundAction;
+        private readonly ArrayBuilder<CodeLensMember> _memberBuilder;
 
-        public CSharpCodeLensVisitor(Action<CodeLensMember> memberFoundAction)
+        public CSharpCodeLensVisitor(ArrayBuilder<CodeLensMember> memberBuilder)
         {
-            _memberFoundAction = memberFoundAction;
+            _memberBuilder = memberBuilder;
         }
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {
-            _memberFoundAction(new CodeLensMember(node, node.Identifier.Span));
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitClassDeclaration(node);
         }
 
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
-            _memberFoundAction(new CodeLensMember(node, node.Identifier.Span));
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitInterfaceDeclaration(node);
         }
 
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
-            _memberFoundAction(new CodeLensMember(node, node.Identifier.Span));
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitEnumDeclaration(node);
         }
 
         public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
         {
-            _memberFoundAction(new CodeLensMember(node, node.Identifier.Span));
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitPropertyDeclaration(node);
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-            _memberFoundAction(new CodeLensMember(node, node.Identifier.Span));
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitMethodDeclaration(node);
         }
 
         public override void VisitStructDeclaration(StructDeclarationSyntax node)
         {
-            _memberFoundAction(new CodeLensMember(node, node.Identifier.Span));
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitStructDeclaration(node);
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
-            _memberFoundAction(new CodeLensMember(node, node.Identifier.Span));
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitConstructorDeclaration(node);
         }
 
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
-            _memberFoundAction(new CodeLensMember(node, node.Identifier.Span));
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitRecordDeclaration(node);
         }
     }

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
+
     <ExportLanguageService(GetType(ICodeLensMemberFinder), LanguageNames.VisualBasic), [Shared]>
     Friend NotInheritable Class VisualBasicCodeLensMemberFinder
         Implements ICodeLensMemberFinder
@@ -24,59 +25,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
             Dim root = Await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim builder = ArrayBuilder(Of CodeLensMember).GetInstance()
 
-            Dim visitor = New VisualBasicCodeLensVisitor(Sub(node) builder.Add(node))
+            Dim visitor = New VisualBasicCodeLensVisitor(builder)
             visitor.Visit(root)
 
             Return builder.ToImmutableAndFree()
 
         End Function
 
-        Private Class VisualBasicCodeLensVisitor
+        Private NotInheritable Class VisualBasicCodeLensVisitor
             Inherits VisualBasicSyntaxWalker
 
-            Private ReadOnly _memberFoundAction As Action(Of CodeLensMember)
+            Private ReadOnly _memberBuilder As ArrayBuilder(Of CodeLensMember)
 
-            Public Sub New(memberFoundAction As Action(Of CodeLensMember))
-                _memberFoundAction = memberFoundAction
+            Public Sub New(memberBuilder As ArrayBuilder(Of CodeLensMember))
+                _memberBuilder = memberBuilder
             End Sub
 
             Public Overrides Sub VisitClassStatement(node As ClassStatementSyntax)
-                _memberFoundAction(New CodeLensMember(node, node.Identifier.Span))
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
                 MyBase.VisitClassStatement(node)
             End Sub
 
             Public Overrides Sub VisitInterfaceStatement(node As InterfaceStatementSyntax)
-                _memberFoundAction(New CodeLensMember(node, node.Identifier.Span))
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
                 MyBase.VisitInterfaceStatement(node)
             End Sub
 
             Public Overrides Sub VisitEnumStatement(node As EnumStatementSyntax)
-                _memberFoundAction(New CodeLensMember(node, node.Identifier.Span))
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
                 MyBase.VisitEnumStatement(node)
             End Sub
 
             Public Overrides Sub VisitPropertyStatement(node As PropertyStatementSyntax)
-                _memberFoundAction(New CodeLensMember(node, node.Identifier.Span))
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
                 MyBase.VisitPropertyStatement(node)
             End Sub
 
             Public Overrides Sub VisitMethodStatement(node As MethodStatementSyntax)
-                _memberFoundAction(New CodeLensMember(node, node.Identifier.Span))
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
                 MyBase.VisitMethodStatement(node)
             End Sub
 
             Public Overrides Sub VisitStructureStatement(node As StructureStatementSyntax)
-                _memberFoundAction(New CodeLensMember(node, node.Identifier.Span))
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
                 MyBase.VisitStructureStatement(node)
             End Sub
 
             Public Overrides Sub VisitSubNewStatement(node As SubNewStatementSyntax)
-                _memberFoundAction(New CodeLensMember(node, node.NewKeyword.Span))
+                _memberBuilder.Add(New CodeLensMember(node, node.NewKeyword.Span))
                 MyBase.VisitSubNewStatement(node)
             End Sub
 
             Public Overrides Sub VisitModuleStatement(node As ModuleStatementSyntax)
-                _memberFoundAction(New CodeLensMember(node, node.Identifier.Span))
+                _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
                 MyBase.VisitModuleStatement(node)
             End Sub
         End Class

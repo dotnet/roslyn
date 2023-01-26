@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(CodeLensHandler)), Shared]
 [Method(LSP.Methods.TextDocumentCodeLensName)]
-internal class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]?>
+internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]?>
 {
     /// <summary>
     /// Command name implemented by the client and invoked when the references code lens is selected.
@@ -33,12 +33,12 @@ internal class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensP
 
     public bool RequiresLSPSolution => true;
 
-    public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLensParams request) => request.TextDocument;
+    public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLensParams request)
+        => request.TextDocument;
 
     public async Task<LSP.CodeLens[]?> HandleRequestAsync(LSP.CodeLensParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
         var members = await codeLensMemberFinder.GetCodeLensMembersAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -53,6 +53,7 @@ internal class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensP
         // TODO - Code lenses need to be refreshed by the server when we detect solution/project wide changes.
         // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730462
 
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         foreach (var member in members)
         {
             var referenceCount = await codeLensReferencesService.GetReferenceCountAsync(document.Project.Solution, document.Id, member.Node, maxSearchResults: 99, cancellationToken).ConfigureAwait(false);

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeLens;
+
 internal interface ICodeLensMemberFinder : ILanguageService
 {
     /// <summary>
