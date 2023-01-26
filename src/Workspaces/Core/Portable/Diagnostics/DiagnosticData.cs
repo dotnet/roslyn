@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (location.IsInSource)
                 {
-                    builder.AddIfNotNull(CreateLocation(document.Project.GetRequiredDocument(location.SourceTree), location));
+                    builder.AddIfNotNull(CreateLocation(document.Project.Solution.GetDocument(location.SourceTree), location));
                 }
                 else if (location.Kind == LocationKind.ExternalFile)
                 {
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return DiagnosticSeverity.Warning;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -368,5 +368,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // TODO: the value stored in HelpLink should already be valid URI (https://github.com/dotnet/roslyn/issues/59205)
         internal Uri? GetValidHelpLinkUri()
             => Uri.TryCreate(HelpLink, UriKind.Absolute, out var uri) ? uri : null;
+
+        // Return the diagnostic ID as the HelpKeyword, unless the diagnostic does support F1 help for keyword.
+        internal string? GetHelpKeyword()
+            => CustomTags.Contains(WellKnownDiagnosticCustomTags.DoesNotSupportF1Help) ? null : Id;
     }
 }

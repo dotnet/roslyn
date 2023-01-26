@@ -1064,7 +1064,6 @@ public class X {}
 ";
             var xRef = CreateCompilation(xSource, assemblyName: "Test").EmitToImageReference();
 
-
             var libSource = @"
 public interface I
 {
@@ -1084,9 +1083,9 @@ class B : C, I { }
             var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
-                // (2,7): error CS7068: Reference to type 'X' claims it is defined in this assembly, but it is not defined in source or any added modules
+                // (2,7): error CS7069: Reference to type 'X' claims it is defined in 'Test', but it could not be found
                 // class B : C, I { }
-                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "B").WithArguments("X"));
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "B").WithArguments("X", "Test").WithLocation(2, 7));
         }
 
         [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
@@ -2452,7 +2451,6 @@ public struct S1
     public int i;
 }", assemblyName: "libS1").ToMetadataReference();
 
-
         private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
 public struct S2
 {
@@ -2478,9 +2476,9 @@ class C
                 // (6,19): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var ptr = &s2;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 19),
-                // (6,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (6,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         var ptr = &s2;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s2").WithArguments("S2").WithLocation(6, 19)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s2").WithArguments("S2").WithLocation(6, 19)
                 );
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
@@ -2505,9 +2503,9 @@ class C
                 // (6,20): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var size = sizeof(S2);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "sizeof(S2)").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 20),
-                // (6,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (6,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         var size = sizeof(S2);
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(6, 20));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(6, 20));
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
             comp.VerifyEmitDiagnostics();
@@ -2530,9 +2528,9 @@ class C
                 // (4,23): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     unsafe void M(S2* ptr)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "ptr").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 23),
-                // (4,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (4,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //     unsafe void M(S2* ptr)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("S2").WithLocation(4, 23));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "ptr").WithArguments("S2").WithLocation(4, 23));
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
             comp.VerifyEmitDiagnostics();
@@ -2557,9 +2555,9 @@ class C
                 // (6,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         S2* span = stackalloc S2[16];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
-                // (6,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (6,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* span = stackalloc S2[16];
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(6, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(6, 9),
                 // (6,31): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         S2* span = stackalloc S2[16];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "S2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 31),
@@ -2569,9 +2567,9 @@ class C
                 // (7,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         S2* span2 = stackalloc [] { default(S2) };
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
-                // (7,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (7,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* span2 = stackalloc [] { default(S2) };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(7, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(7, 9),
                 // (7,21): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         S2* span2 = stackalloc [] { default(S2) };
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "stackalloc [] { default(S2) }").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 21),
@@ -2604,15 +2602,21 @@ class C
                 // (7,16): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         fixed (S2* ptr = &s2)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 16),
-                // (7,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (7,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (S2* ptr = &s2)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(7, 16),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(7, 16),
                 // (7,26): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         fixed (S2* ptr = &s2)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26),
-                // (7,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (7,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (S2* ptr = &s2)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s2").WithArguments("S2").WithLocation(7, 26)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s2").WithArguments("S2").WithLocation(7, 26),
+                // (7,26): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26),
+                // (7,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s2").WithArguments("S2").WithLocation(7, 26)
                 );
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });

@@ -21,20 +21,12 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
 
         Public ReadOnly Property Workspace As TestWorkspace
 
-        Public Sub New(workspaceElement As XElement, Optional exportProvider As ExportProvider = Nothing)
-            Workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider:=exportProvider)
-            PasteTrackingService = GetExportedValue(Of PasteTrackingService)()
-            PasteTrackingPasteCommandHandler = GetExportedValue(Of PasteTrackingPasteCommandHandler)()
-            FormatCommandHandler = GetExportedValue(Of FormatCommandHandler)()
+        Public Sub New(workspaceElement As XElement, Optional composition As TestComposition = Nothing)
+            Workspace = TestWorkspace.CreateWorkspace(workspaceElement, composition:=composition)
+            PasteTrackingService = Workspace.GetService(Of PasteTrackingService)()
+            PasteTrackingPasteCommandHandler = Workspace.GetService(Of PasteTrackingPasteCommandHandler)()
+            FormatCommandHandler = Workspace.GetService(Of FormatCommandHandler)()
         End Sub
-
-        Public Function GetService(Of T)() As T
-            Return Workspace.GetService(Of T)()
-        End Function
-
-        Public Function GetExportedValue(Of T)() As T
-            Return Workspace.ExportProvider.GetExportedValue(Of T)()
-        End Function
 
         Public Function OpenDocument(projectName As String, fileName As String) As TestHostDocument
             Dim hostDocument = Workspace.Documents.FirstOrDefault(Function(document) document.Project.Name = projectName AndAlso document.Name = fileName)
@@ -60,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
 
         Public Sub InsertText(hostDocument As TestHostDocument, insertedText As String)
             Dim textView = hostDocument.GetTextView()
-            Dim editorOperations = GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
+            Dim editorOperations = Workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
 
             editorOperations.InsertText(insertedText)
         End Sub
@@ -70,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
             Dim caretPosition = textView.Caret.Position.BufferPosition.Position
             Dim trackingSpan = textView.TextSnapshot.CreateTrackingSpan(caretPosition, 0, SpanTrackingMode.EdgeInclusive)
 
-            Dim editorOperations = GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
+            Dim editorOperations = Workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
             Dim insertAction As Action = Sub() editorOperations.InsertText(pastedText)
 
             Dim pasteCommandArgs = New PasteCommandArgs(textView, textView.TextBuffer)

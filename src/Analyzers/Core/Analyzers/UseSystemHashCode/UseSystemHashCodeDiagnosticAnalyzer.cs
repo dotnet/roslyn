@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         public UseSystemHashCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSystemHashCode,
                    EnforceOnBuildValues.UseSystemHashCode,
-                   CodeStyleOptions2.PreferSystemHashCode,
+                   option: null,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_System_HashCode), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.GetHashCode_implementation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -29,14 +30,14 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             context.RegisterCompilationStartAction(c =>
             {
                 // var hashCodeType = c.Compilation.GetTypeByMetadataName("System.HashCode");
-                if (Analyzer.TryGetAnalyzer(c.Compilation, out var analyzer))
+                if (HashCodeAnalyzer.TryGetAnalyzer(c.Compilation, out var analyzer))
                 {
                     c.RegisterOperationBlockAction(ctx => AnalyzeOperationBlock(analyzer, ctx));
                 }
             });
         }
 
-        private void AnalyzeOperationBlock(Analyzer analyzer, OperationBlockAnalysisContext context)
+        private void AnalyzeOperationBlock(HashCodeAnalyzer analyzer, OperationBlockAnalysisContext context)
         {
             if (context.OperationBlocks.Length != 1)
                 return;

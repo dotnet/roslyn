@@ -271,6 +271,8 @@ class X
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                         case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                        case ErrorCode.WRN_OptionalParamValueMismatch:
+                        case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -357,6 +359,24 @@ class X
                         case ErrorCode.WRN_DuplicateAnalyzerReference:
                         case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                         case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                        case ErrorCode.WRN_ManagedAddr:
+                        case ErrorCode.WRN_EscapeVariable:
+                        case ErrorCode.WRN_EscapeStackAlloc:
+                        case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                        case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                        case ErrorCode.WRN_RefReturnStructThis:
+                        case ErrorCode.WRN_RefAssignNarrower:
+                        case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                        case ErrorCode.WRN_RefReturnParameter:
+                        case ErrorCode.WRN_RefReturnScopedParameter:
+                        case ErrorCode.WRN_RefReturnParameter2:
+                        case ErrorCode.WRN_RefReturnScopedParameter2:
+                        case ErrorCode.WRN_RefReturnLocal:
+                        case ErrorCode.WRN_RefReturnLocal2:
+                        case ErrorCode.WRN_RefAssignReturnOnly:
+                        case ErrorCode.WRN_RefReturnOnlyParameter:
+                        case ErrorCode.WRN_RefReturnOnlyParameter2:
+                        case ErrorCode.WRN_RefAssignValEscapeWider:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

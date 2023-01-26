@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using Microsoft.Build.Locator;
 using Roslyn.Test.Utilities;
 
@@ -12,37 +11,41 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     internal class VisualStudioMSBuildInstalled : ExecutionCondition
     {
 #if NET472_OR_GREATER
+
         private static readonly VisualStudioInstance? s_instance;
         private readonly Version _minimumVersion;
 
         static VisualStudioMSBuildInstalled()
         {
-            var installedVisualStudios = MSBuildLocator.QueryVisualStudioInstances().ToArray();
-            foreach (var visualStudioInstall in installedVisualStudios)
+            var latestInstalledInstance = (VisualStudioInstance?)null;
+            foreach (var visualStudioInstance in MSBuildLocator.QueryVisualStudioInstances())
             {
-                if (visualStudioInstall.Version.Major == 17 &&
-                    visualStudioInstall.Version.Minor == 0)
+                if (latestInstalledInstance == null || visualStudioInstance.Version > latestInstalledInstance.Version)
                 {
-                    MSBuildLocator.RegisterInstance(visualStudioInstall);
-                    s_instance = visualStudioInstall;
+                    latestInstalledInstance = visualStudioInstance;
                 }
             }
+
+            if (latestInstalledInstance != null)
+            {
+                MSBuildLocator.RegisterInstance(latestInstalledInstance);
+                s_instance = latestInstalledInstance;
+            }
         }
+
 #endif
 
         public VisualStudioMSBuildInstalled()
-#if NET472_OR_GREATER
-            : this(new Version(16, 9))
-#endif
+            : this(new Version(17, 0))
         {
         }
 
-#if NET472_OR_GREATER
         internal VisualStudioMSBuildInstalled(Version minimumVersion)
         {
+#if NET472_OR_GREATER
             _minimumVersion = minimumVersion;
-        }
 #endif
+        }
 
         public override bool ShouldSkip
 #if NET472_OR_GREATER

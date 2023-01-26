@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsEntirelySimpleNames(SyntaxNode node)
         {
-            return node.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccess)
+            return node is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
                 ? IsEntirelySimpleNames(memberAccess.Expression)
                 : node is SimpleNameSyntax;
         }

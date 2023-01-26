@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             this.CaseGenerationLocationField = caseGenerationLocationField;
             this.SwitchExpressionField = (switchExpressionField.Length >= 2 && switchExpressionField[0] == '$' && switchExpressionField[switchExpressionField.Length - 1] == '$')
-                ? switchExpressionField.Substring(1, switchExpressionField.Length - 2) : switchExpressionField;
+                ? switchExpressionField[1..^1] : switchExpressionField;
         }
 
         protected override int FieldChanged(string field, out int requeryFunction)

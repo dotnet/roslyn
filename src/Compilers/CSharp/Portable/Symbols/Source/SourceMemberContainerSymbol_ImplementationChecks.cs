@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                     else
                                     {
-                                        throw ExceptionUtilities.Unreachable;
+                                        throw ExceptionUtilities.Unreachable();
                                     }
                                 }
                                 else
@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var parameters = method.Parameters;
 
-            // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#scoped-mismatch
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch
             // The compiler will report a diagnostic for _unsafe scoped mismatches_ across overrides, interface implementations, and delegate conversions when:
             // - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
             // ...
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool ReportInvalidScopedOverrideAsError(MethodSymbol baseMethod, MethodSymbol overrideMethod)
         {
-            // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#scoped-mismatch
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch
             // The diagnostic is reported as an error if the mismatched signatures are both using C#11 ref safety rules; otherwise, the diagnostic is a warning.
             return baseMethod.UseUpdatedEscapeRules && overrideMethod.UseUpdatedEscapeRules;
         }
@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var baseParameter = baseParameters[i];
                 var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                if (!isValidScopedConversion(allowVariance, baseParameter.EffectiveScope, overrideParameter.EffectiveScope))
+                if (!isValidScopedConversion(allowVariance, baseParameter.EffectiveScope, baseParameter.HasUnscopedRefAttribute, overrideParameter.EffectiveScope, overrideParameter.HasUnscopedRefAttribute))
                 {
                     reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, extraArgument);
                     hasErrors = true;
@@ -1464,13 +1464,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return hasErrors;
 
-            static bool isValidScopedConversion(bool allowVariance, DeclarationScope baseScope, DeclarationScope overrideScope)
+            static bool isValidScopedConversion(
+                bool allowVariance,
+                ScopedKind baseScope,
+                bool baseHasUnscopedRefAttribute,
+                ScopedKind overrideScope,
+                bool overrideHasUnscopedRefAttribute)
             {
                 if (baseScope == overrideScope)
                 {
-                    return true;
+                    if (baseHasUnscopedRefAttribute == overrideHasUnscopedRefAttribute)
+                    {
+                        return true;
+                    }
+                    return allowVariance && !overrideHasUnscopedRefAttribute;
                 }
-                return allowVariance && baseScope == DeclarationScope.Unscoped;
+                return allowVariance && baseScope == ScopedKind.None;
             }
         }
 #nullable disable

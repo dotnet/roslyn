@@ -14,25 +14,28 @@ internal static class SolutionCrawlerOptionsStorage
     /// Option to turn configure background analysis scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
-        "SolutionCrawlerOptionsStorage", "BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default,
-        storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
+        "SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default);
 
     /// <summary>
     /// Option to turn configure background analysis scope for the current solution.
     /// </summary>
     public static readonly Option2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
-        "SolutionCrawlerOptionsStorage", "SolutionBackgroundAnalysisScopeOption", defaultValue: null);
+        "SolutionCrawlerOptionsStorage_SolutionBackgroundAnalysisScopeOption", defaultValue: null);
 
     /// <summary>
     /// Option to configure compiler diagnostics scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
-        "SolutionCrawlerOptionsStorage", "CompilerDiagnosticsScopeOption", defaultValue: CompilerDiagnosticsScope.OpenFiles,
-        storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption"));
+        "SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", defaultValue: CompilerDiagnosticsScope.OpenFiles);
 
     public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
-        "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
+        "ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false);
+
+    public static readonly Option2<bool?> EnableDiagnosticsInSourceGeneratedFiles = new(
+        "WorkspaceConfigurationOptions_EnableDiagnosticsInSourceGeneratedFiles", defaultValue: null);
+
+    public static readonly Option2<bool> EnableDiagnosticsInSourceGeneratedFilesFeatureFlag = new(
+        "WorkspaceConfigurationOptions_EnableDiagnosticsInSourceGeneratedFilesFeatureFlag", defaultValue: false);
 
     /// <summary>
     /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.
@@ -58,6 +61,30 @@ internal static class SolutionCrawlerOptionsStorage
     }
 
     /// <summary>
+    /// <para>Gets the effective background compiler analysis scope for the current solution.</para>
+    ///
+    /// <para>Gets the solution-specific analysis scope set through
+    /// <see cref="SolutionBackgroundAnalysisScopeOption"/>, or the default compiler analysis scope if no
+    /// solution-specific scope is set.</para>
+    /// </summary>
+    public static CompilerDiagnosticsScope GetBackgroundCompilerAnalysisScope(this IGlobalOptionService globalOptions, string language)
+    {
+        if (LowMemoryForcedMinimalBackgroundAnalysis)
+        {
+            return CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+        }
+
+        return globalOptions.GetOption(SolutionBackgroundAnalysisScopeOption) switch
+        {
+            BackgroundAnalysisScope.ActiveFile => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics,
+            BackgroundAnalysisScope.OpenFiles => CompilerDiagnosticsScope.OpenFiles,
+            BackgroundAnalysisScope.FullSolution => CompilerDiagnosticsScope.FullSolution,
+            BackgroundAnalysisScope.None => CompilerDiagnosticsScope.None,
+            _ => globalOptions.GetOption(CompilerDiagnosticsScopeOption, language),
+        };
+    }
+
+    /// <summary>
     /// Returns true if full solution analysis is enabled for the given
     /// <paramref name="analyzer"/> through options for the given <paramref name="language"/>.
     /// </summary>
@@ -65,7 +92,7 @@ internal static class SolutionCrawlerOptionsStorage
     {
         if (analyzer.IsCompilerAnalyzer())
         {
-            return globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.FullSolution;
+            return GetBackgroundCompilerAnalysisScope(globalOptions, language) == CompilerDiagnosticsScope.FullSolution;
         }
 
         return GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.FullSolution;
@@ -113,7 +140,7 @@ internal static class SolutionCrawlerOptionsStorage
         out bool compilerFullSolutionAnalysisEnabled,
         out bool analyzersFullSolutionAnalysisEnabled)
     {
-        compilerFullSolutionAnalysisEnabled = globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.FullSolution;
+        compilerFullSolutionAnalysisEnabled = GetBackgroundCompilerAnalysisScope(globalOptions, language) == CompilerDiagnosticsScope.FullSolution;
         analyzersFullSolutionAnalysisEnabled = GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.FullSolution;
         return compilerFullSolutionAnalysisEnabled || analyzersFullSolutionAnalysisEnabled;
     }
@@ -127,7 +154,7 @@ internal static class SolutionCrawlerOptionsStorage
         this IGlobalOptionService globalOptions,
         string language)
     {
-        var compilerDiagnosticsDisabled = globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.None;
+        var compilerDiagnosticsDisabled = GetBackgroundCompilerAnalysisScope(globalOptions, language) == CompilerDiagnosticsScope.None;
         var analyzersDisabled = GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.None;
         return compilerDiagnosticsDisabled && analyzersDisabled;
     }

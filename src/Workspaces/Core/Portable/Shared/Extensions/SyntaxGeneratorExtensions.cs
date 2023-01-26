@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

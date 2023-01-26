@@ -1227,7 +1227,6 @@ public static class Program2
   }
 }");
 
-
             var code = @"
 public static class Program
 {
@@ -1497,9 +1496,9 @@ public static class Program
 }";
 
             CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (6,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                // (6,9): error CS8331: Cannot assign to variable 'p' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         p++;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "p").WithArguments("variable", "in int").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(6, 9));
         }
 
         [Fact]
@@ -2125,9 +2124,9 @@ public static class Ext
 }";
 
             CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (6,17): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (6,17): error CS8329: Cannot use variable 'p' as a ref or out value because it is a readonly variable
                 //         Ref(ref p);     // Should be an error
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "in int").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(6, 17));
         }
 
         [Fact]

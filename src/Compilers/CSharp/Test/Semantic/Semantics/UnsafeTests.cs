@@ -2381,7 +2381,6 @@ No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
 
             CheckFixingVariablesVisitor.Process(block, binder, builder);
 
-
             var actual = string.Join(Environment.NewLine, builder);
 
             Assert.Equal(expected, actual);
@@ -3058,7 +3057,232 @@ class C { }
             var compilation = CreateCompilation(text);
             Assert.False(compilation.GetSpecialType(SpecialType.System_ArgIterator).IsManagedTypeNoUseSiteDiagnostics);
             Assert.False(compilation.GetSpecialType(SpecialType.System_RuntimeArgumentHandle).IsManagedTypeNoUseSiteDiagnostics);
-            Assert.False(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void IsManagedType_TypedReference()
+        {
+            var libSrc = @"
+public unsafe class C
+{
+    public static System.TypedReference* M(System.TypedReference* r)
+    {
+        return r;
+    }
+}
+";
+            var libComp = CreateCompilation(libSrc, options: TestOptions.UnsafeDebugDll);
+            Assert.True(libComp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            libComp.VerifyEmitDiagnostics(
+                // (4,42): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     public static System.TypedReference* M(System.TypedReference* r)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("System.TypedReference").WithLocation(4, 42),
+                // (4,67): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     public static System.TypedReference* M(System.TypedReference* r)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "r").WithArguments("System.TypedReference").WithLocation(4, 67)
+                );
+
+            var src = """
+unsafe class D
+{
+    System.TypedReference* M(System.TypedReference* r)
+    {
+        return C.M(r);
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (3,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     System.TypedReference* M(System.TypedReference* r)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("System.TypedReference").WithLocation(3, 28),
+                // (3,53): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //     System.TypedReference* M(System.TypedReference* r)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "r").WithArguments("System.TypedReference").WithLocation(3, 53)
+                );
+
+            var method = comp.GetMember<MethodSymbol>("C.M");
+            var returnType = method.ReturnType;
+            Assert.True(returnType.IsPointerType());
+            Assert.Equal(SpecialType.System_TypedReference, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);
+
+            var parameterType = method.GetParameterType(0);
+            Assert.True(parameterType.IsPointerType());
+            Assert.Equal(SpecialType.System_TypedReference, ((PointerTypeSymbol)parameterType).PointedAtType.SpecialType);
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_InArray()
+        {
+            var src = @"
+public class C
+{
+    public static System.TypedReference[] M(System.TypedReference[] r)
+    {
+        return r;
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): error CS0611: Array elements cannot be of type 'TypedReference'
+                //     public static System.TypedReference[] M(System.TypedReference[] r)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 19),
+                // (4,45): error CS0611: Array elements cannot be of type 'TypedReference'
+                //     public static System.TypedReference[] M(System.TypedReference[] r)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 45)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_InLocal()
+        {
+            var src = @"
+public unsafe class C
+{
+    public static void M()
+    {
+        System.TypedReference* trp = null;
+        System.TypedReference tr = default;
+        M2(*trp);
+        M2(tr);
+    }
+    public static void M2(System.TypedReference tr) { }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+                //         System.TypedReference* trp = null;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "System.TypedReference*").WithArguments("System.TypedReference").WithLocation(6, 9)
+                );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (System.TypedReference* V_0, //trp
+                System.TypedReference V_1) //tr
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stloc.0
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  initobj    "System.TypedReference"
+  IL_000c:  ldloc.0
+  IL_000d:  ldobj      "System.TypedReference"
+  IL_0012:  call       "void C.M2(System.TypedReference)"
+  IL_0017:  nop
+  IL_0018:  ldloc.1
+  IL_0019:  call       "void C.M2(System.TypedReference)"
+  IL_001e:  nop
+  IL_001f:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_ByValue()
+        {
+            var libSrc = @"
+public class C
+{
+    public static System.TypedReference M(System.TypedReference r)
+    {
+        return r;
+    }
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     public static System.TypedReference M(System.TypedReference r)
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 19)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_ByRef()
+        {
+            var libSrc = @"
+public class C
+{
+    public static ref System.TypedReference M(ref System.TypedReference r)
+    {
+        return ref r;
+    }
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     public static ref System.TypedReference M(ref System.TypedReference r)
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 19),
+                // (4,47): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     public static ref System.TypedReference M(ref System.TypedReference r)
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.TypedReference r").WithArguments("System.TypedReference").WithLocation(4, 47)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_AsTypeArgument()
+        {
+            var libSrc = @"
+public class C<T>
+{
+    public static void M(C<System.TypedReference> c) { }
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (4,51): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //     public static void M(C<System.TypedReference> c) { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "c").WithArguments("System.TypedReference").WithLocation(4, 51)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_Field()
+        {
+            var libSrc = @"
+public ref struct C
+{
+    public System.TypedReference field;
+    public ref System.TypedReference field2;
+}
+";
+            var comp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     public System.TypedReference field;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(4, 12),
+                // (5,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref System.TypedReference field2;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref System.TypedReference").WithLocation(5, 12),
+                // (5,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     public ref System.TypedReference field2;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ref System.TypedReference").WithArguments("System.TypedReference").WithLocation(5, 12)
+                );
+        }
+
+        [Fact, WorkItem(65530, "https://github.com/dotnet/roslyn/issues/65530")]
+        public void TypedReference_AsGenericConstraint()
+        {
+            var libSrc = @"
+public class C<T> where T : System.TypedReference
+{
+}
+";
+            var comp = CreateCompilation(libSrc);
+            Assert.True(comp.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
+            comp.VerifyEmitDiagnostics(
+                // (2,29): error CS0701: 'TypedReference' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // public class C<T> where T : System.TypedReference
+                Diagnostic(ErrorCode.ERR_BadBoundType, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(2, 29)
+                );
         }
 
         [Fact]
@@ -3078,9 +3302,9 @@ public unsafe struct S2
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
-                //     public S1* s; //CS0523
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S1"));
+                // (4,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
+                //     public S1* s; //CS0208
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s").WithArguments("S1").WithLocation(4, 16));
         }
 
         [Fact]
@@ -3104,15 +3328,15 @@ public unsafe struct A
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (13,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A')
-                //             public A*[,][] aa; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "aa").WithArguments("A"),
-                // (9,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A.B.C')
-                //         public C*[] cc; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "cc").WithArguments("A.B.C"),
-                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A.B')
+                // (4,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A.B')
                 //     public B** bb; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "bb").WithArguments("A.B"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "bb").WithArguments("A.B").WithLocation(4, 16),
+                // (9,21): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A.B.C')
+                //         public C*[] cc; //CS0208
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "cc").WithArguments("A.B.C").WithLocation(9, 21),
+                // (13,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A')
+                //             public A*[,][] aa; //CS0208
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "aa").WithArguments("A").WithLocation(13, 28));
         }
 
         [Fact]
@@ -3128,9 +3352,9 @@ public unsafe struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (6,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //     public Alias* s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s").WithArguments("S").WithLocation(6, 19));
         }
 
         [Fact()]
@@ -3152,24 +3376,24 @@ public unsafe struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //     S* M() { return M(); }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M").WithArguments("S"),
-                // (5,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (5,15): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //     void M(S* p) { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "p").WithArguments("S"),
-                // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //     S* P { get; set; }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "P").WithArguments("S"),
-                // (9,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //     S* this[int x] { get { return M(); } set { } }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "this").WithArguments("S"),
-                // (10,14): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //     int this[S* p] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "p").WithArguments("S"),
-                // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "p").WithArguments("S").WithLocation(5, 15),
+                // (12,15): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //     public S* s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s").WithArguments("S").WithLocation(12, 15),
+                // (4,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //     S* M() { return M(); }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("S").WithLocation(4, 8),
+                // (7,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //     S* P { get; set; }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "P").WithArguments("S").WithLocation(7, 8),
+                // (9,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //     S* this[int x] { get { return M(); } set { } }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "this").WithArguments("S").WithLocation(9, 8),
+                // (10,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //     int this[S* p] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "p").WithArguments("S").WithLocation(10, 17));
         }
 
         [WorkItem(10195, "https://github.com/dotnet/roslyn/issues/10195")]
@@ -3288,12 +3512,12 @@ public class C
             var compilation = CreateCompilation(tree, new[] { metadata }, TestOptions.UnsafeReleaseDll);
 
             compilation.VerifyDiagnostics(
-                // (13,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<object>')
+                // (13,22): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('External<object>')
                 //         var badPtr = &bad;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
-                // (16,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<U>')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
+                // (16,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('External<U>')
                 //         var badPtr2 = &bad2;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
             );
 
             var model = compilation.GetSemanticModel(tree);
@@ -3646,9 +3870,12 @@ enum Color
                 // (53,19): error CS0211: Cannot take the address of the given expression
                 //         var s = &(array as object); //CS0208, CS0211 (managed)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array as object").WithLocation(53, 19),
-                // (54,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Action')
+                // (54,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Action')
                 //         var t = &E; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&E").WithArguments("System.Action").WithLocation(54, 17),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&E").WithArguments("System.Action").WithLocation(54, 17),
+                // (54,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         var t = &E; //CS0208
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&E").WithLocation(54, 17),
                 // (55,18): error CS0079: The event 'C.F' can only appear on the left hand side of += or -=
                 //         var u = &F; //CS0079 (can't use event like that)
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("C.F").WithLocation(55, 18),
@@ -3688,16 +3915,16 @@ unsafe class C
 {
     void M<T>(T t)
     {
-        var p0 = &t; //CS0208
+        var p0 = &t; // 1
 
         C c = new C();
-        var p1 = &c; //CS0208
+        var p1 = &c; // 2
 
         S s = new S();
-        var p2 = &s; //CS0208
+        var p2 = &s; // 3
         
         var anon = new { };
-        var p3 = &anon; //CS0208
+        var p3 = &anon; // 4
     }
 }
 
@@ -3707,18 +3934,18 @@ public struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                //         var p0 = &t; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&t").WithArguments("T"),
-                // (9,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         var p1 = &c; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&c").WithArguments("C"),
-                // (12,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //         var p2 = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"),
-                // (15,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
-                //         var p3 = &anon; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&anon").WithArguments("<empty anonymous type>"));
+                // (6,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
+                //         var p0 = &t; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&t").WithArguments("T").WithLocation(6, 18),
+                // (9,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         var p1 = &c; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&c").WithArguments("C").WithLocation(9, 18),
+                // (12,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //         var p2 = &s; // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(12, 18),
+                // (15,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('<empty anonymous type>')
+                //         var p3 = &anon; // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&anon").WithArguments("<empty anonymous type>").WithLocation(15, 18));
         }
 
         [Fact]
@@ -3743,10 +3970,10 @@ public struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,14): error CS0523: Struct member 'S.s' of type 'S' causes a cycle in the struct layout
                 //     public S s; //CS0523
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "s").WithArguments("S.s", "S"),
-                // (7,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "s").WithArguments("S.s", "S").WithLocation(13, 14),
+                // (7,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         var p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(7, 17));
         }
 
         [Fact]
@@ -4335,7 +4562,6 @@ unsafe class C
             Assert.Equal(Conversion.Identity, conv);
         }
 
-
         #endregion AddressOf SemanticModel tests
 
         #region Dereference diagnostics
@@ -4712,24 +4938,24 @@ unsafe struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (13,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (13,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
-                // (13,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S*").WithArguments("S").WithLocation(13, 9),
+                // (13,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(13, 16),
                 // (16,9): error CS0176: Member 'S.StaticFieldLikeEvent' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticFieldLikeEvent += null; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent").WithLocation(16, 9),
                 // (19,9): error CS0176: Member 'S.StaticCustomEvent' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticCustomEvent += null; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticCustomEvent").WithArguments("S.StaticCustomEvent"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticCustomEvent").WithArguments("S.StaticCustomEvent").WithLocation(19, 9),
                 // (5,32): warning CS0067: The event 'S.StaticFieldLikeEvent' is never used
                 //     static event System.Action StaticFieldLikeEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent").WithLocation(5, 32),
                 // (4,25): warning CS0067: The event 'S.InstanceFieldLikeEvent' is never used
                 //     event System.Action InstanceFieldLikeEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "InstanceFieldLikeEvent").WithArguments("S.InstanceFieldLikeEvent")
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "InstanceFieldLikeEvent").WithArguments("S.InstanceFieldLikeEvent").WithLocation(4, 25)
                 );
         }
 
@@ -6925,9 +7151,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                //         fixed (void* p = a)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "a").WithArguments("string"));
+                // (8,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+                //         fixed (void* p = a) //string* is not a valid type
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "a").WithArguments("string").WithLocation(8, 26));
         }
 
         [Fact]
@@ -7060,9 +7286,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('char[]')
+                // (8,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('char[]')
                 //         fixed (void* p = a) //char[]* is not a valid type
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "a").WithArguments("char[]"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "a").WithArguments("char[]").WithLocation(8, 26));
         }
 
         #endregion Fixed statement diagnostics
@@ -7270,15 +7496,15 @@ public struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
+                // (7,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
                 //         x = sizeof(T); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(T)").WithArguments("T"),
-                // (8,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(T)").WithArguments("T").WithLocation(7, 13),
+                // (8,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         x = sizeof(C); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(C)").WithArguments("C"),
-                // (9,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(8, 13),
+                // (9,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         x = sizeof(S); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(S)").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(S)").WithArguments("S").WithLocation(9, 13));
         }
 
         [Fact]
@@ -7553,7 +7779,6 @@ class Program
                 Assert.False(typeSummary.IsCompileTimeConstant);
                 Assert.False(typeSummary.ConstantValue.HasValue);
 
-
                 var sizeOfSummary = model.GetSemanticInfoSummary(syntax);
 
                 Assert.Null(sizeOfSummary.Symbol);
@@ -7616,7 +7841,6 @@ enum E2 : long
                 Assert.False(typeSummary.IsCompileTimeConstant);
                 Assert.False(typeSummary.ConstantValue.HasValue);
 
-
                 var sizeOfSummary = model.GetSemanticInfoSummary(syntax);
 
                 Assert.Null(sizeOfSummary.Symbol);
@@ -7676,7 +7900,6 @@ struct Outer
                 Assert.Null(typeSummary.Alias);
                 Assert.False(typeSummary.IsCompileTimeConstant);
                 Assert.False(typeSummary.ConstantValue.HasValue);
-
 
                 var sizeOfSummary = model.GetSemanticInfoSummary(syntax);
 
@@ -8276,7 +8499,6 @@ class C
             CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
-
         [WorkItem(543990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543990")]
         [Fact]
         public void PointerTypeInVolatileField()
@@ -8344,22 +8566,21 @@ class C<T> : A
 ";
             var expected = new[]
             {
-                // (17,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
+                // (17,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
                 //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("T"),
-
-                // (10,30): warning CS0169: The field 'C<T>.b' is never used
-                //     private static C<T*[]>.B b;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b"),
-                // (13,22): warning CS0169: The field 'C<T>.b1' is never used
-                //     private static B b1;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b1").WithArguments("C<T>.b1"),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("T").WithLocation(17, 28),
                 // (14,24): warning CS0169: The field 'C<T>.b2' is never used
                 //     private static A.B b2;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b2").WithArguments("C<T>.b2"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b2").WithArguments("C<T>.b2").WithLocation(14, 24),
+                // (13,22): warning CS0169: The field 'C<T>.b1' is never used
+                //     private static B b1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b1").WithArguments("C<T>.b1").WithLocation(13, 22),
+                // (10,30): warning CS0169: The field 'C<T>.b' is never used
+                //     private static C<T*[]>.B b;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(10, 30),
                 // (17,28): warning CS0169: The field 'C<T>.c' is never used
                 //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(17, 28)
             };
 
             CreateCompilation(text).VerifyDiagnostics(expected);
@@ -8388,16 +8609,15 @@ class C<T> : A
 ";
             var expected = new[]
             {
-                // (15,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("string"),
-
-                // (10,30): warning CS0169: The field 'C<T>.b' is never used
-                //     private static C<T*[]>.B b;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b"),
-                // (15,28): warning CS0169: The field 'C<T>.c' is never used
-                //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c")
+                // (13,33): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+                //     private static C<string*[]> c;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("string").WithLocation(13, 33),
+                // (10,35): warning CS0169: The field 'C<T>.b' is never used
+                //     private static C<string*[]>.B b;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(10, 35),
+                // (13,33): warning CS0169: The field 'C<T>.c' is never used
+                //     private static C<string*[]> c;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(13, 33)
             };
 
             CreateCompilation(text).VerifyDiagnostics(expected);
@@ -8650,7 +8870,6 @@ class C
                 //         var x = (int*)obj;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int*)obj").WithArguments("object", "int*"));
         }
-
 
         [Fact]
         public void FixedBuffersNoDefiniteAssignmentCheck()
@@ -9023,7 +9242,6 @@ namespace ConsoleApplication30
                 options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
-
 
             var s3 =
 @"using System; using ClassLibrary1;

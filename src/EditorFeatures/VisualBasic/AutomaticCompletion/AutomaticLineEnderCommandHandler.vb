@@ -41,28 +41,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             nextAction()
         End Sub
 
-        Protected Overrides Function TreatAsReturn(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function TreatAsReturn(document As ParsedDocument, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean
             ' No special handling in VB.
             Return False
         End Function
 
-        Protected Overrides Sub ModifySelectedNode(args As AutomaticLineEnderCommandArgs, document As Document, selectedNode As SyntaxNode, addBrace As Boolean, caretPosition As Integer, cancellationToken As CancellationToken)
+        Protected Overrides Sub ModifySelectedNode(args As AutomaticLineEnderCommandArgs, document As ParsedDocument, selectedNode As SyntaxNode, addBrace As Boolean, caretPosition As Integer, cancellationToken As CancellationToken)
         End Sub
 
-        Protected Overrides Function GetValidNodeToModifyBraces(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As (SyntaxNode, Boolean)?
+        Protected Overrides Function GetValidNodeToModifyBraces(document As ParsedDocument, caretPosition As Integer, cancellationToken As CancellationToken) As (SyntaxNode, Boolean)?
             Return Nothing
         End Function
 
-        Protected Overrides Function FormatAndApplyBasedOnEndToken(document As Document, position As Integer, formattingOptions As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Document
+        Protected Overrides Function FormatBasedOnEndToken(document As ParsedDocument, position As Integer, formattingOptions As SyntaxFormattingOptions, cancellationToken As CancellationToken) As IList(Of TextChange)
             ' vb does automatic line commit
             ' no need to do explicit formatting
-            Return document
+            Return SpecializedCollections.EmptyList(Of TextChange)
         End Function
 
-        Protected Overrides Function GetEndingString(document As Document, position As Integer, cancellationToken As CancellationToken) As String
+        Protected Overrides Function GetEndingString(document As ParsedDocument, position As Integer) As String
             ' prepare expansive information from document
-            Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
-            Dim text = root.SyntaxTree.GetText(cancellationToken)
+            Dim root = document.Root
+            Dim text = document.Text
 
             ' get line where the caret is on
             Dim line = text.Lines.GetLineFromPosition(position)

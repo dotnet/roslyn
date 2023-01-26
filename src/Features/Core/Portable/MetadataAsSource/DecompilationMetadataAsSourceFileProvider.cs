@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Globalization;
@@ -13,9 +14,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,10 +30,25 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         internal const string ProviderName = "Decompilation";
 
+        /// <summary>
+        /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
+        /// are called under a lock in <see cref="MetadataAsSourceFileService"/>.  So this is safe as a plain
+        /// dictionary.
+        /// </summary>
         private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
 
-        private readonly Dictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
+        /// <summary>
+        /// Accessed both in <see cref="GetGeneratedFileAsync"/> and in UI thread operations.  Those should not
+        /// generally run concurrently.  However, to be safe, we make this a concurrent dictionary to be safe to that
+        /// potentially happening.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
+
         private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
+
+        /// <summary>
+        /// Only accessed and mutated from UI thread.
+        /// </summary>
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
 
         [ImportingConstructor]
@@ -48,6 +66,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             bool signaturesOnly,
             MetadataAsSourceOptions options,
             string tempPath,
+            TelemetryMessage? telemetryMessage,
             CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo fileInfo;
@@ -86,10 +105,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 // We need to generate this. First, we'll need a temporary project to do the generation into. We
                 // avoid loading the actual file from disk since it doesn't exist yet.
-                var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(metadataWorkspace, loadFileFromDisk: false);
-                var temporaryDocument = metadataWorkspace.CurrentSolution
-                    .AddProject(temporaryProjectInfoAndDocumentId.Item1)
-                    .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
+                var metadataSolution = metadataWorkspace.CurrentSolution;
+                var (temporaryProjectInfo, temporaryDocumentId) = fileInfo.GetProjectInfoAndDocumentId(metadataSolution.Services, loadFileFromDisk: false);
+                var temporaryDocument = metadataSolution
+                    .AddProject(temporaryProjectInfo)
+                    .GetRequiredDocument(temporaryDocumentId);
 
                 if (useDecompiler)
                 {
@@ -103,6 +123,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         if (decompiledSourceService != null)
                         {
                             var decompilationDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.GenerationOptions.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+                            telemetryMessage?.SetDecompiled(decompilationDocument is not null);
                             if (decompilationDocument is not null)
                             {
                                 temporaryDocument = decompilationDocument;
@@ -162,10 +183,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             // If we don't have a location yet, then that means we're re-using an existing file. In this case, we'll want to relocate the symbol.
-            if (navigateLocation == null)
-            {
-                navigateLocation = await RelocateSymbol_NoLockAsync(metadataWorkspace, fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
-            }
+            navigateLocation ??= await RelocateSymbol_NoLockAsync(metadataWorkspace.CurrentSolution, fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
 
             var documentName = string.Format(
                 "{0} [{1}]",
@@ -206,30 +224,36 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return (metadataReference, assemblyLocation, isReferenceAssembly);
         }
 
-        private async Task<Location> RelocateSymbol_NoLockAsync(Workspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
+        private async Task<Location> RelocateSymbol_NoLockAsync(Solution solution, MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(workspace);
-
             // We need to relocate the symbol in the already existing file. If the file is open, we can just
             // reuse that workspace. Otherwise, we have to go spin up a temporary project to do the binding.
             if (_openedDocumentIds.TryGetValue(fileInfo, out var openDocumentId))
             {
                 // Awesome, it's already open. Let's try to grab a document for it
-                var document = workspace.CurrentSolution.GetRequiredDocument(openDocumentId);
+                var document = solution.GetRequiredDocument(openDocumentId);
 
                 return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
             }
 
             // Annoying case: the file is still on disk. Only real option here is to spin up a fake project to go and bind in.
-            var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(workspace, loadFileFromDisk: true);
-            var temporaryDocument = workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
-                                                             .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
+            var (temporaryProjectInfo, temporaryDocumentId) = fileInfo.GetProjectInfoAndDocumentId(solution.Services, loadFileFromDisk: true);
+            var temporaryDocument = solution.AddProject(temporaryProjectInfo).GetRequiredDocument(temporaryDocumentId);
 
             return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
         }
 
-        public bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions)
+        private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
         {
+            Contract.ThrowIfNull(workspace);
+            var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
+            Contract.ThrowIfFalse(threadingService.IsOnMainThread);
+        }
+
+        public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions)
+        {
+            AssertIsMainThread(workspace);
+
             if (_generatedFilenameToInformation.TryGetValue(filePath, out var info))
             {
                 return info.SignaturesOnly
@@ -240,19 +264,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
-        public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
+        public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
+            AssertIsMainThread(workspace);
+
             if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
             {
                 Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
 
                 // We do own the file, so let's open it up in our workspace
-                var newProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(workspace, loadFileFromDisk: true);
+                var (projectInfo, documentId) = fileInfo.GetProjectInfoAndDocumentId(workspace.Services.SolutionServices, loadFileFromDisk: true);
 
-                workspace.OnProjectAdded(newProjectInfoAndDocumentId.Item1);
-                workspace.OnDocumentOpened(newProjectInfoAndDocumentId.Item2, sourceTextContainer);
+                workspace.OnProjectAdded(projectInfo);
+                workspace.OnDocumentOpened(documentId, sourceTextContainer);
 
-                _openedDocumentIds = _openedDocumentIds.Add(fileInfo, newProjectInfoAndDocumentId.Item2);
+                _openedDocumentIds = _openedDocumentIds.Add(fileInfo, documentId);
 
                 return true;
             }
@@ -260,25 +286,27 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
-        public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
+        public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
         {
+            AssertIsMainThread(workspace);
+
             if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
             {
                 if (_openedDocumentIds.ContainsKey(fileInfo))
-                {
                     return RemoveDocumentFromWorkspace(workspace, fileInfo);
-                }
             }
 
             return false;
         }
 
-        private bool RemoveDocumentFromWorkspace(Workspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo)
+        private bool RemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo)
         {
+            AssertIsMainThread(workspace);
+
             var documentId = _openedDocumentIds.GetValueOrDefault(fileInfo);
             Contract.ThrowIfNull(documentId);
 
-            workspace.OnDocumentClosed(documentId, new FileTextLoader(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding));
+            workspace.OnDocumentClosed(documentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding));
             workspace.OnProjectRemoved(documentId.ProjectId);
 
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
@@ -301,19 +329,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return project;
         }
 
-        public void CleanupGeneratedFiles(Workspace? workspace)
+        public void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace)
         {
             // Clone the list so we don't break our own enumeration
-            var generatedFileInfoList = _generatedFilenameToInformation.Values.ToList();
-
-            foreach (var generatedFileInfo in generatedFileInfoList)
+            foreach (var generatedFileInfo in _generatedFilenameToInformation.Values.ToList())
             {
                 if (_openedDocumentIds.ContainsKey(generatedFileInfo))
-                {
-                    Contract.ThrowIfNull(workspace);
-
                     RemoveDocumentFromWorkspace(workspace, generatedFileInfo);
-                }
             }
 
             _generatedFilenameToInformation.Clear();

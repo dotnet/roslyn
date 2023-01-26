@@ -231,8 +231,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                        ISymbol owningSymbol,
                                                        Compilation compilation,
                                                        AnalyzerOptions options,
+                                                       bool isGeneratedCode,
                                                        CancellationToken cancellationToken)
-            : base(owningSymbol, compilation, options, cancellationToken)
+            : base(owningSymbol, compilation, options, isGeneratedCode, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -295,8 +296,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                        ISymbol owningSymbol,
                                                        SemanticModel semanticModel,
                                                        AnalyzerOptions options,
+                                                       bool isGeneratedCode,
                                                        CancellationToken cancellationToken)
-            : base(codeBlock, owningSymbol, semanticModel, options, cancellationToken)
+            : base(codeBlock, owningSymbol, semanticModel, options, isGeneratedCode, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -330,8 +332,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                             Compilation compilation,
                                                             AnalyzerOptions options,
                                                             Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+                                                            bool isGeneratedCode,
                                                             CancellationToken cancellationToken)
-            : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, cancellationToken)
+            : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, isGeneratedCode, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -569,6 +572,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     context.Options,
                                     context.ReportDiagnostic,
                                     context.IsSupportedDiagnostic,
+                                    context.IsGeneratedCode,
                                     context.CancellationToken));
                             }
                         }

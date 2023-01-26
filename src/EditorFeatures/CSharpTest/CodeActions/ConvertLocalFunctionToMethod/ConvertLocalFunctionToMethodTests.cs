@@ -905,5 +905,18 @@ $@"class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestTopLevelStatements()
+        {
+            await TestMissingAsync(@"
+Console.WriteLine(""Hello"");
+{
+    public static int [|Add|](int x, int y)
+    {
+        return x + y;
+    }
+}");
+        }
     }
 }

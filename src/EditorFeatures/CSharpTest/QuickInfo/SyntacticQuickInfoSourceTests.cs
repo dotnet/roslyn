@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -567,7 +568,7 @@ if (true)
             var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
             var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(
                 trackingSpan.Object, info, document,
-                ClassificationOptions.Default, threadingContext, operationExecutor,
+                ClassificationOptions.Default, LineFormattingOptions.Default, threadingContext, operationExecutor,
                 AsynchronousOperationListenerProvider.NullListener,
                 streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;

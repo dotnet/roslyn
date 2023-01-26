@@ -9,6 +9,7 @@
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <UseWindowsForms>true</UseWindowsForms>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- Publishing (only precompile binaries when building on CI to avoid slowing down dev builds by ~10s) -->
     <PublishReadyToRun Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</PublishReadyToRun>

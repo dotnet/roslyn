@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Get
         End Property
 
-        Public Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As SimplifierOptions) As SimplifierOptions
+        Public Overrides Function GetSimplifierOptions(options As IOptionsReader, fallbackOptions As SimplifierOptions) As SimplifierOptions
             Return options.GetVisualBasicSimplifierOptions(DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
         End Function
 

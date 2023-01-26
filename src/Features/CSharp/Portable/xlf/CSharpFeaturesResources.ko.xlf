@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Apply_readonly_struct_preferences">
         <source>Apply 'readonly struct' preferences</source>
-        <target state="new">Apply 'readonly struct' preferences</target>
+        <target state="translated">'읽기 전용 구조체' 기본 설정 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
@@ -152,10 +152,20 @@
         <target state="translated">캐스트로 변경</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">'{0}'을(를) record로 변환</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">메서드로 변환</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">위치 record로 변환</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
@@ -187,14 +197,14 @@
         <target state="translated">프로젝트에서 null 허용 참조 형식 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">솔루션에서 nullable 참조 형식 사용</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">전역 'using' 지시문</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">인라인 임시 변수</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -226,6 +236,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">역 'for' 문</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">선택 영역은 생성자 이니셜라이저에 있을 수 없습니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>

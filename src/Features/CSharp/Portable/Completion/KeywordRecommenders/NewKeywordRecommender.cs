@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
 
             if (token.Kind() == SyntaxKind.CommaToken &&
-                token.Parent.IsKind<TypeParameterConstraintClauseSyntax>(SyntaxKind.TypeParameterConstraintClause, out var constraintClause))
+                token.Parent is TypeParameterConstraintClauseSyntax constraintClause)
             {
                 if (!constraintClause.Constraints
                         .OfType<ClassOrStructConstraintSyntax>()

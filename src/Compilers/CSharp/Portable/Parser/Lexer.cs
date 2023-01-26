@@ -1093,11 +1093,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
                 {
-                    if (ch == 'l')
-                    {
-                        this.AddError(TextWindow.Position, 1, ErrorCode.WRN_LowercaseEllSuffix);
-                    }
-
                     TextWindow.AdvanceChar();
                     hasLSuffix = true;
                     if ((ch = TextWindow.PeekChar()) == 'u' || ch == 'U')
@@ -1213,11 +1208,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else if (ch == 'L' || ch == 'l')
                 {
-                    if (ch == 'l')
-                    {
-                        this.AddError(TextWindow.Position, 1, ErrorCode.WRN_LowercaseEllSuffix);
-                    }
-
                     TextWindow.AdvanceChar();
                     hasLSuffix = true;
                     if ((ch = TextWindow.PeekChar()) == 'u' || ch == 'U')

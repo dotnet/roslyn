@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler
@@ -474,7 +475,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectId = documentId.ProjectId
 
                 Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
-                Dim provider = New TestDiagnosticService(item1)
+                Dim item2 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, customTags:={WellKnownDiagnosticCustomTags.DoesNotSupportF1Help})
+                Dim provider = New TestDiagnosticService(item1, item2)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -487,12 +489,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
-                Assert.Equal(1, snapshot.Count)
+                Assert.Equal(2, snapshot.Count)
 
                 Dim keyword As Object = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpKeyword, keyword))
-
                 Assert.Equal(item1.Id, keyword.ToString())
+
+                Assert.False(snapshot.TryGetValue(1, StandardTableKeyNames.HelpKeyword, keyword))
             End Using
         End Sub
 
@@ -661,12 +664,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.Create(markup)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
+                Dim notificationService = workspace.GetService(Of IGlobalOperationNotificationService)
                 Dim listenerProvider = workspace.GetService(Of IAsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 Dim service = Assert.IsType(Of DiagnosticService)(workspace.GetService(Of IDiagnosticService)())
                 Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
-                Using updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, listener, CancellationToken.None)
+                Using updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, notificationService, listener, CancellationToken.None)
 
                     Dim tableManagerProvider = New TestTableManagerProvider()
                     Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, updateSource, tableManagerProvider)
@@ -688,7 +692,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.IsEnabledByDefault,
                             diagnostic1.WarningLevel,
                             diagnostic1.CustomTags,
-                            diagnostic1.Properties,
+                            diagnostic1.Properties.AddRange(DiagnosticData.PropertiesForBuildDiagnostic),
                             diagnostic1.ProjectId,
                             New DiagnosticDataLocation(
                                 diagnostic1.DataLocation.UnmappedFileSpan,
@@ -712,7 +716,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.IsEnabledByDefault,
                             diagnostic2.WarningLevel,
                             diagnostic2.CustomTags,
-                            diagnostic2.Properties,
+                            diagnostic2.Properties.AddRange(DiagnosticData.PropertiesForBuildDiagnostic),
                             diagnostic2.ProjectId,
                             New DiagnosticDataLocation(
                                 diagnostic2.DataLocation.UnmappedFileSpan,
@@ -762,7 +766,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Return CreateItem(solution, documentId.ProjectId, documentId, severity)
         End Function
 
-        Private Shared Function CreateItem(solution As Solution, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+        Private Shared Function CreateItem(solution As Solution, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing, Optional customTags As String() = Nothing) As DiagnosticData
             Dim location =
                 If(documentId Is Nothing,
                     If(projectId Is Nothing, New DiagnosticDataLocation(New FileLinePositionSpan("", Nothing)), New DiagnosticDataLocation(New FileLinePositionSpan(solution.GetProject(projectId).FilePath, Nothing))),
@@ -776,7 +780,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 defaultSeverity:=severity,
                 isEnabledByDefault:=True,
                 warningLevel:=0,
-                customTags:=ImmutableArray(Of String).Empty,
+                customTags:=If(customTags IsNot Nothing, customTags.ToImmutableArray(), ImmutableArray(Of String).Empty),
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId,
                 location:=location,
@@ -797,7 +801,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetPushDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPushDiagnosticsAsync
+            Public Function GetDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetDiagnosticsAsync
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
             End Function
 
@@ -825,7 +829,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
+            Public Function GetDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetDiagnosticBuckets
                 Return GetDiagnosticsBuckets(workspace, projectId, documentId)
             End Function
 

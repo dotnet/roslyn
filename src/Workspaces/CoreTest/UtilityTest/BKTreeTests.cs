@@ -97,13 +97,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         }
 
         private static string Transpose(string value, int i)
-            => value.Substring(0, i) + value[i + 1] + value[i] + value.Substring(i + 2);
+            => value[..i] + value[i + 1] + value[i] + value[(i + 2)..];
 
         private static string Insert(string value, int i, char v)
-            => value.Substring(0, i) + v + value.Substring(i);
+            => value[..i] + v + value[i..];
 
         private static string Delete(string value, int i)
-            => value.Substring(0, i) + value.Substring(i + 1);
+            => value[..i] + value[(i + 1)..];
 
         [Fact]
         public void Test2()

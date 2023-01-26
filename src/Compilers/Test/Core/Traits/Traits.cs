@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
+            public const string CodeActionsConvertToRecord = "CodeActions.ConvertToRecord";
             public const string CodeActionsConvertTupleToStruct = "CodeActions.ConvertTupleToStruct";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvertLogical = "CodeActions.InvertLogical";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsRemoveUnnecessaryLambdaExpression = "CodeActions.RemoveUnnecessaryLambdaExpression";
+            public const string CodeActionsMakeTypePartial = "CodeActions.MakeTypePartial";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
@@ -202,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseNotPattern = "CodeActions.UseNotPattern";
             public const string CodeActionsUsePatternCombinators = "CodeActions.UsePatternCombinators";
+            public const string CodeActionsUsePatternMatchingForAsAndMemberAccess = "CodeActions.UsePatternMatchingForAsAndMemberAccess";
             public const string CodeActionsUseRecursivePatterns = "CodeActions.UseRecursivePatterns";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
@@ -305,6 +308,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string StringIndentation = nameof(StringIndentation);
             public const string SuggestionTags = nameof(SuggestionTags);
             public const string SyncNamespaces = nameof(SyncNamespaces);
+            public const string Tagging = nameof(Tagging);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TaskList = nameof(TaskList);

@@ -560,12 +560,12 @@
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
-        <target state="new">Analyzer reference '{0}' specified multiple times</target>
+        <target state="translated">Il riferimento '{0}' dell'analizzatore è stato specificato più volte</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
-        <target state="new">Analyzer reference specified multiple times</target>
+        <target state="translated">Riferimento analizzatore specificato più volte</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

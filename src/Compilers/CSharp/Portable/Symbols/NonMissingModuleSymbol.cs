@@ -172,6 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_moduleReferences != null);
         }
 
+#nullable enable 
+
         /// <summary>
         /// Lookup a top level type referenced from metadata, names should be
         /// compared case-sensitively.
@@ -180,25 +182,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Full type name, possibly with generic name mangling.
         /// </param>
         /// <returns>
-        /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        /// Symbol for the type, or null if the type isn't found.
         /// </returns>
         /// <remarks></remarks>
-        internal sealed override NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
+        internal sealed override NamedTypeSymbol? LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
         {
-            NamedTypeSymbol result;
-            NamespaceSymbol scope = this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+            NamedTypeSymbol? result;
+            NamespaceSymbol? scope = this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
 
-            if ((object)scope == null)
+            if ((object?)scope == null)
             {
                 // We failed to locate the namespace
-                result = new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
+                result = null;
             }
             else
             {
                 result = scope.LookupMetadataType(ref emittedName);
             }
 
-            Debug.Assert((object)result != null);
+            Debug.Assert(result?.IsErrorType() != true);
             return result;
         }
     }

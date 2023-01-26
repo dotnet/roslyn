@@ -310,13 +310,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ITaggerEventSource CreateEventSource()
             {
+                Contract.ThrowIfTrue(_dataSource.Options.Any(o => o is not Option2<bool> and not PerLanguageOption2<bool>), "All options must be Option2<bool> or PerLanguageOption2<bool>");
+
                 var eventSource = _dataSource.CreateEventSource(_textView, _subjectBuffer);
 
                 // If there are any options specified for this tagger, then also hook up event
                 // notifications for when those options change.
-                var optionChangedEventSources =
-                    _dataSource.Options.Concat<IOption>(_dataSource.PerLanguageOptions)
-                        .Select(globalOption => TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, globalOption)).ToList();
+                var optionChangedEventSources = _dataSource.Options.Concat(_dataSource.FeatureOptions)
+                    .Select(globalOption => TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, globalOption))
+                    .ToList();
 
                 if (optionChangedEventSources.Count == 0)
                 {

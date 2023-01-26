@@ -37,14 +37,14 @@
         <target state="translated">型を '{0}' に変換</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">名前の違反を修正します: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">次の場所のすべての出現箇所を修正します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="translated">名前の違反を修正します: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -57,6 +57,11 @@
         <target state="translated">静的にする</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="translated">型を部分的にする</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
         <target state="translated">余分な空白行を削除する</target>
@@ -67,8 +72,8 @@
         <target state="translated">冗長な代入を削除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
         <target state="translated">問題の抑制または構成</target>
         <note />
       </trans-unit>

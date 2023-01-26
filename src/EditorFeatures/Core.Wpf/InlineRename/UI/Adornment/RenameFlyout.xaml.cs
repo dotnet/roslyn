@@ -3,13 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.VisualStudio;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -21,35 +23,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly RenameFlyoutViewModel _viewModel;
         private readonly IWpfTextView _textView;
+        private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
+        private readonly IAsynchronousOperationListener _listener;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView, IWpfThemeService? themeService)
+        public RenameFlyout(
+            RenameFlyoutViewModel viewModel,
+            IWpfTextView textView,
+            IWpfThemeService? themeService,
+            IAsyncQuickInfoBroker asyncQuickInfoBroker,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
-
+            _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _textView.LayoutChanged += TextView_LayoutChanged;
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
+            _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
 
             // On load focus the first tab target
             Loaded += (s, e) =>
             {
+                // Wait until load to position adornment for space negotiation
+                PositionAdornment();
+
                 IdentifierTextBox.Focus();
                 IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
-
-                // Don't hook up our close events until we're done loading and have focused within the textbox
-                _textView.LostAggregateFocus += TextView_LostFocus;
-                IsKeyboardFocusWithinChanged += RenameFlyout_IsKeyboardFocusWithinChanged;
             };
 
             InitializeComponent();
-            PositionAdornment();
 
             if (themeService is not null)
             {
                 Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
                 Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
             }
+
+            // Dismiss any current tooltips. Note that this does not disable tooltips
+            // from showing up again, so if a user has the mouse unmoved another
+            // tooltip will pop up. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398
+            // tracks when we can handle this with IFeaturesService in VS
+            var token = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
+            _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
+        }
+
+        private async Task DismissToolTipsAsync()
+        {
+            var infoSession = _asyncQuickInfoBroker.GetSession(_textView);
+            if (infoSession is null)
+            {
+                return;
+            }
+
+            await infoSession.DismissAsync().ConfigureAwait(false);
         }
 
 #pragma warning disable CA1822 // Mark members as static - used in xaml
@@ -61,17 +87,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
         public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
-
-        private void RenameFlyout_IsKeyboardFocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (!IsKeyboardFocusWithin)
-            {
-                _viewModel.Cancel();
-            }
-        }
-
-        private void TextView_LostFocus(object sender, EventArgs e)
-            => _viewModel.Cancel();
 
         private void TextView_ViewPortChanged(object sender, EventArgs e)
             => PositionAdornment();
@@ -89,8 +104,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void PositionAdornment()
         {
-            var top = _textView.Caret.Bottom + 5;
-            var left = _textView.Caret.Left - 5;
+            var span = _viewModel.InitialTrackingSpan.GetSpan(_textView.TextSnapshot);
+            var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
+            var charBounds = line.GetCharacterBounds(span.Start);
+
+            var height = DesiredSize.Height;
+            var width = DesiredSize.Width;
+
+            var desiredTop = charBounds.TextBottom + 5;
+            var desiredLeft = charBounds.Left;
+
+            var top = (desiredTop + height) > _textView.ViewportBottom
+                ? _textView.ViewportBottom - height
+                : desiredTop;
+
+            var left = (desiredLeft + width) > _textView.ViewportRight
+                ? _textView.ViewportRight - width
+                : desiredLeft;
 
             Canvas.SetTop(this, top);
             Canvas.SetLeft(this, left);
@@ -103,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged -= TextView_LayoutChanged;
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
-            _textView.LostAggregateFocus -= TextView_LostFocus;
 
             // Restore focus back to the textview
             _textView.VisualElement.Focus();

@@ -132,9 +132,6 @@
   <data name="Insert_the_missing_0" xml:space="preserve">
     <value>Insert the missing '{0}'.</value>
   </data>
-  <data name="Inline_temporary_variable" xml:space="preserve">
-    <value>Inline temporary variable</value>
-  </data>
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>

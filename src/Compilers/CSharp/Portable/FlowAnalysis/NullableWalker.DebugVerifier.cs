@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the constant value of a when clause is true, it can be skipped by the dag
                 // generator as an optimization. In that case, it's a value type and will be set
                 // as not nullable in the output.
-                if (node.WhenClause?.ConstantValue != ConstantValue.True)
+                if (node.WhenClause?.ConstantValueOpt != ConstantValue.True)
                 {
                     this.Visit(node.WhenClause);
                 }

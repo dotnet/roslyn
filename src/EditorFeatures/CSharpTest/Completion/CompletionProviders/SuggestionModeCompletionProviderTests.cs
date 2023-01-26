@@ -1393,7 +1393,7 @@ class P
 
             using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
-                workspaceFixture.GetWorkspace(ExportProvider);
+                workspaceFixture.GetWorkspace(GetComposition());
                 var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
                 await CheckResultsAsync(document1, position, isBuilder);
 
@@ -1413,7 +1413,7 @@ class P
             triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
 
             var service = GetCompletionService(document.Project);
-            var provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty));
+            var provider = Assert.Single(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty));
 
             foreach (var triggerInfo in triggerInfos)
             {

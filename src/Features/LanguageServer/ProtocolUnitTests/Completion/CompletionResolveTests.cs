@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,18 +13,24 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
     public class CompletionResolveTests : AbstractLanguageServerProtocolTests
     {
+        public CompletionResolveTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestResolveCompletionItemFromListAsync()
         {
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                     }
                 }
             };
-            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
 
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(
                 testLspServer,
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            await using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "A").ConfigureAwait(false);
 
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
@@ -101,7 +106,7 @@ class B : A
 {
     override {|caret:|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            await using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "M()").ConfigureAwait(false);
             var results = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
                 testLspServer, clientCompletionItem).ConfigureAwait(false);
@@ -143,7 +148,7 @@ class B : A
                     }
                 }
             };
-            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(
                 testLspServer,
                 label: "M()").ConfigureAwait(false);
@@ -172,7 +177,7 @@ class B : A
 {
     override {|caret:|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
@@ -235,7 +240,7 @@ class A
                     }
                 }
             };
-            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
                 testLspServer,
                 label: "AMethod").ConfigureAwait(false);
@@ -297,7 +302,7 @@ class A
         AMet{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
                 testLspServer,
                 label: "AMethod").ConfigureAwait(false);
@@ -332,7 +337,7 @@ link text";
         a.{|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            await using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "(byte)").ConfigureAwait(false);
 
             var results = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
@@ -428,7 +433,7 @@ link text";
 
         private class TestCaretOutOfScopeCompletionService : CompletionService
         {
-            public TestCaretOutOfScopeCompletionService(SolutionServices services) : base(services)
+            public TestCaretOutOfScopeCompletionService(SolutionServices services) : base(services, AsynchronousOperationListenerProvider.NullProvider)
             {
             }
 

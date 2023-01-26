@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         {
         }
 
-        private protected override OptionsCollection PreferNone =>
-            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+        private protected override OptionsCollection PreferNone
+            => Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        private protected override OptionsCollection PreferDiscard =>
-            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+        private protected override OptionsCollection PreferDiscard
+            => Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion));
 
-        private protected override OptionsCollection PreferUnusedLocal =>
-            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+        private protected override OptionsCollection PreferUnusedLocal
+            => Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion));
 
         [Theory, CombinatorialData]
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         }
 
         [Fact]
-        public async Task Initialization_ConstantValue_RemoveUnsuedParametersSuppressed()
+        public async Task Initialization_ConstantValue_RemoveUnusedParametersSuppressed()
         {
             var source =
 @"class C
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         }
 
         [Fact]
-        public async Task Initialization_ConstantValue_RemoveUnsuedParametersNotApplicable()
+        public async Task Initialization_ConstantValue_RemoveUnusedParametersNotApplicable()
         {
             var source =
 @"class C
@@ -492,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -550,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -1065,7 +1066,7 @@ $@"class C
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -1160,7 +1161,7 @@ $@"class C
 
     int M2() => 0;
 }",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -1239,7 +1240,7 @@ $@"class C
         _ = {prefix}x{postfix};
     }}
 }}",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -1356,7 +1357,7 @@ $@"class C
 
     int M2() => 0;
 }}",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -2570,7 +2571,7 @@ $@"class C
         };
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -2769,7 +2770,7 @@ $@"class C
         return isZero;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
             await new VerifyCS.Test
@@ -2894,7 +2895,7 @@ $@"class C
         return false;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -3045,7 +3046,7 @@ $@"class C
         return false;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var test = new VerifyCS.Test
@@ -7804,7 +7805,7 @@ class C
         };
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             await new VerifyCS.Test
@@ -8821,6 +8822,97 @@ namespace ConsoleApp
         }
     }
 }", options: PreferDiscard);
+        }
+
+        [WorkItem(57650, "https://github.com/dotnet/roslyn/issues/57650")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UseInLambda_WithInvocationOutsideLocalScope(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action act = null;
+        {
+            var[| capture |] = new object();
+            act = () => capture.ToString();
+        }
+        act();
+    }
+}", optionName);
+        }
+
+        [Fact]
+        [WorkItem(64291, "https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInInitialization()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        C {|IDE0059:c|} = new();
+    }
+}";
+            var fixedSource =
+@"class C
+{
+    void M()
+    {
+        _ = new C();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(64291, "https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInAssignement()
+        {
+            var source =
+@"class C
+{
+    void M(C c)
+    {
+        System.Console.WriteLine(c);
+        {|IDE0059:c|} = new();
+    }
+}";
+            var fixedSource =
+@"class C
+{
+    void M(C c)
+    {
+        System.Console.WriteLine(c);
+        _ = new C();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
     }
 }

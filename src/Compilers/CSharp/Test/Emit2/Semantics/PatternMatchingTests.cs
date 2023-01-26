@@ -53,22 +53,21 @@ public class Vec
                 // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7.0").WithLocation(8, 18),
-                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
-                //         int f() => 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(12, 13),
                 // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
                 // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 22),
-                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(12, 13),
+                // (14,22): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         string s = o is string k ? k : null; // pattern matching
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7.0").WithLocation(14, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "is").WithArguments("pattern matching", "7.0").WithLocation(14, 22),
                 // (12,13): warning CS8321: The local function 'f' is declared but never used
                 //         int f() => 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(12, 13)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(12, 13));
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
             CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
@@ -3362,8 +3361,7 @@ other 6");
             compilation.VerifyDiagnostics(
                 // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case 1 when true:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7.0").WithLocation(7, 13)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case").WithArguments("pattern matching", "7.0").WithLocation(7, 13));
         }
 
         [Fact, WorkItem(11379, "https://github.com/dotnet/roslyn/issues/11379")]
@@ -3793,7 +3791,6 @@ public class TestClass
     IL_0011:  ret
 }");
 
-
             // RELEASE
             compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
@@ -4066,19 +4063,18 @@ class B
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                // (15,29): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7.0").WithLocation(15, 27),
-                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //         Console.WriteLine(One + 2 is 3); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27),
-                // (15,27): warning CS8417: The given expression always matches the provided constant.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "is").WithArguments("pattern matching", "7.0").WithLocation(15, 29),
+                // (15,27): warning CS8520: The given expression always matches the provided constant.
                 //         Console.WriteLine(3 is One + 2); // should print True
                 Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "3 is One + 2").WithLocation(15, 27),
-                // (16,27): warning CS8417: The given expression always matches the provided constant.
+                // (16,35): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(One + 2 is 3); // should print True
-                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "is").WithArguments("pattern matching", "7.0").WithLocation(16, 35),
+                // (16,27): warning CS8520: The given expression always matches the provided constant.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27));
             var expectedOutput =
 @"5
 6
@@ -4471,12 +4467,12 @@ unsafe public class Typ
                 // (13,31): error CS1525: Invalid expression term 'int'
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
-                // (5,42): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                // (5,42): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('var')
                 //     public static void Main(int* a, var* c, Typ* e)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("var").WithLocation(5, 42),
-                // (5,50): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("var").WithLocation(5, 42),
+                // (5,50): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Typ')
                 //     public static void Main(int* a, var* c, Typ* e)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "e").WithArguments("Typ").WithLocation(5, 50),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "e").WithArguments("Typ").WithLocation(5, 50),
                 // (8,27): error CS0103: The name 'b' does not exist in the current context
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
@@ -8112,63 +8108,68 @@ not: True
 or: False
 and: False
 not: True")
-                .VerifyIL("C.Test", @"
+                .VerifyIL("C.Test", """
 {
-  // Code size      161 (0xa1)
+  // Code size      167 (0xa7)
   .maxstack  3
   .locals init (bool V_0)
   IL_0000:  nop
-  IL_0001:  ldstr      ""or: ""
-  IL_0006:  ldarg.0
-  IL_0007:  ldstr      ""string 1""
-  IL_000c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0011:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0016:  brtrue.s   IL_002a
-  IL_0018:  ldarg.0
-  IL_0019:  ldstr      ""string 2""
-  IL_001e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0023:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0028:  br.s       IL_002b
-  IL_002a:  ldc.i4.1
-  IL_002b:  stloc.0
-  IL_002c:  ldloca.s   V_0
-  IL_002e:  call       ""string bool.ToString()""
-  IL_0033:  call       ""string string.Concat(string, string)""
-  IL_0038:  call       ""void System.Console.WriteLine(string)""
-  IL_003d:  nop
-  IL_003e:  ldstr      ""and: ""
-  IL_0043:  ldarg.0
-  IL_0044:  ldstr      ""string 1""
-  IL_0049:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_004e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0053:  brfalse.s  IL_0061
-  IL_0055:  ldarga.s   V_0
-  IL_0057:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_005c:  ldc.i4.7
-  IL_005d:  ceq
-  IL_005f:  br.s       IL_0062
-  IL_0061:  ldc.i4.0
-  IL_0062:  stloc.0
-  IL_0063:  ldloca.s   V_0
-  IL_0065:  call       ""string bool.ToString()""
-  IL_006a:  call       ""string string.Concat(string, string)""
-  IL_006f:  call       ""void System.Console.WriteLine(string)""
-  IL_0074:  nop
-  IL_0075:  ldstr      ""not: ""
-  IL_007a:  ldarg.0
-  IL_007b:  ldstr      ""string 1""
-  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_008a:  ldc.i4.0
-  IL_008b:  ceq
-  IL_008d:  stloc.0
-  IL_008e:  ldloca.s   V_0
-  IL_0090:  call       ""string bool.ToString()""
-  IL_0095:  call       ""string string.Concat(string, string)""
-  IL_009a:  call       ""void System.Console.WriteLine(string)""
-  IL_009f:  nop
-  IL_00a0:  ret
-}");
+  IL_0001:  ldarg.0
+  IL_0002:  ldstr      "string 1"
+  IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_000c:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0011:  brtrue.s   IL_0027
+  IL_0013:  ldarg.0
+  IL_0014:  ldstr      "string 2"
+  IL_0019:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_001e:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0023:  brtrue.s   IL_0027
+  IL_0025:  br.s       IL_002b
+  IL_0027:  ldc.i4.1
+  IL_0028:  stloc.0
+  IL_0029:  br.s       IL_002d
+  IL_002b:  ldc.i4.0
+  IL_002c:  stloc.0
+  IL_002d:  ldstr      "or: "
+  IL_0032:  ldloca.s   V_0
+  IL_0034:  call       "string bool.ToString()"
+  IL_0039:  call       "string string.Concat(string, string)"
+  IL_003e:  call       "void System.Console.WriteLine(string)"
+  IL_0043:  nop
+  IL_0044:  ldstr      "and: "
+  IL_0049:  ldarg.0
+  IL_004a:  ldstr      "string 1"
+  IL_004f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0054:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0059:  brfalse.s  IL_0067
+  IL_005b:  ldarga.s   V_0
+  IL_005d:  call       "int System.ReadOnlySpan<char>.Length.get"
+  IL_0062:  ldc.i4.7
+  IL_0063:  ceq
+  IL_0065:  br.s       IL_0068
+  IL_0067:  ldc.i4.0
+  IL_0068:  stloc.0
+  IL_0069:  ldloca.s   V_0
+  IL_006b:  call       "string bool.ToString()"
+  IL_0070:  call       "string string.Concat(string, string)"
+  IL_0075:  call       "void System.Console.WriteLine(string)"
+  IL_007a:  nop
+  IL_007b:  ldstr      "not: "
+  IL_0080:  ldarg.0
+  IL_0081:  ldstr      "string 1"
+  IL_0086:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_008b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0090:  ldc.i4.0
+  IL_0091:  ceq
+  IL_0093:  stloc.0
+  IL_0094:  ldloca.s   V_0
+  IL_0096:  call       "string bool.ToString()"
+  IL_009b:  call       "string string.Concat(string, string)"
+  IL_00a0:  call       "void System.Console.WriteLine(string)"
+  IL_00a5:  nop
+  IL_00a6:  ret
+}
+""");
         }
 
         [Fact]
@@ -9461,63 +9462,68 @@ not: True
 or: False
 and: False
 not: True")
-                .VerifyIL("C.Test", @"
+                .VerifyIL("C.Test", """
 {
-  // Code size      161 (0xa1)
+  // Code size      167 (0xa7)
   .maxstack  3
   .locals init (bool V_0)
   IL_0000:  nop
-  IL_0001:  ldstr      ""or: ""
-  IL_0006:  ldarg.0
-  IL_0007:  ldstr      ""string 1""
-  IL_000c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0011:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0016:  brtrue.s   IL_002a
-  IL_0018:  ldarg.0
-  IL_0019:  ldstr      ""string 2""
-  IL_001e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0023:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0028:  br.s       IL_002b
-  IL_002a:  ldc.i4.1
-  IL_002b:  stloc.0
-  IL_002c:  ldloca.s   V_0
-  IL_002e:  call       ""string bool.ToString()""
-  IL_0033:  call       ""string string.Concat(string, string)""
-  IL_0038:  call       ""void System.Console.WriteLine(string)""
-  IL_003d:  nop
-  IL_003e:  ldstr      ""and: ""
-  IL_0043:  ldarg.0
-  IL_0044:  ldstr      ""string 1""
-  IL_0049:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_004e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0053:  brfalse.s  IL_0061
-  IL_0055:  ldarga.s   V_0
-  IL_0057:  call       ""int System.Span<char>.Length.get""
-  IL_005c:  ldc.i4.7
-  IL_005d:  ceq
-  IL_005f:  br.s       IL_0062
-  IL_0061:  ldc.i4.0
-  IL_0062:  stloc.0
-  IL_0063:  ldloca.s   V_0
-  IL_0065:  call       ""string bool.ToString()""
-  IL_006a:  call       ""string string.Concat(string, string)""
-  IL_006f:  call       ""void System.Console.WriteLine(string)""
-  IL_0074:  nop
-  IL_0075:  ldstr      ""not: ""
-  IL_007a:  ldarg.0
-  IL_007b:  ldstr      ""string 1""
-  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_008a:  ldc.i4.0
-  IL_008b:  ceq
-  IL_008d:  stloc.0
-  IL_008e:  ldloca.s   V_0
-  IL_0090:  call       ""string bool.ToString()""
-  IL_0095:  call       ""string string.Concat(string, string)""
-  IL_009a:  call       ""void System.Console.WriteLine(string)""
-  IL_009f:  nop
-  IL_00a0:  ret
-}");
+  IL_0001:  ldarg.0
+  IL_0002:  ldstr      "string 1"
+  IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_000c:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0011:  brtrue.s   IL_0027
+  IL_0013:  ldarg.0
+  IL_0014:  ldstr      "string 2"
+  IL_0019:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_001e:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0023:  brtrue.s   IL_0027
+  IL_0025:  br.s       IL_002b
+  IL_0027:  ldc.i4.1
+  IL_0028:  stloc.0
+  IL_0029:  br.s       IL_002d
+  IL_002b:  ldc.i4.0
+  IL_002c:  stloc.0
+  IL_002d:  ldstr      "or: "
+  IL_0032:  ldloca.s   V_0
+  IL_0034:  call       "string bool.ToString()"
+  IL_0039:  call       "string string.Concat(string, string)"
+  IL_003e:  call       "void System.Console.WriteLine(string)"
+  IL_0043:  nop
+  IL_0044:  ldstr      "and: "
+  IL_0049:  ldarg.0
+  IL_004a:  ldstr      "string 1"
+  IL_004f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0054:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0059:  brfalse.s  IL_0067
+  IL_005b:  ldarga.s   V_0
+  IL_005d:  call       "int System.Span<char>.Length.get"
+  IL_0062:  ldc.i4.7
+  IL_0063:  ceq
+  IL_0065:  br.s       IL_0068
+  IL_0067:  ldc.i4.0
+  IL_0068:  stloc.0
+  IL_0069:  ldloca.s   V_0
+  IL_006b:  call       "string bool.ToString()"
+  IL_0070:  call       "string string.Concat(string, string)"
+  IL_0075:  call       "void System.Console.WriteLine(string)"
+  IL_007a:  nop
+  IL_007b:  ldstr      "not: "
+  IL_0080:  ldarg.0
+  IL_0081:  ldstr      "string 1"
+  IL_0086:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_008b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0090:  ldc.i4.0
+  IL_0091:  ceq
+  IL_0093:  stloc.0
+  IL_0094:  ldloca.s   V_0
+  IL_0096:  call       "string bool.ToString()"
+  IL_009b:  call       "string string.Concat(string, string)"
+  IL_00a0:  call       "void System.Console.WriteLine(string)"
+  IL_00a5:  nop
+  IL_00a6:  ret
+}
+""");
         }
 
         [Fact]

@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface ITextVersionable
     {
-        bool TryGetTextVersion(out VersionStamp version);
+        bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version);
     }
 }

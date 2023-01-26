@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -30,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class SnippetCompletionProvider : LSPCompletionProvider
     {
+        private static readonly HashSet<string> s_snippetsWithReplacements = new()
+        {
+            "class", "cw", "ctor", "else", "foreach", "if", "interface", "prop", "struct", "while"
+        };
+
         internal override bool IsSnippetProvider => true;
 
         [ImportingConstructor]
@@ -103,21 +109,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var directive = leftToken.GetAncestor<DirectiveTriviaSyntax>();
                 Contract.ThrowIfNull(directive);
 
-                if (!directive.DirectiveNameToken.IsKind(
-                        SyntaxKind.IfKeyword,
-                        SyntaxKind.RegionKeyword,
-                        SyntaxKind.ElseKeyword,
-                        SyntaxKind.ElifKeyword,
-                        SyntaxKind.ErrorKeyword,
-                        SyntaxKind.LineKeyword,
-                        SyntaxKind.PragmaKeyword,
-                        SyntaxKind.EndIfKeyword,
-                        SyntaxKind.UndefKeyword,
-                        SyntaxKind.EndRegionKeyword,
+                if (directive.DirectiveNameToken.Kind() is not (
+                        SyntaxKind.IfKeyword or
+                        SyntaxKind.RegionKeyword or
+                        SyntaxKind.ElseKeyword or
+                        SyntaxKind.ElifKeyword or
+                        SyntaxKind.ErrorKeyword or
+                        SyntaxKind.LineKeyword or
+                        SyntaxKind.PragmaKeyword or
+                        SyntaxKind.EndIfKeyword or
+                        SyntaxKind.UndefKeyword or
+                        SyntaxKind.EndRegionKeyword or
                         SyntaxKind.WarningKeyword))
                 {
                     return GetSnippetCompletionItems(
-                        document.Project.Solution.Services, semanticModel, isPreProcessorContext: true);
+                        completionContext, document.Project.Solution.Services, semanticModel, isPreProcessorContext: true);
                 }
             }
             else
@@ -133,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
                 {
                     return GetSnippetCompletionItems(
-                        document.Project.Solution.Services, semanticModel, isPreProcessorContext: false);
+                        completionContext, document.Project.Solution.Services, semanticModel, isPreProcessorContext: false);
                 }
             }
 
@@ -141,13 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static ImmutableArray<CompletionItem> GetSnippetCompletionItems(
-            SolutionServices services, SemanticModel semanticModel, bool isPreProcessorContext)
+            CompletionContext context, SolutionServices services, SemanticModel semanticModel, bool isPreProcessorContext)
         {
             var service = services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
                 return ImmutableArray<CompletionItem>.Empty;
 
             var snippets = service.GetSnippetsIfAvailable();
+            if (context.CompletionOptions.ShouldShowNewSnippetExperience(context.Document))
+            {
+                snippets = snippets.Where(snippet => !s_snippetsWithReplacements.Contains(snippet.Shortcut));
+            }
+
             if (isPreProcessorContext)
             {
                 snippets = snippets.Where(snippet => snippet.Shortcut != null && snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new MakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
+            => (new CSharpMakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
 
         [Theory]
         [InlineData("public")]
@@ -1774,8 +1772,8 @@ public sealed partial class Test
 [System.Runtime.Serialization.DataContractAttribute]
 public class MyClass
 {
-	[System.Runtime.Serialization.DataMember]
-	private bool [|isReadOnly|];
+    [System.Runtime.Serialization.DataMember]
+    private bool [|isReadOnly|];
 }
         </Document>
     </Project>
@@ -1792,8 +1790,8 @@ public class MyClass
         <Document>
 public class MyClass
 {
-	[System.Runtime.Serialization.DataMember]
-	private bool [|isReadOnly|];
+    [System.Runtime.Serialization.DataMember]
+    private bool [|isReadOnly|];
 }
         </Document>
     </Project>
@@ -1804,8 +1802,8 @@ public class MyClass
         <Document>
 public class MyClass
 {
-	[System.Runtime.Serialization.DataMember]
-	private readonly bool isReadOnly;
+    [System.Runtime.Serialization.DataMember]
+    private readonly bool isReadOnly;
 }
         </Document>
     </Project>
@@ -1823,10 +1821,10 @@ public class MyClass
 [System.Runtime.Serialization.DataContractAttribute]
 public class MyClass
 {
-	[System.Runtime.Serialization.DataMember]
-	private bool isReadOnly;
+    [System.Runtime.Serialization.DataMember]
+    private bool isReadOnly;
 
-	private bool [|isReadOnly2|];
+    private bool [|isReadOnly2|];
 }
         </Document>
     </Project>
@@ -1838,10 +1836,10 @@ public class MyClass
 [System.Runtime.Serialization.DataContractAttribute]
 public class MyClass
 {
-	[System.Runtime.Serialization.DataMember]
-	private bool isReadOnly;
+    [System.Runtime.Serialization.DataMember]
+    private bool isReadOnly;
 
-	private readonly bool isReadOnly2;
+    private readonly bool isReadOnly2;
 }
         </Document>
     </Project>
@@ -1859,11 +1857,40 @@ public class MyClass
 [System.Runtime.Serialization.DataContractAttribute]
 public class MyClass
 {
-	public bool [|isReadOnly|];
+    public bool [|isReadOnly|];
 }
         </Document>
     </Project>
 </Workspace>");
+        }
+
+        [Fact, WorkItem(59577, "https://github.com/dotnet/roslyn/issues/59577")]
+        public async Task TestInStruct()
+        {
+            await TestInRegularAndScript1Async(
+@"struct MyClass
+{
+    private int [|_goo|];
+}",
+@"struct MyClass
+{
+    private readonly int _goo;
+}");
+        }
+
+        [Fact, WorkItem(59577, "https://github.com/dotnet/roslyn/issues/59577")]
+        public async Task MissingForMemberInStructThatOverwritesThis()
+        {
+            await TestMissingAsync(
+@"struct MyClass
+{
+    private int [|_goo|];
+
+    void M()
+    {
+        this = default;
+    }
+}");
         }
     }
 }

@@ -333,7 +333,7 @@ namespace NS3
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod()
+        public async Task TestAddUsingForAddExtensionMethod()
         {
             await TestAsync(
 @"using System;
@@ -383,7 +383,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod2()
+        public async Task TestAddUsingForAddExtensionMethod2()
         {
             await TestAsync(
 @"using System;
@@ -433,7 +433,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod3()
+        public async Task TestAddUsingForAddExtensionMethod3()
         {
             await TestAsync(
 @"using System;
@@ -483,7 +483,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod4()
+        public async Task TestAddUsingForAddExtensionMethod4()
         {
             await TestAsync(
 @"using System;
@@ -533,7 +533,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod5()
+        public async Task TestAddUsingForAddExtensionMethod5()
         {
             await TestAsync(
 @"using System;
@@ -583,7 +583,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod6()
+        public async Task TestAddUsingForAddExtensionMethod6()
         {
             await TestAsync(
 @"using System;
@@ -633,7 +633,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod7()
+        public async Task TestAddUsingForAddExtensionMethod7()
         {
             await TestAsync(
 @"using System;
@@ -683,7 +683,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod8()
+        public async Task TestAddUsingForAddExtensionMethod8()
         {
             await TestAsync(
 @"using System;
@@ -733,7 +733,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod9()
+        public async Task TestAddUsingForAddExtensionMethod9()
         {
             await TestAsync(
 @"using System;
@@ -783,7 +783,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod10()
+        public async Task TestAddUsingForAddExtensionMethod10()
         {
             await TestAsync(
 @"using System;
@@ -853,7 +853,7 @@ parseOptions: null);
         }
 
         [Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        public async Task TestAddUsingForAddExtentionMethod11()
+        public async Task TestAddUsingForAddExtensionMethod11()
         {
             await TestAsync(
 @"using System;
@@ -1110,7 +1110,7 @@ parseOptions: null);
         [Theory]
         [CombinatorialData]
         [WorkItem(16547, "https://github.com/dotnet/roslyn/issues/16547")]
-        public async Task TestAddUsingForAddExtentionMethodWithSameNameAsProperty(TestHost testHost)
+        public async Task TestAddUsingForAddExtensionMethodWithSameNameAsProperty(TestHost testHost)
         {
             await TestAsync(
 @"

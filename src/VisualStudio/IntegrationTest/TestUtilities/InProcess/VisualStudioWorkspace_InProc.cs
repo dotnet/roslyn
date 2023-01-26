@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
@@ -46,11 +47,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
 
         public void SetPrettyListing(string languageName, bool value)
-            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.PrettyListing, languageName), value));
+            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, languageName, value));
 
         public void SetFileScopedNamespaces(bool value)
-            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(
-                new OptionKey(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations),
+            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations,
                 new CodeStyleOption2<NamespaceDeclarationPreference>(value ? NamespaceDeclarationPreference.FileScoped : NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion)));
 
         public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
@@ -115,7 +115,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InvokeOnUIThread(cancellationToken =>
             {
                 LoadRoslynPackage();
-                _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
+
+                var hook = _visualStudioWorkspace.Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
+                hook.IsPartialSolutionDisabled = true;
             });
 
         /// <summary>
@@ -130,16 +132,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return;
 
             // Local function
-            void ResetOption(IOption option)
+            void ResetOption(IOption2 option)
             {
-                if (option is IPerLanguageValuedOption)
+                if (option.IsPerLanguage)
                 {
-                    _globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
-                    _globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
+                    _globalOptions.SetGlobalOption(new OptionKey2(option, LanguageNames.CSharp), option.DefaultValue);
+                    _globalOptions.SetGlobalOption(new OptionKey2(option, LanguageNames.VisualBasic), option.DefaultValue);
                 }
                 else
                 {
-                    _globalOptions.SetGlobalOption(new OptionKey(option), option.DefaultValue);
+                    _globalOptions.SetGlobalOption(new OptionKey2(option, language: null), option.DefaultValue);
                 }
             }
         }

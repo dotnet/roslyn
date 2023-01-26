@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 {
                     ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
-                else if (current.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
+                else if (current is CompilationUnitSyntax compilationUnit)
                 {
                     ProcessUsings(aliasMaps, compilationUnit.Usings);
                 }
@@ -190,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         isPartial: false,
+                        hasAttributes: localFunction.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Method,
                         Accessibility.Private,
                         localFunction.Identifier.Span,
@@ -225,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 containerDisplayName,
                 fullyQualifiedContainerName,
                 typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
+                typeDeclaration.AttributeLists.Any(),
                 typeDeclaration.Kind() switch
                 {
                     SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
@@ -237,7 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 GetAccessibility(container, typeDeclaration.Modifiers),
                 typeDeclaration.Identifier.Span,
                 GetInheritanceNames(stringTable, typeDeclaration.BaseList),
-                IsNestedType(typeDeclaration));
+                IsNestedType(typeDeclaration),
+                typeParameterCount: typeDeclaration.TypeParameterList?.Parameters.Count ?? 0);
         }
 
         protected override DeclaredSymbolInfo GetEnumDeclarationInfo(
@@ -253,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 containerDisplayName,
                 fullyQualifiedContainerName,
                 enumDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
+                enumDeclaration.AttributeLists.Any(),
                 DeclaredSymbolInfoKind.Enum,
                 GetAccessibility(container, enumDeclaration.Modifiers),
                 enumDeclaration.Identifier.Span,
@@ -280,6 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         ctorDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        ctorDecl.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Constructor,
                         GetAccessibility(container, ctorDecl.Modifiers),
                         ctorDecl.Identifier.Span,
@@ -295,6 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         delegateDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        delegateDecl.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(container, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
@@ -308,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         enumMember.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        enumMember.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
                         enumMember.Identifier.Span,
@@ -321,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         eventDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        eventDecl.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Event,
                         GetAccessibility(container, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
@@ -334,6 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         indexerDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        indexerDecl.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Indexer,
                         GetAccessibility(container, indexerDecl.Modifiers),
                         indexerDecl.ThisKeyword.Span,
@@ -348,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         method.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        method.AttributeLists.Any(),
                         isExtensionMethod ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
                         GetAccessibility(container, method.Modifiers),
                         method.Identifier.Span,
@@ -363,6 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         property.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        property.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Property,
                         GetAccessibility(container, property.Modifiers),
                         property.Identifier.Span,
@@ -385,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             containerDisplayName,
                             fullyQualifiedContainerName,
                             fieldDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
+                            fieldDeclaration.AttributeLists.Any(),
                             kind,
                             GetAccessibility(container, fieldDeclaration.Modifiers),
                             variableDeclarator.Identifier.Span,
@@ -434,6 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             containerDisplayName,
                             fullyQualifiedContainerName,
                             isPartial: false,
+                            parameter.AttributeLists.Any(),
                             DeclaredSymbolInfoKind.Property,
                             Accessibility.Public,
                             parameter.Identifier.Span,

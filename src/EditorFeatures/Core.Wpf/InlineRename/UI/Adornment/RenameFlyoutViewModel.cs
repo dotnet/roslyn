@@ -4,17 +4,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -35,7 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _globalOptionService = globalOptionService;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
+            _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
+            InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(VisualStudio.Text.SpanTrackingMode.EdgeInclusive);
 
             RegisterOleComponent();
         }
@@ -55,6 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public InlineRenameSession Session => _session;
 
+        public ITrackingSpan InitialTrackingSpan { get; }
+
         public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
 
@@ -65,12 +75,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _ => EditorFeaturesResources.Rename_symbols_file
         };
 
+        private string? _searchText;
+        public string? SearchText
+        {
+            get => _searchText;
+            set => Set(ref _searchText, value);
+        }
+
+        private string? _statusText;
+        public string? StatusText
+        {
+            get => _statusText;
+            set => Set(ref _statusText, value);
+        }
+
+        private Severity _statusSeverity;
+        public Severity StatusSeverity
+        {
+            get => _statusSeverity;
+            set
+            {
+                if (Set(ref _statusSeverity, value))
+                {
+                    NotifyPropertyChanged(nameof(ShowStatusText));
+                    NotifyPropertyChanged(nameof(StatusImageMoniker));
+                }
+            }
+        }
+
+        public bool ShowStatusText => _statusSeverity != Severity.None;
+        public bool ShowSearchText => _statusSeverity != Severity.Error;
+
+        public ImageMoniker StatusImageMoniker => _statusSeverity switch
+        {
+            Severity.Error => KnownMonikers.StatusError,
+            Severity.Warning => KnownMonikers.StatusWarning,
+            _ => ImageLibrary.InvalidImageMoniker
+        };
+
         public bool RenameInCommentsFlag
         {
             get => _session.Options.RenameInComments;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInComments = value });
             }
         }
@@ -80,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.Options.RenameInStrings;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInStrings = value });
             }
         }
@@ -90,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.Options.RenameFile;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameFile), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameFile = value });
             }
         }
@@ -100,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.PreviewChanges;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.PreviewChanges), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, value);
                 _session.SetPreviewChanges(value);
             }
         }
@@ -110,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.Options.RenameOverloads;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameOverloads = value });
             }
         }
@@ -122,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (value != IsCollapsed)
                 {
-                    _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameUIOptions.CollapseUI), value);
+                    _globalOptionService.SetGlobalOption(InlineRenameUIOptions.CollapseUI, value);
                     NotifyPropertyChanged(nameof(IsCollapsed));
                     NotifyPropertyChanged(nameof(IsExpanded));
                 }
@@ -143,8 +191,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public TextSpan StartingSelection { get; }
 
-        public void Submit()
-            => _session.Commit();
+        public bool Submit()
+        {
+            if (StatusSeverity == Severity.Error)
+            {
+                return false;
+            }
+
+            _session.Commit();
+            return true;
+        }
 
         public void Cancel()
             => _session.Cancel();
@@ -251,6 +307,66 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (Set(ref _isReplacementTextValid, result.ReplacementTextValid, "IsReplacementTextValid"))
             {
                 NotifyPropertyChanged(nameof(AllowFileRename));
+
+                if (!_isReplacementTextValid && !string.IsNullOrEmpty(IdentifierText))
+                {
+                    StatusText = EditorFeaturesResources.The_new_name_is_not_a_valid_identifier;
+                    StatusSeverity = Severity.Error;
+                    return;
+                }
+
+                var resolvableConflicts = 0;
+                var unresolvedConflicts = 0;
+                foreach (var replacementKind in result.GetAllReplacementKinds())
+                {
+                    switch (replacementKind)
+                    {
+                        case InlineRenameReplacementKind.UnresolvedConflict:
+                            unresolvedConflicts++;
+                            break;
+
+                        case InlineRenameReplacementKind.ResolvedReferenceConflict:
+                        case InlineRenameReplacementKind.ResolvedNonReferenceConflict:
+                            resolvableConflicts++;
+                            break;
+                    }
+                }
+
+                if (unresolvedConflicts > 0)
+                {
+                    StatusText = string.Format(EditorFeaturesResources._0_unresolvable_conflict_s, unresolvedConflicts);
+                    StatusSeverity = Severity.Error;
+                    return;
+                }
+
+                if (resolvableConflicts > 0)
+                {
+                    StatusText = string.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, resolvableConflicts);
+                    StatusSeverity = Severity.Warning;
+                    return;
+                }
+
+                StatusText = null;
+                StatusSeverity = Severity.None;
+            }
+        }
+
+        private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
+        {
+            var fileCount = renameLocations.GroupBy(s => s.Document).Count();
+            var referenceCount = renameLocations.Length;
+
+            if (referenceCount == 1 && fileCount == 1)
+            {
+                SearchText = EditorFeaturesResources.Rename_will_update_1_reference_in_1_file;
+            }
+            else if (fileCount == 1)
+            {
+                SearchText = string.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, referenceCount);
+            }
+            else
+            {
+                SearchText = string.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_files, referenceCount, fileCount);
             }
         }
 
@@ -267,6 +383,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             field = newValue;
             NotifyPropertyChanged(name);
             return true;
+        }
+
+        public enum Severity
+        {
+            None,
+            Warning,
+            Error
         }
     }
 }

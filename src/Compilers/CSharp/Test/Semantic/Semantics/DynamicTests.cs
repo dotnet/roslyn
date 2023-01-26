@@ -593,8 +593,8 @@ class C
 }
 ";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
+                // (9,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
                 Diagnostic(ErrorCode.ERR_PtrExpected, "*d"),
                 // (11,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -1056,7 +1056,6 @@ GetHandler
 remove_Event
 ");
         }
-
 
         #endregion
 

@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            var optionValue = IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode) ?
-                options.PreferPredefinedTypeKeywordInMemberAccess :
-                options.PreferPredefinedTypeKeywordInDeclaration;
+            var optionValue = IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode)
+                ? options.PreferPredefinedTypeKeywordInMemberAccess
+                : options.PreferPredefinedTypeKeywordInDeclaration;
 
             if (IsFrameworkTypePreferred(optionValue))
             {

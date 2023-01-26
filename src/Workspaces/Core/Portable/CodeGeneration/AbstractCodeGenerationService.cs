@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public abstract CodeGenerationOptions DefaultOptions { get; }
-        public abstract CodeGenerationOptions GetCodeGenerationOptions(AnalyzerConfigOptions info, CodeGenerationOptions? fallbackOptions);
+        public abstract CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions);
 
         #region ICodeGenerationService
 

@@ -128,6 +128,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+
+            // Ensure availability of `DecimalConstantAttribute`.
+            if (IsConst && Type.SpecialType == SpecialType.System_Decimal &&
+                GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false) is { } value &&
+                !(decodedData is FieldWellKnownAttributeData fieldData && fieldData.ConstValue != CodeAnalysis.ConstantValue.Unset))
+            {
+                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                    diagnostics,
+                    syntax: SyntaxNode);
+            }
+        }
+
         public override Symbol AssociatedSymbol
         {
             get
@@ -165,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
             var errorLocation = new SourceLocation(firstIdentifier);
-            DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+            DeclarationModifiers result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
                 isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
@@ -177,6 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((result & DeclarationModifiers.Fixed) != 0)
             {
+                foreach (var modifier in modifiers)
+                {
+                    if (modifier.IsKind(SyntaxKind.FixedKeyword))
+                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
+                }
+
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Static, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Const, diagnostics, errorLocation);
@@ -483,32 +505,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
-                    var typeOnly = typeSyntax.SkipScoped(out _).SkipRef(out refKind);
+                    var typeOnly = typeSyntax.SkipScoped(out _).SkipRefInField(out refKind);
                     Debug.Assert(refKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
                     type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
                     if (refKind != RefKind.None)
                     {
                         MessageID.IDS_FeatureRefFields.CheckFeatureAvailability(diagnostics, compilation, typeSyntax.SkipScoped(out _).Location);
                         if (!compilation.Assembly.RuntimeSupportsByRefFields)
-                        {
                             diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, ErrorLocation);
-                        }
 
                         if (!containingType.IsRefLikeType)
-                        {
                             diagnostics.Add(ErrorCode.ERR_RefFieldInNonRefStruct, ErrorLocation);
-                        }
+
                         if (type.Type?.IsRefLikeType == true)
-                        {
                             diagnostics.Add(ErrorCode.ERR_RefFieldCannotReferToRefStruct, typeSyntax.SkipScoped(out _).Location);
-                        }
                     }
                 }
                 else
                 {
                     bool isVar;
-                    type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
-
+                    type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRefInField(out RefKind refKindToAssert), diagnostics, out isVar);
+                    Debug.Assert(refKindToAssert == RefKind.None); // Otherwise we might need to report an error
                     Debug.Assert(type.HasType || isVar);
 
                     if (isVar)

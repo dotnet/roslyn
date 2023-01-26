@@ -42,7 +42,7 @@ public class SimplifierTests
         await Assert.ThrowsAsync<ArgumentNullException>("document", () => Simplifier.ExpandAsync(token: default, document: null!));
     }
 
-    [Fact, Obsolete("Obsolete so we can test obsolete API")]
+    [Fact, Obsolete("Testing obsolete API")]
     public async Task Expand_BadArguments()
     {
         var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Test"));
@@ -108,17 +108,12 @@ public class SimplifierTests
                 (CodeStyleOptions.QualifyEventAccess, false),
                 (CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false),
                 (CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false),
-                (CSharpCodeStyleOptions.VarForBuiltInTypes, false),
-                (CSharpCodeStyleOptions.VarWhenTypeIsApparent, false),
-                (CSharpCodeStyleOptions.VarElsewhere, false),
-                (CSharpCodeStyleOptions.PreferSimpleDefaultExpression, false),
-                (CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline),
             };
 
             var updatedOptions = options;
             foreach (var (option, newValue) in publicOptions)
             {
-                var languages = (option is IPerLanguageValuedOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+                var languages = option.IsPerLanguage ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
 
                 foreach (var language in languages)
                 {
@@ -144,12 +139,6 @@ public class SimplifierTests
         static void ValidateCSharpOptions(CSharpSimplifierOptions simplifierOptions)
         {
             ValidateCommonOptions(simplifierOptions);
-
-            Assert.False(simplifierOptions.VarForBuiltInTypes.Value);
-            Assert.False(simplifierOptions.VarWhenTypeIsApparent.Value);
-            Assert.False(simplifierOptions.VarElsewhere.Value);
-            Assert.False(simplifierOptions.PreferSimpleDefaultExpression.Value);
-            Assert.Equal(PreferBracesPreference.WhenMultiline, simplifierOptions.PreferBraces.Value);
         }
 
         static void ValidateVisualBasicOptions(VisualBasicSimplifierOptions simplifierOptions)

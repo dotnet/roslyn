@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
@@ -146,7 +145,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return captured
         End Function
-
 
         ''' <summary>
         ''' Returns expression that -

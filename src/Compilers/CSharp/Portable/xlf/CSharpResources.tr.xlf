@@ -207,11 +207,6 @@
         <target state="translated">'{0}' işleci '{1}' türündeki işlenene uygulanamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="translated"> '{0}' parametre değiştiricisi, '{1}' öğesini takip edemez</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Desen eşleşmesi için işlenen geçersiz. Değer gerekiyordu ancak '{0}' bulundu.</target>
@@ -225,6 +220,11 @@
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">{0} kayıt üyesi, {1} konumsal parametresi ile eşleşmesi için {2} türünde okunabilir bir örnek özelliği veya alan olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -365,6 +365,11 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">'{0}' adı ilgili '{1}' 'Deconstruct' parametresiyle eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="translated">Ayrıştırma değişkeni, ref yerel olarak bildirilemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -594,12 +599,12 @@
       </trans-unit>
       <trans-unit id="ERR_FileLocalDuplicateNameInNS">
         <source>The namespace '{1}' already contains a definition for '{0}' in this file.</source>
-        <target state="new">The namespace '{1}' already contains a definition for '{0}' in this file.</target>
+        <target state="translated">'{1}' ad alanı, bu dosyada zaten '{0}' için bir tanım içeriyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
         <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
-        <target state="new">File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</target>
+        <target state="translated">Dosya yerel türü '{0}' kullanılamaz çünkü içeren dosya yolu eşdeğer UTF-8 bayt gösterimine dönüştürülemez. {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
@@ -639,7 +644,7 @@
       </trans-unit>
       <trans-unit id="ERR_FileTypeNonUniquePath">
         <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
-        <target state="new">File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</target>
+        <target state="translated">Dosya yerel türü '{0}', benzersiz bir yola sahip bir dosyada bildirilmelidir. '{1}' yolu birden çok dosyada kullanılıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -663,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Öznitelikte bir 'typeof' içinde işlev işaretçisi türü kullanılması desteklenmez.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">Öznitelikte bir 'typeof' içinde işlev işaretçisi türü kullanılması desteklenmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -750,6 +755,11 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">Örtük Aralık Dizin Oluşturucu'nun çağrılması bağımsız değişkeni adlandıramaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="translated">Türü örtük olarak belirlenmiş lambda '{0}' parametresi varsayılan bir değere sahip olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1274,7 +1284,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
         <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
-        <target state="new">'readonly' is not supported as a parameter modifier. Did you mean 'in'?</target>
+        <target state="translated">'readonly' parametre değiştirici olarak desteklenmez. "in" mi demek istedin?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
@@ -1292,6 +1302,16 @@
         <target state="translated">'{1}', '{0}' öğesinden daha dar bir kaçış kapsamı içerdiğinden '{0}' öğesine '{1}' ref ataması yapılamıyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignReturnOnly">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">'{1}', '{0}'ye yeniden atanamaz çünkü '{1}' yalnızca bir return ifadesi aracılığıyla geçerli yöntemden kaçabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">'{1}' başvuru değeri, '{0}' olarak atanamaz çünkü '{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">Başvuru alanı bir başvuru yapısına başvuramaz.</target>
@@ -1305,6 +1325,26 @@
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">ref atamasının sol tarafı, ref değişkeni olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter">
+        <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">Bir ref parametresi aracılığıyla '{0}' referansıyla bir parametre döndürülemez; sadece bir return ifadesinde döndürebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">Bir ref parametresi aracılığıyla '{0}' parametresinin bir üyesine başvuruda bulunarak döndürülemez; sadece bir return ifadesinde döndürülebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter">
+        <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
+        <target state="translated">Geçerli yöntemin kapsamına dahil edildiğinden '{0}' referansına göre bir parametre döndürülemez</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</source>
+        <target state="translated">Geçerli yöntemin kapsamına dahil edildiğinden ' {0}' parametresinin bir üyesine başvurularak döndürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1392,6 +1432,11 @@
         <target state="translated">Hedef çalışma zamanı, genişletilebilir veya çalışma zamanı ortamı varsayılanı çağırma kurallarını desteklemiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="translated">'scoped' değiştiricisi atma ile kullanılamaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
         <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi geçersiz kılınan veya uygulanan üyeyle eşleşmiyor.</target>
@@ -1405,11 +1450,6 @@
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
         <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi, '{1}' hedefiyle eşleşmiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ScopedNotBeforeType">
-        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
-        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
@@ -1602,9 +1642,24 @@
         <target state="translated">'{0}', 'UnmanagedCallersOnly' özniteliğine sahip ve temsilci türüne dönüştürülemez. Bu yöntem için bir işlev işaretçisi edinin.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="translated">UnscopedRefAttribute bir arabirim uygulamasına uygulanamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="translated">UnscopedRefAttribute yalnızca örnek metodları ve özellikleri yapılandırmak için uygulanabilir ve oluşturuculara veya yalnızca init üyelerine uygulanamaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="translated">UnscopedRefAttribute yalnızca 'out' parametrelerine, 'ref struct' türlerine başvuran 'ref' ve 'in' parametrelerine ve oluşturucular ve 'init' erişimcileri dışındaki 'struct' türlerde örnek metotları ve özelliklerine uygulanabilir.</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="translated">UnscopedRefAttribute varsayılan olarak kapsam dışı olduğundan bu parametreye uygulanamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1742,6 +1797,16 @@
         <target state="translated">lambda öznitelikleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaOptionalParameters">
+        <source>lambda optional parameters</source>
+        <target state="translated">lambda isteğe bağlı parametreleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaParamsArray">
+        <source>lambda params array</source>
+        <target state="translated">lambda parametreleri dizisi</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="translated">lambda dönüş türü</target>
@@ -1832,6 +1897,11 @@
         <target state="translated">sabit dizede ReadOnly/Span&lt;char&gt; ile eşleşen desen</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="translated">&lt;missing&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">işaretçi öğesi erişimi</target>
@@ -1865,6 +1935,16 @@
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">Tür meta verilerde temsili olmadığından bu bağlamda kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing">
+        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">'{0}' argümanlarının bu kombinasyonu, '{1}' parametresi tarafından başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing_Title">
+        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Bu argüman kombinasyonu, parametre tarafından başvurulan değişkenleri bildirim kapsamı dışında gösterebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -1949,12 +2029,52 @@
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
-        <target state="new">Analyzer reference '{0}' specified multiple times</target>
+        <target state="translated">Çözümleyici referansı '{0}' birden çok kez belirtildi</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
-        <target state="new">Analyzer reference specified multiple times</target>
+        <target state="translated">Çözümleyici referansı birden çok kez belirtildi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall">
+        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">Bu bağlamda '{0}' sonucunun kullanılması, '{1}' parametresi tarafından başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2">
+        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">Bu bağlamda '{0}' sonucunun üyesinin kullanılması, '{1}' parametresi tarafından başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2_Title">
+        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Sonuç üyesinin bu bağlamda kullanılması, parametre tarafından başvurulan değişkenleri bildirim kapsamı dışında gösterebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall_Title">
+        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Bu bağlamda sonucun kullanılması, parametre tarafından başvurulan değişkenleri bildirim kapsamı dışında gösterebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc">
+        <source>A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</source>
+        <target state="translated">Bu bağlamda '{0}' türündeki bir stackalloc ifadesinin sonucu, içerme yönteminin dışında gösterilebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc_Title">
+        <source>A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</source>
+        <target state="translated">Bu bağlamda bu türden bir stackalloc ifadesinin sonucu, içerme yönteminin dışında gösterilebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable">
+        <source>Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">Bu bağlamda '{0}' değişkeninin kullanılması, başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable_Title">
+        <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">Bu bağlamda değişken kullanımı, başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -1977,6 +2097,16 @@
         <target state="translated">Tür adı yalnızca küçük harfli ascii karakterleri içerir. Bu tür adlar dil için ayrılmış hale gelebilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="translated">Bu, yönetilen bir türün ('{0}') adresini alır, boyutunu alır veya bir işaretçi bildirir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="translated">Bu, yönetilen bir türün adresini alır, boyutunu alır veya bir işaretçi bildirir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
         <target state="translated">“{0}” yöntem grubunu temsilci olmayan tip “{1}”e dönüştürme. Yöntemi çağırmayı düşündünüz mü?</target>
@@ -1987,6 +2117,16 @@
         <target state="translated">Yöntem grubunu temsilci olmayan türe dönüştürme</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Ref koşullu operatörünün dalları, uyumsuz bildirim kapsamlarına sahip değişkenlere başvurur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Ref koşullu operatörünün dalları, uyumsuz bildirim kapsamlarına sahip değişkenlere başvurur</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
         <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">Gerekli '{0}' üyesine, kapsayan tür veya tüm oluşturucular artık kullanılmadığı sürece 'ObsoleteAttribute' özniteliği atanmamalıdır.</target>
@@ -1995,6 +2135,16 @@
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">'ObsoleteAttribute' özniteliğine sahip üyeler, kapsayan tür veya tüm oluşturucular artık kullanılmadığı sürece gerekli olmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="translated">{0} parametresi, lambdada '{1:10}' varsayılan değerine ancak temsilci türünde ise '{2:10}' değerine sahip.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch_Title">
+        <source>The default parameter value does not match in the target delegate type.</source>
+        <target state="translated">Varsayılan parametre değeri hedef temsilci türünde eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2015,6 +2165,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">Düz metin arasına kod eklenmiş dize işleyicisi dönüştürmeye yönelik parametre, işleyici parametresinden sonra gerçekleşir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">{0} parametresi, lambda içinde parametre değiştiricisi içeriyor ancak hedef temsilci türünde içermiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Parametre, lambda içinde parametre değiştiricisi içeriyor ancak hedef temsilci türünde içermiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2052,6 +2212,146 @@
         <target state="translated">Türler ve diğer adlar 'record' olarak adlandırılmamalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="translated">Bu başvuru, '{1}'i '{0}'ye atar, ancak '{1}', '{0}'ten daha dar bir kaçış kapsamına sahiptir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower_Title">
+        <source>This ref-assigns a value that has a narrower escape scope than the target.</source>
+        <target state="translated">Bu başvuru, hedeften daha dar bir kaçış kapsamına sahip bir değer atar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">Bu başvuru, ' {1}'i '{0}'ye atar, ancak '{1}' yalnızca bir return ifadesi aracılığıyla geçerli yöntemden kaçabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly_Title">
+        <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
+        <target state="translated">Bu başvuru, yalnızca bir return ifadesi aracılığıyla geçerli yöntemden kaçabilen bir değer atar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">Bu başvuru, '{1}' değerini '{0}' olarak atar ancak '{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="translated">Bu başvuru, hedeften daha geniş bir değer kaçış kapsamına sahip bir değer atadığından daha dar kaçış kapsamlarına sahip değerlerin hedefi üzerinden atamaya izin verir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal">
+        <source>This returns local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">Bu, referans olarak yerel '{0}' döndürür, ancak bir ref yerel değildir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2">
+        <source>This returns a member of local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">Bu, referans olarak yerel bir '{0}' üyesini döndürür, ancak bir ref yerel değildir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2_Title">
+        <source>This returns a member of local by reference but it is not a ref local</source>
+        <target state="translated">Bu, başvuruya göre yerel bir üye döndürür, ancak yerel bir başvuru değildir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal_Title">
+        <source>This returns local by reference but it is not a ref local</source>
+        <target state="translated">Bu, referansa göre yerel döndürür, ancak yerel bir referans değildir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal">
+        <source>Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Yerel '{0}' başvuruyla döndürülür, ancak başvuruyla döndürülemeyecek bir değere başlatıldı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2">
+        <source>A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">'{0}' üyesi başvuruyla döndürülür ancak başvuruyla döndürülemeyecek bir değere başlatıldı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2_Title">
+        <source>A member is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Bir üye referansla döndürülür, ancak referansla döndürülemeyecek bir değere başlatıldı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal_Title">
+        <source>Local is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Yerel, başvuruyla döndürülür, ancak başvuruyla döndürülemeyecek bir değere başlatıldı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter">
+        <source>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Bu, bir ref parametresi aracılığıyla'{0}' referansına göre bir parametre döndürür; ancak yalnızca bir return ifadesinde güvenli bir şekilde döndürebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2">
+        <source>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Bu, bir ref parametresi aracılığıyla '{0}' parametresinin bir üyesine başvuruda bulunarak döndürür; ancak yalnızca bir return ifadesinde güvenli bir şekilde döndürebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2_Title">
+        <source>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Bu, bir ref parametresi aracılığıyla parametrenin bir üyesine başvuruda bulunarak döndürür; ancak yalnızca bir return ifadesinde güvenli bir şekilde döndürebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter_Title">
+        <source>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Bu, bir ref parametresi aracılığıyla başvuruya göre bir parametre döndürür; ancak yalnızca bir return ifadesinde güvenli bir şekilde döndürebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter">
+        <source>This returns a parameter by reference '{0}' but it is not a ref parameter</source>
+        <target state="translated">Bu, '{0}' referansına göre bir parametre döndürür, ancak bu bir ref parametresi değildir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is not a ref or out parameter</source>
+        <target state="translated">Bu, referans veya çıkış parametresi olmayan ' {0}' parametresinin bir üyesini referans olarak döndürür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2_Title">
+        <source>This returns by reference a member of parameter that is not a ref or out parameter</source>
+        <target state="translated">Bu, ref veya out parametresi olmayan bir parametre üyesini referans olarak döndürür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter_Title">
+        <source>This returns a parameter by reference but it is not a ref parameter</source>
+        <target state="translated">Bu, referansa göre bir parametre döndürür, ancak bu bir ref parametresi değildir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter">
+        <source>This returns a parameter by reference '{0}' but it is scoped to the current method</source>
+        <target state="translated">Bu, '{0}' referansına göre bir parametre döndürür, ancak geçerli yönteme göre kapsamlandırılır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is scoped to the current method</source>
+        <target state="translated">Bu, geçerli yöntemin kapsamına giren '{0}' parametresinin bir üyesini referans alarak döndürür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2_Title">
+        <source>This returns by reference a member of parameter that is scoped to the current method</source>
+        <target state="translated">Bu, geçerli yöntemin kapsamına giren bir parametre üyesine başvurarak döndürür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter_Title">
+        <source>This returns a parameter by reference but it is scoped to the current method</source>
+        <target state="translated">Bu, referansa göre bir parametre döndürür, ancak geçerli yönteme göre kapsamlandırılır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">Struct üyesi, 'tis' veya diğer örnek üyelerini referans olarak döndürür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis_Title">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">Struct üyesi, 'tis' veya diğer örnek üyelerini referans olarak döndürür</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">'{0}' parametresi null olmadığından dönüş değeri de null olmamalıdır.</target>
@@ -2064,22 +2364,22 @@
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi geçersiz kılınan veya uygulanan üyeyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
         <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' modifier of parameter doesn't match overridden or implemented member.</target>
+        <target state="translated">Parametrenin 'kapsamlı' değiştiricisi, geçersiz kılınan veya uygulanan üyeyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi, '{1}' hedefiyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
         <source>The 'scoped' modifier of parameter doesn't match target.</source>
-        <target state="new">The 'scoped' modifier of parameter doesn't match target.</target>
+        <target state="translated">Parametrenin 'kapsamlı' değiştiricisi hedefle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -5022,8 +5322,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">Bir özellik veya dizin erişimcisi, out veya ref parametresi olarak geçilemez</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="translated">Başvuru döndürmeyen bir özellik veya dizin oluşturucu, out veya ref değeri olarak kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -5133,7 +5433,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Bir params parametresi resmi bir parametre listesindeki son parametre olmalıdır</target>
+        <target state="translated">Params parametresi, parametre listesindeki son parametre olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5248,7 +5548,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
         <source>An __arglist parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Bir __arglist parametresi, biçimsel parametre listesindeki son parametre olmalıdır</target>
+        <target state="translated">Bir __arglist parametresi, parametre listesindeki son parametre olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8150,13 +8450,13 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
-        <source>Cannot assign to {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">Salt okunur değişken olduğundan {0} '{1}' hedefine atama yapılamaz</target>
+        <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">Salt okunur bir değişken olduğu için {0} '{1}' ye atanamaz veya bir başvuru atamasının sağ tarafı olarak kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
-        <source>Cannot assign to a member of {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">Salt okunur değişken olduğundan bir {0} '{1}' üyesine atama yapılamaz</target>
+        <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">Salt okunur bir değişken olduğu için {0} '{1}'nin bir üyesine atanamaz veya bir başvuru atamasının sağ tarafı olarak kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -8230,8 +8530,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Bu zaman uyumsuz bir yöntem olduğundan, dönüş ifadesi 'Task&lt;{0}&gt;' yerine '{0}' türünde olmalıdır</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">Bu, zaman uyumsuz bir yöntem olduğundan, döndürme ifadesi '{1}' türü yerine '{0}' türünde olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9393,8 +9693,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">'{0}' 'Task' döndüren zaman uyumsuz bir yöntem olduğundan, dönüş anahtar sözcüğü bir nesne ifadesi tarafından izlenmemelidir. 'Task&lt;T&gt;' döndürmek mi istiyordunuz?</target>
+        <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
+        <target state="translated">'{0}', '{1}' döndüren bir zaman uyumsuz yöntem olduğundan döndürme anahtar sözcüğünün ardından nesne ifadesi gelmemelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -9961,7 +10261,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
         <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
-        <target state="needs-review-translation">'{1}' öğesinin gereken resmi '{0}' parametresine karşılık gelen hiçbir bağımsız değişken yok</target>
+        <target state="translated">'{1}'nin gerekli '{0}' parametresine karşılık gelen herhangi bir argüman yok</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">
@@ -10823,8 +11123,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Bir 'Task' döndüren temsilciye dönüştürülmüş zaman uyumsuz lambda ifadesi bir değer döndüremez. 'Task&lt;T&gt;' döndürmek mi istiyordunuz?</target>
+        <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
+        <target state="translated">'{0}' döndüren zaman uyumsuz lambda ifadesi dönüştürülen temsilci, bir değer döndüremez</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
-    internal sealed class TaskListListener : ITaskListListener, IDisposable
+    internal sealed class TaskListListener : ITaskListListener
     {
         private readonly CancellationToken _disposalToken;
         private readonly IGlobalOptionService _globalOptions;
@@ -29,12 +29,6 @@ namespace Microsoft.CodeAnalysis.TaskList
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> _onTaskListItemsUpdated;
         private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToTaskListItems = new();
-
-        /// <summary>
-        /// Remote service connection. Created on demand when we startup and then
-        /// kept around for the lifetime of this service.
-        /// </summary>
-        private RemoteServiceConnection<IRemoteTaskListService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -61,70 +55,22 @@ namespace Microsoft.CodeAnalysis.TaskList
                 _disposalToken);
         }
 
-        public void Dispose()
+        public void Start()
         {
-            _globalOptions.OptionChanged -= GlobalOptionChanged;
-
-            var connection = _lazyConnection;
-            _lazyConnection = null;
-
-            connection?.Dispose();
-        }
-
-        public async ValueTask StartAsync()
-        {
-            // Should only be started once.
-            Contract.ThrowIfTrue(_lazyConnection != null);
-
             // If we're in pull-diagnostics mode, then todo-comments will be handled by LSP.
-            var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (diagnosticMode == DiagnosticMode.Pull)
+            var diagnosticMode = _globalOptions.GetDiagnosticMode();
+            if (diagnosticMode == DiagnosticMode.LspPull)
                 return;
 
-            var cancellationToken = _disposalToken;
-
-            var client = await RemoteHostClient.TryGetClientAsync(_services, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                ComputeTaskListItemsInCurrentProcess(cancellationToken);
-                return;
-            }
-
-            _globalOptions.OptionChanged += GlobalOptionChanged;
-
-            // Pass ourselves in as the callback target for the OOP service.  As it discovers
-            // todo comments it will call back into us to notify VS about it.
-            _lazyConnection = client.CreateConnection<IRemoteTaskListService>(callbackTarget: this);
-
-            // Now kick off scanning in the OOP process.
-            // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await _lazyConnection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.ComputeTaskListItemsAsync(callbackId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private void ComputeTaskListItemsInCurrentProcess(CancellationToken cancellationToken)
-        {
             var registrationService = _services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcTaskListIncrementalAnalyzerProvider(this);
+            var analyzerProvider = new TaskListIncrementalAnalyzerProvider(this);
 
             registrationService.AddAnalyzerProvider(
                 analyzerProvider,
                 new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcTaskListIncrementalAnalyzerProvider),
+                    nameof(TaskListIncrementalAnalyzerProvider),
                     highPriorityForActiveFile: false,
                     workspaceKinds: WorkspaceKind.Host));
-        }
-
-        private void GlobalOptionChanged(object? sender, OptionChangedEventArgs e)
-        {
-            // Notify remote service that TokenList changed and the solution needs to be re-analyzed:
-            if (e.Option == TaskListOptionsStorage.Descriptors && _lazyConnection != null)
-            {
-                // only perform the call if connection has not been disposed:
-                _ = Task.Run(() => _lazyConnection?.TryInvokeAsync((service, cancellationToken) => service.ReanalyzeAsync(cancellationToken), _disposalToken))
-                    .ReportNonFatalErrorUnlessCancelledAsync(_disposalToken);
-            }
         }
 
         /// <summary>
@@ -140,7 +86,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 // report NFW before returning back to the remote process
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

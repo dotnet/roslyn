@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -138,6 +139,41 @@ namespace Microsoft.CodeAnalysis.Serialization
                 writer.WriteInt32((int)SerializationKinds.Bits);
                 _text.WriteTo(writer, cancellationToken);
             }
+        }
+
+        public static SerializableSourceText Deserialize(
+            ObjectReader reader,
+            ITemporaryStorageServiceInternal storageService,
+            ITextFactoryService textService,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
+            var encoding = (Encoding)reader.ReadValue();
+
+            var kind = (SerializationKinds)reader.ReadInt32();
+            if (kind == SerializationKinds.MemoryMapFile)
+            {
+                var storage2 = (ITemporaryStorageService2)storageService;
+
+                var name = reader.ReadString();
+                var offset = reader.ReadInt64();
+                var size = reader.ReadInt64();
+
+                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
+                if (storage is ITemporaryTextStorageWithName storageWithName)
+                {
+                    return new SerializableSourceText(storageWithName);
+                }
+                else
+                {
+                    return new SerializableSourceText(storage.ReadText(cancellationToken));
+                }
+            }
+
+            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
+            return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
         }
     }
 }

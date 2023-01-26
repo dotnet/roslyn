@@ -111,6 +111,25 @@ $$");
 $$");
         }
 
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+}");
+        }
+
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespaceBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+class C {}
+}");
+        }
+
         [Fact]
         public async Task TestAfterTypeDeclaration()
         {
@@ -226,7 +245,7 @@ global using Goo;");
 @"class C { void M() { ref $$ } }");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -234,7 +253,7 @@ global using Goo;");
 using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeGlobalUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -313,6 +332,13 @@ $$");
         {
             await VerifyKeywordAsync(
 @"public $$");
+        }
+
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestAfterFile()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"file $$");
         }
 
         [Fact]
@@ -420,6 +446,18 @@ $$");
     void Goo<T>()
       where T : IList<$$
       where U : T");
+        }
+
+        [Fact, WorkItem(64465, "https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecord_AbstractModifier()
+        {
+            await VerifyAbsenceAsync("abstract record $$");
+        }
+
+        [Fact, WorkItem(64465, "https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecord_SealedModifier()
+        {
+            await VerifyAbsenceAsync("sealed record $$");
         }
     }
 }

@@ -22,7 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits Symbol
         Implements IEventSymbol
 
-
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
         ' Do not make any changes to the public interface without making the corresponding change

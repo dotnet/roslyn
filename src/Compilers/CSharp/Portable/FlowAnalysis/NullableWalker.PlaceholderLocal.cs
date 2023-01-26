@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -50,19 +51,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
             public override TypeWithAnnotations TypeWithAnnotations => _type;
             internal override LocalDeclarationKind DeclarationKind => LocalDeclarationKind.None;
-            internal override SyntaxToken IdentifierToken => throw ExceptionUtilities.Unreachable;
+            internal override SyntaxToken IdentifierToken => throw ExceptionUtilities.Unreachable();
             internal override bool IsCompilerGenerated => true;
             internal override bool IsImportedFromMetadata => false;
             internal override bool IsPinned => false;
+            internal override bool IsKnownToReferToTempIfReferenceType => false;
             public override RefKind RefKind => RefKind.None;
-            internal override SynthesizedLocalKind SynthesizedKind => throw ExceptionUtilities.Unreachable;
+            internal override SynthesizedLocalKind SynthesizedKind => throw ExceptionUtilities.Unreachable();
             internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null) => null;
             internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) => ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
-            internal override SyntaxNode GetDeclaratorSyntax() => throw ExceptionUtilities.Unreachable;
-            internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) => throw ExceptionUtilities.Unreachable;
-            internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
-            internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
-            internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+            internal override SyntaxNode GetDeclaratorSyntax() => throw ExceptionUtilities.Unreachable();
+            internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+                SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+                ,
+                [CallerLineNumber] int createdAtLineNumber = 0,
+                [CallerFilePath] string createdAtFilePath = null
+#endif
+                ) => throw ExceptionUtilities.Unreachable();
+            internal override ScopedKind Scope => ScopedKind.None;
         }
     }
 }

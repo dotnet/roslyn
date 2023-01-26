@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
         {
             return triviaList
-                .Where(t => t is SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
+                .Where(t => t is (kind: SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
                 .LastOrNull();
         }
 

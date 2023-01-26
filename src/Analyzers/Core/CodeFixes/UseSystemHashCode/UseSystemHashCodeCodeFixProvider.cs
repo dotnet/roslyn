@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
+            if (!HashCodeAnalyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
             {
                 Debug.Fail("Could not get analyzer");
                 return;

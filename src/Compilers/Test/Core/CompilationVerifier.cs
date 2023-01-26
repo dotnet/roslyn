@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     else
                     {
-                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: \r\n{string.Join("\r\n", map.Keys)}");
+                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}{string.Join(Environment.NewLine, map.Keys)}");
                     }
                 }
 
@@ -160,6 +160,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public string DumpIL()
+        {
+            var output = new ICSharpCode.Decompiler.PlainTextOutput();
+            using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
+            string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
+            using var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage());
+            var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
+            var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
+            disassembler.WriteModuleContents(peFile);
+            return output.ToString();
+        }
+
         /// <summary>
 		/// Asserts that the emitted IL for a type is the same as the expected IL.
 		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
@@ -170,6 +182,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 		/// <param name="typeName">The non-fully-qualified name of the type</param>
 		/// <param name="expected">The expected IL</param>
         public void VerifyTypeIL(string typeName, string expected)
+        {
+            VerifyTypeIL(typeName, output => AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false));
+        }
+
+        /// <summary>
+        /// Invokes <paramref name="validateExpected"/> with the emitted IL for a type to validate it's expected.
+        /// Many core library types are in different assemblies on .Net Framework, and .Net Core.
+        /// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
+        /// or you run it on both, but provide a different expected output string for each.
+        /// See <see cref="ExecutionConditionUtil"/>.
+        /// </summary>
+        /// <param name="typeName">The non-fully-qualified name of the type</param>
+        /// <param name="validateExpected">An action to invoke with the emitted IL.</param>
+        public void VerifyTypeIL(string typeName, Action<string> validateExpected)
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput();
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
@@ -197,7 +223,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.True(found, "Could not find type named " + typeName);
                 }
             }
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
+
+            validateExpected(output.ToString());
         }
 
         public void Emit(
@@ -214,10 +241,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
             _allModuleData = testEnvironment.GetAllModuleData();
-            testEnvironment.Verify(peVerify);
+
+            try
+            {
+                testEnvironment.Verify(peVerify);
 #if NETCOREAPP
-            ILVerify(peVerify);
+                ILVerify(peVerify);
 #endif
+            }
+            catch (Exception) when (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
+            {
+                var il = DumpIL();
+                Console.WriteLine(il);
+
+                Environment.FailFast("Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782");
+            }
 
             if (expectedSignatures != null)
             {
@@ -257,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void ILVerify(Verification verification)
         {
-            if (verification == Verification.Skipped)
+            if (verification.Status.HasFlag(VerificationStatus.Skipped))
             {
                 return;
             }
@@ -268,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string name = module.SimpleName;
                 if (imagesByName.ContainsKey(name))
                 {
-                    if ((verification & Verification.FailsILVerify) != 0)
+                    if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
                     {
                         return;
                     }
@@ -283,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
             if (mscorlibModule is null)
             {
-                if ((verification & Verification.FailsILVerify) != 0)
+                if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
                 {
                     return;
                 }
@@ -294,19 +332,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Main module is the first one
             var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
 
-            var (succeeded, errorMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+            var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+            var expectedSuccess = !verification.Status.HasFlag(VerificationStatus.FailsILVerify);
 
-            switch (succeeded, (verification & Verification.FailsILVerify) == 0)
+            if (actualSuccess != expectedSuccess)
             {
-                case (true, true):
-                    return;
-                case (true, false):
-                    throw new Exception("IL Verify succeeded unexpectedly");
-                case (false, false):
-                    return;
-                case (false, true):
-                    throw new Exception("IL Verify failed unexpectedly: \r\n" + errorMessage);
+                throw new Exception(expectedSuccess ?
+                    $"IL Verify failed unexpectedly:{Environment.NewLine}{actualMessage}" :
+                    "IL Verify succeeded unexpectedly");
             }
+
+            if (!actualSuccess && verification.ILVerifyMessage != null && !IsEnglishLocal.Instance.ShouldSkip)
+            {
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(verification.ILVerifyMessage, actualMessage);
+            }
+
+            return;
 
             static (bool, string) verify(ILVerify.Verifier verifier, string corlibName, PEReader mainModule)
             {
@@ -334,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result, MetadataReader metadataReader)
             {
-                return string.Join("\r\n", result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
+                return string.Join(Environment.NewLine, result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
             }
 
             static string printMethod(MethodDefinitionHandle method, MetadataReader metadataReader)
@@ -537,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (actualPdbXml.StartsWith("<error>"))
                 {
-                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:\r\n{actualPdbXml}");
+                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:{Environment.NewLine}{actualPdbXml}");
                 }
 
                 markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);

@@ -18,22 +18,21 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
-using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using TaskListItem = Microsoft.CodeAnalysis.TaskList.TaskListItem;
 
 namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
-    [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTaskListService :
         ITaskListProvider,
-        IVsTypeScriptTodoCommentService,
-        IEventListener<object>,
-        IDisposable
+        IEventListener<object>
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly IAsyncServiceProvider _asyncServiceProvider;
         private readonly EventListenerTracker<ITaskListProvider> _eventListenerTracker;
         private readonly TaskListListener _listener;
 
@@ -46,10 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+            SVsServiceProvider asyncServiceProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
+            _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
             _eventListenerTracker = new EventListenerTracker<ITaskListProvider>(eventListeners, WellKnownEventListeners.TaskListProvider);
 
             _listener = new TaskListListener(
@@ -62,11 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                         TaskListUpdated?.Invoke(this, new TaskListUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));
                 },
                 threadingContext.DisposalToken);
-        }
-
-        public void Dispose()
-        {
-            _listener.Dispose();
         }
 
         void IEventListener<object>.StartListening(Workspace workspace, object _)
@@ -86,10 +82,16 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 var workspaceStatus = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
                 await workspaceStatus.WaitUntilFullyLoadedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
 
+                // Wait until the task list is actually visible so that we don't perform pointless work analyzing files
+                // when the user would not even see the results.  When we actually do register the analyer (in
+                // _listener.Start below), solution-crawler will reanalyze everything with this analayzer, so it will
+                // still find and present all the relevant items to the user.
+                await WaitUntilTaskListActivatedAsync().ConfigureAwait(false);
+
                 // Now that we've started, let the VS todo list know to start listening to us
                 _eventListenerTracker.EnsureEventListener(_workspace, this);
 
-                await _listener.StartAsync().ConfigureAwait(false);
+                _listener.Start();
             }
             catch (OperationCanceledException)
             {
@@ -102,19 +104,35 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
             }
         }
 
-        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
-        [Obsolete]
-        async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
-            Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
+        private async Task WaitUntilTaskListActivatedAsync()
         {
-            var converted = await TodoComment.ConvertAsync(document, todoComments, cancellationToken).ConfigureAwait(false);
+            var cancellationToken = _threadingContext.DisposalToken;
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var taskList = await _asyncServiceProvider.GetServiceAsync<SVsTaskList, ITaskList>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
 
-            await _listener.ReportTaskListItemsAsync(
-                document.Id, converted, cancellationToken).ConfigureAwait(false);
+            var control = taskList.TableControl.Control;
+
+            // if control is already visible, we can proceed to collect task list items.
+            if (control.IsVisible)
+                return;
+
+            // otherwise, wait for it to become visible.
+            var taskSource = new TaskCompletionSource<bool>();
+            control.IsVisibleChanged += Control_IsVisibleChanged;
+
+            await taskSource.Task.ConfigureAwait(false);
+
+            return;
+
+            void Control_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+            {
+                if (control.IsVisible)
+                {
+                    control.IsVisibleChanged -= Control_IsVisibleChanged;
+                    taskSource.TrySetResult(true);
+                }
+            }
         }
-
-        async Task IVsTypeScriptTodoCommentService.ReportTaskListItemsAsync(Document document, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
-            => await _listener.ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
 
         public ImmutableArray<TaskListItem> GetTaskListItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => _listener.GetTaskListItems(documentId);

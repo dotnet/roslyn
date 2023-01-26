@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
                 // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public async Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken)

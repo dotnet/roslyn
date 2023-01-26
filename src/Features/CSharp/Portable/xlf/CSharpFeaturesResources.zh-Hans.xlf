@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Apply_readonly_struct_preferences">
         <source>Apply 'readonly struct' preferences</source>
-        <target state="new">Apply 'readonly struct' preferences</target>
+        <target state="translated">应用“只读结构”首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
@@ -152,10 +152,20 @@
         <target state="translated">更改为强制转换</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">将“{0}”转换为 record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">转换为方法</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">转换为位置 record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
@@ -187,14 +197,14 @@
         <target state="translated">在项目中启用可为 null 的引用类型</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">在解决方案中启用可为 null 的引用类型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">全局 'using' 指令</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">内联临时变量</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -226,6 +236,11 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">反向“for”语句</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">选择不能位于构造函数初始化表达式中</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
@@ -764,7 +779,7 @@
       </trans-unit>
       <trans-unit id="without_leading_whitespace_may_change_semantics">
         <source>... without leading whitespace (may change semantics)</source>
-        <target state="translated">...不带前导空格（可能会更改语义）</target>
+        <target state="translated">...不带前导空格 (可能会更改语义)</target>
         <note>This clause is a follow up to the "Convert to raw string" loc string.
     The intent is that the user sees "Convert to raw string" as an option to select,
     and that is then followed with this clause.  This is so we don't have a huge string

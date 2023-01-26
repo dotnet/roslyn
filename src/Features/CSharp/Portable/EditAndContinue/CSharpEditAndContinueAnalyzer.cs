@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.ArrowExpressionClause:
                         // represents getter symbol declaration node of a property/indexer with expression body
-                        if (current.Parent.IsKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration))
+                        if (current.Parent is (kind: SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration))
                         {
                             declarations = new(current);
                             return true;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </returns>
         internal override SyntaxNode? TryGetDeclarationBody(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax? variableDeclarator))
+            if (node is VariableDeclaratorSyntax variableDeclarator)
             {
                 return variableDeclarator.Initializer?.Value;
             }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             var bodyTokens = SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
 
-            if (node.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax? ctor))
+            if (node is ConstructorDeclarationSyntax ctor)
             {
                 if (ctor.Initializer != null)
                 {
@@ -1014,9 +1014,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // closing brace of a using statement or a block that contains using local declarations:
                     if (statementPart == (int)BlockPart.CloseBrace)
                     {
-                        if (oldStatement.Parent.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? oldUsing))
+                        if (oldStatement.Parent is UsingStatementSyntax oldUsing)
                         {
-                            return newStatement.Parent.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? newUsing) &&
+                            return newStatement.Parent is UsingStatementSyntax newUsing &&
                                 AreEquivalentActiveStatements(oldUsing, newUsing);
                         }
 
@@ -1151,28 +1151,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => node.IsKind(SyntaxKind.InterfaceDeclaration);
 
         internal override bool IsRecordDeclaration(SyntaxNode node)
-            => node.IsKind(SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration);
+            => node.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration;
 
         internal override SyntaxNode? TryGetContainingTypeDeclaration(SyntaxNode node)
             => node is CompilationUnitSyntax ? null : node.Parent!.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
-            => propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDecl) &&
+            => propertyOrIndexerDeclaration is PropertyDeclarationSyntax propertyDecl &&
                SyntaxUtilities.HasBackingField(propertyDecl);
 
         internal override bool TryGetAssociatedMemberDeclaration(SyntaxNode node, EditKind editKind, [NotNullWhen(true)] out SyntaxNode? declaration)
         {
-            if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
+            if (node.Kind() is SyntaxKind.Parameter or SyntaxKind.TypeParameter)
             {
-                Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList, SyntaxKind.BracketedParameterList));
-                declaration = node.Parent!.Parent!;
+                Contract.ThrowIfFalse(node.Parent is (kind:
+                    SyntaxKind.ParameterList or
+                    SyntaxKind.TypeParameterList or
+                    SyntaxKind.BracketedParameterList));
+                declaration = node.Parent.Parent!;
                 return true;
             }
 
             // For deletes, we don't associate accessors with their parents, as deleting accessors is allowed
-            if (editKind != EditKind.Delete && node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration))
+            if (editKind != EditKind.Delete &&
+                node.Parent?.Parent is (kind:
+                    SyntaxKind.PropertyDeclaration or
+                    SyntaxKind.IndexerDeclaration or
+                    SyntaxKind.EventDeclaration))
             {
-                declaration = node.Parent.Parent!;
+                declaration = node.Parent.Parent;
                 return true;
             }
 
@@ -1248,6 +1255,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             switch (editKind)
             {
+                case EditKind.Reorder:
+                    Contract.ThrowIfNull(oldNode);
+
+                    if (oldNode is ParameterSyntax)
+                    {
+                        Debug.Assert(oldSymbol is IParameterSymbol);
+                        Debug.Assert(newSymbol is IParameterSymbol);
+
+                        // When parameters are reordered, we issue an update edit for the containing method
+                        return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update));
+                    }
+                    else if (IsGlobalStatement(oldNode))
+                    {
+                        // When global statements are reordered, we issue an update edit for the synthesized main method, which is what
+                        // oldSymbol and newSymbol will point to
+                        return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol, newSymbol, EditKind.Update));
+                    }
+
+                    // Otherwise, we don't do any semantic checks for reordering
+                    // and we don't need to report them to the compiler either.
+                    // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
+
+                    // Consider: Reordering of fields is not allowed since it changes the layout of the type.
+                    // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
+                    // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
+                    Debug.Assert(!IsDeclarationWithInitializer(oldNode!) && !IsDeclarationWithInitializer(newNode!));
+                    return OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty;
+
                 case EditKind.Update:
                     Contract.ThrowIfNull(oldNode);
                     Contract.ThrowIfNull(newNode);
@@ -1381,9 +1416,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     Debug.Assert(SupportsMove(oldNode));
                     Debug.Assert(SupportsMove(newNode));
 
-                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement) ?
-                        OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty :
-                        OneOrMany.Create((oldSymbol, newSymbol, editKind));
+                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement)
+                        ? OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty
+                        : OneOrMany.Create((oldSymbol, newSymbol, editKind));
             }
 
             return (editKind == EditKind.Delete ? oldSymbol : newSymbol) is null ?
@@ -1395,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
+            if (node.Kind() is SyntaxKind.UsingDirective or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration)
             {
                 return null;
             }
@@ -2323,7 +2358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.TypeParameter:
-                    case SyntaxKind.Parameter:
                         ReportError(RudeEditKind.Move);
                         return;
                 }
@@ -2625,9 +2659,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     return TextSpan.FromBounds(
                         tryStatement.Catches.First().SpanStart,
-                        (tryStatement.Finally != null) ?
-                            tryStatement.Finally.Span.End :
-                            tryStatement.Catches.Last().Span.End);
+                        (tryStatement.Finally != null)
+                            ? tryStatement.Finally.Span.End
+                            : tryStatement.Catches.Last().Span.End);
 
                 case SyntaxKind.CatchClause:
                     coversAllChildren = true;
@@ -2846,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool IsSimpleAwaitAssignment(SyntaxNode node, SyntaxNode awaitExpression)
         {
-            if (node.IsKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment))
+            if (node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment)
             {
                 return assignment.Left.IsKind(SyntaxKind.IdentifierName) && assignment.Right == awaitExpression;
             }
@@ -2919,8 +2953,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool AreLabelsEquivalent(SwitchLabelSyntax oldLabel, SwitchLabelSyntax newLabel)
         {
-            if (oldLabel.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax? oldCasePatternLabel) &&
-                newLabel.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax? newCasePatternLabel))
+            if (oldLabel is CasePatternSwitchLabelSyntax oldCasePatternLabel &&
+                newLabel is CasePatternSwitchLabelSyntax newCasePatternLabel)
             {
                 // ignore the actual when expressions:
                 return SyntaxFactory.AreEquivalent(oldCasePatternLabel.Pattern, newCasePatternLabel.Pattern) &&
@@ -3014,7 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ReportUnmatchedStatements<UsingStatementSyntax>(
                 diagnostics,
                 match,
-                n => n.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? usingStatement) && usingStatement.Declaration is null,
+                n => n is UsingStatementSyntax usingStatement && usingStatement.Declaration is null,
                 oldActiveStatement,
                 newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,

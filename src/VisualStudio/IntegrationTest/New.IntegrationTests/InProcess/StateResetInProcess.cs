@@ -53,13 +53,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             static void ResetOption<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
-                globalOptions.SetGlobalOption(new OptionKey(option, language: null), option.DefaultValue);
+                globalOptions.SetGlobalOption(option, option.DefaultValue);
             }
 
             static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
             {
-                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
-                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
+                globalOptions.SetGlobalOption(option, LanguageNames.CSharp, option.DefaultValue);
+                globalOptions.SetGlobalOption(option, LanguageNames.VisualBasic, option.DefaultValue);
             }
         }
 
@@ -94,7 +94,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     break;
                 }
 
-                await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE);
+                await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, cancellationToken);
                 var nextModalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
                 if (nextModalWindow == modalWindow)
                 {

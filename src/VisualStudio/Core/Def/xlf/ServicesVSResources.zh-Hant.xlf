@@ -82,6 +82,11 @@
         <target state="translated">一律使用預設符號伺服器進行流覽</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">分析來源產生的檔案</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">分析器預設值</target>
@@ -1093,7 +1098,7 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a stack trace to view and navigate its values.</source>
+        <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">貼上堆疊追蹤以檢視及瀏覽其值。</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
@@ -1144,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
-        <target state="new">Prefer read-only struct</target>
+        <target state="translated">偏好唯讀結構</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">

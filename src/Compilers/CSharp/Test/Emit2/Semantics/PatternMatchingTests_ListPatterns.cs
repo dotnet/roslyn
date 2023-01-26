@@ -3090,6 +3090,163 @@ class X
             );
     }
 
+    [Fact, WorkItem(65876, "https://github.com/dotnet/roslyn/issues/65876")]
+    public void ListPattern_Negated_03()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}));
+        Console.WriteLine(M1(new[]{2,1}));
+        Console.WriteLine(M1(new[]{1}));
+        Console.WriteLine(M1(new[]{0}));
+        
+        Console.WriteLine(M2(new[]{1,2}));
+        Console.WriteLine(M2(new[]{2,1}));
+        Console.WriteLine(M2(new[]{1}));
+        Console.WriteLine(M2(new[]{0}));
+    }
+    
+    public static bool M1(int[] a) {
+        return a is not ([1,2,..] or [..,2,1] or [1]);
+    }
+    public static bool M2(int[] a) {
+        return !(a is ([1,2,..] or [..,2,1] or [1]));
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+False
+False
+False
+True
+False
+False
+False
+True
+");
+    }
+
+    [Fact]
+    public void ListPattern_Negated_04()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}));
+        Console.WriteLine(M1(new[]{2,1}));
+        Console.WriteLine(M1(new[]{1}));
+        Console.WriteLine(M1(new[]{0}));
+        
+        Console.WriteLine(M2(new[]{1,2}));
+        Console.WriteLine(M2(new[]{2,1}));
+        Console.WriteLine(M2(new[]{1}));
+        Console.WriteLine(M2(new[]{0}));
+    }
+    
+    public static int M1(int[] a) {
+        return a switch 
+        {
+            not ([1,2,..] or [..,2,1] or [1]) => 1, 
+            [1,2,..] => 2,
+            [..,2,1] => 3,
+            [1] => 4,
+        };
+    }
+    public static int M2(int[] a) {
+        switch (a) 
+        {
+            case not ([1,2,..] or [..,2,1] or [1]):
+                return 1; 
+            case [1,2,..]:
+                return 2;
+            case [..,2,1]:
+                return 3;
+            case [1]:
+                return 4;
+        }
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+2
+3
+4
+1
+2
+3
+4
+1
+");
+    }
+
+    [Fact]
+    public void ListPattern_Negated_05()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}, new[]{1}));
+        Console.WriteLine(M1(new[]{1}, new[]{2,1}));
+        Console.WriteLine(M1(new[]{2,1}, new[]{1,2}));
+        Console.WriteLine(M1(new[]{0}, new[]{0}));
+
+        Console.WriteLine(M2(new[]{1,2}, new[]{1}));
+        Console.WriteLine(M2(new[]{1}, new[]{2,1}));
+        Console.WriteLine(M2(new[]{2,1}, new[]{1,2}));
+        Console.WriteLine(M2(new[]{0}, new[]{0}));
+    }
+    
+    public static int M1(int[] a, int[] b) {
+        return (a, b) switch 
+        {
+            (not ([1,2,..] or [..,2,1] or [1]),
+             not ([1,2,..] or [..,2,1] or [1])) => 1, 
+            ([1,2,..] or [1], [..,2,1] or [1]) => 2,
+            ([..,2,1], [1,2,..]) => 3,
+            _ => 0
+        };
+    }
+    public static int M2(int[] a, int[] b) {
+        switch (a, b) 
+        {
+            case (not ([1,2,..] or [..,2,1] or [1]),
+                  not ([1,2,..] or [..,2,1] or [1])):
+                return 1; 
+            case ([1,2,..] or [1], [..,2,1] or [1]):
+                return 2;
+            case ([..,2,1], [1,2,..]):
+                return 3;
+            default:
+                return 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+2
+2
+3
+1
+2
+2
+3
+1
+");
+    }
+
     [Fact]
     public void ListPattern_UseSiteErrorOnIndexerAndSlice()
     {
@@ -4893,9 +5050,9 @@ _ = o switch // 9, didn't test for [null]
             // (72,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null, _]' is not covered.
             // _ = o switch // 7, didn't test for [null, _]
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null, _]").WithLocation(72, 7),
-            // (80,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // (80,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[]' is not covered.
             // _ = o switch // 8, didn't test for { Length: 0 }
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(80, 7),
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[]").WithLocation(80, 7),
             // (86,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
             // _ = o switch // 9, didn't test for [null]
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(86, 7)
@@ -5645,40 +5802,40 @@ class C
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[_, _]' is not covered.
             // _ = new C() switch // 1
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 2 }").WithLocation(2, 13),
-            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[_, _]").WithLocation(2, 13),
+            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[_]' is not covered.
             // _ = new C() switch // 2
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(9, 13),
-            // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[_]").WithLocation(9, 13),
+            // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[_]' is not covered.
             // _ = new C() switch // 3
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(16, 13)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[_]").WithLocation(16, 13)
             );
 
         comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[_, _]' is not covered.
             // _ = new C() switch // 1
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 2 }").WithLocation(2, 13),
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[_, _]").WithLocation(2, 13),
             // (5,5): error CS0518: Predefined type 'System.Index' is not defined or imported
             //     [_] => 1,
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_]").WithArguments("System.Index").WithLocation(5, 5),
             // (5,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
             //     [_] => 1,
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[_]").WithArguments("System.Index", "GetOffset").WithLocation(5, 5),
-            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[_]' is not covered.
             // _ = new C() switch // 2
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(9, 13),
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[_]").WithLocation(9, 13),
             // (13,5): error CS0518: Predefined type 'System.Index' is not defined or imported
             //     [ _, _, .. ] => 2,
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[ _, _, .. ]").WithArguments("System.Index").WithLocation(13, 5),
             // (13,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
             //     [ _, _, .. ] => 2,
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[ _, _, .. ]").WithArguments("System.Index", "GetOffset").WithLocation(13, 5),
-            // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[_]' is not covered.
             // _ = new C() switch // 3
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(16, 13),
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[_]").WithLocation(16, 13),
             // (20,5): error CS0518: Predefined type 'System.Index' is not defined or imported
             //     [_, _] => 2,
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_, _]").WithArguments("System.Index").WithLocation(20, 5),
@@ -5732,9 +5889,9 @@ class C
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 0 }' is not covered.
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[]' is not covered.
             // _ = new C() switch // 1
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 0 }").WithLocation(2, 13),
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[]").WithLocation(2, 13),
             // (8,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[0]' is not covered.
             // _ = new C() switch // 2
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[0]").WithLocation(8, 13)
@@ -5901,9 +6058,9 @@ class C
 ";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[]' is not covered.
             // _ = new C() switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(2, 13)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[]").WithLocation(2, 13)
             );
     }
 
@@ -7344,15 +7501,15 @@ _ = a switch // 6
             // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //     { Length: -1 } => 0, // 3
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(9, 5),
-            // (12,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // (12,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[]' is not covered.
             // _ = a switch // 4
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(12, 7),
-            // (17,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[]").WithLocation(12, 7),
+            // (17,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[]' is not covered.
             // _ = a switch // 5
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(17, 7),
-            // (22,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[]").WithLocation(17, 7),
+            // (22,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[]' is not covered.
             // _ = a switch // 6
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(22, 7),
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[]").WithLocation(22, 7),
             // (24,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //     { Length: -1 } => 0, // 7
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(24, 5)

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (operation.SemanticModel != null)
                 {
-                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingModelOrSelf);
+                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingPublicModelOrSelf);
                 }
             }
             base.Visit(operation);
@@ -736,9 +736,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
 
-            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
-            // potentially creating synthesized intrinsic operators.
-            CheckBuiltInOperators(operation.SemanticModel, operation.Syntax);
+            CheckOperators(operation.SemanticModel, operation.Syntax);
         }
 
         public override void VisitBinaryOperator(IBinaryOperation operation)
@@ -773,29 +771,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.ChildOperations);
 
-            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
-            // potentially creating synthesized intrinsic operators.
-            CheckBuiltInOperators(operation.SemanticModel, operation.Syntax);
+            CheckOperators(operation.SemanticModel, operation.Syntax);
         }
 
-        private static void CheckBuiltInOperators(SemanticModel semanticModel, SyntaxNode syntax)
+        private static void CheckOperators(SemanticModel semanticModel, SyntaxNode syntax)
         {
+            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
+            // potentially creating synthesized intrinsic operators.
             var symbolInfo = semanticModel?.GetSymbolInfo(syntax) ?? default;
+
             foreach (var symbol in symbolInfo.GetAllSymbols())
             {
-                if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
+                if (symbol is IMethodSymbol method)
                 {
-                    switch (method.Parameters.Length)
+                    VisualBasic.SymbolDisplay.ToDisplayString(method, SymbolDisplayFormat.TestFormat);
+                    VisualBasic.SymbolDisplay.ToDisplayString(method);
+                    CSharp.SymbolDisplay.ToDisplayString(method, SymbolDisplayFormat.TestFormat);
+                    CSharp.SymbolDisplay.ToDisplayString(method);
+
+                    if (method.MethodKind == MethodKind.BuiltinOperator)
                     {
-                        case 1:
-                            semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type);
-                            break;
-                        case 2:
-                            semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
-                            break;
-                        default:
-                            AssertEx.Fail($"Unexpected parameter count for built in method: {method.ToDisplayString()}");
-                            break;
+                        switch (method.Parameters.Length)
+                        {
+                            case 1:
+                                semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type);
+                                break;
+                            case 2:
+                                semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                                break;
+                            default:
+                                AssertEx.Fail($"Unexpected parameter count for built in method: {method.ToDisplayString()}");
+                                break;
+                        }
                     }
                 }
             }
@@ -836,6 +843,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
+
+            if (operatorMethod != null)
+            {
+                VisualBasic.SymbolDisplay.ToDisplayString(operatorMethod, SymbolDisplayFormat.TestFormat);
+                VisualBasic.SymbolDisplay.ToDisplayString(operatorMethod);
+                CSharp.SymbolDisplay.ToDisplayString(operatorMethod, SymbolDisplayFormat.TestFormat);
+                CSharp.SymbolDisplay.ToDisplayString(operatorMethod);
+            }
         }
 
         private static void AssertConstrainedToType(ISymbol member, ITypeSymbol constrainedToType)
@@ -1786,6 +1801,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _ = operation.CloneMethod;
             IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
             AssertEx.Equal(children, operation.ChildOperations);
+        }
+
+        public override void VisitAttribute(IAttributeOperation operation)
+        {
+            Assert.Equal(OperationKind.Attribute, operation.Kind);
+            Assert.False(operation.ConstantValue.HasValue);
         }
     }
 }

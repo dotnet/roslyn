@@ -207,11 +207,6 @@
         <target state="translated">運算子 '{0}' 不可套用至運算元 '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="translated">參數修飾元 '{0}' 不能跟隨 '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">模式比對運算元無效; 需要值，但找到 '{0}'。</target>
@@ -225,6 +220,11 @@
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">記錄成員 '{0}' 必須是類型 '{1}' 的可讀取執行個體屬性或欄位，才能符合位置參數 '{2}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -365,6 +365,11 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">名稱 '{0}' 與對應的 'Deconstruct' 參數 '{1}' 不相符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="translated">解構變數不可宣告為參考本機</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -594,12 +599,12 @@
       </trans-unit>
       <trans-unit id="ERR_FileLocalDuplicateNameInNS">
         <source>The namespace '{1}' already contains a definition for '{0}' in this file.</source>
-        <target state="new">The namespace '{1}' already contains a definition for '{0}' in this file.</target>
+        <target state="translated">命名空間 '{1}' 已在此檔案中包含 '{0}' 的定義。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
         <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
-        <target state="new">File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</target>
+        <target state="translated">無法使用檔案-本機類型 '{0}'，因為無法將包含的檔案路徑轉換成相等的 UTF-8 位元組標記法。{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
@@ -639,7 +644,7 @@
       </trans-unit>
       <trans-unit id="ERR_FileTypeNonUniquePath">
         <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
-        <target state="new">File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</target>
+        <target state="translated">檔案-本機類型 '{0}' 必須在具有唯一路徑的檔案中宣告。路徑 '{1}' 用於多個檔案。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -663,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">不支援在屬性的 'typeof' 中使用函式指標類型。</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">不支援在屬性的 'typeof' 中使用函式指標類型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -750,6 +755,11 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">隱含 Range 索引子的引動過程無法為引數命名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="translated">隱含輸入的 Lambda 參數 '{0}' 不能有預設值。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1274,7 +1284,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
         <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
-        <target state="new">'readonly' is not supported as a parameter modifier. Did you mean 'in'?</target>
+        <target state="translated">不支援使用 'readonly' 做為參數修飾元。您的意思是 'in' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
@@ -1292,6 +1302,16 @@
         <target state="translated">不能將 '{1}' 參考指派至 '{0}'，因為 '{1}' 的逸出範圍比 '{0}' 還要窄。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignReturnOnly">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">無法將 '{1}' 參考指派至 '{0}'，因為 '{1}' 只能透過 return 陳述式逸出目前的方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">無法參考指派 '{1}' 給 '{0}'，因為 '{1}' 具有比 '{0}' 更寬的值逸出範圍，允許透過 '{0}' 的值指派，其逸出範圍比 '{1}' 更窄。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">ref 欄位不能參考 ref 結構。</target>
@@ -1305,6 +1325,26 @@
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">參考指派的左側必須為 ref 變數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter">
+        <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">無法透過 ref 參數藉傳址方式傳回參數 '{0}'; 只能在 return 陳述式中傳回</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">無法透過 ref 參數藉傳址方式傳回參數成員 '{0}'; 只能在 return 陳述式中傳回</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter">
+        <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
+        <target state="translated">無法藉傳址方式 '{0}' 傳回參數，因為它的範圍是目前的方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</source>
+        <target state="translated">無法藉傳址方式傳回參數 '{0}' 的成員，因為它的範圍是目前的方法</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1392,6 +1432,11 @@
         <target state="translated">目標執行階段不支援可延伸或執行階段環境的預設呼叫慣例。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="translated">'scoped' 修飾元不能與捨棄一起使用。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
         <target state="translated">參數 '{0}' 的 'scoped' 修飾元不符合覆寫或實作的成員。</target>
@@ -1405,11 +1450,6 @@
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
         <target state="translated">參數 '{0}' 的 'scoped' 修飾元不符合目標 '{1}'。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ScopedNotBeforeType">
-        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
-        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
@@ -1602,9 +1642,24 @@
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法轉換為委派類型。取得此方法的函式指標。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="translated">UnscopedRefAttribute 無法套用至介面實作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="translated">UnscopedRefAttribute 只能套用至結構執行個體方法和屬性，且無法套用至建構函式或僅 init 成員。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="translated">UnscopedRefAttribute 只能套用至參照 'ref struct' 類型的 'out' 參數、'ref' 和 'in' 參數，以及建構函式和 'init' 存取子以外的 'struct' 類型上的執行個體方法和屬性。</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="translated">UnscopedRefAttribute 無法套用到此參數，因為預設是不限範圍。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1742,6 +1797,16 @@
         <target state="translated">Lambda 屬性</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaOptionalParameters">
+        <source>lambda optional parameters</source>
+        <target state="translated">Lambda 選用參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaParamsArray">
+        <source>lambda params array</source>
+        <target state="translated">Lambda 參數陣列</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="translated">lambda 傳回型別</target>
@@ -1832,6 +1897,11 @@
         <target state="translated">常數字串上的模式比對 ReadOnly/Span&lt;char&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="translated">&lt;missing&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">指標元素存取</target>
@@ -1865,6 +1935,16 @@
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">無法在此內容中使用類型，因為它無法在中繼資料中表示。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing">
+        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">對 '{0}' 使用此引數組合，會在其宣告範圍外公開參數 '{1}' 所參考的變數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing_Title">
+        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">此引數組合會在其宣告範圍外公開參數所參考的變數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -1949,12 +2029,52 @@
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
-        <target state="new">Analyzer reference '{0}' specified multiple times</target>
+        <target state="translated">已指定多次分析器參考 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
-        <target state="new">Analyzer reference specified multiple times</target>
+        <target state="translated">已指定多次分析器參考</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall">
+        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">在此內容中使用 '{0}' 的結果，可能會將參數 '{1}' 參考的變數公開在其宣告範圍外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2">
+        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">此內容中使用 '{0}' 的結果成員，可能會將參數 '{1}' 參考的變數公開在其宣告範圍外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2_Title">
+        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">無法在此內容中使用結果的成員，因為它會將參數參考的變數公開在其宣告範圍外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall_Title">
+        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">在此內容中使用結果，可能會將參數參考的變數公開在其宣告範圍外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc">
+        <source>A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</source>
+        <target state="translated">此內容中類型 '{0}' 的 stackalloc 運算式結果可能會公開在包含方法之外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc_Title">
+        <source>A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</source>
+        <target state="translated">此內容中此類型的 stackalloc 運算式結果可能會公開在包含方法之外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable">
+        <source>Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">在此內容中使用變數 '{0}'，可能會將參考的變數公開在其宣告範圍外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable_Title">
+        <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">在此內容中使用變數，可能會將參考的變數公開在其宣告範圍外</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -1977,6 +2097,16 @@
         <target state="translated">類型名稱只包含小寫的 ASCII 字元。此類名稱可能保留供此語言使用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="translated">這會取得 Managed 類型 ('{0}') 的位址、大小，或宣告指向它的指標</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="translated">這會取得 Managed 類型的位址、大小，或宣告指向它的指標</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
         <target state="translated">將方法群組 '{0}' 轉換成非委派類型 '{1}'。原本希望叫用該方法嗎?</target>
@@ -1987,6 +2117,16 @@
         <target state="translated">將方法群組轉換為非委派類型</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Ref 條件運算子的分支參考具有不相容宣告範圍的變數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Ref 條件運算子的分支參考具有不相容宣告範圍的變數</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
         <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">除非包含的類型已過時或所有建構函式已過時，否則必要成員 '{0}' 的屬性不應為 'ObsoleteAttribute'。</target>
@@ -1995,6 +2135,16 @@
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">除非包含的類型已過時或所有建構函式已過時，否則不應要求具有 'ObsoleteAttribute' 屬性的成員。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="translated">參數 {0} 在 Lambda 中的預設值為 '{1:10}'，但在目標委派類型中為 '{2:10}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch_Title">
+        <source>The default parameter value does not match in the target delegate type.</source>
+        <target state="translated">目標委派類型中的預設參數值不相符。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2015,6 +2165,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">差補字串處理常式轉換的參數會在處理常式參數後發生</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">參數 {0} 在 Lambda 中具有參數修飾元，但不在目標委派類型中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">參數在 Lambda 中具有參數修飾元，但不在目標委派類型中。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2052,6 +2212,146 @@
         <target state="translated">類型與別名不應命名為 'record'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="translated">此參考指派 '{1}' 至 '{0}'，但 '{1}' 的逸出範圍比 '{0}' 還要窄。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower_Title">
+        <source>This ref-assigns a value that has a narrower escape scope than the target.</source>
+        <target state="translated">此參考指派的值比目標的逸出範圍更窄。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">此參考指派 '{1}' 至 '{0}'，但 '{1}' 只能透過 return 陳述式逸出目前的方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly_Title">
+        <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
+        <target state="translated">此參考指派的值只能透過 return 陳述式逸出目前的方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">此參考指派 '{1}' 給 '{0}' 但 '{1}' 具有比 '{0}' 更寬的值逸出範圍，允許透過 '{0}' 的值指派，其逸出範圍比 '{1}' 更窄。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="translated">此參考指派的值比目標的逸出範圍更寬，允許透過目標的值指派，其逸出範圍更窄。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal">
+        <source>This returns local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">這會藉傳址方式傳回本機 '{0}'，但其非參考本機</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2">
+        <source>This returns a member of local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">這會藉傳址方式傳回本機 '{0}' 的成員，但其非參考本機</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2_Title">
+        <source>This returns a member of local by reference but it is not a ref local</source>
+        <target state="translated">這會藉傳址方式傳回本機的成員，但其非參考本機</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal_Title">
+        <source>This returns local by reference but it is not a ref local</source>
+        <target state="translated">這會藉傳址方式傳回本機，但其非參考本機</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal">
+        <source>Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">藉傳址方式傳回本機 '{0}'，但已將其初始化為無法藉傳址方式傳回的值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2">
+        <source>A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">藉傳址方式傳回 '{0}' 的成員，但已將其初始化為無法藉傳址方式傳回的值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2_Title">
+        <source>A member is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">藉傳址方式傳回成員，但已將其初始化為無法藉傳址方式傳回的值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal_Title">
+        <source>Local is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">藉傳址方式傳回本機，但已將其初始化為無法藉傳址方式傳回的值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter">
+        <source>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">這會透過 ref 參數藉傳址 '{0}' 傳回參數; 但是只能在 return 陳述式中安全地傳回</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2">
+        <source>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">這會透過 ref 參數藉傳址方式傳回參數 '{0}' 的成員; 但是只能在 return 陳述式中安全地傳回</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2_Title">
+        <source>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">這會透過 ref 參數藉傳址方式傳回參數的成員; 但是只能在 return 陳述式中安全地傳回</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter_Title">
+        <source>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">這會透過 ref 參數藉傳址方式傳回參數; 但是只能在 return 陳述式中安全地傳回</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter">
+        <source>This returns a parameter by reference '{0}' but it is not a ref parameter</source>
+        <target state="translated">這會藉傳址方式 '{0}' 傳回參數，但其非 ref 參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is not a ref or out parameter</source>
+        <target state="translated">這會藉傳址方式傳回參數 '{0}' 的成員，其不是 ref 或 out 參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2_Title">
+        <source>This returns by reference a member of parameter that is not a ref or out parameter</source>
+        <target state="translated">這會藉傳址方式傳回參數的成員，其不是 ref 或 out 參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter_Title">
+        <source>This returns a parameter by reference but it is not a ref parameter</source>
+        <target state="translated">這會藉傳址方式傳回參數，但其非 ref 參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter">
+        <source>This returns a parameter by reference '{0}' but it is scoped to the current method</source>
+        <target state="translated">這會藉傳址 '{0}' 傳回參數，但範圍限於目前的方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is scoped to the current method</source>
+        <target state="translated">這會藉傳址方式傳回參數 '{0}' 的成員，其範圍是目前的方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2_Title">
+        <source>This returns by reference a member of parameter that is scoped to the current method</source>
+        <target state="translated">這會藉傳址方式傳回參數的成員，其範圍是目前的方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter_Title">
+        <source>This returns a parameter by reference but it is scoped to the current method</source>
+        <target state="translated">這會藉傳址方式傳回參數，但範圍限於目前的方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">結構成員藉傳址方式傳回 'this' 或其他執行個體成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis_Title">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">結構成員藉傳址方式傳回 'this' 或其他執行個體成員</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">因為參數 '{0}' 不是 null，所以傳回值必須非 null。</target>
@@ -2064,22 +2364,22 @@
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <target state="translated">參數 '{0}' 的 'scoped' 修飾元不符合覆寫或實作的成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
         <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' modifier of parameter doesn't match overridden or implemented member.</target>
+        <target state="translated">參數的 'scoped' 修飾元不符合覆寫或實作的成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <target state="translated">參數 '{0}' 的 'scoped' 修飾元不符合目標 '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
         <source>The 'scoped' modifier of parameter doesn't match target.</source>
-        <target state="new">The 'scoped' modifier of parameter doesn't match target.</target>
+        <target state="translated">參數的 'scoped' 修飾元不符合目標。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -5022,8 +5322,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">屬性或索引子不可以 out 或 ref 參數形式傳遞</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="translated">非參考傳回屬性或索引子不可以 out 或 ref 值形式使用</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -5133,7 +5433,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">params 參數必須是型式參數清單中的最後一個參數</target>
+        <target state="translated">params 參數必須是參數清單中的最後一個參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5248,7 +5548,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
         <source>An __arglist parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">__arglist 參數必須是型式參數清單的最後一個參數</target>
+        <target state="translated">__arglist 參數必須是參數清單的最後一個參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8150,13 +8450,13 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
-        <source>Cannot assign to {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">無法指派至 {0} '{1}'，因為它不是唯讀變數</target>
+        <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">無法指派給 {0} '{1}'，或將其用在 ref 指派的右邊，因為它是唯讀變數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
-        <source>Cannot assign to a member of {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">無法指派給 {0} '{1}' 的成員，因為它是唯讀變數</target>
+        <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">無法指派給 {0} '{1}' 的成員，或將其用在 ref 指派的右邊，因為它是唯讀變數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -8230,8 +8530,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">因為此為非同步方法，所以傳回運算式的類型必須是 '{0}' 而非 'Task&lt;{0}&gt;'</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">因為此為非同步方法，所以傳回運算式的類型必須是 '{0}' 而非 '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9393,8 +9693,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">因為 '{0}' 是會傳回 'Task' 的非同步方法，所以 return 關鍵字之後不可接著物件運算式。原本希望傳回 'Task&lt;T&gt;' 嗎?</target>
+        <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
+        <target state="translated">因為 '{0}' 是個會傳回 '{1}' 的非同步方法，所以傳回關鍵字之後不可接著物件運算式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -9961,7 +10261,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
         <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
-        <target state="needs-review-translation">未提供任何可對應到 '{1}' 之必要型式參數 '{0}' 的引數</target>
+        <target state="translated">未提供任何可對應到 '{1}' 之必要參數 '{0}' 的引數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">
@@ -10823,8 +11123,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">轉換成 'Task' 傳回委派的非同步 Lambda 運算式，不可傳回值。原本希望傳回 'Task&lt;T&gt;' 嗎?</target>
+        <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
+        <target state="translated">轉換成 '{0}' 傳回委派的非同步 Lambda 運算式，不可傳回值</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

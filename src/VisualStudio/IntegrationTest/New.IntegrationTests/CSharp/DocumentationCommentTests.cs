@@ -37,7 +37,7 @@ class C2 { }
 class C3 { }
 ";
             await SetUpEditorAsync(code, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync('/');
+            await TestServices.Input.SendAsync('/', HangMitigatingCancellationToken);
             var expected =
 @"
 /// <summary>

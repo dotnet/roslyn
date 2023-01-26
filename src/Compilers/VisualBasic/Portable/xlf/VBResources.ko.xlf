@@ -560,12 +560,12 @@
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
-        <target state="new">Analyzer reference '{0}' specified multiple times</target>
+        <target state="translated">분석기 참조 '{0}'이(가) 여러 번 지정되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
-        <target state="new">Analyzer reference specified multiple times</target>
+        <target state="translated">여러 번 지정된 분석기 참조</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

@@ -82,6 +82,11 @@
         <target state="translated">始终使用默认符号服务器进行导航</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">分析源生成的文件</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">分析器默认值</target>
@@ -924,7 +929,7 @@
       </trans-unit>
       <trans-unit id="Navigate_asynchronously_exerimental">
         <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">异步导航（实验性）</target>
+        <target state="translated">异步导航 (实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">
@@ -1093,7 +1098,7 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a stack trace to view and navigate its values.</source>
+        <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">粘贴堆栈跟踪以查看和导航其值。</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
@@ -1144,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
-        <target state="new">Prefer read-only struct</target>
+        <target state="translated">首选只读结构</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">

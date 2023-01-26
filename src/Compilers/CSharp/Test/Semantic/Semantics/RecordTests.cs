@@ -243,24 +243,30 @@ record class Point(int x, int y);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "record ").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,8): error CS1001: Identifier expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
+                // (2,8): error CS1002: ; expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
                 // (2,19): error CS1514: { expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
                 // (2,19): error CS1513: } expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 19),
-                // (2,19): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 19),
                 // (2,19): error CS8803: Top-level statements must precede namespace and type declarations.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 19),
-                // (2,19): error CS8805: Program using top-level statements must be an executable.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 19),
                 // (2,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 19),
@@ -1285,49 +1291,46 @@ class C<T> { }
 static class C2 { }
 ref struct RefLike{}
 
-unsafe record C( // 1
-    int* P1, // 2
-    int*[] P2, // 3
+unsafe record C(
+    int* P1, // 1
+    int*[] P2, // 2
     C<int*[]> P3,
-    delegate*<int, int> P4, // 4
-    void P5, // 5
-    C2 P6, // 6, 7
-    System.ArgIterator P7, // 8
-    System.TypedReference P8, // 9
-    RefLike P9); // 10
+    delegate*<int, int> P4, // 3
+    void P5, // 4
+    C2 P6, // 5, 6
+    System.ArgIterator P7, // 7
+    System.TypedReference P8, // 8
+    RefLike P9); // 9
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (6,15): error CS0721: 'C2': static types cannot be used as parameters
-                // unsafe record C( // 1
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 15),
                 // (7,10): error CS8908: The type 'int*' may not be used for a field of a record.
-                //     int* P1, // 2
+                //     int* P1, // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
                 // (8,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     int*[] P2, // 3
+                //     int*[] P2, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P2").WithArguments("int*[]").WithLocation(8, 12),
                 // (10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     delegate*<int, int> P4, // 4
+                //     delegate*<int, int> P4, // 3
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
                 // (11,5): error CS1536: Invalid parameter type 'void'
-                //     void P5, // 5
+                //     void P5, // 4
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
-                // (12,8): error CS0722: 'C2': static types cannot be used as return types
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
-                // (12,8): error CS0721: 'C2': static types cannot be used as parameters
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (12,5): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
+                // (12,5): error CS0722: 'C2': static types cannot be used as return types
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
                 // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     System.ArgIterator P7, // 8
+                //     System.ArgIterator P7, // 7
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
                 // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     System.TypedReference P8, // 9
+                //     System.TypedReference P8, // 8
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     RefLike P9); // 10
+                //     RefLike P9); // 9
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
                 );
         }
@@ -1421,12 +1424,9 @@ public unsafe record C
                 // (12,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 4
                 Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // (13,20): error CS0722: 'C2': static types cannot be used as return types
+                // (13,12): error CS0722: 'C2': static types cannot be used as return types
                 //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("C2").WithLocation(13, 20),
-                // (13,25): error CS0721: 'C2': static types cannot be used as parameters
-                //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("C2").WithLocation(13, 25),
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
                 // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7 { get; set; } // 6
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
@@ -10777,7 +10777,7 @@ record C(object P)
     public object get_P() => null;
     public object set_Q() => null;
 }";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 // record C(object P)
@@ -12655,7 +12655,7 @@ record B : A
 @"public record B(object N1, object N2)
 {
 }";
-            var compA = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceA : new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var compA = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceA : new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
 
             verifierA.VerifyIL("B..ctor(B)", @"
@@ -12694,7 +12694,7 @@ record B : A
         System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
     }
 }";
-            var compB = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceB : new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
+            var compB = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceB : new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetLatest);
 
             var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             // call base copy constructor B..ctor(B)
@@ -13985,7 +13985,6 @@ public class Program
         _ = c with { };
     }
 }";
-
 
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
                 ilSource: ilSource,
@@ -15854,7 +15853,7 @@ record B(int X, int Y) : A
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
@@ -21057,7 +21056,7 @@ public record C
     public int X { get; init; }
 }
 public record D(int Y) : C;";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? src : new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? src : new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics();
 
             var src2 = @"
@@ -21093,7 +21092,7 @@ class E
 1
 2
 1 2
-2 3", targetFramework: TargetFramework.StandardLatest).VerifyDiagnostics().VerifyIL("E.CHelper", @"
+2 3", targetFramework: TargetFramework.NetLatest).VerifyDiagnostics().VerifyIL("E.CHelper", @"
 {
   // Code size       14 (0xe)
   .maxstack  3
@@ -23632,7 +23631,7 @@ record B : A
 }
 record C : B;
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (4,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
                 //     protected sealed override System.Type EqualityContract => typeof(B);
@@ -25689,7 +25688,7 @@ record B
         }
     }
 }
-", targetFramework: TargetFramework.StandardLatest);
+", targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
@@ -25998,7 +25997,7 @@ public partial record C1
 {
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
@@ -27003,7 +27002,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -27014,7 +27013,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27028,7 +27027,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -27137,7 +27136,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         RegisterOperationAction(context);
@@ -27150,7 +27149,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27166,7 +27165,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -27211,7 +27210,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -27222,7 +27221,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27236,7 +27235,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -30301,6 +30300,113 @@ public class C : // 3
                 // public class C : // 3
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(10, 17)
                 );
+        }
+
+        [Fact]
+        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        public void NoMethodBodiesInComImportType()
+        {
+            var source1 =
+@"
+[System.Runtime.InteropServices.ComImport]
+[System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
+record R1(int x);
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Equals(R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Equals(R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.ToString()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.ToString()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Deconstruct(out int)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Deconstruct(out int)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.<Clone>$()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.<Clone>$()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.EqualityContract.get' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.EqualityContract.get", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Equals(object?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Equals(object?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.GetHashCode()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.GetHashCode()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.operator ==(R1?, R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.operator ==(R1?, R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.operator !=(R1?, R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.operator !=(R1?, R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.PrintMembers(StringBuilder)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.PrintMembers(System.Text.StringBuilder)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0669: A class with the ComImport attribute cannot have a user-defined constructor
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithUserCtor, "R1").WithLocation(4, 8),
+                // (4,11): error CS8028: 'R1': a class with the ComImport attribute cannot specify field initializers.
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithInitializers, "int x").WithArguments("R1").WithLocation(4, 11),
+                // (4,15): error CS0423: Since 'R1' has the ComImport attribute, 'R1.x.get' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.get", "R1").WithLocation(4, 15),
+                // (4,15): error CS0423: Since 'R1' has the ComImport attribute, 'R1.x.init' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.init", "R1").WithLocation(4, 15)
+                );
+        }
+
+        [Fact]
+        public void AttributedDerivedRecord_SemanticInfoOnBaseParameter()
+        {
+            var source = """
+                public record Base(int X);
+                [Attr]
+                public record Derived(int X) : Base(X);
+
+                class Attr : System.Attribute {}
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var xReference = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+
+            AssertEx.Equal("System.Int32 X", model.GetSymbolInfo(xReference).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AttributedDerivedRecord_BaseParameterNotVisibleInBody()
+        {
+            var source = """
+                public record Base(int X);
+                [Attr()]
+                public record Derived() : Base(M(out var y))
+                {
+                    static int M(out int y) => y = 1;
+                }
+
+                class Attr : System.Attribute {}
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var mCall = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+            var attrApplication = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var mDefinition = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            Assert.Contains("System.Int32 y", model.LookupSymbols(mCall.SpanStart).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(attrApplication.ArgumentList!.OpenParenToken.SpanStart + 1).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(mDefinition.SpanStart).Select(s => s.ToTestDisplayString()));
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -399,15 +400,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
-        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals =
-            new Dictionary<LocalSymbol, LocalDefUseInfo>();
+        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
         // we do that by placing a fake dummy local at one end of a branch and force that it is accessible at another.
         // if any stack local tries to intervene and misbalance the stack, it will clash with the dummy and will be rejected.
         private readonly SmallDictionary<object, DummyLocal> _dummyVariables =
             new SmallDictionary<object, DummyLocal>(ReferenceEqualityComparer.Instance);
-
 
         // fake local that represents the eval stack.
         // when we need to ensure that eval stack is not blocked by stack Locals, we record an access to empty.
@@ -466,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _context = context;
 
             // Do not recurse into constant expressions. Their children do not push any values.
-            var result = node.ConstantValue == null ?
+            var result = node.ConstantValueOpt == null ?
                 node = (BoundExpression)base.Visit(node) :
                 node;
 
@@ -534,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private void PushEvalStack(BoundExpression result, ExprContext context)
@@ -910,7 +909,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return rewritten;
             }
 
-
             var isIndirectAssignment = IsIndirectAssignment(node);
 
             var left = VisitExpression(node.Left, isIndirectAssignment ?
@@ -1110,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // assume we will need an address (that will prevent scheduling of receiver).
             if (method.RequiresInstanceReceiver)
             {
-                receiver = VisitCallReceiver(receiver);
+                receiver = VisitCallOrConditionalAccessReceiver(receiver, node);
             }
             else
             {
@@ -1134,9 +1132,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(receiver, method, rewrittenArguments);
         }
 
-        private BoundExpression VisitCallReceiver(BoundExpression receiver)
+        private BoundExpression VisitCallOrConditionalAccessReceiver(BoundExpression receiver, BoundCall callOpt)
         {
             var receiverType = receiver.Type;
+
+            if (callOpt is { } call &&
+                CodeGenerator.IsRef(receiver) &&
+                CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiver) &&
+                !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
+            {
+                var unwrappedSequence = receiver;
+
+                while (unwrappedSequence is BoundSequence sequence)
+                {
+                    unwrappedSequence = sequence.Value;
+                }
+
+                if (unwrappedSequence is BoundLocal { LocalSymbol: { RefKind: not RefKind.None } localSymbol })
+                {
+                    ShouldNotSchedule(localSymbol); // Otherwise CodeGenerator is unable to apply proper fixups 
+                }
+            }
+
             ExprContext context;
 
             if (receiverType.IsReferenceType)
@@ -1230,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.InitializerExpressionOpt == null);
 
             return node.Update(constructor, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
-                node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValue, initializerExpressionOpt: null, node.Type);
+                node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValueOpt, initializerExpressionOpt: null, node.Type);
         }
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
@@ -1384,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = node.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 return VisitBinaryOperatorSimple(node);
             }
@@ -1400,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -1434,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValue, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -1468,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EnsureStackState(cookie);   // implicit label here
 
-                return node.Update(node.OperatorKind, node.ConstantValue, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
+                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
             }
 
             return base.VisitBinaryOperator(node);
@@ -1496,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
             var origStack = StackDepth();
-            BoundExpression receiver = VisitCallReceiver(node.Receiver);
+            BoundExpression receiver = VisitCallOrConditionalAccessReceiver(node.Receiver, callOpt: null);
 
             var cookie = GetStackStateCookie();     // implicit branch here
 
@@ -1520,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _counter += 1;
             }
 
-            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.Type);
+            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.ForceCopyOfNullableValueType, node.Type);
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
@@ -1539,6 +1556,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EnsureStackState(cookie); // implicit label here 
 
             SetStackDepth(origStack); // alternative is evaluated with original stack 
+
+            var unwrappedSequence = node.ReferenceTypeReceiver;
+
+            while (unwrappedSequence is BoundSequence sequence)
+            {
+                unwrappedSequence = sequence.Value;
+            }
+
+            if (unwrappedSequence is BoundLocal { LocalSymbol: { } localSymbol })
+            {
+                ShouldNotSchedule(localSymbol);
+            }
+
             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 
@@ -1947,7 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // so we will not go into constant nodes. 
             // CodeGen will not do that either.
             var asExpression = node as BoundExpression;
-            if (asExpression != null && asExpression.ConstantValue != null)
+            if (asExpression != null && asExpression.ConstantValueOpt != null)
             {
                 result = node;
             }
@@ -1965,7 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = node.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 return base.VisitBinaryOperator(node);
             }
@@ -1981,7 +2011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -1996,7 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValue, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -2114,7 +2144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else if (receiverOpt is not null)
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -2197,7 +2227,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return null; }
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             throw new NotImplementedException();
         }
@@ -2208,6 +2245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         internal override bool IsPinned
+        {
+            get { return false; }
+        }
+
+        internal override bool IsKnownToReferToTempIfReferenceType
         {
             get { return false; }
         }
@@ -2257,18 +2299,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return RefKind.None; }
         }
 
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
-
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
-
-        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal override ScopedKind Scope => ScopedKind.None;
     }
 }

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var argumentExpression = argumentNode.Expression;
-            if (!argumentExpression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+            if (argumentExpression is not IdentifierNameSyntax identifierName)
             {
                 // has to be exactly the form "out i".  i.e. "out this.i" or "out v[i]" are legal
                 // cases for out-arguments, but could not be converted to an out-variable-declaration.
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     break;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     // See if this looks like an accessor to the local variable syntactically.
                     if (identifierName.Identifier.ValueText == variableName)

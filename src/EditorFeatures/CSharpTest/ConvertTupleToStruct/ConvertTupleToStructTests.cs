@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
     public class ConvertTupleToStructTests
     {
         private static OptionsCollection PreferImplicitTypeWithInfo()
-            => new OptionsCollection(LanguageNames.CSharp)
+            => new(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Suggestion },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true, NotificationOption2.Suggestion },
@@ -2327,12 +2327,12 @@ internal struct NewStruct
     DiagnosticResult.CompilerError("CS0100").WithSpan(15, 33, 15, 34).WithArguments("a"),
     // /0/Test0.cs(17,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
     DiagnosticResult.CompilerError("CS0229").WithSpan(17, 14, 17, 15).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(17,18): error CS0229: Ambiguity between 'int' and 'int'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(17, 18, 17, 19).WithArguments("int", "int"),
+    // /0/Test0.cs(17,18): error CS0229: Ambiguity between 'int a' and 'int a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(17, 18, 17, 19).WithArguments("int a", "int a"),
     // /0/Test0.cs(18,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
     DiagnosticResult.CompilerError("CS0229").WithSpan(18, 14, 18, 15).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(18,18): error CS0229: Ambiguity between 'int' and 'int'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(18, 18, 18, 19).WithArguments("int", "int"),
+    // /0/Test0.cs(18,18): error CS0229: Ambiguity between 'int a' and 'int a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(18, 18, 18, 19).WithArguments("int a", "int a"),
     // /0/Test0.cs(24,21): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
     DiagnosticResult.CompilerError("CS0229").WithSpan(24, 21, 24, 22).WithArguments("NewStruct.a", "NewStruct.a"),
     // /0/Test0.cs(24,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
@@ -2351,12 +2351,12 @@ internal struct NewStruct
     DiagnosticResult.CompilerError("CS0177").WithSpan(36, 17, 36, 28).WithArguments("a"),
     // /0/Test0.cs(36,48): error CS0100: The parameter name 'a' is a duplicate
     DiagnosticResult.CompilerError("CS0100").WithSpan(36, 48, 36, 49).WithArguments("a"),
-    // /0/Test0.cs(38,9): error CS0229: Ambiguity between 'out int' and 'out int'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(38, 9, 38, 10).WithArguments("out int", "out int"),
+    // /0/Test0.cs(38,9): error CS0229: Ambiguity between 'out int a' and 'out int a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(38, 9, 38, 10).WithArguments("out int a", "out int a"),
     // /0/Test0.cs(38,18): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
     DiagnosticResult.CompilerError("CS0229").WithSpan(38, 18, 38, 19).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(39,9): error CS0229: Ambiguity between 'out int' and 'out int'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(39, 9, 39, 10).WithArguments("out int", "out int"),
+    // /0/Test0.cs(39,9): error CS0229: Ambiguity between 'out int a' and 'out int a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(39, 9, 39, 10).WithArguments("out int a", "out int a"),
     // /0/Test0.cs(39,18): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
     DiagnosticResult.CompilerError("CS0229").WithSpan(39, 18, 39, 19).WithArguments("NewStruct.a", "NewStruct.a"),
     // /0/Test0.cs(42,49): error CS8127: Tuple element names must be unique.

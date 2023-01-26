@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenOperand = VisitExpression(node.Operand);
             _inExpressionLambda = wasInExpressionLambda;
 
-            var result = MakeConversionNode(node, node.Syntax, rewrittenOperand, node.Conversion, node.Checked, node.ExplicitCastInCode, node.ConstantValue, rewrittenType);
+            var result = MakeConversionNode(node, node.Syntax, rewrittenOperand, node.Conversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, rewrittenType);
 
             var toType = node.Type;
             Debug.Assert(result.Type!.Equals(toType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (rewrittenNode.ConstantValue != null)
+            if (rewrittenNode.ConstantValueOpt != null)
             {
                 return false;
             }
@@ -927,7 +927,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We can do a simple optimization here if we know that the source is never null:
 
-
                 BoundExpression? value = NullableAlwaysHasValue(rewrittenOperand);
                 if (value == null)
                 {
@@ -1489,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         // https://github.com/dotnet/roslyn/issues/42452: Test with native integers and expression trees.

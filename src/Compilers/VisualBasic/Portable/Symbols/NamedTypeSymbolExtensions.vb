@@ -78,7 +78,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return UnboundGenericType.Create(this)
         End Function
 
-
         <Extension()>
         Friend Function HasVariance(this As NamedTypeSymbol) As Boolean
             Dim current As NamedTypeSymbol = this

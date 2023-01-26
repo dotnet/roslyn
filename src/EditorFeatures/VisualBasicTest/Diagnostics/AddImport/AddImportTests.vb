@@ -18,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Return (Nothing, New VisualBasicAddImportCodeFixProvider())
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestSimpleImportFromSameFile(testHost As TestHost) As Task
             Await TestAsync(
 "Class Class1
@@ -67,8 +66,7 @@ Class Class1
 End Class", testHost, priority:=CodeActionPriority.Medium)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestSimpleImportFromReference(testHost As TestHost) As Task
             Await TestAsync(
 "Class Class1
@@ -81,7 +79,7 @@ Class Class1
 End Class", testHost)
         End Function
 
-        <Fact>
+        <ConditionalFact>
         Public Async Function TestSmartTagDisplay() As Task
             Await TestSmartTagTextAsync(
 "Class Class1
@@ -90,8 +88,7 @@ End Class",
 "Imports System.Threading")
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericClassDefinitionAsClause(testHost As TestHost) As Task
             Await TestAsync(
 "Namespace SomeNamespace
@@ -110,8 +107,7 @@ Class SomeClass(Of x As Base)
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericClassInstantiationOfClause(testHost As TestHost) As Task
             Await TestAsync(
 "Namespace SomeNamespace
@@ -140,8 +136,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericMethodDefinitionAsClause(testHost As TestHost) As Task
             Await TestAsync(
 "Namespace SomeNamespace
@@ -164,8 +159,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericMethodInvocationOfClause(testHost As TestHost) As Task
             Await TestAsync(
 "Namespace SomeNamespace
@@ -194,8 +188,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAttributeApplication(testHost As TestHost) As Task
             Await TestAsync(
 "<[|Something|]()>
@@ -218,8 +211,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestMultipleAttributeApplicationBelow(testHost As TestHost) As Task
             Await TestAsync(
 "<Existing()>
@@ -250,8 +242,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestMultipleAttributeApplicationAbove(testHost As TestHost) As Task
             Await TestAsync(
 "<[|Something|]()>
@@ -282,8 +273,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestImportsIsEscapedWhenNamespaceMatchesKeyword(testHost As TestHost) As Task
             Await TestAsync(
 "Class SomeClass
@@ -304,8 +294,7 @@ Namespace [Namespace]
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestImportsIsNOTEscapedWhenNamespaceMatchesKeywordButIsNested(testHost As TestHost) As Task
             Await TestAsync(
 "Class SomeClass
@@ -330,7 +319,7 @@ Namespace Outer
 End Namespace", testHost)
         End Function
 
-        <Fact>
+        <ConditionalFact>
         Public Async Function TestAddImportsNotSuggestedForImportsStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -342,7 +331,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact>
+        <ConditionalFact>
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersOfClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -355,7 +344,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact>
+        <ConditionalFact>
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersAsClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -390,8 +379,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestTypeFromMultipleNamespaces1(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -406,8 +394,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestTypeFromMultipleNamespaces2(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -423,8 +410,7 @@ End Class",
                 testHost, index:=1)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericWithNoArgs(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -439,8 +425,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericWithCorrectArgs(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -455,7 +440,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Fact>
+        <ConditionalFact>
         Public Async Function TestGenericWithWrongArgs1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Goo
@@ -464,7 +449,7 @@ End Class", testHost)
 End Class")
         End Function
 
-        <Fact>
+        <ConditionalFact>
         Public Async Function TestGenericWithWrongArgs2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Goo
@@ -473,8 +458,7 @@ End Class")
 End Class")
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericInLocalDeclaration(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -491,8 +475,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenericItemType(testHost As TestHost) As Task
             Await TestAsync(
 "Class Goo
@@ -509,8 +492,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenerateWithExistingUsings(testHost As TestHost) As Task
             Await TestAsync(
 "Imports System
@@ -529,8 +511,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestGenerateInNamespace(testHost As TestHost) As Task
             Await TestAsync(
 "Imports System
@@ -607,8 +588,7 @@ Class Test
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestParameterType(testHost As TestHost) As Task
             Await TestAsync(
 "Imports System
@@ -679,8 +659,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestCaseSensitivity2(testHost As TestHost) As Task
             Await TestAsync(
 "Class GOo
@@ -780,8 +759,7 @@ Namespace SomeNamespace
 End Namespace</Text>.Value.Replace(vbLf, vbCrLf), testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestSimpleWhereClause(testHost As TestHost) As Task
             Await TestAsync(
 "Class Program
@@ -804,8 +782,7 @@ Class Program
 End Class", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAggregateClause(testHost As TestHost) As Task
             Await TestAsync(
 "Imports System.Collections.Generic
@@ -857,8 +834,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAddToVisibleRegion(testHost As TestHost) As Task
             Await TestAsync(
 "#ExternalSource (""Default.aspx"", 1) 
@@ -884,7 +860,7 @@ Class C
 End Class", testHost)
         End Function
 
-        <Fact>
+        <ConditionalFact>
         Public Async Function TestDoNotAddIntoHiddenRegion() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -1697,8 +1673,7 @@ End Class
             Await TestAsync(initial, expected, testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAddUsingInDirective(testHost As TestHost) As Task
             Await TestAsync(
 "#Const Debug
@@ -1726,8 +1701,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAddUsingInDirective2(testHost As TestHost) As Task
             Await TestAsync(
 "#Const Debug
@@ -1755,8 +1729,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestAddUsingInDirective3(testHost As TestHost) As Task
             Await TestAsync(
 "#Const Debug
@@ -1784,8 +1757,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestInaccessibleExtensionMethod(testHost As TestHost) As Task
             Dim initial = <Workspace>
                               <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
@@ -1830,8 +1802,7 @@ End Module
             Await TestAsync(initial, expected, testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestInaccessibleExtensionMethod2(testHost As TestHost) As Task
             Dim initial = <Workspace>
                               <Project Language="Visual Basic" AssemblyName="lib" CommonReferences="true">
@@ -2188,8 +2159,7 @@ index:=1,
 parseOptions:=Nothing)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")>
         Public Async Function TestAddUsingWithOtherExtensionsInScope(testHost As TestHost) As Task
             Await TestAsync(
@@ -2227,8 +2197,7 @@ Namespace X
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")>
         Public Async Function TestAddUsingWithOtherExtensionsInScope2(testHost As TestHost) As Task
             Await TestAsync(
@@ -2268,8 +2237,7 @@ Namespace X
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")>
         Public Async Function TestAddUsingWithOtherExtensionsInScope3(testHost As TestHost) As Task
             Await TestAsync(
@@ -2325,8 +2293,7 @@ Namespace Y
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")>
         Public Async Function TestAddUsingWithOtherExtensionsInScope4(testHost As TestHost) As Task
             Await TestAsync(
@@ -2382,8 +2349,7 @@ Namespace Y
 End Namespace", testHost)
         End Function
 
-        <Theory>
-        <CombinatorialData>
+        <Theory, CombinatorialData>
         <WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")>
         Public Async Function TestWhenInRome1(testHost As TestHost) As Task
             Await TestAsync(

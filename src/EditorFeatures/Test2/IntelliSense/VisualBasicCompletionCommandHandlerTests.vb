@@ -6,12 +6,15 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Projection
@@ -407,7 +410,7 @@ End Class
                               extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".M")
@@ -445,7 +448,7 @@ End Class
                               extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
@@ -479,7 +482,7 @@ End Class
                               extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
@@ -1834,8 +1837,7 @@ Class Class1
 End Class
 </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)
 
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
@@ -1860,8 +1862,7 @@ Class Class1
 End Class
 </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
@@ -1975,8 +1976,7 @@ Public Class C
 End Class
 
                               </Document>)
-                state.SendTypeChars("Task")
-                Await state.WaitForUIRenderedAsync()
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("Task")
                 state.SendDownKey()
                 state.SendTypeChars(" ")
                 Assert.Equal("        Dim a as Task(Of ", state.GetLineTextFromCaretPosition())
@@ -2165,8 +2165,7 @@ Class G
 End Class
             ]]></Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.VisualBasic), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.VisualBasic, False)
 
                 state.SendBackspace()
                 Await state.AssertNoCompletionSession()
@@ -2654,8 +2653,7 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertNoCompletionSession()
@@ -2676,8 +2674,7 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertNoCompletionSession()
@@ -2699,8 +2696,7 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("x", "Shortcut")
@@ -3493,5 +3489,138 @@ Class C
                 Return shortcut = "Shortcut"
             End Function
         End Class
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectEnumMemberAdditionalFilterTextMatchOverFilterTextMatchWithLowerPriority() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Enum Colors
+    Red
+    Green
+End Enum
+
+Class Program
+    Property Green As Program
+    Sub M()
+        Dim x As Colors = Green$$
+    End Sub
+End Class
+</Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "Green")
+                Await state.AssertSelectedCompletionItem("Colors.Green", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotSelectEnumMemberAdditionalFilterTextMatchOverBetterFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Enum Colors
+    Red
+    Green
+End Enum
+
+Class Program
+    Sub M()
+        Dim gree = ""
+        Dim x As Colors = gree$$
+    End Sub
+End Class
+                             </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "gree")
+                Await state.AssertSelectedCompletionItem("gree", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        Public Async Function TestEnumMemberContainsLocal() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Enum E
+    A
+End Enum
+ 
+Class C
+    Sub M()
+        Const e As E = e$$
+    End Sub
+End Class
+                             </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("e", "E", "E.A")
+                Await state.AssertCompletionItemsDoNotContainAny("e As E")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnumMembersMatchTargetType() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Enum Colors
+    Red
+    Green
+End Enum
+
+Class Program
+    Property Green As Program
+    Sub M()
+        Dim x As Colors = $$
+    End Sub
+End Class
+</Document>)
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+                Await state.AssertCompletionItemsContainAll("Colors.Red", "Colors.Green", "Colors")
+
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+
+                Dim hasTargetTypedFilter = False
+                For Each oldState In oldFilters
+
+                    If Object.ReferenceEquals(oldState.Filter, FilterSet.TargetTypedFilter) Then
+                        hasTargetTypedFilter = True
+                        newFiltersBuilder.Add(oldState.WithSelected(True))
+                        Continue For
+                    End If
+
+                    newFiltersBuilder.Add(oldState.WithSelected(False))
+                Next
+
+                Assert.True(hasTargetTypedFilter)
+
+                Await state.RaiseFiltersChangedAndWaitForUiRenderAsync(newFiltersBuilder.ToImmutableAndFree())
+                Await state.AssertCompletionItemsContainAll("Colors.Red", "Colors.Green")
+                Await state.AssertCompletionItemsDoNotContainAny("Colors")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeCompletionNoColonsIfAlreadyPresent() As Task
+            Dim documentContent = "
+Imports System
+Class Test
+    Inherits Attribute
+    Public Property Text As String
+End Class
+
+<Test($$:=)>
+Class Goo
+End Class"
+
+            Using state = TestStateFactory.CreateVisualBasicTestState(<Document><%= documentContent %></Document>)
+
+                state.SendTypeChars("Tex")
+                Await state.AssertSelectedCompletionItem("Text", displayTextSuffix:=Nothing)
+
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(14, "<Test(Text:=)>")
+            End Using
+        End Function
     End Class
 End Namespace

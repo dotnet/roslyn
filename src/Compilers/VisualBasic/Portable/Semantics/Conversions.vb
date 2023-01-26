@@ -1523,7 +1523,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return conv
         End Function
 
-
         Private Shared Function ClassifyGroupTypeInferenceLambdaConversion(source As GroupTypeInferenceLambda, destination As TypeSymbol) As ConversionKind
 
             Debug.Assert(source.Type Is Nothing) ' Shouldn't try to convert already converted query lambda.
@@ -2555,7 +2554,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ((forwardConv Or backwardConv) And ConversionKind.MightSucceedAtRuntime)
         End Function
 
-
         ''' <summary>
         ''' Helper structure to classify conversions from named types to interfaces
         ''' in accumulating fashion.
@@ -2691,7 +2689,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
         End Structure
-
 
         Private Shared Function ClassifyImmediateVarianceCompatibility(
             source As NamedTypeSymbol,
@@ -3068,7 +3065,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return conv
         End Function
-
 
         Private Shared Function ClassifyArrayConversionBasedOnElementTypes(
             srcElem As TypeSymbol,
@@ -3720,7 +3716,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-
         Private Shared Function ClassifyConversionFromTypeParameter(
             typeParameter As TypeParameterSymbol,
             destination As TypeSymbol,
@@ -4260,7 +4255,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DetermineDelegateRelaxationLevel(methodConversion)
         End Function
 
-
         ''' <summary>
         ''' Determine the relaxation level of a given conversion. This will be used by
         ''' overload resolution in case of conflict. This is to prevent applications that compiled in VB8
@@ -4291,7 +4285,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return result
         End Function
-
 
         Public Shared Function IsDelegateRelaxationSupportedFor(methodConversion As MethodConversionKind) As Boolean
             Return (methodConversion And MethodConversionKind.AllErrorReasons) = 0
@@ -4334,7 +4327,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (methodConversion And checkForBits) <> 0
         End Function
 
-
         Public Shared Function InvertConversionRequirement(restriction As RequiredConversion) As RequiredConversion
 
             Debug.Assert(RequiredConversion.Count = 8, "If you've updated the type argument inference restrictions, then please also update InvertConversionRequirement()")
@@ -4364,7 +4356,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return restriction
         End Function
 
-
         ' Strengthens the restriction to at least ReferenceRestriction or ReverseReferenceRestriction
         ' Note: AnyConversionAndReverse strengthens to Identity
         Public Shared Function StrengthenConversionRequirementToReference(restriction As RequiredConversion) As RequiredConversion
@@ -4384,7 +4375,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return restriction
             End If
         End Function
-
 
         ' Combining inference restrictions: the least upper bound of the two restrictions
         Public Shared Function CombineConversionRequirements(
@@ -4440,7 +4430,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' otherwise we've crossed chains
             Return RequiredConversion.Identity
         End Function
-
 
         Public Shared Function IsWideningConversion(conv As ConversionKind) As Boolean
             Debug.Assert(NoConversion(conv) OrElse

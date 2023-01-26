@@ -1787,7 +1787,7 @@ namespace Foo
             {
                 ReferenceType.Project => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
                 ReferenceType.Metadata => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             if (shouldContainItem)
@@ -1846,7 +1846,7 @@ namespace Foo
                 (ReferenceType.Project, _) => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
                 (ReferenceType.Metadata, true) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
                 (ReferenceType.Metadata, false) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             if (shouldContainItem)

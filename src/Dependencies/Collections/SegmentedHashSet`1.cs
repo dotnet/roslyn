@@ -1175,9 +1175,9 @@ namespace Microsoft.CodeAnalysis.Collections
             int intArrayLength = BitHelper.ToIntArrayLength(originalCount);
 
             Span<int> span = stackalloc int[StackAllocThreshold];
-            var bitHelper = intArrayLength <= StackAllocThreshold ?
-                new BitHelper(span.Slice(0, intArrayLength), clear: true) :
-                new BitHelper(new int[intArrayLength], clear: false);
+            var bitHelper = intArrayLength <= StackAllocThreshold
+                ? new BitHelper(span.Slice(0, intArrayLength), clear: true)
+                : new BitHelper(new int[intArrayLength], clear: false);
 
             // Mark if contains: find index of in slots array and mark corresponding element in bit array.
             foreach (var item in other)
@@ -1243,14 +1243,14 @@ namespace Microsoft.CodeAnalysis.Collections
             int intArrayLength = BitHelper.ToIntArrayLength(originalCount);
 
             Span<int> itemsToRemoveSpan = stackalloc int[StackAllocThreshold / 2];
-            var itemsToRemove = intArrayLength <= StackAllocThreshold / 2 ?
-                new BitHelper(itemsToRemoveSpan.Slice(0, intArrayLength), clear: true) :
-                new BitHelper(new int[intArrayLength], clear: false);
+            var itemsToRemove = intArrayLength <= StackAllocThreshold / 2
+                ? new BitHelper(itemsToRemoveSpan.Slice(0, intArrayLength), clear: true)
+                : new BitHelper(new int[intArrayLength], clear: false);
 
             Span<int> itemsAddedFromOtherSpan = stackalloc int[StackAllocThreshold / 2];
-            var itemsAddedFromOther = intArrayLength <= StackAllocThreshold / 2 ?
-                new BitHelper(itemsAddedFromOtherSpan.Slice(0, intArrayLength), clear: true) :
-                new BitHelper(new int[intArrayLength], clear: false);
+            var itemsAddedFromOther = intArrayLength <= StackAllocThreshold / 2
+                ? new BitHelper(itemsAddedFromOtherSpan.Slice(0, intArrayLength), clear: true)
+                : new BitHelper(new int[intArrayLength], clear: false);
 
             foreach (var item in other)
             {
@@ -1330,9 +1330,9 @@ namespace Microsoft.CodeAnalysis.Collections
             int intArrayLength = BitHelper.ToIntArrayLength(originalCount);
 
             Span<int> span = stackalloc int[StackAllocThreshold];
-            var bitHelper = intArrayLength <= StackAllocThreshold ?
-                new BitHelper(span.Slice(0, intArrayLength), clear: true) :
-                new BitHelper(new int[intArrayLength], clear: false);
+            var bitHelper = intArrayLength <= StackAllocThreshold
+                ? new BitHelper(span.Slice(0, intArrayLength), clear: true)
+                : new BitHelper(new int[intArrayLength], clear: false);
 
             var unfoundCount = 0; // count of items in other not found in this
             var uniqueFoundCount = 0; // count of unique items in other found in this

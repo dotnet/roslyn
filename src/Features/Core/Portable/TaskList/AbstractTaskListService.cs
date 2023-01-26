@@ -10,9 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             // single line multiline comments
             if (startLine.LineNumber == endLine.LineNumber)
             {
-                var message = postfixLength == 0 ? fullString : fullString.Substring(0, fullSpan.Length - postfixLength);
+                var message = postfixLength == 0 ? fullString : fullString[..(fullSpan.Length - postfixLength)];
                 AppendTaskListItemsOnSingleLine(commentDescriptors, document, message, fullSpan.Start, items);
                 return;
             }

@@ -539,7 +539,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyRequiresRefSafetyRulesAttribute == ThreeState.Unknown)
             {
-                bool value = UseUpdatedEscapeRules && !isFeatureDisabled(_assemblySymbol.DeclaringCompilation);
+                bool value = UseUpdatedEscapeRules &&
+                    !isFeatureDisabled(_assemblySymbol.DeclaringCompilation) &&
+                    namespaceIncludesTypeDeclarations(GlobalNamespace);
                 _lazyRequiresRefSafetyRulesAttribute = value.ToThreeState();
             }
             return _lazyRequiresRefSafetyRulesAttribute.Value();
@@ -548,6 +550,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var options = (CSharpParseOptions?)compilation.SyntaxTrees.FirstOrDefault()?.Options;
                 return options?.Features?.ContainsKey("noRefSafetyRulesAttribute") == true;
+            }
+
+            static bool namespaceIncludesTypeDeclarations(NamespaceSymbol ns)
+            {
+                foreach (var member in ns.GetMembersUnordered())
+                {
+                    switch (member.Kind)
+                    {
+                        case SymbolKind.Namespace:
+                            if (namespaceIncludesTypeDeclarations((NamespaceSymbol)member))
+                            {
+                                return true;
+                            }
+                            break;
+                        case SymbolKind.NamedType:
+                            return true;
+                    }
+                }
+                return false;
             }
         }
 

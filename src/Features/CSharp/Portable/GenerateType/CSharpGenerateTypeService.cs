@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
-            if (expression is TypeSyntax && expression.IsParentKind(SyntaxKind.TypeArgumentList, out TypeArgumentListSyntax typeArgumentList))
+            if (expression is TypeSyntax typeSyntax && expression.Parent is TypeArgumentListSyntax typeArgumentList)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(typeArgumentList.Parent, cancellationToken);
                 var symbol = symbolInfo.GetAnySymbol();
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     symbol = symbol.ContainingType;
                 }
 
-                var parameterIndex = typeArgumentList.Arguments.IndexOf((TypeSyntax)expression);
+                var parameterIndex = typeArgumentList.Arguments.IndexOf(typeSyntax);
                 if (symbol is INamedTypeSymbol type)
                 {
                     type = type.OriginalDefinition;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         {
             if (expression is TypeSyntax &&
                 expression.Parent is BaseTypeSyntax baseType &&
-                baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                baseType.Parent is BaseListSyntax baseList &&
                 baseType.Type == expression)
             {
                 // If it's after the first item, then it's definitely an interface.
@@ -101,12 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                 // If it's in the base list of an interface or struct, then it's definitely an
                 // interface.
-                return baseList.IsParentKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration);
+                return baseList?.Parent.Kind() is
+                    SyntaxKind.InterfaceDeclaration or
+                    SyntaxKind.StructDeclaration or
+                    SyntaxKind.RecordStructDeclaration;
             }
 
             if (expression is TypeSyntax &&
-                expression.IsParentKind(SyntaxKind.TypeConstraint, out TypeConstraintSyntax typeConstraint) &&
-                typeConstraint.IsParentKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
+                expression.Parent is TypeConstraintSyntax typeConstraint &&
+                typeConstraint.Parent is TypeParameterConstraintClauseSyntax constraintClause)
             {
                 var index = constraintClause.Constraints.IndexOf(typeConstraint);
 
@@ -164,12 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 // If we're on the right side of a dot, then the left side better be a name (and
                 // not an arbitrary expression).
                 var leftSideExpression = simpleName.GetLeftSideOfDot();
-                if (!leftSideExpression.IsKind(
-                    SyntaxKind.QualifiedName,
-                    SyntaxKind.IdentifierName,
-                    SyntaxKind.AliasQualifiedName,
-                    SyntaxKind.GenericName,
-                    SyntaxKind.SimpleMemberAccessExpression))
+                if (leftSideExpression.Kind() is not (
+                        SyntaxKind.QualifiedName or
+                        SyntaxKind.IdentifierName or
+                        SyntaxKind.AliasQualifiedName or
+                        SyntaxKind.GenericName or
+                        SyntaxKind.SimpleMemberAccessExpression))
                 {
                     return false;
                 }
@@ -318,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                                 return true;
                             }
 
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                         else
                         {
@@ -420,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             if (generateTypeServiceStateOptions.IsDelegateAllowed)
             {
                 // MyD1 z1 = goo;
-                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+                if (nameOrMemberAccessExpression.Parent is VariableDeclarationSyntax variableDeclaration &&
                     variableDeclaration.Variables.Count != 0)
                 {
                     var firstVarDeclWithInitializer = variableDeclaration.Variables.FirstOrDefault(var => var.Initializer != null && var.Initializer.Value != null);
@@ -431,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
 
                 // var w1 = (MyD1)goo;
-                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression) &&
+                if (nameOrMemberAccessExpression.Parent is CastExpressionSyntax castExpression &&
                     castExpression.Expression != null)
                 {
                     generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, castExpression.Expression, cancellationToken);
@@ -668,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 if (node is BaseListSyntax)
                 {
-                    if (node.Parent.IsKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
+                    if (node.Parent.Kind() is SyntaxKind.InterfaceDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration)
                     {
                         typeKindValue = TypeKindOptions.Interface;
                         return true;
@@ -712,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         }
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 if ((node is EventDeclarationSyntax || node is EventFieldDeclarationSyntax) &&

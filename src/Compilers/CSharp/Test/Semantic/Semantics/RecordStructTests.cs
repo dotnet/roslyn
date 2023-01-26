@@ -283,15 +283,13 @@ record struct Point(int x, int y);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8));
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
-                );
+                // record struct Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8));
 
             comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
@@ -378,22 +376,19 @@ namespace NS
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
-                //     record struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                //     record struct Point { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(src4, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
@@ -1025,7 +1020,7 @@ record struct S2
                 // (3,5): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     S1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(3, 5),
-                // (3,5): error CS8938: The parameterless struct constructor must be 'public'.
+                // (3,5): error CS8958: The parameterless struct constructor must be 'public'.
                 //     S1() { }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
                 // (5,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
@@ -1034,7 +1029,7 @@ record struct S2
                 // (7,14): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal S2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(7, 14),
-                // (7,14): error CS8938: The parameterless struct constructor must be 'public'.
+                // (7,14): error CS8958: The parameterless struct constructor must be 'public'.
                 //     internal S2() { }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
 
@@ -1538,49 +1533,46 @@ class C<T> { }
 static class C2 { }
 ref struct RefLike{}
 
-unsafe record struct C( // 1
-    int* P1, // 2
-    int*[] P2, // 3
+unsafe record struct C(
+    int* P1, // 1
+    int*[] P2, // 2
     C<int*[]> P3,
-    delegate*<int, int> P4, // 4
-    void P5, // 5
-    C2 P6, // 6, 7
-    System.ArgIterator P7, // 8
-    System.TypedReference P8, // 9
-    RefLike P9); // 10
+    delegate*<int, int> P4, // 3
+    void P5, // 4
+    C2 P6, // 5, 6
+    System.ArgIterator P7, // 7
+    System.TypedReference P8, // 8
+    RefLike P9); // 9
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (6,22): error CS0721: 'C2': static types cannot be used as parameters
-                // unsafe record struct C( // 1
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 22),
                 // (7,10): error CS8908: The type 'int*' may not be used for a field of a record.
-                //     int* P1, // 2
+                //     int* P1, // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
                 // (8,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     int*[] P2, // 3
+                //     int*[] P2, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P2").WithArguments("int*[]").WithLocation(8, 12),
                 // (10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     delegate*<int, int> P4, // 4
+                //     delegate*<int, int> P4, // 3
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
                 // (11,5): error CS1536: Invalid parameter type 'void'
                 //     void P5, // 5
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
-                // (12,8): error CS0722: 'C2': static types cannot be used as return types
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
-                // (12,8): error CS0721: 'C2': static types cannot be used as parameters
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (12,5): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
+                // (12,5): error CS0722: 'C2': static types cannot be used as return types
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
                 // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     System.ArgIterator P7, // 8
+                //     System.ArgIterator P7, // 7
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
                 // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     System.TypedReference P8, // 9
+                //     System.TypedReference P8, // 8
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     RefLike P9); // 10
+                //     RefLike P9); // 9
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
                 );
         }
@@ -1653,7 +1645,7 @@ public unsafe record struct C
     public C<int*[]> f3 { get; set; }
     public delegate*<int, int> f4 { get; set; } // 3
     public void f5 { get; set; } // 4
-    public C2 f6 { get; set; } // 5, 6
+    public C2 f6 { get; set; } // 5
     public System.ArgIterator f7 { get; set; } // 6
     public System.TypedReference f8 { get; set; } // 7
     public RefLike f9 { get; set; } // 8
@@ -1674,12 +1666,9 @@ public unsafe record struct C
                 // (12,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 4
                 Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // (13,20): error CS0722: 'C2': static types cannot be used as return types
-                //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("C2").WithLocation(13, 20),
-                // (13,25): error CS0721: 'C2': static types cannot be used as parameters
-                //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("C2").WithLocation(13, 25),
+                // (13,12): error CS0722: 'C2': static types cannot be used as return types
+                //     public C2 f6 { get; set; } // 5
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
                 // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7 { get; set; } // 6
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
@@ -5383,21 +5372,24 @@ record struct C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       38 (0x26)
+  // Code size       41 (0x29)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldstr      ""field = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
   IL_000d:  ldarg.0
-  IL_000e:  ldflda     ""int C1.field""
-  IL_0013:  constrained. ""int""
-  IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0023:  pop
-  IL_0024:  ldc.i4.1
-  IL_0025:  ret
+  IL_000e:  ldfld      ""int C1.field""
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""int""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0026:  pop
+  IL_0027:  ldc.i4.1
+  IL_0028:  ret
 }
 ");
         }
@@ -6536,7 +6528,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -7965,7 +7957,7 @@ class Program
         {
             // Similar to test LocalWithNoInitializerEscape but wrapping method is used as receiver for `with` expression
             var text = @"using System;
-using System.Diagnostics.CodeAnalysis;
+
 class Program
 {
     static void Main()
@@ -7975,7 +7967,7 @@ class Program
         sp = MayWrap(ref local) with { }; // 1, 2
     }
 
-    static S1 MayWrap([UnscopedRef] ref Span<int> arg)
+    static S1 MayWrap(ref Span<int> arg)
     {
         return default;
     }
@@ -7987,23 +7979,13 @@ class Program
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            var expectedDiagnostics = new[]
-            {
+            comp.VerifyDiagnostics(
                 // (9,26): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         sp = MayWrap(ref local) with { }; // 1, 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(9, 26),
                 // (9,14): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //         sp = MayWrap(ref local) with { }; // 1, 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref local)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(9, 14)
-            };
-            if (languageVersion == LanguageVersion.CSharp10)
-            {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (12,24): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
-                    //     static S1 MayWrap([UnscopedRef] ref Span<int> arg)
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(12, 24));
-            }
-            comp.VerifyDiagnostics(expectedDiagnostics);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref local)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(9, 14));
         }
 
         [Fact]
@@ -10605,8 +10587,7 @@ record struct A(int X)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(8, 8),
                 // (8,17): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct A(int X)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 17));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
@@ -11481,6 +11462,25 @@ class record<T> : I { }
                 // (3,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record<T> : I { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 7)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        public void NoMethodBodiesInComImportType()
+        {
+            var source1 =
+@"
+[System.Runtime.InteropServices.ComImport]
+[System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
+record struct R1(int x);
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (2,2): error CS0592: Attribute 'System.Runtime.InteropServices.ComImport' is not valid on this declaration type. It is only valid on 'class, interface' declarations.
+                // [System.Runtime.InteropServices.ComImport]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "System.Runtime.InteropServices.ComImport").WithArguments("System.Runtime.InteropServices.ComImport", "class, interface").WithLocation(2, 2)
                 );
         }
     }

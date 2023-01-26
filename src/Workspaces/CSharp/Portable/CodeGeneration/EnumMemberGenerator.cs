@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 }
                             }
                         }
-                        else if (lastExpression.IsKind(SyntaxKind.NumericLiteralExpression, out LiteralExpressionSyntax? numericLiteral))
+                        else if (lastExpression is LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression) numericLiteral)
                         {
                             var numericToken = numericLiteral.Token;
                             var numericText = numericToken.ToString();
@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             {
                                 // Hex
                                 return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(numericText.Substring(0, 2) + value.ToString("X"), value));
+                                    SyntaxFactory.Literal(numericText[..2] + value.ToString("X"), value));
                             }
                             else if (numericText.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
                             {
                                 return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(numericText.Substring(0, 2) + Convert.ToString(value, 2), value));
+                                    SyntaxFactory.Literal(numericText[..2] + Convert.ToString(value, 2), value));
                             }
                         }
                     }
