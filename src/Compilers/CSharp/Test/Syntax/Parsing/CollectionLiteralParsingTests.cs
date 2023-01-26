@@ -1636,6 +1636,240 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void DictionaryWithConditional1()
+        {
+            UsingExpression("[a ? b : c : d]");
+
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DictionaryWithConditional2()
+        {
+            UsingExpression("[a : b ? c : d]");
+
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DictionaryWithConditional3()
+        {
+            UsingExpression("[a ? b : c : d ? e : f]");
+
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "f");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DictionaryWithNullCoalesce1()
+        {
+            UsingExpression("[a ?? b : c]");
+
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.CoalesceExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionQuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DictionaryWithNullCoalesce2()
+        {
+            UsingExpression("[a : b ?? c]");
+
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.CoalesceExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.QuestionQuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DictionaryWithNullCoalesce3()
+        {
+            UsingExpression("[a ?? b : c ?? d]");
+
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.CoalesceExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionQuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.CoalesceExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.QuestionQuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void InvokedCollectionLiteral1()
         {
             UsingExpression("[A, B]()");
