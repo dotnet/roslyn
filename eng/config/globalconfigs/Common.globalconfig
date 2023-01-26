@@ -142,3 +142,6 @@ dotnet_diagnostic.HAA0601.severity = none
 dotnet_diagnostic.HAA0602.severity = none
 dotnet_diagnostic.HAA0603.severity = none
 dotnet_diagnostic.HeapAnalyzerReadonlyMethodGroupAllocationRule.severity = none
+
+# ROSLYN0001: ISourceGenerator is obsolete
+dotnet_diagnostic.ROSLYN0001.severity = none

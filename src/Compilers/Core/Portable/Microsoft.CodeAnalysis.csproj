@@ -20,6 +20,9 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Private\Microsoft.CodeAnalysis.Private.csproj" Aliases="helpers" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>
   <ItemGroup>

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// is no guarantee that the same instance will be used on a 
     /// subsequent generation pass.
     /// </remarks>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public interface ISourceGenerator
     {
         /// <summary>

@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
     /// An <see cref="ISourceGenerator"/> may provide only a single <see cref="ISyntaxReceiver"/> or
     /// <see cref="ISyntaxContextReceiver" />, not both.
     /// </remarks>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public interface ISyntaxReceiver
     {
         /// <summary>
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis
     /// Allows a generator to provide instances of an <see cref="ISyntaxReceiver"/>
     /// </summary>
     /// <returns>An instance of an <see cref="ISyntaxReceiver"/></returns>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public delegate ISyntaxReceiver SyntaxReceiverCreator();
 
     /// <summary>
@@ -66,6 +68,7 @@ namespace Microsoft.CodeAnalysis
     /// An <see cref="ISourceGenerator"/> may provide only a single <see cref="ISyntaxReceiver"/> or
     /// <see cref="ISyntaxContextReceiver" />, not both.
     /// </remarks>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public interface ISyntaxContextReceiver
     {
         void OnVisitSyntaxNode(GeneratorSyntaxContext context);
@@ -75,6 +78,7 @@ namespace Microsoft.CodeAnalysis
     /// Allows a generator to provide instances of an <see cref="ISyntaxContextReceiver"/>
     /// </summary>
     /// <returns>An instance of an <see cref="ISyntaxContextReceiver"/></returns>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public delegate ISyntaxContextReceiver? SyntaxContextReceiverCreator();
 
 }

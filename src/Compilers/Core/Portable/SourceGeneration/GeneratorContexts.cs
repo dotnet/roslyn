@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to a source generator when <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> is called
     /// </summary>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public readonly struct GeneratorExecutionContext
     {
         private readonly DiagnosticBag _diagnostics;
@@ -116,6 +117,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to a source generator when <see cref="ISourceGenerator.Initialize(GeneratorInitializationContext)"/> is called
     /// </summary>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public readonly struct GeneratorInitializationContext
     {
         internal GeneratorInitializationContext(CancellationToken cancellationToken = default)
@@ -214,6 +216,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to an <see cref="ISyntaxContextReceiver"/> when <see cref="ISyntaxContextReceiver.OnVisitSyntaxNode(GeneratorSyntaxContext)"/> is called
     /// </summary>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public readonly struct GeneratorSyntaxContext
     {
         internal readonly ISyntaxHelper SyntaxHelper;
@@ -240,6 +243,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to a source generator when it has opted-in to PostInitialization via <see cref="GeneratorInitializationContext.RegisterForPostInitialization(Action{GeneratorPostInitializationContext})"/>
     /// </summary>
+    [RoslynObsolete(Constants.UseIncrementalGenerator, DiagnosticId = Constants.UseIncrementalGeneratorDiagnosticId)]
     public readonly struct GeneratorPostInitializationContext
     {
         private readonly AdditionalSourcesCollection _additionalSources;
