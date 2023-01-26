@@ -5335,7 +5335,10 @@ static class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpressionExpected, "}"));
+            ParseAndValidate(test,
+                // (8,33): error CS1733: Expected expression
+                //         A a = new A { 5, {9, 5, }, 3 };
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "}").WithLocation(8, 33));
         }
 
         [WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]
