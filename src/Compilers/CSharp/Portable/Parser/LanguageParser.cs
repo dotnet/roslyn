@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CompilationUnitSyntax ParseCompilationUnit()
         {
             return ParseWithStackGuard(
-                ParseCompilationUnitCore,
-                () => SyntaxFactory.CompilationUnit(
+                static @this => @this.ParseCompilationUnitCore(),
+                static @this => SyntaxFactory.CompilationUnit(
                     new SyntaxList<ExternAliasDirectiveSyntax>(),
                     new SyntaxList<UsingDirectiveSyntax>(),
                     new SyntaxList<AttributeListSyntax>(),
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal TNode ParseWithStackGuard<TNode>(Func<TNode> parseFunc, Func<TNode> createEmptyNodeFunc) where TNode : CSharpSyntaxNode
+        internal TNode ParseWithStackGuard<TNode>(Func<LanguageParser, TNode> parseFunc, Func<LanguageParser, TNode> createEmptyNodeFunc) where TNode : CSharpSyntaxNode
         {
             // If this value is non-zero then we are nesting calls to ParseWithStackGuard which should not be 
             // happening.  It's not a bug but it's inefficient and should be changed.
@@ -210,11 +210,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             try
             {
-                return parseFunc();
+                return parseFunc(this);
             }
             catch (InsufficientExecutionStackException)
             {
-                return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
+                return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc(this));
             }
         }
 
@@ -2159,16 +2159,16 @@ tryAgain:
             // e.g. including fixed member declarations, but not statements.
             const SyntaxKind parentKind = SyntaxKind.StructDeclaration;
             return ParseWithStackGuard(
-                () => this.ParseMemberDeclaration(parentKind),
-                () => createEmptyNodeFunc());
+                static @this => @this.ParseMemberDeclaration(parentKind),
+                createEmptyNodeFunc);
 
             // Creates a dummy declaration node to which we can attach a stack overflow message
-            MemberDeclarationSyntax createEmptyNodeFunc()
+            static MemberDeclarationSyntax createEmptyNodeFunc(LanguageParser @this)
             {
-                return _syntaxFactory.IncompleteMember(
+                return @this._syntaxFactory.IncompleteMember(
                     new SyntaxList<AttributeListSyntax>(),
                     new SyntaxList<SyntaxToken>(),
-                    CreateMissingIdentifierName());
+                    @this.CreateMissingIdentifierName());
             }
         }
 
@@ -7443,8 +7443,8 @@ done:;
         public StatementSyntax ParseStatement()
         {
             return ParseWithStackGuard(
-                () => ParsePossiblyAttributedStatement() ?? ParseExpressionStatement(attributes: default),
-                () => SyntaxFactory.EmptyStatement(attributeLists: default, SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
+                static @this => @this.ParsePossiblyAttributedStatement() ?? @this.ParseExpressionStatement(attributes: default),
+                static @this => SyntaxFactory.EmptyStatement(attributeLists: default, SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
         }
 
         private StatementSyntax ParsePossiblyAttributedStatement()
@@ -9995,8 +9995,8 @@ tryAgain:
         public ExpressionSyntax ParseExpression()
         {
             return ParseWithStackGuard(
-                this.ParseExpressionCore,
-                this.CreateMissingIdentifierName);
+                static @this => @this.ParseExpressionCore(),
+                static @this => @this.CreateMissingIdentifierName());
         }
 
         private ExpressionSyntax ParseExpressionCore()
