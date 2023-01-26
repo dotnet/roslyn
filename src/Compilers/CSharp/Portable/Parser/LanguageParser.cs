@@ -12287,13 +12287,18 @@ tryAgain:
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             // NOTE:  This loop allows " { <initexpr>, } " but not " { , } "
+
+            // NOTE: Most separated list parsing routines default to just saying they expect an identifier between
+            // elements in the case of error.  To maintain compat with legacy behavior here this code instead reports
+            // 'syntax error'.  This is accomplished by passing in `expectedKind: SyntaxKind.CommaToken`.
             var list = this.ParseCommaSeparatedSyntaxList(
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleVariableInitializer(),
                 static @this => @this.ParseVariableInitializer(),
                 static (@this, openBrace, list, expectedKind, closeKind) => skipBadArrayInitializerTokens(@this, openBrace, list, expectedKind),
-                allowTrailingSeparator: true);
+                allowTrailingSeparator: true,
+                expectedKind: SyntaxKind.CommaToken);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ArrayInitializerExpression,
@@ -13078,7 +13083,8 @@ tryAgain:
             Func<LanguageParser, bool> isPossibleElement,
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
-            bool allowTrailingSeparator) where TNode : GreenNode
+            bool allowTrailingSeparator,
+            SyntaxKind expectedKind = SyntaxKind.IdentifierToken) where TNode : GreenNode
         {
             return ParseSeparatedSyntaxList<TNode>(
                 ref openToken,
@@ -13087,7 +13093,8 @@ tryAgain:
                 isPossibleElement,
                 parseElement,
                 skipBadTokens,
-                allowTrailingSeparator);
+                allowTrailingSeparator,
+                expectedKind);
         }
 
         private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
@@ -13097,7 +13104,8 @@ tryAgain:
             Func<LanguageParser, bool> isPossibleElement,
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
-            bool allowTrailingSeparator) where TNode : GreenNode
+            bool allowTrailingSeparator,
+            SyntaxKind expectedKind = SyntaxKind.IdentifierToken) where TNode : GreenNode
         {
             var argNodes = _pool.AllocateSeparated<TNode>();
 
@@ -13148,7 +13156,7 @@ tryAgain:
                 }
                 else
                 {
-                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, SyntaxKind.IdentifierToken, closeTokenKind);
+                    (openToken, var action) = skipBadTokens(this, openToken, argNodes, expectedKind, closeTokenKind);
                     if (action == PostSkipAction.Continue)
                     {
                         goto tryAgain;
