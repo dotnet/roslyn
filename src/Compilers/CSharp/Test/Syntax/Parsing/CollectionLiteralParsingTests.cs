@@ -1874,6 +1874,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingExpression("[from x in y select x : c]");
 
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.QueryExpression);
+                    {
+                        N(SyntaxKind.FromClause);
+                        {
+                            N(SyntaxKind.FromKeyword);
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.InKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.QueryBody);
+                        {
+                            N(SyntaxKind.SelectClause);
+                            {
+                                N(SyntaxKind.SelectKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
             EOF();
         }
 
@@ -1882,6 +1919,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingExpression("[a : from x in y select x]");
 
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.QueryExpression);
+                    {
+                        N(SyntaxKind.FromClause);
+                        {
+                            N(SyntaxKind.FromKeyword);
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.InKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.QueryBody);
+                        {
+                            N(SyntaxKind.SelectClause);
+                            {
+                                N(SyntaxKind.SelectKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
             EOF();
         }
 
@@ -1890,6 +1964,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingExpression("[from a in b select a : from x in y select x]");
 
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.QueryExpression);
+                    {
+                        N(SyntaxKind.FromClause);
+                        {
+                            N(SyntaxKind.FromKeyword);
+                            N(SyntaxKind.IdentifierToken, "a");
+                            N(SyntaxKind.InKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.QueryBody);
+                        {
+                            N(SyntaxKind.SelectClause);
+                            {
+                                N(SyntaxKind.SelectKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.QueryExpression);
+                    {
+                        N(SyntaxKind.FromClause);
+                        {
+                            N(SyntaxKind.FromKeyword);
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.InKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.QueryBody);
+                        {
+                            N(SyntaxKind.SelectClause);
+                            {
+                                N(SyntaxKind.SelectKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
             EOF();
         }
 
@@ -1898,6 +2029,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingExpression("[a ? [b] : c]");
 
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
+                {
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.CollectionCreationExpression);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ExpressionElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
             EOF();
         }
 
@@ -1906,6 +2070,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingExpression("[(a ? [b]) : c]");
 
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.DictionaryElement);
+                {
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.ConditionalAccessExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.ElementBindingExpression);
+                            {
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
             EOF();
         }
 
@@ -1914,6 +2119,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingExpression("[.. from x in y select x]");
 
+            N(SyntaxKind.CollectionCreationExpression);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.SpreadElement);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.QueryExpression);
+                    {
+                        N(SyntaxKind.FromClause);
+                        {
+                            N(SyntaxKind.FromKeyword);
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.InKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.QueryBody);
+                        {
+                            N(SyntaxKind.SelectClause);
+                            {
+                                N(SyntaxKind.SelectKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
             EOF();
         }
 
