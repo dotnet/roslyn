@@ -1572,10 +1572,6 @@ class C
                         }
                     }
                     N(SyntaxKind.CommaToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
                     M(SyntaxKind.CloseBraceToken);
                 }
             }
