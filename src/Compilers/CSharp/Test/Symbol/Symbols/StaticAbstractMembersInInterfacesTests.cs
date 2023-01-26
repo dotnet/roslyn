@@ -33434,6 +33434,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
         public void AbstractEntryPoint()
         {
             CreateCompilation("""
@@ -33448,6 +33449,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
         public void VirtualEntryPoint()
         {
             CreateCompilation("""
@@ -33464,6 +33466,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
         public void AbstractEntryPointWithImplementation()
         {
             CompileAndVerify("""
@@ -33486,6 +33489,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
         public void AbstractEntryPointWithExplicitImplementation()
         {
             CreateCompilation("""
@@ -33507,6 +33511,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
         public void VirtualEntryPointWithImplementation()
         {
             CompileAndVerify("""
@@ -33529,6 +33534,7 @@ public class C5 : I1<C5>
         }
 
         [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
         public void VirtualEntryPointWithExplicitImplementation()
         {
             CreateCompilation("""
