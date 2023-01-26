@@ -103,9 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasReturnWithExpression = SyntaxFacts.HasReturnWithExpression(topLevelStatement);
                     }
                 }
-#pragma warning disable CS0618 // Type or member is obsolete - PROTOTYPE: TODO: check if we have field declaration with missing type?
-                else if (!hasGlobalMembers && member.Kind() != SyntaxKind.IncompleteMember)
-#pragma warning restore CS0618 // Type or member is obsolete
+                else if (!hasGlobalMembers)
                 {
                     hasGlobalMembers = true;
                 }
