@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
-            var argNodes = this.ParseCommaSeparatedSyntaxList<AttributeArgumentSyntax>(
+            var argNodes = this.ParseCommaSeparatedSyntaxList(
                 ref openParen,
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleAttributeArgument(),
@@ -4310,7 +4310,7 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfParameterList;
 
-            var parameters = ParseCommaSeparatedSyntaxList<ParameterSyntax>(
+            var parameters = ParseCommaSeparatedSyntaxList(
                 ref open,
                 closeKind,
                 static @this => @this.IsPossibleParameter(),
@@ -11999,18 +11999,13 @@ tryAgain:
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
 
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var expressions = default(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>);
-
-            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
-            {
-                expressions = ParseCommaSeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(
-                    ref openBrace,
-                    SyntaxKind.CloseBraceToken,
-                    static @this => @this.IsPossibleExpression(),
-                    static @this => @this.ParseAnonymousTypeMemberInitializer(),
-                    static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(ref openBrace, list, expectedKind),
-                    allowTrailingSeparator: true);
-            }
+            var expressions = ParseCommaSeparatedSyntaxList(
+                ref openBrace,
+                SyntaxKind.CloseBraceToken,
+                static @this => @this.IsPossibleExpression(),
+                static @this => @this.ParseAnonymousTypeMemberInitializer(),
+                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(ref openBrace, list, expectedKind),
+                allowTrailingSeparator: true);
 
             return _syntaxFactory.AnonymousObjectCreationExpression(
                 @new,
@@ -12457,18 +12452,13 @@ tryAgain:
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             // NOTE:  This loop allows " { <initexpr>, } " but not " { , } "
-            var list = default(SeparatedSyntaxList<ExpressionSyntax>);
-
-            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
-            {
-                list = this.ParseCommaSeparatedSyntaxList<ExpressionSyntax>(
-                    ref openBrace,
-                    SyntaxKind.CloseBraceToken,
-                    static @this => @this.IsPossibleVariableInitializer(),
-                    static @this => @this.ParseVariableInitializer(),
-                    static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadArrayInitializerTokens(openBrace, list, expectedKind),
-                    allowTrailingSeparator: true);
-            }
+            var list = this.ParseCommaSeparatedSyntaxList(
+                ref openBrace,
+                SyntaxKind.CloseBraceToken,
+                static @this => @this.IsPossibleVariableInitializer(),
+                static @this => @this.ParseVariableInitializer(),
+                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadArrayInitializerTokens(openBrace, list, expectedKind),
+                allowTrailingSeparator: true);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ArrayInitializerExpression,
@@ -12733,48 +12723,19 @@ tryAgain:
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfParameterList;
 
-            var nodes = _pool.AllocateSeparated<ParameterSyntax>();
-            if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
-            {
-tryAgain:
-                if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleLambdaParameter())
-                {
-                    // first parameter
-                    var parameter = this.ParseLambdaParameter();
-                    nodes.Add(parameter);
-
-                    // additional parameters
-                    int tokenProgress = -1;
-                    while (IsMakingProgress(ref tokenProgress))
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleLambdaParameter())
-                        {
-                            nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            parameter = this.ParseLambdaParameter();
-                            nodes.Add(parameter);
-                            continue;
-                        }
-                        else if (this.SkipBadLambdaParameterListTokens(ref openParen, nodes, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (this.SkipBadLambdaParameterListTokens(ref openParen, nodes, SyntaxKind.IdentifierToken, SyntaxKind.CloseParenToken) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
-                }
-            }
+            var nodes = ParseCommaSeparatedSyntaxList(
+                ref openParen,
+                SyntaxKind.CloseParenToken,
+                static @this => @this.IsPossibleLambdaParameter(),
+                static @this => @this.ParseLambdaParameter(),
+                static (@this, openParen, nodes, expectedKind, closeKind) => @this.SkipBadLambdaParameterListTokens(openParen, nodes, expectedKind, closeKind),
+                allowTrailingSeparator: false);
 
             _termState = saveTerm;
 
             return _syntaxFactory.ParameterList(
                 openParen,
-                _pool.ToListAndFree(nodes),
+                nodes,
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
@@ -12804,12 +12765,13 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadLambdaParameterListTokens(ref SyntaxToken openParen, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
+        private (SyntaxToken openParen, PostSkipAction action) SkipBadLambdaParameterListTokens(SyntaxToken openParen, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
         {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
+            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleLambdaParameter(),
                 p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
                 expected);
+            return (openParen, action);
         }
 
         private ParameterSyntax ParseLambdaParameter()
