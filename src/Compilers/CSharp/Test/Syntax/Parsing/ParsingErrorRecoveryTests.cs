@@ -5351,8 +5351,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
+
+            file.GetDiagnostics().Verify(
+                // (1,45): error CS1056: Unexpected character '$'
+                // class c { void m() { var x = new C { a = b, $ }; } }
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 45));
         }
 
         [Fact]
