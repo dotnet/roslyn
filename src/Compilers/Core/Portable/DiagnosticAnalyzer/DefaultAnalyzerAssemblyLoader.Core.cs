@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis
                StringComparer.OrdinalIgnoreCase,
                "Microsoft.CodeAnalysis",
                "Microsoft.CodeAnalysis.CSharp",
+               "Microsoft.CodeAnalysis.Private",
                "Microsoft.CodeAnalysis.VisualBasic",
                "System.Collections",
                "System.Collections.Concurrent",

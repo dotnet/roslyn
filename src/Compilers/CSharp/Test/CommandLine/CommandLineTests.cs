@@ -13471,7 +13471,16 @@ public class TestGenerator : ISourceGenerator
                                              references: TargetFrameworkUtil.NetStandard20References.Add(MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly)),
                                              options: TestOptions.DebugDll.WithCryptoKeyFile(Path.GetFileName(snk.Path)).WithStrongNameProvider(virtualSnProvider),
                                              assemblyName: "generator");
-                comp.VerifyDiagnostics();
+                comp.VerifyDiagnostics(
+                    // (6,30): warning ROSLYN0001: 'ISourceGenerator' is obsolete: 'Non-incremental source generators should not be used, use IIncrementalGenerator instead.'
+                    // public class TestGenerator : ISourceGenerator
+                    Diagnostic("ROSLYN0001", "ISourceGenerator").WithArguments("Microsoft.CodeAnalysis.ISourceGenerator", "Non-incremental source generators should not be used, use IIncrementalGenerator instead.").WithLocation(6, 30),
+                    // (8,33): warning ROSLYN0001: 'GeneratorExecutionContext' is obsolete: 'Non-incremental source generators should not be used, use IIncrementalGenerator instead.'
+                    //             public void Execute(GeneratorExecutionContext context) { context.AddSource("generatedSource.cs", "//from version 1.0.0.0"); }
+                    Diagnostic("ROSLYN0001", "GeneratorExecutionContext").WithArguments("Microsoft.CodeAnalysis.GeneratorExecutionContext", "Non-incremental source generators should not be used, use IIncrementalGenerator instead.").WithLocation(8, 33),
+                    // (9,36): warning ROSLYN0001: 'GeneratorInitializationContext' is obsolete: 'Non-incremental source generators should not be used, use IIncrementalGenerator instead.'
+                    //             public void Initialize(GeneratorInitializationContext context) { }
+                    Diagnostic("ROSLYN0001", "GeneratorInitializationContext").WithArguments("Microsoft.CodeAnalysis.GeneratorInitializationContext", "Non-incremental source generators should not be used, use IIncrementalGenerator instead.").WithLocation(9, 36));
                 comp.Emit(path);
                 return path;
             }
@@ -14427,7 +14436,16 @@ public class Generator : ISourceGenerator
                                                            TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
                                                            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-                compilation.VerifyDiagnostics();
+                compilation.VerifyDiagnostics(
+                    // (7,26): warning ROSLYN0001: 'ISourceGenerator' is obsolete: 'Non-incremental source generators should not be used, use IIncrementalGenerator instead.'
+                    // public class Generator : ISourceGenerator
+                    Diagnostic("ROSLYN0001", "ISourceGenerator").WithArguments("Microsoft.CodeAnalysis.ISourceGenerator", "Non-incremental source generators should not be used, use IIncrementalGenerator instead.").WithLocation(7, 26),
+                    // (9,33): warning ROSLYN0001: 'GeneratorExecutionContext' is obsolete: 'Non-incremental source generators should not be used, use IIncrementalGenerator instead.'
+                    //             public void Execute(GeneratorExecutionContext context) { }
+                    Diagnostic("ROSLYN0001", "GeneratorExecutionContext").WithArguments("Microsoft.CodeAnalysis.GeneratorExecutionContext", "Non-incremental source generators should not be used, use IIncrementalGenerator instead.").WithLocation(9, 33),
+                    // (10,36): warning ROSLYN0001: 'GeneratorInitializationContext' is obsolete: 'Non-incremental source generators should not be used, use IIncrementalGenerator instead.'
+                    //             public void Initialize(GeneratorInitializationContext context) { }
+                    Diagnostic("ROSLYN0001", "GeneratorInitializationContext").WithArguments("Microsoft.CodeAnalysis.GeneratorInitializationContext", "Non-incremental source generators should not be used, use IIncrementalGenerator instead.").WithLocation(10, 36));
                 var result = compilation.Emit(generatorPath);
                 Assert.True(result.Success);
 
