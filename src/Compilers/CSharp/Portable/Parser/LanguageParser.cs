@@ -12070,7 +12070,7 @@ done:;
         {
             return @this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                static (p, closeKind) => p.CurrentToken.Kind == closeKind ,
+                static (p, closeKind) => p.CurrentToken.Kind == closeKind,
                 expectedKind, closeKind);
         }
 
