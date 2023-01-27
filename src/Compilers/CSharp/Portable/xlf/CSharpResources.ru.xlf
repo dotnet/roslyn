@@ -1649,17 +1649,17 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation.</target>
+        <target state="translated">UnscopedRefAttribute не может применяться к реализации интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</target>
+        <target state="translated">UnscopedRefAttribute может применяться только к методам и свойствам экземпляров структуры и не может применяться к конструкторам или элементам только для инициализации.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</target>
+        <target state="translated">Не удается применить UnscopedRefAttribute к этому параметру, так как у него по умолчанию нет области действия.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">

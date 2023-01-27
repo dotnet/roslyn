@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -95,8 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingLocal.GetConstantValueDiagnostics(boundInitValue);
         internal override SyntaxNode GetDeclaratorSyntax() =>
             _underlyingLocal.GetDeclaratorSyntax();
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) =>
-            throw ExceptionUtilities.Unreachable();
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string? createdAtFilePath = null
+#endif
+            ) => throw ExceptionUtilities.Unreachable();
         #endregion
     }
 }

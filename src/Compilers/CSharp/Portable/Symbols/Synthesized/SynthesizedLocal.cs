@@ -70,7 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _syntaxOpt; }
         }
 
-        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             return new SynthesizedLocal(
                 _containingMethodOpt,
@@ -79,7 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 _isPinned,
                 _isKnownToReferToTempIfReferenceType,
-                _refKind);
+                _refKind
+#if DEBUG
+                ,
+                createdAtLineNumber,
+                createdAtFilePath
+#endif
+                );
         }
 
         public sealed override RefKind RefKind

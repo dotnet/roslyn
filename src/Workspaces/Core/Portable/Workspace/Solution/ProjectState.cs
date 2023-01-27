@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class ProjectState
     {
         private readonly ProjectInfo _projectInfo;
-        private readonly HostLanguageServices _languageServices;
-        private readonly HostWorkspaceServices _solutionServices;
+        public readonly LanguageServices LanguageServices;
 
         /// <summary>
         /// The documents in this project. They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
@@ -68,8 +67,7 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectState(
             ProjectInfo projectInfo,
-            HostLanguageServices languageServices,
-            HostWorkspaceServices solutionServices,
+            LanguageServices languageServices,
             TextDocumentStates<DocumentState> documentStates,
             TextDocumentStates<AdditionalDocumentState> additionalDocumentStates,
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
@@ -77,8 +75,7 @@ namespace Microsoft.CodeAnalysis
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
             ValueSource<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
         {
-            _solutionServices = solutionServices;
-            _languageServices = languageServices;
+            LanguageServices = languageServices;
             DocumentStates = documentStates;
             AdditionalDocumentStates = additionalDocumentStates;
             AnalyzerConfigDocumentStates = analyzerConfigDocumentStates;
@@ -94,20 +91,18 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, HostWorkspaceServices solutionServices)
+        public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo)
         {
             Contract.ThrowIfNull(projectInfo);
             Contract.ThrowIfNull(languageServices);
-            Contract.ThrowIfNull(solutionServices);
 
-            _languageServices = languageServices;
-            _solutionServices = solutionServices;
+            LanguageServices = languageServices;
 
             var projectInfoFixed = FixProjectInfo(projectInfo);
             var loadTextOptions = new LoadTextOptions(projectInfoFixed.Attributes.ChecksumAlgorithm);
 
             // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
-            AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(info, loadTextOptions, solutionServices));
+            AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
             _lazyAnalyzerConfigOptions = ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates);
 
@@ -122,7 +117,7 @@ namespace Microsoft.CodeAnalysis
             var parseOptions = projectInfoFixed.ParseOptions;
 
             DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions, loadTextOptions));
-            AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(info, loadTextOptions, solutionServices));
+            AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
             _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
             _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
@@ -148,7 +143,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectInfo.CompilationOptions == null)
             {
-                var compilationFactory = _languageServices.GetService<ICompilationFactoryService>();
+                var compilationFactory = LanguageServices.GetService<ICompilationFactoryService>();
                 if (compilationFactory != null)
                 {
                     projectInfo = projectInfo.WithCompilationOptions(compilationFactory.GetDefaultCompilationOptions());
@@ -157,7 +152,7 @@ namespace Microsoft.CodeAnalysis
 
             if (projectInfo.ParseOptions == null)
             {
-                var syntaxTreeFactory = _languageServices.GetService<ISyntaxTreeFactoryService>();
+                var syntaxTreeFactory = LanguageServices.GetService<ISyntaxTreeFactoryService>();
                 if (syntaxTreeFactory != null)
                 {
                     projectInfo = projectInfo.WithParseOptions(syntaxTreeFactory.GetDefaultParseOptions());
@@ -239,7 +234,7 @@ namespace Microsoft.CodeAnalysis
 
         internal DocumentState CreateDocument(DocumentInfo documentInfo, ParseOptions? parseOptions, LoadTextOptions loadTextOptions)
         {
-            var doc = new DocumentState(documentInfo, parseOptions, loadTextOptions, _languageServices, _solutionServices);
+            var doc = new DocumentState(LanguageServices, documentInfo, parseOptions, loadTextOptions);
 
             if (doc.SourceCodeKind != documentInfo.SourceCodeKind)
             {
@@ -330,9 +325,11 @@ namespace Microsoft.CodeAnalysis
 
             private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache cache, DocumentState documentState)
             {
+                var services = _projectState.LanguageServices.SolutionServices;
+
                 if (documentState.IsRazorDocument())
                 {
-                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.LanguageServices.SolutionServices);
+                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(services);
                 }
 
                 var filePath = GetEffectiveFilePath(documentState);
@@ -340,8 +337,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     return StructuredAnalyzerConfigOptions.Empty;
                 }
-
-                var services = _projectState._solutionServices;
 
                 var legacyDocumentOptionsProvider = services.GetService<ILegacyDocumentOptionsProvider>();
                 if (legacyDocumentOptionsProvider != null)
@@ -555,9 +550,6 @@ namespace Microsoft.CodeAnalysis
         public SourceHashAlgorithm ChecksumAlgorithm => this.ProjectInfo.ChecksumAlgorithm;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public HostLanguageServices LanguageServices => _languageServices;
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public string Language => LanguageServices.Language;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -617,8 +609,7 @@ namespace Microsoft.CodeAnalysis
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,
-                _languageServices,
-                _solutionServices,
+                LanguageServices,
                 documentStates ?? DocumentStates,
                 additionalDocumentStates ?? AdditionalDocumentStates,
                 analyzerConfigDocumentStates ?? AnalyzerConfigDocumentStates,
@@ -704,7 +695,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var onlyPreprocessorDirectiveChange = ParseOptions != null &&
-                _languageServices.SyntaxTreeFactory!.OptionsDifferOnlyByPreprocessorDirectives(options, ParseOptions);
+                LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>().OptionsDifferOnlyByPreprocessorDirectives(options, ParseOptions);
 
             return With(
                 projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),

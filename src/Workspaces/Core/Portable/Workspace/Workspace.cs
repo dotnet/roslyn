@@ -89,9 +89,6 @@ namespace Microsoft.CodeAnalysis
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
         }
 
-        internal void LogTestMessage<TArg>(Func<TArg, string> messageFactory, TArg state)
-            => Services.GetService<IWorkspaceTestLogger>()?.Log(messageFactory(state));
-
         /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
@@ -181,7 +178,7 @@ namespace Microsoft.CodeAnalysis
                     return (solution, solution);
                 }
 
-                _latestSolution = solution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
+                _latestSolution = solution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
                 return (oldSolution, _latestSolution);
             }
         }
@@ -369,7 +366,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    newSolution = newSolution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
+                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
                     onBeforeUpdate?.Invoke(oldSolution, newSolution, data);

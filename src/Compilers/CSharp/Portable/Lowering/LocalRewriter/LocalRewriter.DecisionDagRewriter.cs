@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to will jump there. After the expression is evaluated, we need to jump to different
             // labels depending on the `when` node we came from. To achieve that, each `when` node
             // gets an identifier and sets a local before jumping into the shared `when` expression.
-            private int _nextWhenNodeIdentifier = 0;
             internal LocalSymbol? _whenNodeIdentifierLocal;
 #nullable disable
 
@@ -998,6 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   }
                 //   switch on whenNodeIdentifierLocal with dispatches to whenFalse labels
 
+                int nextWhenNodeIdentifier = 0;
                 // Prepared maps for `when` nodes and expressions
                 var whenExpressionMap = PooledDictionary<BoundExpression, (LabelSymbol LabelToWhenExpression, ArrayBuilder<BoundWhenDecisionDagNode> WhenNodes)>.GetInstance();
                 var whenNodeMap = PooledDictionary<BoundWhenDecisionDagNode, (LabelSymbol LabelToWhenExpression, int WhenNodeIdentifier)>.GetInstance();
@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 whenExpressionMap.Add(whenExpression, (labelToWhenExpression, list));
                             }
 
-                            whenNodeMap.Add(whenNode, (labelToWhenExpression, _nextWhenNodeIdentifier++));
+                            whenNodeMap.Add(whenNode, (labelToWhenExpression, nextWhenNodeIdentifier++));
                         }
                     }
                 }
