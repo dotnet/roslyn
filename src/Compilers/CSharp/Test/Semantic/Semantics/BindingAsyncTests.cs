@@ -3529,6 +3529,57 @@ public class C
                 Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "F1"));
         }
 
+        [Fact, WorkItem(66530, "https://github.com/dotnet/roslyn/issues/66530")]
+        public void BadAsync_MethodImpl_Synchronized_Lambda()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public class C
+{
+    void M()
+    {
+        _ = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
+            {
+                await Task.Yield();
+                return 42;
+            };
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (9,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void BadAsync_MethodImpl_Synchronized_LocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public class C
+{
+    void M()
+    {
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        async Task<int> local()
+        {
+            return await Task.Factory.StartNew(() => 1);
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (10,25): error CS4015: 'MethodImplOptions.Synchronized' cannot be applied to an async method
+                //         async Task<int> local()
+                Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "local").WithLocation(10, 25),
+                // (10,25): warning CS8321: The local function 'local' is declared but never used
+                //         async Task<int> local()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(10, 25));
+        }
+
         [Fact]
         public void Async_MethodImplSynchronized_BadReturn_SecurityCritical()
         {
