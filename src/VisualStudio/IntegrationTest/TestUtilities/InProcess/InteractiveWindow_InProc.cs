@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </remarks>
     internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
     {
+        private static readonly Func<string, string, bool> s_equals = (expected, actual) => actual.Equals(expected);
         private static readonly Func<string, string, bool> s_contains = (expected, actual) => actual.Contains(expected);
         private static readonly Func<string, string, bool> s_endsWith = (expected, actual) => actual.EndsWith(expected);
 
@@ -218,10 +219,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForPredicate(GetLastReplOutput, outputText, s_contains, "contain");
+            => WaitForPredicate(GetLastReplOutput, outputText, s_equals, "is");
 
         public void WaitForLastReplOutputContains(string outputText)
             => WaitForPredicate(GetLastReplOutput, outputText, s_contains, "contain");
+
+        public void WaitForLastReplInput(string outputText)
+            => WaitForPredicate(GetLastReplInput, outputText, s_equals, "is");
 
         public void WaitForLastReplInputContains(string outputText)
             => WaitForPredicate(GetLastReplInput, outputText, s_contains, "contain");

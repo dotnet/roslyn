@@ -9773,11 +9773,30 @@ tryAgain:
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
-                this.EatToken();
 
-                return IsDeclarationModifier(this.CurrentToken.Kind) ||
-                    IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) ||
-                    (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+                do
+                {
+                    this.EatToken();
+
+                    if (IsDeclarationModifier(this.CurrentToken.Kind) ||
+                        IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind))
+                    {
+                        return true;
+                    }
+
+                    using var _2 = this.GetDisposableResetPoint(resetOnDispose: true);
+
+                    if (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                    {
+                        return true;
+                    }
+                }
+                // If current token might be a contextual modifier we need to check ahead the next token after it
+                // If the next token appears to be a modifier, we treat current token as a modifier as well
+                // This allows to correctly parse things like local functions with several `async` modifiers
+                while (IsAdditionalLocalFunctionModifier(this.CurrentToken.ContextualKind));
+
+                return false;
             }
         }
 

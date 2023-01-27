@@ -78,7 +78,18 @@ namespace Microsoft.Cci
 
             if (typeReference.IsTypeSpecification())
             {
+                if (typeReference is IFunctionPointerTypeReference)
+                {
+                    var messageProvider = context.Module.CommonCompilation.MessageProvider;
+                    context.Diagnostics.Add(messageProvider.CreateDiagnostic(
+                        messageProvider.ERR_FunctionPointerTypesInAttributeNotSupported,
+                        context.SyntaxNode?.Location ?? Location.None));
+                    sb.Append("(fnptr)");
+                    goto done;
+                }
+
                 ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(context);
+                Debug.Assert(uninstantiatedTypeReference != typeReference);
 
                 ArrayBuilder<ITypeReference> consolidatedTypeArguments = ArrayBuilder<ITypeReference>.GetInstance();
                 typeReference.GetConsolidatedTypeArguments(consolidatedTypeArguments, context);

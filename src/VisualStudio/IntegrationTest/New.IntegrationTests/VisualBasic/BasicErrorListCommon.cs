@@ -107,5 +107,33 @@ End Namespace
                 string.Join(Environment.NewLine, expectedContents),
                 string.Join(Environment.NewLine, actualContents));
         }
+
+        [IdeFact, WorkItem(1643350, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1643350")]
+        public virtual async Task BuildErrorsInClosedFiles()
+        {
+            // Enter code with compiler error.
+            await TestServices.Editor.SetTextAsync(@"Class Class1
+", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
+
+            // Close active tab before build.
+            await TestServices.SolutionExplorer.CloseActiveWindow(HangMitigatingCancellationToken);
+
+            // Build and verify build failure in the output window.
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+            Assert.Equal("========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+
+            // Verify the build error is listed in the error list for closed file.
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
+            var actualErrors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
+            var expectedErrors = new[] {
+                "(Compiler) Class1.vb(1, 1): error BC30481: 'Class' statement must end with a matching 'End Class'.",
+            };
+            AssertEx.EqualOrDiff(
+                string.Join(Environment.NewLine, expectedErrors),
+                string.Join(Environment.NewLine, actualErrors));
+        }
     }
 }

@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -116,8 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides Function GetAutomationObject(name As String) As Object
             If name = "Basic-Specific" Then
-                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                Return New AutomationObject(workspace)
+                Return New AutomationObject(ComponentModel.GetService(Of ILegacyGlobalOptionService))
             End If
 
             Return MyBase.GetAutomationObject(name)

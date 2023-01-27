@@ -4186,7 +4186,99 @@ class Program
         [Fact()]
         public void IsWarningSwitchEmit()
         {
-            var text = @"
+            var cases = new[]
+            {
+                "ErrorCode.WRN_InvalidMainSig",
+                "ErrorCode.WRN_UnreferencedEvent", "ErrorCode.WRN_LowercaseEllSuffix", "ErrorCode.WRN_DuplicateUsing",
+                "ErrorCode.WRN_NewRequired", "ErrorCode.WRN_NewNotRequired", "ErrorCode.WRN_NewOrOverrideExpected",
+                "ErrorCode.WRN_UnreachableCode", "ErrorCode.WRN_UnreferencedLabel", "ErrorCode.WRN_UnreferencedVar",
+                "ErrorCode.WRN_UnreferencedField", "ErrorCode.WRN_IsAlwaysTrue", "ErrorCode.WRN_IsAlwaysFalse",
+                "ErrorCode.WRN_ByRefNonAgileField", "ErrorCode.WRN_OldWarning_UnsafeProp",
+                "ErrorCode.WRN_UnreferencedVarAssg", "ErrorCode.WRN_NegativeArrayIndex",
+                "ErrorCode.WRN_BadRefCompareLeft", "ErrorCode.WRN_BadRefCompareRight",
+                "ErrorCode.WRN_PatternIsAmbiguous", "ErrorCode.WRN_PatternStaticOrInaccessible",
+                "ErrorCode.WRN_PatternBadSignature", "ErrorCode.WRN_SequentialOnPartialClass",
+                "ErrorCode.WRN_MainCantBeGeneric", "ErrorCode.WRN_UnreferencedFieldAssg",
+                "ErrorCode.WRN_AmbiguousXMLReference", "ErrorCode.WRN_VolatileByRef",
+                "ErrorCode.WRN_IncrSwitchObsolete", "ErrorCode.WRN_UnreachableExpr",
+                "ErrorCode.WRN_SameFullNameThisNsAgg", "ErrorCode.WRN_SameFullNameThisAggAgg",
+                "ErrorCode.WRN_SameFullNameThisAggNs", "ErrorCode.WRN_GlobalAliasDefn",
+                "ErrorCode.WRN_UnexpectedPredefTypeLoc", "ErrorCode.WRN_AlwaysNull", "ErrorCode.WRN_CmpAlwaysFalse",
+                "ErrorCode.WRN_FinalizeMethod", "ErrorCode.WRN_AmbigLookupMeth", "ErrorCode.WRN_GotoCaseShouldConvert",
+                "ErrorCode.WRN_NubExprIsConstBool", "ErrorCode.WRN_ExplicitImplCollision",
+                "ErrorCode.WRN_FeatureDeprecated", "ErrorCode.WRN_DeprecatedSymbol",
+                "ErrorCode.WRN_DeprecatedSymbolStr", "ErrorCode.WRN_ExternMethodNoImplementation",
+                "ErrorCode.WRN_ProtectedInSealed", "ErrorCode.WRN_PossibleMistakenNullStatement",
+                "ErrorCode.WRN_UnassignedInternalField", "ErrorCode.WRN_VacuousIntegralComp",
+                "ErrorCode.WRN_AttributeLocationOnBadDeclaration", "ErrorCode.WRN_InvalidAttributeLocation",
+                "ErrorCode.WRN_EqualsWithoutGetHashCode", "ErrorCode.WRN_EqualityOpWithoutEquals",
+                "ErrorCode.WRN_EqualityOpWithoutGetHashCode", "ErrorCode.WRN_IncorrectBooleanAssg",
+                "ErrorCode.WRN_NonObsoleteOverridingObsolete", "ErrorCode.WRN_BitwiseOrSignExtend",
+                "ErrorCode.WRN_OldWarning_ProtectedInternal", "ErrorCode.WRN_OldWarning_AccessibleReadonly",
+                "ErrorCode.WRN_CoClassWithoutComImport", "ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter",
+                "ErrorCode.WRN_AssignmentToLockOrDispose", "ErrorCode.WRN_ObsoleteOverridingNonObsolete",
+                "ErrorCode.WRN_DebugFullNameTooLong", "ErrorCode.WRN_ExternCtorNoImplementation",
+                "ErrorCode.WRN_WarningDirective", "ErrorCode.WRN_UnreachableGeneralCatch",
+                "ErrorCode.WRN_UninitializedField", "ErrorCode.WRN_DeprecatedCollectionInitAddStr",
+                "ErrorCode.WRN_DeprecatedCollectionInitAdd", "ErrorCode.WRN_DefaultValueForUnconsumedLocation",
+                "ErrorCode.WRN_FeatureDeprecated2", "ErrorCode.WRN_FeatureDeprecated3",
+                "ErrorCode.WRN_FeatureDeprecated4", "ErrorCode.WRN_FeatureDeprecated5",
+                "ErrorCode.WRN_OldWarning_FeatureDefaultDeprecated", "ErrorCode.WRN_EmptySwitch",
+                "ErrorCode.WRN_XMLParseError", "ErrorCode.WRN_DuplicateParamTag", "ErrorCode.WRN_UnmatchedParamTag",
+                "ErrorCode.WRN_MissingParamTag", "ErrorCode.WRN_BadXMLRef", "ErrorCode.WRN_BadXMLRefParamType",
+                "ErrorCode.WRN_BadXMLRefReturnType", "ErrorCode.WRN_BadXMLRefSyntax",
+                "ErrorCode.WRN_UnprocessedXMLComment", "ErrorCode.WRN_FailedInclude", "ErrorCode.WRN_InvalidInclude",
+                "ErrorCode.WRN_MissingXMLComment", "ErrorCode.WRN_XMLParseIncludeError",
+                "ErrorCode.WRN_OldWarning_MultipleTypeDefs", "ErrorCode.WRN_OldWarning_DocFileGenAndIncr",
+                "ErrorCode.WRN_XMLParserNotFound", "ErrorCode.WRN_ALinkWarn", "ErrorCode.WRN_DeleteAutoResFailed",
+                "ErrorCode.WRN_CmdOptionConflictsSource", "ErrorCode.WRN_IllegalPragma",
+                "ErrorCode.WRN_IllegalPPWarning", "ErrorCode.WRN_BadRestoreNumber", "ErrorCode.WRN_NonECMAFeature",
+                "ErrorCode.WRN_ErrorOverride", "ErrorCode.WRN_OldWarning_ReservedIdentifier",
+                "ErrorCode.WRN_InvalidSearchPathDir", "ErrorCode.WRN_MissingTypeNested",
+                "ErrorCode.WRN_MissingTypeInSource", "ErrorCode.WRN_MissingTypeInAssembly",
+                "ErrorCode.WRN_MultiplePredefTypes", "ErrorCode.WRN_TooManyLinesForDebugger",
+                "ErrorCode.WRN_CallOnNonAgileField", "ErrorCode.WRN_BadWarningNumber", "ErrorCode.WRN_InvalidNumber",
+                "ErrorCode.WRN_FileNameTooLong", "ErrorCode.WRN_IllegalPPChecksum", "ErrorCode.WRN_EndOfPPLineExpected",
+                "ErrorCode.WRN_ConflictingChecksum", "ErrorCode.WRN_AssumedMatchThis",
+                "ErrorCode.WRN_UseSwitchInsteadOfAttribute", "ErrorCode.WRN_InvalidAssemblyName",
+                "ErrorCode.WRN_UnifyReferenceMajMin", "ErrorCode.WRN_UnifyReferenceBldRev",
+                "ErrorCode.WRN_DelegateNewMethBind", "ErrorCode.WRN_EmptyFileName",
+                "ErrorCode.WRN_DuplicateTypeParamTag", "ErrorCode.WRN_UnmatchedTypeParamTag",
+                "ErrorCode.WRN_MissingTypeParamTag", "ErrorCode.WRN_AssignmentToSelf", "ErrorCode.WRN_ComparisonToSelf",
+                "ErrorCode.WRN_DotOnDefault", "ErrorCode.WRN_BadXMLRefTypeVar", "ErrorCode.WRN_UnmatchedParamRefTag",
+                "ErrorCode.WRN_UnmatchedTypeParamRefTag", "ErrorCode.WRN_ReferencedAssemblyReferencesLinkedPIA",
+                "ErrorCode.WRN_TypeNotFoundForNoPIAWarning", "ErrorCode.WRN_CantHaveManifestForModule",
+                "ErrorCode.WRN_MultipleRuntimeImplementationMatches", "ErrorCode.WRN_MultipleRuntimeOverrideMatches",
+                "ErrorCode.WRN_DynamicDispatchToConditionalMethod", "ErrorCode.WRN_IsDynamicIsConfusing",
+                "ErrorCode.WRN_AsyncLacksAwaits", "ErrorCode.WRN_FileAlreadyIncluded", "ErrorCode.WRN_NoSources",
+                "ErrorCode.WRN_UseNewSwitch", "ErrorCode.WRN_NoConfigNotOnCommandLine",
+                "ErrorCode.WRN_DefineIdentifierRequired", "ErrorCode.WRN_BadUILang", "ErrorCode.WRN_CLS_NoVarArgs",
+                "ErrorCode.WRN_CLS_BadArgType", "ErrorCode.WRN_CLS_BadReturnType", "ErrorCode.WRN_CLS_BadFieldPropType",
+                "ErrorCode.WRN_CLS_BadUnicode", "ErrorCode.WRN_CLS_BadIdentifierCase",
+                "ErrorCode.WRN_CLS_OverloadRefOut", "ErrorCode.WRN_CLS_OverloadUnnamed",
+                "ErrorCode.WRN_CLS_BadIdentifier", "ErrorCode.WRN_CLS_BadBase", "ErrorCode.WRN_CLS_BadInterfaceMember",
+                "ErrorCode.WRN_CLS_NoAbstractMembers", "ErrorCode.WRN_CLS_NotOnModules",
+                "ErrorCode.WRN_CLS_ModuleMissingCLS", "ErrorCode.WRN_CLS_AssemblyNotCLS",
+                "ErrorCode.WRN_CLS_BadAttributeType", "ErrorCode.WRN_CLS_ArrayArgumentToAttribute",
+                "ErrorCode.WRN_CLS_NotOnModules2", "ErrorCode.WRN_CLS_IllegalTrueInFalse",
+                "ErrorCode.WRN_CLS_MeaninglessOnPrivateType", "ErrorCode.WRN_CLS_AssemblyNotCLS2",
+                "ErrorCode.WRN_CLS_MeaninglessOnParam", "ErrorCode.WRN_CLS_MeaninglessOnReturn",
+                "ErrorCode.WRN_CLS_BadTypeVar", "ErrorCode.WRN_CLS_VolatileField", "ErrorCode.WRN_CLS_BadInterface",
+                "ErrorCode.WRN_UnobservedAwaitableExpression",
+                "ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation",
+                "ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation",
+                "ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation", "ErrorCode.WRN_UnknownOption",
+                "ErrorCode.WRN_MetadataNameTooLong", "ErrorCode.WRN_MainIgnored", "ErrorCode.WRN_DelaySignButNoKey",
+                "ErrorCode.WRN_InvalidVersionFormat", "ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName",
+                "ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName",
+                "ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath",
+                "ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden", "ErrorCode.WRN_UnimplementedCommandLineSwitch",
+                "ErrorCode.WRN_RefCultureMismatch", "ErrorCode.WRN_ConflictingMachineAssembly",
+                "ErrorCode.WRN_CA2000_DisposeObjectsBeforeLosingScope1",
+                "ErrorCode.WRN_CA2000_DisposeObjectsBeforeLosingScope2",
+                "ErrorCode.WRN_CA2202_DoNotDisposeObjectsMultipleTimes",
+            };
+            var text = $$"""
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -4219,201 +4311,23 @@ namespace ConsoleApplication24
 //            sw.Stop();
 //            System.Console.WriteLine(sw.ElapsedMilliseconds);
         }
-
+        public static bool IsWarning_IsExpression(ErrorCode code)
+        {
+            return code is {{string.Join(" or ", cases)}};
+        }
+        public static bool IsWarning_SwitchExpression(ErrorCode code)
+        {
+            return code switch
+            { 
+                {{string.Join(" or ", cases)}} => true,
+                _ => false
+            };
+        }
         public static bool IsWarning(ErrorCode code)
         {
             switch (code)
             {
-                case ErrorCode.WRN_InvalidMainSig:
-                case ErrorCode.WRN_UnreferencedEvent:
-                case ErrorCode.WRN_LowercaseEllSuffix:
-                case ErrorCode.WRN_DuplicateUsing:
-                case ErrorCode.WRN_NewRequired:
-                case ErrorCode.WRN_NewNotRequired:
-                case ErrorCode.WRN_NewOrOverrideExpected:
-                case ErrorCode.WRN_UnreachableCode:
-                case ErrorCode.WRN_UnreferencedLabel:
-                case ErrorCode.WRN_UnreferencedVar:
-                case ErrorCode.WRN_UnreferencedField:
-                case ErrorCode.WRN_IsAlwaysTrue:
-                case ErrorCode.WRN_IsAlwaysFalse:
-                case ErrorCode.WRN_ByRefNonAgileField:
-                case ErrorCode.WRN_OldWarning_UnsafeProp:
-                case ErrorCode.WRN_UnreferencedVarAssg:
-                case ErrorCode.WRN_NegativeArrayIndex:
-                case ErrorCode.WRN_BadRefCompareLeft:
-                case ErrorCode.WRN_BadRefCompareRight:
-                case ErrorCode.WRN_PatternIsAmbiguous:
-                case ErrorCode.WRN_PatternStaticOrInaccessible:
-                case ErrorCode.WRN_PatternBadSignature:
-                case ErrorCode.WRN_SequentialOnPartialClass:
-                case ErrorCode.WRN_MainCantBeGeneric:
-                case ErrorCode.WRN_UnreferencedFieldAssg:
-                case ErrorCode.WRN_AmbiguousXMLReference:
-                case ErrorCode.WRN_VolatileByRef:
-                case ErrorCode.WRN_IncrSwitchObsolete:
-                case ErrorCode.WRN_UnreachableExpr:
-                case ErrorCode.WRN_SameFullNameThisNsAgg:
-                case ErrorCode.WRN_SameFullNameThisAggAgg:
-                case ErrorCode.WRN_SameFullNameThisAggNs:
-                case ErrorCode.WRN_GlobalAliasDefn:
-                case ErrorCode.WRN_UnexpectedPredefTypeLoc:
-                case ErrorCode.WRN_AlwaysNull:
-                case ErrorCode.WRN_CmpAlwaysFalse:
-                case ErrorCode.WRN_FinalizeMethod:
-                case ErrorCode.WRN_AmbigLookupMeth:
-                case ErrorCode.WRN_GotoCaseShouldConvert:
-                case ErrorCode.WRN_NubExprIsConstBool:
-                case ErrorCode.WRN_ExplicitImplCollision:
-                case ErrorCode.WRN_FeatureDeprecated:
-                case ErrorCode.WRN_DeprecatedSymbol:
-                case ErrorCode.WRN_DeprecatedSymbolStr:
-                case ErrorCode.WRN_ExternMethodNoImplementation:
-                case ErrorCode.WRN_ProtectedInSealed:
-                case ErrorCode.WRN_PossibleMistakenNullStatement:
-                case ErrorCode.WRN_UnassignedInternalField:
-                case ErrorCode.WRN_VacuousIntegralComp:
-                case ErrorCode.WRN_AttributeLocationOnBadDeclaration:
-                case ErrorCode.WRN_InvalidAttributeLocation:
-                case ErrorCode.WRN_EqualsWithoutGetHashCode:
-                case ErrorCode.WRN_EqualityOpWithoutEquals:
-                case ErrorCode.WRN_EqualityOpWithoutGetHashCode:
-                case ErrorCode.WRN_IncorrectBooleanAssg:
-                case ErrorCode.WRN_NonObsoleteOverridingObsolete:
-                case ErrorCode.WRN_BitwiseOrSignExtend:
-                case ErrorCode.WRN_OldWarning_ProtectedInternal:
-                case ErrorCode.WRN_OldWarning_AccessibleReadonly:
-                case ErrorCode.WRN_CoClassWithoutComImport:
-                case ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter:
-                case ErrorCode.WRN_AssignmentToLockOrDispose:
-                case ErrorCode.WRN_ObsoleteOverridingNonObsolete:
-                case ErrorCode.WRN_DebugFullNameTooLong:
-                case ErrorCode.WRN_ExternCtorNoImplementation:
-                case ErrorCode.WRN_WarningDirective:
-                case ErrorCode.WRN_UnreachableGeneralCatch:
-                case ErrorCode.WRN_UninitializedField:
-                case ErrorCode.WRN_DeprecatedCollectionInitAddStr:
-                case ErrorCode.WRN_DeprecatedCollectionInitAdd:
-                case ErrorCode.WRN_DefaultValueForUnconsumedLocation:
-                case ErrorCode.WRN_FeatureDeprecated2:
-                case ErrorCode.WRN_FeatureDeprecated3:
-                case ErrorCode.WRN_FeatureDeprecated4:
-                case ErrorCode.WRN_FeatureDeprecated5:
-                case ErrorCode.WRN_OldWarning_FeatureDefaultDeprecated:
-                case ErrorCode.WRN_EmptySwitch:
-                case ErrorCode.WRN_XMLParseError:
-                case ErrorCode.WRN_DuplicateParamTag:
-                case ErrorCode.WRN_UnmatchedParamTag:
-                case ErrorCode.WRN_MissingParamTag:
-                case ErrorCode.WRN_BadXMLRef:
-                case ErrorCode.WRN_BadXMLRefParamType:
-                case ErrorCode.WRN_BadXMLRefReturnType:
-                case ErrorCode.WRN_BadXMLRefSyntax:
-                case ErrorCode.WRN_UnprocessedXMLComment:
-                case ErrorCode.WRN_FailedInclude:
-                case ErrorCode.WRN_InvalidInclude:
-                case ErrorCode.WRN_MissingXMLComment:
-                case ErrorCode.WRN_XMLParseIncludeError:
-                case ErrorCode.WRN_OldWarning_MultipleTypeDefs:
-                case ErrorCode.WRN_OldWarning_DocFileGenAndIncr:
-                case ErrorCode.WRN_XMLParserNotFound:
-                case ErrorCode.WRN_ALinkWarn:
-                case ErrorCode.WRN_DeleteAutoResFailed:
-                case ErrorCode.WRN_CmdOptionConflictsSource:
-                case ErrorCode.WRN_IllegalPragma:
-                case ErrorCode.WRN_IllegalPPWarning:
-                case ErrorCode.WRN_BadRestoreNumber:
-                case ErrorCode.WRN_NonECMAFeature:
-                case ErrorCode.WRN_ErrorOverride:
-                case ErrorCode.WRN_OldWarning_ReservedIdentifier:
-                case ErrorCode.WRN_InvalidSearchPathDir:
-                case ErrorCode.WRN_MissingTypeNested:
-                case ErrorCode.WRN_MissingTypeInSource:
-                case ErrorCode.WRN_MissingTypeInAssembly:
-                case ErrorCode.WRN_MultiplePredefTypes:
-                case ErrorCode.WRN_TooManyLinesForDebugger:
-                case ErrorCode.WRN_CallOnNonAgileField:
-                case ErrorCode.WRN_BadWarningNumber:
-                case ErrorCode.WRN_InvalidNumber:
-                case ErrorCode.WRN_FileNameTooLong:
-                case ErrorCode.WRN_IllegalPPChecksum:
-                case ErrorCode.WRN_EndOfPPLineExpected:
-                case ErrorCode.WRN_ConflictingChecksum:
-                case ErrorCode.WRN_AssumedMatchThis:
-                case ErrorCode.WRN_UseSwitchInsteadOfAttribute:
-                case ErrorCode.WRN_InvalidAssemblyName:
-                case ErrorCode.WRN_UnifyReferenceMajMin:
-                case ErrorCode.WRN_UnifyReferenceBldRev:
-                case ErrorCode.WRN_DelegateNewMethBind:
-                case ErrorCode.WRN_EmptyFileName:
-                case ErrorCode.WRN_DuplicateTypeParamTag:
-                case ErrorCode.WRN_UnmatchedTypeParamTag:
-                case ErrorCode.WRN_MissingTypeParamTag:
-                case ErrorCode.WRN_AssignmentToSelf:
-                case ErrorCode.WRN_ComparisonToSelf:
-                case ErrorCode.WRN_DotOnDefault:
-                case ErrorCode.WRN_BadXMLRefTypeVar:
-                case ErrorCode.WRN_UnmatchedParamRefTag:
-                case ErrorCode.WRN_UnmatchedTypeParamRefTag:
-                case ErrorCode.WRN_ReferencedAssemblyReferencesLinkedPIA:
-                case ErrorCode.WRN_TypeNotFoundForNoPIAWarning:
-                case ErrorCode.WRN_CantHaveManifestForModule:
-                case ErrorCode.WRN_MultipleRuntimeImplementationMatches:
-                case ErrorCode.WRN_MultipleRuntimeOverrideMatches:
-                case ErrorCode.WRN_DynamicDispatchToConditionalMethod:
-                case ErrorCode.WRN_IsDynamicIsConfusing:
-                case ErrorCode.WRN_AsyncLacksAwaits:
-                case ErrorCode.WRN_FileAlreadyIncluded:
-                case ErrorCode.WRN_NoSources:
-                case ErrorCode.WRN_UseNewSwitch:
-                case ErrorCode.WRN_NoConfigNotOnCommandLine:
-                case ErrorCode.WRN_DefineIdentifierRequired:
-                case ErrorCode.WRN_BadUILang:
-                case ErrorCode.WRN_CLS_NoVarArgs:
-                case ErrorCode.WRN_CLS_BadArgType:
-                case ErrorCode.WRN_CLS_BadReturnType:
-                case ErrorCode.WRN_CLS_BadFieldPropType:
-                case ErrorCode.WRN_CLS_BadUnicode:
-                case ErrorCode.WRN_CLS_BadIdentifierCase:
-                case ErrorCode.WRN_CLS_OverloadRefOut:
-                case ErrorCode.WRN_CLS_OverloadUnnamed:
-                case ErrorCode.WRN_CLS_BadIdentifier:
-                case ErrorCode.WRN_CLS_BadBase:
-                case ErrorCode.WRN_CLS_BadInterfaceMember:
-                case ErrorCode.WRN_CLS_NoAbstractMembers:
-                case ErrorCode.WRN_CLS_NotOnModules:
-                case ErrorCode.WRN_CLS_ModuleMissingCLS:
-                case ErrorCode.WRN_CLS_AssemblyNotCLS:
-                case ErrorCode.WRN_CLS_BadAttributeType:
-                case ErrorCode.WRN_CLS_ArrayArgumentToAttribute:
-                case ErrorCode.WRN_CLS_NotOnModules2:
-                case ErrorCode.WRN_CLS_IllegalTrueInFalse:
-                case ErrorCode.WRN_CLS_MeaninglessOnPrivateType:
-                case ErrorCode.WRN_CLS_AssemblyNotCLS2:
-                case ErrorCode.WRN_CLS_MeaninglessOnParam:
-                case ErrorCode.WRN_CLS_MeaninglessOnReturn:
-                case ErrorCode.WRN_CLS_BadTypeVar:
-                case ErrorCode.WRN_CLS_VolatileField:
-                case ErrorCode.WRN_CLS_BadInterface:
-                case ErrorCode.WRN_UnobservedAwaitableExpression:
-                case ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation:
-                case ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation:
-                case ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation:
-                case ErrorCode.WRN_UnknownOption:
-                case ErrorCode.WRN_MetadataNameTooLong:
-                case ErrorCode.WRN_MainIgnored:
-                case ErrorCode.WRN_DelaySignButNoKey:
-                case ErrorCode.WRN_InvalidVersionFormat:
-                case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
-                case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
-                case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
-                case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
-                case ErrorCode.WRN_UnimplementedCommandLineSwitch:
-                case ErrorCode.WRN_RefCultureMismatch:
-                case ErrorCode.WRN_ConflictingMachineAssembly:
-                case ErrorCode.WRN_CA2000_DisposeObjectsBeforeLosingScope1:
-                case ErrorCode.WRN_CA2000_DisposeObjectsBeforeLosingScope2:
-                case ErrorCode.WRN_CA2202_DoNotDisposeObjectsMultipleTimes:
+                case {{string.Join(":case ", cases)}}:
                     return true;
                 default:
                     return false;
@@ -5664,10 +5578,579 @@ namespace ConsoleApplication24
         }
     }
 }
-
-";
+""";
             var compVerifier = CompileAndVerify(text);
-            compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning", @"
+            var codeForExpression = @"
+{
+  // Code size     1893 (0x765)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4     0x32b
+  IL_0006:  bgt        IL_0300
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4     0x1ad
+  IL_0011:  bgt        IL_0154
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4     0xb8
+  IL_001c:  bgt        IL_00a9
+  IL_0021:  ldarg.0
+  IL_0022:  ldc.i4.s   109
+  IL_0024:  bgt.s      IL_005f
+  IL_0026:  ldarg.0
+  IL_0027:  ldc.i4.s   67
+  IL_0029:  bgt.s      IL_0040
+  IL_002b:  ldarg.0
+  IL_002c:  ldc.i4.s   28
+  IL_002e:  beq        IL_075d
+  IL_0033:  ldarg.0
+  IL_0034:  ldc.i4.s   67
+  IL_0036:  beq        IL_075d
+  IL_003b:  br         IL_0761
+  IL_0040:  ldarg.0
+  IL_0041:  ldc.i4.s   78
+  IL_0043:  beq        IL_075d
+  IL_0048:  ldarg.0
+  IL_0049:  ldc.i4.s   105
+  IL_004b:  beq        IL_075d
+  IL_0050:  ldarg.0
+  IL_0051:  ldc.i4.s   108
+  IL_0053:  sub
+  IL_0054:  ldc.i4.1
+  IL_0055:  ble.un     IL_075d
+  IL_005a:  br         IL_0761
+  IL_005f:  ldarg.0
+  IL_0060:  ldc.i4     0xa2
+  IL_0065:  bgt.s      IL_007f
+  IL_0067:  ldarg.0
+  IL_0068:  ldc.i4.s   114
+  IL_006a:  beq        IL_075d
+  IL_006f:  ldarg.0
+  IL_0070:  ldc.i4     0xa2
+  IL_0075:  beq        IL_075d
+  IL_007a:  br         IL_0761
+  IL_007f:  ldarg.0
+  IL_0080:  ldc.i4     0xa4
+  IL_0085:  beq        IL_075d
+  IL_008a:  ldarg.0
+  IL_008b:  ldc.i4     0xa8
+  IL_0090:  sub
+  IL_0091:  ldc.i4.1
+  IL_0092:  ble.un     IL_075d
+  IL_0097:  ldarg.0
+  IL_0098:  ldc.i4     0xb7
+  IL_009d:  sub
+  IL_009e:  ldc.i4.1
+  IL_009f:  ble.un     IL_075d
+  IL_00a4:  br         IL_0761
+  IL_00a9:  ldarg.0
+  IL_00aa:  ldc.i4     0x118
+  IL_00af:  bgt.s      IL_00fe
+  IL_00b1:  ldarg.0
+  IL_00b2:  ldc.i4     0xcf
+  IL_00b7:  bgt.s      IL_00d4
+  IL_00b9:  ldarg.0
+  IL_00ba:  ldc.i4     0xc5
+  IL_00bf:  beq        IL_075d
+  IL_00c4:  ldarg.0
+  IL_00c5:  ldc.i4     0xcf
+  IL_00ca:  beq        IL_075d
+  IL_00cf:  br         IL_0761
+  IL_00d4:  ldarg.0
+  IL_00d5:  ldc.i4     0xdb
+  IL_00da:  beq        IL_075d
+  IL_00df:  ldarg.0
+  IL_00e0:  ldc.i4     0xfb
+  IL_00e5:  sub
+  IL_00e6:  ldc.i4.2
+  IL_00e7:  ble.un     IL_075d
+  IL_00ec:  ldarg.0
+  IL_00ed:  ldc.i4     0x116
+  IL_00f2:  sub
+  IL_00f3:  ldc.i4.2
+  IL_00f4:  ble.un     IL_075d
+  IL_00f9:  br         IL_0761
+  IL_00fe:  ldarg.0
+  IL_00ff:  ldc.i4     0x19e
+  IL_0104:  bgt.s      IL_012c
+  IL_0106:  ldarg.0
+  IL_0107:  ldc.i4     0x11a
+  IL_010c:  beq        IL_075d
+  IL_0111:  ldarg.0
+  IL_0112:  ldc.i4     0x192
+  IL_0117:  beq        IL_075d
+  IL_011c:  ldarg.0
+  IL_011d:  ldc.i4     0x19e
+  IL_0122:  beq        IL_075d
+  IL_0127:  br         IL_0761
+  IL_012c:  ldarg.0
+  IL_012d:  ldc.i4     0x1a3
+  IL_0132:  sub
+  IL_0133:  ldc.i4.1
+  IL_0134:  ble.un     IL_075d
+  IL_0139:  ldarg.0
+  IL_013a:  ldc.i4     0x1a6
+  IL_013f:  beq        IL_075d
+  IL_0144:  ldarg.0
+  IL_0145:  ldc.i4     0x1ad
+  IL_014a:  beq        IL_075d
+  IL_014f:  br         IL_0761
+  IL_0154:  ldarg.0
+  IL_0155:  ldc.i4     0x274
+  IL_015a:  bgt        IL_0224
+  IL_015f:  ldarg.0
+  IL_0160:  ldc.i4     0x1d9
+  IL_0165:  bgt.s      IL_01db
+  IL_0167:  ldarg.0
+  IL_0168:  ldc.i4     0x1b8
+  IL_016d:  bgt.s      IL_018c
+  IL_016f:  ldarg.0
+  IL_0170:  ldc.i4     0x1b3
+  IL_0175:  sub
+  IL_0176:  ldc.i4.2
+  IL_0177:  ble.un     IL_075d
+  IL_017c:  ldarg.0
+  IL_017d:  ldc.i4     0x1b8
+  IL_0182:  beq        IL_075d
+  IL_0187:  br         IL_0761
+  IL_018c:  ldarg.0
+  IL_018d:  ldc.i4     0x1bc
+  IL_0192:  beq        IL_075d
+  IL_0197:  ldarg.0
+  IL_0198:  ldc.i4     0x1ca
+  IL_019d:  beq        IL_075d
+  IL_01a2:  ldarg.0
+  IL_01a3:  ldc.i4     0x1d0
+  IL_01a8:  sub
+  IL_01a9:  switch    (
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_075d)
+  IL_01d6:  br         IL_0761
+  IL_01db:  ldarg.0
+  IL_01dc:  ldc.i4     0x264
+  IL_01e1:  bgt.s      IL_01fe
+  IL_01e3:  ldarg.0
+  IL_01e4:  ldc.i4     0x25a
+  IL_01e9:  beq        IL_075d
+  IL_01ee:  ldarg.0
+  IL_01ef:  ldc.i4     0x264
+  IL_01f4:  beq        IL_075d
+  IL_01f9:  br         IL_0761
+  IL_01fe:  ldarg.0
+  IL_01ff:  ldc.i4     0x26a
+  IL_0204:  beq        IL_075d
+  IL_0209:  ldarg.0
+  IL_020a:  ldc.i4     0x272
+  IL_020f:  beq        IL_075d
+  IL_0214:  ldarg.0
+  IL_0215:  ldc.i4     0x274
+  IL_021a:  beq        IL_075d
+  IL_021f:  br         IL_0761
+  IL_0224:  ldarg.0
+  IL_0225:  ldc.i4     0x2a3
+  IL_022a:  bgt.s      IL_02aa
+  IL_022c:  ldarg.0
+  IL_022d:  ldc.i4     0x295
+  IL_0232:  bgt.s      IL_0284
+  IL_0234:  ldarg.0
+  IL_0235:  ldc.i4     0x282
+  IL_023a:  beq        IL_075d
+  IL_023f:  ldarg.0
+  IL_0240:  ldc.i4     0x289
+  IL_0245:  sub
+  IL_0246:  switch    (
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d)
+  IL_027f:  br         IL_0761
+  IL_0284:  ldarg.0
+  IL_0285:  ldc.i4     0x299
+  IL_028a:  beq        IL_075d
+  IL_028f:  ldarg.0
+  IL_0290:  ldc.i4     0x2a0
+  IL_0295:  beq        IL_075d
+  IL_029a:  ldarg.0
+  IL_029b:  ldc.i4     0x2a3
+  IL_02a0:  beq        IL_075d
+  IL_02a5:  br         IL_0761
+  IL_02aa:  ldarg.0
+  IL_02ab:  ldc.i4     0x2b5
+  IL_02b0:  bgt.s      IL_02da
+  IL_02b2:  ldarg.0
+  IL_02b3:  ldc.i4     0x2a7
+  IL_02b8:  sub
+  IL_02b9:  ldc.i4.1
+  IL_02ba:  ble.un     IL_075d
+  IL_02bf:  ldarg.0
+  IL_02c0:  ldc.i4     0x2ac
+  IL_02c5:  beq        IL_075d
+  IL_02ca:  ldarg.0
+  IL_02cb:  ldc.i4     0x2b5
+  IL_02d0:  beq        IL_075d
+  IL_02d5:  br         IL_0761
+  IL_02da:  ldarg.0
+  IL_02db:  ldc.i4     0x2d8
+  IL_02e0:  beq        IL_075d
+  IL_02e5:  ldarg.0
+  IL_02e6:  ldc.i4     0x329
+  IL_02eb:  beq        IL_075d
+  IL_02f0:  ldarg.0
+  IL_02f1:  ldc.i4     0x32b
+  IL_02f6:  beq        IL_075d
+  IL_02fb:  br         IL_0761
+  IL_0300:  ldarg.0
+  IL_0301:  ldc.i4     0x7bd
+  IL_0306:  bgt        IL_05d1
+  IL_030b:  ldarg.0
+  IL_030c:  ldc.i4     0x663
+  IL_0311:  bgt        IL_0451
+  IL_0316:  ldarg.0
+  IL_0317:  ldc.i4     0x5f2
+  IL_031c:  bgt.s      IL_038e
+  IL_031e:  ldarg.0
+  IL_031f:  ldc.i4     0x406
+  IL_0324:  bgt.s      IL_0341
+  IL_0326:  ldarg.0
+  IL_0327:  ldc.i4     0x338
+  IL_032c:  beq        IL_075d
+  IL_0331:  ldarg.0
+  IL_0332:  ldc.i4     0x406
+  IL_0337:  beq        IL_075d
+  IL_033c:  br         IL_0761
+  IL_0341:  ldarg.0
+  IL_0342:  ldc.i4     0x422
+  IL_0347:  sub
+  IL_0348:  switch    (
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_075d)
+  IL_0371:  ldarg.0
+  IL_0372:  ldc.i4     0x4b0
+  IL_0377:  sub
+  IL_0378:  ldc.i4.4
+  IL_0379:  ble.un     IL_075d
+  IL_037e:  ldarg.0
+  IL_037f:  ldc.i4     0x5f2
+  IL_0384:  beq        IL_075d
+  IL_0389:  br         IL_0761
+  IL_038e:  ldarg.0
+  IL_038f:  ldc.i4     0x647
+  IL_0394:  bgt        IL_0429
+  IL_0399:  ldarg.0
+  IL_039a:  ldc.i4     0x622
+  IL_039f:  sub
+  IL_03a0:  switch    (
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_075d)
+  IL_0419:  ldarg.0
+  IL_041a:  ldc.i4     0x647
+  IL_041f:  beq        IL_075d
+  IL_0424:  br         IL_0761
+  IL_0429:  ldarg.0
+  IL_042a:  ldc.i4     0x64a
+  IL_042f:  beq        IL_075d
+  IL_0434:  ldarg.0
+  IL_0435:  ldc.i4     0x650
+  IL_043a:  beq        IL_075d
+  IL_043f:  ldarg.0
+  IL_0440:  ldc.i4     0x661
+  IL_0445:  sub
+  IL_0446:  ldc.i4.2
+  IL_0447:  ble.un     IL_075d
+  IL_044c:  br         IL_0761
+  IL_0451:  ldarg.0
+  IL_0452:  ldc.i4     0x6c7
+  IL_0457:  bgt        IL_057b
+  IL_045c:  ldarg.0
+  IL_045d:  ldc.i4     0x67b
+  IL_0462:  bgt.s      IL_0481
+  IL_0464:  ldarg.0
+  IL_0465:  ldc.i4     0x66d
+  IL_046a:  beq        IL_075d
+  IL_046f:  ldarg.0
+  IL_0470:  ldc.i4     0x67a
+  IL_0475:  sub
+  IL_0476:  ldc.i4.1
+  IL_0477:  ble.un     IL_075d
+  IL_047c:  br         IL_0761
+  IL_0481:  ldarg.0
+  IL_0482:  ldc.i4     0x684
+  IL_0487:  sub
+  IL_0488:  switch    (
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d)
+  IL_0541:  ldarg.0
+  IL_0542:  ldc.i4     0x6b5
+  IL_0547:  sub
+  IL_0548:  switch    (
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_0761,
+        IL_0761,
+        IL_075d)
+  IL_0569:  ldarg.0
+  IL_056a:  ldc.i4     0x6c6
+  IL_056f:  sub
+  IL_0570:  ldc.i4.1
+  IL_0571:  ble.un     IL_075d
+  IL_0576:  br         IL_0761
+  IL_057b:  ldarg.0
+  IL_057c:  ldc.i4     0x787
+  IL_0581:  bgt.s      IL_05a9
+  IL_0583:  ldarg.0
+  IL_0584:  ldc.i4     0x6e2
+  IL_0589:  beq        IL_075d
+  IL_058e:  ldarg.0
+  IL_058f:  ldc.i4     0x6e5
+  IL_0594:  beq        IL_075d
+  IL_0599:  ldarg.0
+  IL_059a:  ldc.i4     0x787
+  IL_059f:  beq        IL_075d
+  IL_05a4:  br         IL_0761
+  IL_05a9:  ldarg.0
+  IL_05aa:  ldc.i4     0x7a4
+  IL_05af:  sub
+  IL_05b0:  ldc.i4.1
+  IL_05b1:  ble.un     IL_075d
+  IL_05b6:  ldarg.0
+  IL_05b7:  ldc.i4     0x7b6
+  IL_05bc:  beq        IL_075d
+  IL_05c1:  ldarg.0
+  IL_05c2:  ldc.i4     0x7bd
+  IL_05c7:  beq        IL_075d
+  IL_05cc:  br         IL_0761
+  IL_05d1:  ldarg.0
+  IL_05d2:  ldc.i4     0xfba
+  IL_05d7:  bgt        IL_06e3
+  IL_05dc:  ldarg.0
+  IL_05dd:  ldc.i4     0x7e7
+  IL_05e2:  bgt.s      IL_062d
+  IL_05e4:  ldarg.0
+  IL_05e5:  ldc.i4     0x7d2
+  IL_05ea:  bgt.s      IL_0607
+  IL_05ec:  ldarg.0
+  IL_05ed:  ldc.i4     0x7ce
+  IL_05f2:  beq        IL_075d
+  IL_05f7:  ldarg.0
+  IL_05f8:  ldc.i4     0x7d2
+  IL_05fd:  beq        IL_075d
+  IL_0602:  br         IL_0761
+  IL_0607:  ldarg.0
+  IL_0608:  ldc.i4     0x7d8
+  IL_060d:  beq        IL_075d
+  IL_0612:  ldarg.0
+  IL_0613:  ldc.i4     0x7de
+  IL_0618:  beq        IL_075d
+  IL_061d:  ldarg.0
+  IL_061e:  ldc.i4     0x7e7
+  IL_0623:  beq        IL_075d
+  IL_0628:  br         IL_0761
+  IL_062d:  ldarg.0
+  IL_062e:  ldc.i4     0x7f6
+  IL_0633:  bgt.s      IL_0650
+  IL_0635:  ldarg.0
+  IL_0636:  ldc.i4     0x7ed
+  IL_063b:  beq        IL_075d
+  IL_0640:  ldarg.0
+  IL_0641:  ldc.i4     0x7f6
+  IL_0646:  beq        IL_075d
+  IL_064b:  br         IL_0761
+  IL_0650:  ldarg.0
+  IL_0651:  ldc.i4     0xbb8
+  IL_0656:  sub
+  IL_0657:  switch    (
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_075d,
+        IL_0761,
+        IL_075d,
+        IL_075d)
+  IL_06cc:  ldarg.0
+  IL_06cd:  ldc.i4     0xfae
+  IL_06d2:  beq        IL_075d
+  IL_06d7:  ldarg.0
+  IL_06d8:  ldc.i4     0xfb8
+  IL_06dd:  sub
+  IL_06de:  ldc.i4.2
+  IL_06df:  ble.un.s   IL_075d
+  IL_06e1:  br.s       IL_0761
+  IL_06e3:  ldarg.0
+  IL_06e4:  ldc.i4     0x1b7b
+  IL_06e9:  bgt.s      IL_071f
+  IL_06eb:  ldarg.0
+  IL_06ec:  ldc.i4     0x1b65
+  IL_06f1:  bgt.s      IL_0705
+  IL_06f3:  ldarg.0
+  IL_06f4:  ldc.i4     0x1388
+  IL_06f9:  beq.s      IL_075d
+  IL_06fb:  ldarg.0
+  IL_06fc:  ldc.i4     0x1b65
+  IL_0701:  beq.s      IL_075d
+  IL_0703:  br.s       IL_0761
+  IL_0705:  ldarg.0
+  IL_0706:  ldc.i4     0x1b6e
+  IL_070b:  beq.s      IL_075d
+  IL_070d:  ldarg.0
+  IL_070e:  ldc.i4     0x1b79
+  IL_0713:  beq.s      IL_075d
+  IL_0715:  ldarg.0
+  IL_0716:  ldc.i4     0x1b7b
+  IL_071b:  beq.s      IL_075d
+  IL_071d:  br.s       IL_0761
+  IL_071f:  ldarg.0
+  IL_0720:  ldc.i4     0x1f41
+  IL_0725:  bgt.s      IL_0743
+  IL_0727:  ldarg.0
+  IL_0728:  ldc.i4     0x1ba8
+  IL_072d:  sub
+  IL_072e:  ldc.i4.2
+  IL_072f:  ble.un.s   IL_075d
+  IL_0731:  ldarg.0
+  IL_0732:  ldc.i4     0x1bb2
+  IL_0737:  beq.s      IL_075d
+  IL_0739:  ldarg.0
+  IL_073a:  ldc.i4     0x1f41
+  IL_073f:  beq.s      IL_075d
+  IL_0741:  br.s       IL_0761
+  IL_0743:  ldarg.0
+  IL_0744:  ldc.i4     0x1f49
+  IL_0749:  beq.s      IL_075d
+  IL_074b:  ldarg.0
+  IL_074c:  ldc.i4     0x1f4c
+  IL_0751:  beq.s      IL_075d
+  IL_0753:  ldarg.0
+  IL_0754:  ldc.i4     0x2710
+  IL_0759:  sub
+  IL_075a:  ldc.i4.2
+  IL_075b:  bgt.un.s   IL_0761
+  IL_075d:  ldc.i4.1
+  IL_075e:  stloc.0
+  IL_075f:  br.s       IL_0763
+  IL_0761:  ldc.i4.0
+  IL_0762:  stloc.0
+  IL_0763:  ldloc.0
+  IL_0764:  ret
+}
+";
+            var codeForSwitchStatement = @"
 {
   // Code size     1889 (0x761)
   .maxstack  2
@@ -6231,7 +6714,10 @@ namespace ConsoleApplication24
   IL_075e:  ret
   IL_075f:  ldc.i4.0
   IL_0760:  ret
-}");
+}";
+            compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning", codeForSwitchStatement);
+            compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning_IsExpression", codeForExpression);
+            compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning_SwitchExpression", codeForExpression);
         }
 
         [Fact]
