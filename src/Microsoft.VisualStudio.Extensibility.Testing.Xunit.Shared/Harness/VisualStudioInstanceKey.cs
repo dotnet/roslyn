@@ -79,34 +79,31 @@ namespace Xunit.Harness
 
         public static VisualStudioInstanceKey DeserializeFromString(string s)
         {
-            var semicolon1 = s.IndexOf(';');
-            var semicolon2 = s.IndexOf(';', semicolon1 + 1);
-            var semicolon3 = s.IndexOf(';', semicolon2 + 1);
-            var semicolon4 = s.IndexOf(';', semicolon3 + 1);
+            var elements = s.Split(new[] { ';' }, 5);
             var environmentVariables = new string[0];
 
-            if (semicolon4 > 0)
+            if (elements.Length >= 5)
             {
-                var environmentVariableCount = int.Parse(s.Substring(semicolon3 + 1, semicolon4 - semicolon3 - 1));
+                var environmentVariableCount = int.Parse(elements[3]);
                 Debug.Assert(environmentVariableCount > 0, $"Assertion failed: {nameof(environmentVariableCount)} > 0");
 
                 environmentVariables = new string[environmentVariableCount];
-                var currentStartSeparator = semicolon4;
+                var currentStartSeparator = -1;
                 for (var i = 0; i < environmentVariableCount; i++)
                 {
-                    var nextSeparator = s.IndexOf(';', currentStartSeparator + 1);
+                    var nextSeparator = elements[4].IndexOf(';', currentStartSeparator + 1);
                     var currentVariable = nextSeparator > 0
-                        ? s.Substring(currentStartSeparator + 1, nextSeparator - currentStartSeparator - 1)
-                        : s.Substring(currentStartSeparator + 1);
+                        ? elements[4].Substring(currentStartSeparator + 1, nextSeparator - currentStartSeparator - 1)
+                        : elements[4].Substring(currentStartSeparator + 1);
                     environmentVariables[i] = Encoding.UTF8.GetString(Convert.FromBase64String(currentVariable));
                     currentStartSeparator = nextSeparator;
                 }
             }
 
             return new VisualStudioInstanceKey(
-                version: (VisualStudioVersion)int.Parse(s.Substring(0, semicolon1)),
-                rootSuffix: s.Substring(semicolon1 + 1, semicolon2 - semicolon1 - 1),
-                maxAttempts: int.Parse(s.Substring(semicolon2 + 1, semicolon3 - semicolon2 - 1)),
+                version: (VisualStudioVersion)int.Parse(elements[0]),
+                rootSuffix: elements[1],
+                maxAttempts: int.Parse(elements[2]),
                 environmentVariables: environmentVariables);
         }
     }
