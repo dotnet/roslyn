@@ -92,19 +92,13 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
         {
             foreach (var document in await solutionProject.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (await HasDirectiveProbablyContainsIdentifier(document, cancellationToken).ConfigureAwait(false))
+                var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+                if (syntaxTreeIndex.ContainsDirective && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name))
                     resultDocuments.Add(document);
             }
         }
 
         return resultDocuments.ToImmutable();
-
-        async ValueTask<bool> HasDirectiveProbablyContainsIdentifier(Document document, CancellationToken cancellationToken)
-        {
-            var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-            return syntaxTreeIndex.ContainsDirective
-                && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
-        }
     }
 
     private static async ValueTask<ImmutableArray<FinderLocation>> FindPreprocessingReferencesInTokensAsync(
