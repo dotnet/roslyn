@@ -3540,7 +3540,7 @@ public class C
 {
     void M()
     {
-        _ = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
+        var a = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
             {
                 await Task.Yield();
                 return 42;
@@ -3548,9 +3548,9 @@ public class C
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS8183: Cannot infer the type of implicitly-typed discard.
-                //         _ = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
-                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(9, 9));
+                // (9,81): error CS4015: 'MethodImplOptions.Synchronized' cannot be applied to an async method
+                //         var a = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
+                Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "=>").WithLocation(9, 81));
         }
 
         [Fact]
