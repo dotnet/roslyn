@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, MaxAttempts = 2)]
+    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, MaxAttempts = 2, EnvironmentVariables = new[] { "DOTNET_MULTILEVEL_LOOKUP=", "DOTNET_INSTALL_DIR=", "DotNetRoot=", "DotNetTool=" })]
     public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
     }
