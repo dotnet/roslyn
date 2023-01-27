@@ -9316,6 +9316,26 @@ namespace Interop
         }
 
         [Fact]
+        public void TestUnsafeAliasWithCompilationOptionOff()
+        {
+            var csharp = @"
+using unsafe X = int*;
+
+class C
+{
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe X = int*;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = int*;").WithLocation(2, 1),
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = int*;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
+        }
+
+        [Fact]
         public void TestUnsafeAlias1()
         {
             var csharp = @"
