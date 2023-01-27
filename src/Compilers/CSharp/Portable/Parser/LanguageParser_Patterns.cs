@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxKind.CloseParenToken,
                     static @this => @this.IsPossibleSubpatternElement(),
                     static @this => @this.ParseSubpatternElement(),
-                    static (@this, openParenToken, list, expectedKind, closeKind) => @this.SkipBadPatternListTokens(openParenToken, list, expectedKind, closeKind),
+                    SkipBadPatternListTokens,
                     allowTrailingSeparator: false);
                 var closeParenToken = this.EatToken(SyntaxKind.CloseParenToken);
 
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleSubpatternElement(),
                 static @this => @this.ParseSubpatternElement(),
-                static (@this, openBraceToken, list, expectedKind, closeKind) => @this.SkipBadPatternListTokens(openBraceToken, list, expectedKind, closeKind),
+                SkipBadPatternListTokens,
                 allowTrailingSeparator: true);
 
             return _syntaxFactory.PropertyPatternClause(
@@ -525,19 +525,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxKind.GreaterThanEqualsToken;
         }
 
-        private (SyntaxToken open, PostSkipAction action) SkipBadPatternListTokens<T>(
-            SyntaxToken open, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
+        private static PostSkipAction SkipBadPatternListTokens<T>(
+            LanguageParser @this, ref SyntaxToken open, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
             where T : CSharpSyntaxNode
         {
-            if (this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken)
-                return (open, PostSkipAction.Abort);
+            if (@this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken)
+                return PostSkipAction.Abort;
 
-            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
+            return @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleSubpatternElement(),
-                static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
+                static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken,
                 expectedKind, closeKind);
-
-            return (open, action);
         }
 
         private SwitchExpressionSyntax ParseSwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword)
@@ -596,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseBracketToken,
                 static @this => @this.IsPossibleSubpatternElement(),
                 static @this => @this.ParsePattern(Precedence.Conditional),
-                static (@this, openBracket, list, expectedKind, closeKind) => @this.SkipBadPatternListTokens(openBracket, list, expectedKind, closeKind),
+                SkipBadPatternListTokens,
                 allowTrailingSeparator: true);
 
             return _syntaxFactory.ListPattern(
