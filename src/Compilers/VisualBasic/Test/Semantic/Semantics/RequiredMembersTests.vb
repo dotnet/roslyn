@@ -1368,6 +1368,7 @@ Class C
         Dim t1 = (1, 2)
         Dim t2 As (Integer, Integer) = (3, Nothing)
         Dim t3 = New (Integer, Integer)(4, 5)
+        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
     End Sub
 End Class", {csharpComp.EmitToImageReference()}, targetFramework:=TargetFramework.Mscorlib461)
 
@@ -1393,6 +1394,19 @@ BC37321: Required member 'Public Item2 As Integer' must be set in the object ini
 BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
         Dim t3 = New (Integer, Integer)(4, 5)
                      ~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public AnotherField As Integer' must be set in the object initializer or attribute arguments.
+        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Item1 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Item2 As Integer' must be set in the object initializer or attribute arguments.
+        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37321: Required member 'Public Overloads Property [Property] As Integer' must be set in the object initializer or attribute arguments.
+        Dim t4 = new System.ValueTuple(Of Integer, Integer)(6, 7)
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
                                         </expected>)
 
             Dim tree = comp.SyntaxTrees(0)
@@ -1480,6 +1494,7 @@ Class C
         Dim t1 = (1, 2)
         Dim t2 As (Integer, Integer) = (3, Nothing)
         Dim t3 = New (Integer, Integer)(4, 5)
+        Dim t4 = New System.ValueTuple(Of Integer, Integer)(6, 7)
     End Sub
 End Class", {csharpComp.EmitToImageReference()}, targetFramework:=TargetFramework.Mscorlib461)
 

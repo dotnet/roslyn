@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
             End Function
 
-            Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
                 Get
                     Return False
                 End Get

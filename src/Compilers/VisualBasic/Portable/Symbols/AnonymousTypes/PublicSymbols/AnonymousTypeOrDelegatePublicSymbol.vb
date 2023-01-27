@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Hash.Combine(Me.TypeDescriptor.GetHashCode(), TypeKind)
             End Function
 
-            Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
                 Get
                     Return False
                 End Get
