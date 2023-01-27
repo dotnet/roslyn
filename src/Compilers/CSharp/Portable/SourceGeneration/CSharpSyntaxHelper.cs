@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (global != (usingDirective.GlobalKeyword != null))
                     continue;
 
+                // We only care about aliases from one name to another name.  e.g. `using X = A.B.C;`  That's because
+                // this helper is used to ask "should i bind `[X]`, if the user cares about the metadata type `A.B.C`.
+                // Everything is driven by the user having a fully-qualified-metadata-name to an attribute.  As such,
+                // we can completely ignore aliases like `using X = (int, int);` as that could never end up resolving
+                // to the attribute-type they care about.
                 if (usingDirective.Type is not Syntax.InternalSyntax.NameSyntax name)
                     continue;
 
