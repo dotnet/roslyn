@@ -1659,6 +1659,20 @@ public interface IFace
                 "interface i\r\n{\r\n    t f { get; set; }\r\n}");
         }
 
+        [Fact, WorkItem(66377, "https://github.com/dotnet/roslyn/issues/66377")]
+        public void TestInterfaceVariance()
+        {
+            var compilation = Compile("""
+                interface I<in X, out Y> { }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("I").Single();
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                "internal interface I<in X, out Y>\r\n{\r\n}");
+        }
+
         [Fact]
         public void TestEnumDeclarations()
         {
@@ -2303,6 +2317,42 @@ public class C { } // end").Members[0];
                 {
                 }
                 """);
+        }
+
+        [Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")]
+        public void TestPropertyDeclarationFromSymbol1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public int Prop { get; protected set; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var property = type.GetMembers("Prop").Single();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "public global::System.Int32 Prop { get; protected set; }");
+        }
+
+        [Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")]
+        public void TestPropertyDeclarationFromSymbol2()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public int Prop { protected get; set; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var property = type.GetMembers("Prop").Single();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "public global::System.Int32 Prop { protected get; set; }");
         }
 
         #endregion
@@ -3805,6 +3855,35 @@ public class C
 public class C
 {
 }");
+        }
+
+        [Fact, WorkItem(66376, "https://github.com/dotnet/roslyn/issues/66376")]
+        public void TestRefReturnType()
+        {
+            var comp = Compile(
+@"public class C<T>
+{
+    public ref T GetPinnableReference() { throw null; }
+    public ref readonly T this[int index] { get { throw null; } }
+    public ref int P => throw null;
+}");
+            var symbolC = comp.GlobalNamespace.GetMembers("C").First();
+
+            var method = symbolC.GetMembers().OfType<IMethodSymbol>().Single(m => m.MethodKind == MethodKind.Ordinary);
+            var indexer = symbolC.GetMembers().OfType<IPropertySymbol>().Single(m => m.IsIndexer);
+            var property = symbolC.GetMembers().OfType<IPropertySymbol>().Single(m => !m.IsIndexer);
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.MethodDeclaration(method),
+                "public ref T GetPinnableReference()\r\n{\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(indexer),
+                "public ref readonly T this[global::System.Int32 index]\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration(property),
+                "public ref global::System.Int32 P { get; }");
         }
 
         [Fact]

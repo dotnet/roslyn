@@ -170,17 +170,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
-                string? name = null;
-                if (symReader.GetMethod(methodToken) is ISymEncUnmanagedMethod and ISymUnmanagedMethod methodInfo)
-                {
-                    // We need a receiver of type `ISymUnmanagedMethod` to call the extension `GetDocumentsForMethod()` here.
-                    // We also need to ensure that the receiver implements `ISymEncUnmanagedMethod` to prevent the extension from throwing.
-                    if (methodInfo.GetDocumentsForMethod() is [var singleDocument])
-                    {
-                        name = singleDocument.GetName();
-                    }
-                }
-
+                // containingDocumentName is not set since ISymUnmanagedMethod.GetDocumentsForMethod()
+                // may fail (see https://github.com/dotnet/roslyn/issues/66260). The result is that
+                // symbols from file-local types will not bind successfully in the EE.
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                     hoistedLocalScopeRecords,
                     importRecordGroups,
@@ -191,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
                     reuseSpan,
-                    name);
+                    containingDocumentName: null);
             }
             catch (InvalidOperationException)
             {
