@@ -377,8 +377,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             ConsList<TypeSymbol>? basesBeingResolved)
         {
-            if (usingDirective.Type is not NameSyntax)
+            if (usingDirective.UnsafeKeyword != default)
+            {
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
+            }
+            else if (usingDirective.Type is not NameSyntax)
+            {
                 MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.Type);
+            }
 
             var syntax = usingDirective.Type;
             var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
