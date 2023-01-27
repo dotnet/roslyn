@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis
             }
             catch
             {
-                // The above can fail with the assembly doesn't exist because it's corrupted, 
-                // doesn't exist on disk or is a native DLL. Those failures are handled when 
+                // The above can fail when the assembly doesn't exist because it's corrupted, 
+                // doesn't exist on disk, or is a native DLL. Those failures are handled when 
                 // the actual load is attempted. Just record the failure now.
                 assemblyName = null;
             }

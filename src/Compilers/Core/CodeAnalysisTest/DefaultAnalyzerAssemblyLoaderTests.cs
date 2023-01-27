@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
     /// Limitation 1: .NET Framework probing path.
     ///
     /// The .NET Framework assembly loader will only call AppDomain.AssemblyResolve when it cannot satifisfy a load
-    /// request. One of the places the assembly loader will always consider when looking for dependecies of A.dll
-    /// is the directory that A.dll was loading from (it's added to the probing path). Than means if B.dll is in the
+    /// request. One of the places the assembly loader will always consider when looking for dependencies of A.dll
+    /// is the directory that A.dll was loading from (it's added to the probing path). That means if B.dll is in the
     /// same directory then the runtime will silently load it without a way for us to intervene.
     ///
     /// Note: this only applies when A.dll is in the Load or LoadFrom context which is always true for these tests
