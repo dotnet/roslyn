@@ -536,6 +536,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
+            If TypeOf containingType Is SourceMemberContainerTypeSymbol Then
+                ' A diagnostic will be reported for inheriting from a type with required members, no need to add
+                ' extra diagnostics here.
+                Debug.Assert(Not containingType.HasAnyDeclaredRequiredMembers)
+                Return
+            End If
+
             Dim requiredMembers = containingType.AllRequiredMembers
 
             If requiredMembers.Count = 0 Then

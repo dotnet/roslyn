@@ -1128,7 +1128,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If constructor.DeclaredAccessibility <> Accessibility.Public Then
                         Return ConstructorConstraintError.NoPublicParameterlessConstructor
                     ElseIf hasRequiredMembers AndAlso Not constructor.HasSetsRequiredMembers Then
-                        Return ConstructorConstraintError.HasRequiredMembers
+                        If TypeOf constructor.ContainingType Is SourceMemberContainerTypeSymbol Then
+                            ' There will be an error on inheriting from a type with required members, no need to
+                            ' report other spurious errors here
+                            Debug.Assert(Not constructor.ContainingType.HasAnyDeclaredRequiredMembers)
+                            Return ConstructorConstraintError.None
+                        Else
+                            Return ConstructorConstraintError.HasRequiredMembers
+                        End If
                     Else
                         Return ConstructorConstraintError.None
                     End If

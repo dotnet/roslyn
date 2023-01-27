@@ -1132,7 +1132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim success = TryCalculateRequiredMembers(requiredMembersBuilder)
 
             Dim requiredMembers = If(success,
-                If(requiredMembersBuilder?.ToImmutable(), ImmutableSegmentedDictionary(Of String, Symbol).Empty),
+                If(requiredMembersBuilder?.ToImmutable(), If(BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers, ImmutableSegmentedDictionary(Of String, Symbol).Empty)),
                 s_requiredMembersErrorSentinel)
 
             RoslynImmutableInterlocked.InterlockedInitialize(_lazyRequiredMembers, requiredMembers)

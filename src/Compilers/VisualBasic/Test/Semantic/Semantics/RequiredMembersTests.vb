@@ -35,7 +35,19 @@ End Class
 
 Class VbDerivedDerived
     Inherits Derived
-End Class", references:={csharpReference})
+End Class
+
+Module M
+    Sub Main()
+        Dim v1 = New VbDerivedBase()
+        Dim v2 = New VbDerivedDerived()
+        G(Of VbDerivedBase)()
+        G(Of VbDerivedDerived)()
+    End Sub
+
+    Sub G(Of T As New)()
+    End Sub
+End Module", references:={csharpReference})
 
             vb.AssertTheseDiagnostics(<expected>
 BC37322: Cannot inherit from 'Base' because it has required members.
