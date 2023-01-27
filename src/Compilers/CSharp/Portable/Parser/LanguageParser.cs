@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseBracketToken,
                 static @this => @this.IsPossibleAttribute(),
                 static @this => @this.ParseAttribute(),
-                static (@this, openBracket, list, expectedKind, closeKind) => (openBracket, skipBadAttributeListTokens(@this, list, expectedKind, closeKind)),
+                skipBadAttributeListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: true);
 
@@ -904,17 +904,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 attributes,
                 this.EatToken(SyntaxKind.CloseBracketToken));
 
-            static PostSkipAction skipBadAttributeListTokens(
-                LanguageParser @this, SeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
+            static (SyntaxToken openBracket, PostSkipAction action) skipBadAttributeListTokens(
+                LanguageParser @this, SyntaxToken openBracket, SeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
             {
-                // Because we always parse out at least one attribute, we always can attach errors to it, so we don't
-                // need to pass the actual open bracket token here.
-                Debug.Assert(list.Count > 0);
-                SyntaxToken? tmp = null;
-                return @this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
+                var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
                     static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
                     static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
                     expectedKind, closeKind);
+                return (openBracket, action);
             }
         }
 
@@ -5482,7 +5479,7 @@ tryAgain:
                 SyntaxKind.GreaterThanToken,
                 static @this => @this.IsStartOfTypeParameter(),
                 static @this => @this.ParseTypeParameter(),
-                static (@this, open, parameters, expectedKind, closeKind) => (open, skipBadTypeParameterListTokens(@this, parameters, expectedKind, closeKind)),
+                skipBadTypeParameterListTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: true);
 
@@ -5493,17 +5490,14 @@ tryAgain:
                 parameters,
                 this.EatToken(SyntaxKind.GreaterThanToken));
 
-            static PostSkipAction skipBadTypeParameterListTokens(
-                LanguageParser @this, SeparatedSyntaxListBuilder<TypeParameterSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
+            static (SyntaxToken open, PostSkipAction action) skipBadTypeParameterListTokens(
+                LanguageParser @this, SyntaxToken open, SeparatedSyntaxListBuilder<TypeParameterSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
             {
-                // Because we always parse out at least one type parameter, we always can attach errors to it, so we don't
-                // need to pass the actual less than token here.
-                CSharpSyntaxNode tmp = null;
-                Debug.Assert(list.Count > 0);
-                return @this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
+                var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                     static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
                     static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
                     expectedKind, closeKind);
+                return (open, action);
             }
         }
 
@@ -11867,7 +11861,7 @@ done:;
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseAnonymousTypeMemberInitializer(),
-                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind, closeKind),
+                SkipBadInitializerListTokens,
                 allowTrailingSeparator: true);
 
             return _syntaxFactory.AnonymousObjectCreationExpression(
@@ -11990,7 +11984,7 @@ done:;
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
-                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind, closeKind),
+                SkipBadInitializerListTokens,
                 allowTrailingSeparator: true);
 
             return _syntaxFactory.WithExpression(
@@ -12014,7 +12008,7 @@ done:;
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsInitializerMember(),
                 static @this => @this.ParseObjectOrCollectionInitializerMember(),
-                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind, closeKind),
+                SkipBadInitializerListTokens,
                 allowTrailingSeparator: true);
 
             var kind = isObjectInitializer(initializers) ? SyntaxKind.ObjectInitializerExpression : SyntaxKind.CollectionInitializerExpression;
@@ -12078,11 +12072,11 @@ done:;
             }
         }
 
-        private (SyntaxToken startToken, PostSkipAction action) SkipBadInitializerListTokens<T>(
-            SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
+        private static (SyntaxToken startToken, PostSkipAction action) SkipBadInitializerListTokens<T>(
+            LanguageParser @this, SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
             where T : CSharpSyntaxNode
         {
-            var action = this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
+            var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
                 static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
                 expectedKind, closeKind);
@@ -12123,7 +12117,7 @@ done:;
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
-                static (@this, openBrace, list, expectedKind, closeKind) => @this.SkipBadInitializerListTokens(openBrace, list, expectedKind, closeKind),
+                SkipBadInitializerListTokens,
                 allowTrailingSeparator: false);
 
             return _syntaxFactory.InitializerExpression(
