@@ -2926,10 +2926,26 @@ public class C : A {
         }
 
         [Fact]
+        public void TestProjectWithNoMetadataReferencesHasIncompleteReferences()
+        {
+            var workspace = new AdhocWorkspace();
+            var project = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            Assert.False(project.HasSuccessfullyLoadedAsync().Result);
+            Assert.Empty(project.GetCompilationAsync().Result.ExternalReferences);
+        }
+
+        [Fact]
         public void TestProjectWithNoBrokenReferencesHasNoIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
                     ProjectId.CreateNewId(),
@@ -2937,19 +2953,27 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             // Nothing should have incomplete references, and everything should build
             Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
             Assert.True(project2.HasSuccessfullyLoadedAsync().Result);
-            Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
+            Assert.Equal(2, project2.GetCompilationAsync().Result.ExternalReferences.Length);
         }
 
         [Fact]
         public void TestProjectWithBrokenCrossLanguageReferenceHasIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
             workspace.AddDocument(project1.Id, "Broken.cs", SourceText.From("class "));
 
             var project2 = workspace.AddProject(
@@ -2959,11 +2983,12 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
             Assert.False(project2.HasSuccessfullyLoadedAsync().Result);
-            Assert.Empty(project2.GetCompilationAsync().Result.ExternalReferences);
+            Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
         }
 
         [Fact]
@@ -3086,7 +3111,14 @@ public class C : A {
         public void TestFrozenPartialProjectAlwaysIsIncomplete()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
 
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
@@ -3095,6 +3127,7 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             var document = workspace.AddDocument(project2.Id, "Test.cs", SourceText.From(""));
@@ -3727,7 +3760,8 @@ class C
                     VersionStamp.Create(),
                     "CSharpProject",
                     "CSharpProject",
-                    LanguageNames.CSharp).WithHasAllInformation(hasAllInformation: false));
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }).WithHasAllInformation(hasAllInformation: false));
 
             vbNormalProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -3735,7 +3769,8 @@ class C
                     VersionStamp.Create(),
                     "VisualBasicProject",
                     "VisualBasicProject",
-                    LanguageNames.VisualBasic));
+                    LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef }));
 
             dependsOnBrokenProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -3744,6 +3779,7 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(csBrokenProject.Id), new ProjectReference(vbNormalProject.Id) }));
 
             dependsOnVbNormalProject = workspace.AddProject(
@@ -3753,6 +3789,7 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(vbNormalProject.Id) }));
 
             transitivelyDependsOnBrokenProjects = workspace.AddProject(
@@ -3762,6 +3799,7 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(dependsOnBrokenProject.Id) }));
 
             transitivelyDependsOnNormalProjects = workspace.AddProject(
@@ -3771,6 +3809,7 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 
