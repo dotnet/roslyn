@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
             Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
-            Assert.Equal(fixedExpectations, normalized)
+            AssertEx.Equal(fixedExpectations, normalized)
         End Sub
 
         Private Shared Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -1558,6 +1558,21 @@ End Interface")
 
     Default ReadOnly Property Item(y As x) As t
 
+End Interface")
+        End Sub
+
+        <Fact, WorkItem(66377, "https://github.com/dotnet/roslyn/issues/66377")>
+        Public Sub TestInterfaceVariance()
+            Dim compilation = Compile("
+interface I(of in X, out Y)
+end interface
+                ")
+
+            Dim symbol = compilation.GlobalNamespace.GetMembers("I").Single()
+
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                Generator.Declaration(symbol),
+"Friend Interface I(Of In X, Out Y)
 End Interface")
         End Sub
 

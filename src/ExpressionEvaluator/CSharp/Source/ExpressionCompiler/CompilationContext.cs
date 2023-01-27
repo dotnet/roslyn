@@ -60,11 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // added (anonymous types, for instance).
             Debug.Assert(Compilation != compilation);
 
+            // Binder.IsInScopeOfAssociatedSyntaxTree() expects a non-null AssociatedFileIdentifier when
+            // looking up file-local types. If there is no document name, use an invalid FilePathChecksumOpt.
+            FileIdentifier fileIdentifier = methodDebugInfo.ContainingDocumentName is { } documentName
+                ? FileIdentifier.Create(documentName)
+                : new FileIdentifier { EncoderFallbackErrorMessage = null, FilePathChecksumOpt = ImmutableArray<byte>.Empty, DisplayFilePath = string.Empty };
+
             NamespaceBinder = CreateBinderChain(
                 Compilation,
                 currentFrame.ContainingNamespace,
                 methodDebugInfo.ImportRecordGroups,
-                methodDebugInfo.ContainingDocumentName is { } documentName ? FileIdentifier.Create(documentName) : null);
+                fileIdentifier: fileIdentifier);
 
             if (_methodNotType)
             {
