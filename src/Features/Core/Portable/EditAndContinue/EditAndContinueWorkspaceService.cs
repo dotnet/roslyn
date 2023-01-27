@@ -46,9 +46,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         static EditAndContinueWorkspaceService()
         {
+            Log = new(2048, "EnC", "Trace.log");
+            AnalysisLog = new(1024, "EnC", "Analysis.log");
+
             var logDir = GetLogDirectory();
-            Log = new(2048, "EnC", "Trace.log", logDir);
-            AnalysisLog = new(1024, "EnC", "Analysis.log", logDir);
+            if (logDir != null)
+            {
+                Log.SetLogDirectory(logDir);
+                AnalysisLog.SetLogDirectory(logDir);
+            }
         }
 
         private static string? GetLogDirectory()
@@ -68,6 +74,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 return null;
             }
+        }
+
+        public void SetFileLoggingDirectory(string? logDirectory)
+        {
+            Log.SetLogDirectory(logDirectory ?? GetLogDirectory());
         }
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
