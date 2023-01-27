@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsGlobalSuppressMessageAttribute = false;
                 var containsConversion = false;
                 var containsGlobalKeyword = false;
+                var containsDirective = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
                             containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
+                            containsDirective = containsDirective || syntaxFacts.IsDirective(node);
 
                             TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                         }
@@ -186,7 +188,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation,
                             containsGlobalSuppressMessageAttribute,
                             containsConversion,
-                            containsGlobalKeyword),
+                            containsGlobalKeyword,
+                            containsDirective),
                     globalAliasInfo);
             }
             finally

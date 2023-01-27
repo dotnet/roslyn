@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -89,13 +90,30 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
 
         static async ValueTask<bool> HasDirectiveProbablyContainsIdentifier(Document document, IPreprocessingSymbol symbol, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root is not { ContainsDirectives: true })
-                return false;
-
             var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-            return syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
+            return syntaxTreeIndex.ContainsDirective
+                && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
         }
+    }
+
+    private static async Task<ImmutableArray<Document>> FindAllSolutionDocumentsAsync<T>(
+        Solution solution,
+        Func<Document, T, CancellationToken, ValueTask<bool>> predicateAsync,
+        T value,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<Document>.GetInstance(out var documents);
+
+        foreach (var project in solution.Projects)
+        {
+            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (await predicateAsync(document, value, cancellationToken).ConfigureAwait(false))
+                    documents.Add(document);
+            }
+        }
+
+        return documents.ToImmutable();
     }
 
     private static async ValueTask<ImmutableArray<FinderLocation>> FindPreprocessingReferencesInTokensAsync(
