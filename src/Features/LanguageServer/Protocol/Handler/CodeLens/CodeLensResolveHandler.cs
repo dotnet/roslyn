@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
@@ -36,8 +38,19 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
     public async Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
-
         var (cacheEntry, memberToResolve) = GetCacheEntry(request);
+
+        var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+        var cachedSyntaxVersion = cacheEntry.SyntaxVersion;
+
+        if (currentSyntaxVersion != cachedSyntaxVersion)
+        {
+            throw new LocalRpcException($"Cached resolve version {cachedSyntaxVersion} does not match current version {currentSyntaxVersion}")
+            {
+                ErrorCode = LspErrorCodes.ContentModified
+            };
+        }
+
         var codeLensReferencesService = document.Project.Solution.Services.GetRequiredService<ICodeLensReferencesService>();
         var referenceCount = await codeLensReferencesService.GetReferenceCountAsync(document.Project.Solution, document.Id, memberToResolve.Node, maxSearchResults: 99, cancellationToken).ConfigureAwait(false);
         if (referenceCount != null)
@@ -48,8 +61,8 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
                 CommandIdentifier = ClientReferencesCommand,
                 Arguments = new object[]
                 {
-                    cacheEntry.TextDocumentIdentifier.Uri,
-                    request.Range.Start
+                        cacheEntry.TextDocumentIdentifier.Uri,
+                        request.Range.Start
                 }
             };
 
@@ -60,7 +73,7 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
 
     private (CodeLensCache.CodeLensCacheEntry CacheEntry, CodeLensMember MemberToResolve) GetCacheEntry(LSP.CodeLens request)
     {
-        var resolveData = ((JToken)request.Data).ToObject<CodeLensResolveData>();
+        var resolveData = (request.Data as JToken)?.ToObject<CodeLensResolveData>();
         Contract.ThrowIfNull(resolveData, "Missing data for code lens resolve request");
 
         var cacheEntry = _codeLensCache.GetCachedEntry(resolveData.ResultId);

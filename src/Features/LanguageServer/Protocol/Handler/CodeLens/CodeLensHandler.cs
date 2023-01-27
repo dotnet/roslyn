@@ -42,14 +42,16 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
             return Array.Empty<LSP.CodeLens>();
         }
 
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+
         var codeLensCache = context.GetRequiredLspService<CodeLensCache>();
-        var resultId = codeLensCache.UpdateCache(new CodeLensCache.CodeLensCacheEntry(members, request.TextDocument));
+        var resultId = codeLensCache.UpdateCache(new CodeLensCache.CodeLensCacheEntry(members, request.TextDocument, syntaxVersion));
 
         // TODO - Code lenses need to be refreshed by the server when we detect solution/project wide changes.
         // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730462
 
         using var _ = ArrayBuilder<LSP.CodeLens>.GetInstance(out var codeLenses);
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         for (var i = 0; i < members.Length; i++)
         {
             var member = members[i];
