@@ -267,10 +267,12 @@ namespace Xunit.Harness
                     executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, finalAttempt, completedTestCaseIds, cancellationTokenSource.Token);
                     marshalledObjects.Add(executionMessageSinkFilter);
 
-                    var environmentVariables = visualStudioInstanceKey.EnvironmentVariables.ToImmutableDictionary(
-                        variable => variable.IndexOf('=') is var index && index > 0 ? variable.Substring(0, index) : variable,
-                        variable => variable.IndexOf('=') is var index && index > 0 ? variable.Substring(index + 1) : string.Empty,
-                        StringComparer.OrdinalIgnoreCase);
+                    // Use SetItems instead of ToImmutableDictionary to avoid exceptions in the case of value conflicts
+                    var environmentVariables = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase).SetItems(
+                        visualStudioInstanceKey.EnvironmentVariables.Select(
+                            variable => variable.IndexOf('=') is var index && index > 0
+                                ? new KeyValuePair<string, string>(variable.Substring(0, index), variable.Substring(index + 1))
+                                : new KeyValuePair<string, string>(variable, string.Empty)));
 
                     // Install a COM message filter to handle retry operations when the first attempt fails
                     using (var messageFilter = new MessageFilter())
