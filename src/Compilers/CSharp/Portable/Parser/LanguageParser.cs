@@ -12031,13 +12031,18 @@ done:;
                 if (initializers.Count == 0)
                     return true;
 
-                // We have at least one initializer expression.
-                // If at least one initializer expression is a named assignment, this is an object initializer.
-                // Otherwise, this is a collection initializer.
-                foreach (var expression in initializers.GetWithSeparators())
+                // We have at least one initializer expression. If at least one initializer expression is a named
+                // assignment, this is an object initializer. Otherwise, this is a collection initializer.
+                for (int i = 0, n = initializers.Count; i < n; i++)
                 {
-                    if (expression.RawKind == (int)SyntaxKind.SimpleAssignmentExpression)
+                    if (initializers[i] is AssignmentExpressionSyntax
+                        {
+                            Kind: SyntaxKind.SimpleAssignmentExpression,
+                            Left.Kind: SyntaxKind.IdentifierName or SyntaxKind.ImplicitElementAccess,
+                        })
+                    {
                         return true;
+                    }
                 }
 
                 return false;
