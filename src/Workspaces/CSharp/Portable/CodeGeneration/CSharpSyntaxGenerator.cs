@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,7 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     [ExportLanguageService(typeof(SyntaxGenerator), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxGenerator : SyntaxGenerator
+    internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     {
         // A bit hacky, but we need to actually run ParseToken on the "nameof" text as there's no
         // other way to get a token back that has the appropriate internal bit set that indicates
@@ -190,11 +189,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null))));
         }
 
-        public override SyntaxNode ParameterDeclaration(string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind)
+        private protected override SyntaxNode ParameterDeclaration(
+            string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams)
         {
+            var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);
+            if (isExtension)
+                modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+
+            if (isParams)
+                modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+
             return SyntaxFactory.Parameter(
                 default,
-                CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind),
+                modifiers,
                 (TypeSyntax?)type,
                 name.ToIdentifierToken(),
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
@@ -226,6 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode>? statements)
         {
             var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
+
+            if (!hasBody)
+                modifiers -= DeclarationModifiers.Async;
 
             return SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
@@ -333,21 +343,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode>? getAccessorStatements,
             IEnumerable<SyntaxNode>? setAccessorStatements)
         {
+            SyntaxNode? getAccessor = null;
+            SyntaxNode? setAccessor = null;
+
+            if (!modifiers.IsWriteOnly)
+                getAccessor = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, modifiers.IsAbstract ? null : getAccessorStatements);
+
+            if (!modifiers.IsReadOnly)
+                setAccessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, modifiers.IsAbstract ? null : setAccessorStatements);
+
+            return PropertyDeclaration(name, type, getAccessor, setAccessor, accessibility, modifiers);
+        }
+
+        private protected override SyntaxNode PropertyDeclaration(
+            string name,
+            SyntaxNode type,
+            SyntaxNode? getAccessor,
+            SyntaxNode? setAccessor,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers)
+        {
             var accessors = new List<AccessorDeclarationSyntax>();
-            var hasGetter = !modifiers.IsWriteOnly;
-            var hasSetter = !modifiers.IsReadOnly;
 
-            if (modifiers.IsAbstract)
-            {
-                getAccessorStatements = null;
-                setAccessorStatements = null;
-            }
-
-            if (hasGetter)
-                accessors.Add(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, getAccessorStatements));
-
-            if (hasSetter)
-                accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, setAccessorStatements));
+            accessors.AddIfNotNull((AccessorDeclarationSyntax?)getAccessor);
+            accessors.AddIfNotNull((AccessorDeclarationSyntax?)setAccessor);
 
             var actualModifiers = modifiers - (DeclarationModifiers.ReadOnly | DeclarationModifiers.WriteOnly);
 
@@ -876,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.DelegateDeclaration(
                 default,
-                AsModifierList(accessibility, modifiers),
+                AsModifierList(accessibility, modifiers, SyntaxKind.DelegateDeclaration),
                 returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
                 name.ToIdentifierToken(),
                 AsTypeParameterList(typeParameters),
@@ -1648,8 +1667,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
                     break;
                 case Accessibility.ProtectedOrInternal:
-                    list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     break;
                 case Accessibility.ProtectedAndInternal:
                     list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));

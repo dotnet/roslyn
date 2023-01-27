@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     else
                     {
-                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: \r\n{string.Join("\r\n", map.Keys)}");
+                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}{string.Join(Environment.NewLine, map.Keys)}");
                     }
                 }
 
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ILVerify(peVerify);
 #endif
             }
-            catch (Exception) when ((peVerify & Verification.PassesOrFailFast) != 0)
+            catch (Exception) when (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
             {
                 var il = DumpIL();
                 Console.WriteLine(il);
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void ILVerify(Verification verification)
         {
-            if (verification == Verification.Skipped)
+            if (verification.Status.HasFlag(VerificationStatus.Skipped))
             {
                 return;
             }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string name = module.SimpleName;
                 if (imagesByName.ContainsKey(name))
                 {
-                    if ((verification & Verification.FailsILVerify) != 0)
+                    if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
                     {
                         return;
                     }
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
             if (mscorlibModule is null)
             {
-                if ((verification & Verification.FailsILVerify) != 0)
+                if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
                 {
                     return;
                 }
@@ -332,19 +332,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Main module is the first one
             var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
 
-            var (succeeded, errorMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+            var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+            var expectedSuccess = !verification.Status.HasFlag(VerificationStatus.FailsILVerify);
 
-            switch (succeeded, (verification & Verification.FailsILVerify) == 0)
+            if (actualSuccess != expectedSuccess)
             {
-                case (true, true):
-                    return;
-                case (true, false):
-                    throw new Exception("IL Verify succeeded unexpectedly");
-                case (false, false):
-                    return;
-                case (false, true):
-                    throw new Exception("IL Verify failed unexpectedly: \r\n" + errorMessage);
+                throw new Exception(expectedSuccess ?
+                    $"IL Verify failed unexpectedly:{Environment.NewLine}{actualMessage}" :
+                    "IL Verify succeeded unexpectedly");
             }
+
+            if (!actualSuccess && verification.ILVerifyMessage != null && !IsEnglishLocal.Instance.ShouldSkip)
+            {
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(verification.ILVerifyMessage, actualMessage);
+            }
+
+            return;
 
             static (bool, string) verify(ILVerify.Verifier verifier, string corlibName, PEReader mainModule)
             {
@@ -372,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result, MetadataReader metadataReader)
             {
-                return string.Join("\r\n", result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
+                return string.Join(Environment.NewLine, result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
             }
 
             static string printMethod(MethodDefinitionHandle method, MetadataReader metadataReader)
@@ -575,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (actualPdbXml.StartsWith("<error>"))
                 {
-                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:\r\n{actualPdbXml}");
+                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:{Environment.NewLine}{actualPdbXml}");
                 }
 
                 markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);

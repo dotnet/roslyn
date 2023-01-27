@@ -8,7 +8,9 @@ using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -943,6 +945,193 @@ class Program
                         }
                         """);
                 });
+        }
+
+        [WorkItem(66109, "https://github.com/dotnet/roslyn/issues/66109")]
+        [Fact]
+        public void SequencePointsMultipleDocuments()
+        {
+            var sourceA =
+@"partial class Program
+{
+    private int x = 1;
+    private void F()
+    {
+    }
+}";
+            var sourceB =
+@"partial class Program
+{
+    private int y = 2;
+    public Program()
+    {
+        F();
+        int z = x + y;
+    }
+}";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(sourceA, path: "A.cs", encoding: Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(sourceB, path: "B.cs", encoding: Encoding.Default)
+                },
+                options: TestOptions.DebugDll);
+
+            comp.VerifyPdb("""
+                <symbols>
+                  <files>
+                    <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="09-65-32-19-5F-F8-8A-58-BF-BC-0C-D3-68-2C-2C-7B-15-33-18-E4" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="62-4B-E2-91-A3-E9-43-48-4F-A0-E6-E8-22-74-EB-90-24-C3-05-A5" />
+                  </files>
+                  <methods>
+                    <method containingType="Program" name="F">
+                      <customDebugInfo>
+                        <using>
+                          <namespace usingCount="0" />
+                        </using>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="6" document="1" />
+                        <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="6" document="1" />
+                      </sequencePoints>
+                    </method>
+                    <method containingType="Program" name=".ctor">
+                      <customDebugInfo>
+                        <forward declaringType="Program" methodName="F" />
+                        <encLocalSlotMap>
+                          <slot kind="0" offset="29" />
+                        </encLocalSlotMap>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="23" document="1" />
+                        <entry offset="0x7" startLine="3" startColumn="5" endLine="3" endColumn="23" document="2" />
+                        <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="21" document="2" />
+                        <entry offset="0x15" startLine="5" startColumn="5" endLine="5" endColumn="6" document="2" />
+                        <entry offset="0x16" startLine="6" startColumn="9" endLine="6" endColumn="13" document="2" />
+                        <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="23" document="2" />
+                        <entry offset="0x2b" startLine="8" startColumn="5" endLine="8" endColumn="6" document="2" />
+                      </sequencePoints>
+                      <scope startOffset="0x0" endOffset="0x2c">
+                        <scope startOffset="0x15" endOffset="0x2c">
+                          <local name="z" il_index="0" il_start="0x15" il_end="0x2c" attributes="0" />
+                        </scope>
+                      </scope>
+                    </method>
+                  </methods>
+                </symbols>
+                """,
+                format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Pdb);
+            comp.VerifyPdb("""
+                <symbols>
+                  <files>
+                    <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="09-65-32-19-5F-F8-8A-58-BF-BC-0C-D3-68-2C-2C-7B-15-33-18-E4" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="62-4B-E2-91-A3-E9-43-48-4F-A0-E6-E8-22-74-EB-90-24-C3-05-A5" />
+                  </files>
+                  <methods>
+                    <method containingType="Program" name="F">
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="6" document="1" />
+                        <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="6" document="1" />
+                      </sequencePoints>
+                    </method>
+                    <method containingType="Program" name=".ctor">
+                      <customDebugInfo>
+                        <encLocalSlotMap>
+                          <slot kind="0" offset="29" />
+                        </encLocalSlotMap>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="23" document="1" />
+                        <entry offset="0x7" startLine="3" startColumn="5" endLine="3" endColumn="23" document="2" />
+                        <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="21" document="2" />
+                        <entry offset="0x15" startLine="5" startColumn="5" endLine="5" endColumn="6" document="2" />
+                        <entry offset="0x16" startLine="6" startColumn="9" endLine="6" endColumn="13" document="2" />
+                        <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="23" document="2" />
+                        <entry offset="0x2b" startLine="8" startColumn="5" endLine="8" endColumn="6" document="2" />
+                      </sequencePoints>
+                      <scope startOffset="0x0" endOffset="0x2c">
+                        <scope startOffset="0x15" endOffset="0x2c">
+                          <local name="z" il_index="0" il_start="0x15" il_end="0x2c" attributes="0" />
+                        </scope>
+                      </scope>
+                    </method>
+                  </methods>
+                </symbols>
+                """,
+                format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
+
+            // Disable testing with DebugInformationFormat.Pdb format for now (see https://github.com/dotnet/roslyn/issues/66260).
+            //WithRuntimeInstance(
+            //    comp,
+            //    references: null,
+            //    includeLocalSignatures: true,
+            //    includeIntrinsicAssembly: false,
+            //    validator: runtime =>
+            {
+                using (var runtime = RuntimeInstance.Create(
+                    comp,
+                    references: null,
+                    Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb,
+                    includeLocalSignatures: true,
+                    includeIntrinsicAssembly: false))
+                {
+                    GetContextState(runtime, "Program..ctor", out var blocks, out var moduleVersionId, out var symReader, out var methodToken, out var localSignatureToken);
+
+                    var appDomain = new AppDomain();
+                    uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+                    var context = CreateMethodContext(
+                        appDomain,
+                        blocks,
+                        symReader,
+                        moduleVersionId,
+                        methodToken: methodToken,
+                        methodVersion: 1,
+                        ilOffset: 0x15, // offset matches startOffset of "z" scope
+                        localSignatureToken: localSignatureToken,
+                        kind: MakeAssemblyReferencesKind.AllAssemblies);
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "z",
+                        out var error,
+                        testData);
+                    Assert.Null(error);
+                    Assert.NotNull(result.Assembly);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldloc.0
+                            IL_0001:  ret
+                        }
+                        """);
+
+                    testData = new CompilationTestData();
+                    var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                    string typeName;
+                    var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+
+                    Assert.Equal(2, locals.Count);
+                    VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt: """
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldarg.0
+                            IL_0001:  ret
+                        }
+                        """);
+                    VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt: """
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldloc.0
+                            IL_0001:  ret
+                        }
+                        """);
+                }
+            }
         }
     }
 }

@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_FullyQualify">
         <source>Fully qualify</source>
-        <target state="new">Fully qualify</target>
+        <target state="translated">정규화</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
         <source>Solution Events</source>
-        <target state="new">Solution Events</target>
+        <target state="translated">솔루션 이벤트</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_UnitTestingSearch">
         <source>Unit testing search</source>
-        <target state="new">Unit testing search</target>
+        <target state="translated">단위 테스트 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">

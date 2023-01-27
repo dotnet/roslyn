@@ -126,7 +126,7 @@ class [|Test1$$|]
                     </Workspace>, host)
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameFile), True)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, True)
 
                 Dim session = StartSession(workspace)
 
@@ -246,10 +246,10 @@ class Deconstructable
                                                            Optional fileToRename As DocumentId = Nothing) As Task
 
             Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-            globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), renameOverloads)
-            globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), renameInStrings)
-            globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), renameInComments)
-            globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameFile), renameFile)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, renameOverloads)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
 
             Dim session = StartSession(workspace)
 
@@ -2095,6 +2095,47 @@ class [|C|]
 
                 session.ApplyReplacementText("Example", True)
                 session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions(RenameInComments:=True))
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(66208, "https://github.com/dotnet/roslyn/issues/66208")>
+        Public Async Function RenameWithGeneratedFile(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                partial class [|$$MyClass|]
+                                {
+                                    public void M1()
+                                    {
+                                    }
+                                }
+                            </Document>
+                            <DocumentFromSourceGenerator>
+                                partial class [|MyClass|]
+                                {
+                                    public void M2()
+                                    {
+                                    }
+                                }
+                            </DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+                Dim caretPosition = cursorDocument.CursorPosition.Value
+                Dim textBuffer = cursorDocument.GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Example")
 
                 session.Commit()
 

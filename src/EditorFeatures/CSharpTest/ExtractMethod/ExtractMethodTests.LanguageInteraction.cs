@@ -2012,6 +2012,62 @@ class C
 
             await TestExtractMethodAsync(code, expected);
         }
+        
+        [Fact, WorkItem(39329, "https://github.com/dotnet/roslyn/issues/39329")]
+        public Task SimpleUsingStatement()
+        {
+            var code = """
+                public class Goo : IDisposable
+                {
+                    void M2() { }
+                    void M3() { }
+                    string S => "S";
+
+                    void M()
+                    {
+                        using Goo g = [|new Goo();
+                        var s = g.S;
+                        g.M2();
+                        g.M3();|]
+                    }
+
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """;
+
+            var expected = """
+                public class Goo : IDisposable
+                {
+                    void M2() { }
+                    void M3() { }
+                    string S => "S";
+                
+                    void M()
+                    {
+                        using Goo g = NewMethod();
+                    }
+
+                    private static Goo NewMethod()
+                    {
+                        Goo g = new Goo();
+                        var s = g.S;
+                        g.M2();
+                        g.M3();
+                        return g;
+                    }
+                
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """;
+
+            return TestExtractMethodAsync(code, expected);
+        }
 
         [Fact, WorkItem(24136, "https://github.com/dotnet/roslyn/issues/24136")]
         public async Task WhenClause_SwitchStatement()

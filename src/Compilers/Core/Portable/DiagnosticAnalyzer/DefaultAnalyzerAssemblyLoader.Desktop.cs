@@ -33,15 +33,11 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Dictionary<AssemblyIdentity, Assembly> _loadedAssembliesByIdentity = new();
         private readonly Dictionary<string, AssemblyIdentity?> _loadedAssemblyIdentitiesByPath = new();
-
-        private int _hookedAssemblyResolve;
+        private bool _hookedAssemblyResolve;
 
         protected override Assembly LoadFromPathUncheckedImpl(string fullPath)
         {
-            if (Interlocked.CompareExchange(ref _hookedAssemblyResolve, 0, 1) == 0)
-            {
-                AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-            }
+            EnsureResolvedHooked();
 
             AssemblyIdentity? identity;
 
@@ -74,6 +70,36 @@ namespace Microsoft.CodeAnalysis
 
                 return loadedAssembly;
             }
+        }
+
+        internal bool EnsureResolvedHooked()
+        {
+            lock (_guard)
+            {
+                if (!_hookedAssemblyResolve)
+                {
+                    AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+                    _hookedAssemblyResolve = true;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal bool EnsureResolvedUnhooked()
+        {
+            lock (_guard)
+            {
+                if (_hookedAssemblyResolve)
+                {
+                    AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolve;
+                    _hookedAssemblyResolve = false;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private Assembly? CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)

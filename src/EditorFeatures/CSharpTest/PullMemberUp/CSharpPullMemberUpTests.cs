@@ -4214,6 +4214,34 @@ public class Bar : BaseClass
             return TestWithPullMemberDialogAsync(text, expected);
         }
 
+        [Fact, WorkItem(55402, "https://github.com/dotnet/roslyn/issues/55402")]
+        public Task TestPullPropertyToClassOnKeyword()
+        {
+            var text = """
+                public class BaseClass
+                {
+                }
+
+                public class Derived : BaseClass
+                {
+                    $$public int I => 1;
+                }
+                """;
+
+            var expected = """
+                public class BaseClass
+                {
+                    $$public int I => 1;
+                }
+                
+                public class Derived : BaseClass
+                {
+                }
+                """;
+
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
         #endregion Quick Action
 
         #region Dialog

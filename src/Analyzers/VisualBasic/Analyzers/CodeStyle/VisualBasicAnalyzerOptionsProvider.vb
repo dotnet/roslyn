@@ -16,19 +16,19 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
         ''' <summary>
         ''' Document editorconfig options.
         ''' </summary>
-        Private ReadOnly _options As AnalyzerConfigOptions
+        Private ReadOnly _options As IOptionsReader
 
         ''' <summary>
         ''' Fallback options - the default options in Code Style layer.
         ''' </summary>
         Private ReadOnly _fallbackOptions As IdeAnalyzerOptions
 
-        Public Sub New(options As AnalyzerConfigOptions, fallbackOptions As IdeAnalyzerOptions)
+        Public Sub New(options As IOptionsReader, fallbackOptions As IdeAnalyzerOptions)
             _options = options
             _fallbackOptions = fallbackOptions
         End Sub
 
-        Public Sub New(options As AnalyzerConfigOptions, fallbackOptions As AnalyzerOptions)
+        Public Sub New(options As IOptionsReader, fallbackOptions As AnalyzerOptions)
             MyClass.New(options, fallbackOptions.GetIdeOptions())
         End Sub
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
         End Property
 
         Private Function GetOption(Of TValue)([option] As Option2(Of CodeStyleOption2(Of TValue)), defaultValue As CodeStyleOption2(Of TValue)) As CodeStyleOption2(Of TValue)
-            Return _options.GetEditorConfigOption([option], defaultValue)
+            Return _options.GetOption([option], defaultValue)
         End Function
 
         Private ReadOnly Property FallbackSimplifierOptions As VisualBasicSimplifierOptions
@@ -87,34 +87,39 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
         End Operator
 
         Public Shared Widening Operator CType(provider As VisualBasicAnalyzerOptionsProvider) As AnalyzerOptionsProvider
-            Return New AnalyzerOptionsProvider(provider._options, provider._fallbackOptions)
+            Return New AnalyzerOptionsProvider(provider._options, LanguageNames.VisualBasic, provider._fallbackOptions)
         End Operator
     End Structure
 
     Friend Module VisualBasicAnalyzerOptionsProviders
         <Extension>
+        Public Function GetVisualBasicAnalyzerOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree) As VisualBasicAnalyzerOptionsProvider
+            Return New VisualBasicAnalyzerOptionsProvider(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), options)
+        End Function
+
+        <Extension>
         Public Function GetVisualBasicAnalyzerOptions(context As SemanticModelAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return New VisualBasicAnalyzerOptionsProvider(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree), context.Options)
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree)
         End Function
 
         <Extension>
         Public Function GetVisualBasicAnalyzerOptions(context As SyntaxNodeAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return New VisualBasicAnalyzerOptionsProvider(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree), context.Options)
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.Node.SyntaxTree)
         End Function
 
         <Extension>
         Public Function GetVisualBasicAnalyzerOptions(context As SyntaxTreeAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return New VisualBasicAnalyzerOptionsProvider(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree), context.Options)
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.Tree)
         End Function
 
         <Extension>
         Public Function GetVisualBasicAnalyzerOptions(context As OperationAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return New VisualBasicAnalyzerOptionsProvider(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree), context.Options)
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree)
         End Function
 
         <Extension>
         Public Function GetVisualBasicAnalyzerOptions(context As CodeBlockAnalysisContext) As VisualBasicAnalyzerOptionsProvider
-            Return New VisualBasicAnalyzerOptionsProvider(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree), context.Options)
+            Return GetVisualBasicAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree)
         End Function
     End Module
 End Namespace

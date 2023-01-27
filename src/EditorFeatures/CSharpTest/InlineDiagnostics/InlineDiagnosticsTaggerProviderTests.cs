@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(TestWorkspace workspace)
         {
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp), true);
+            workspace.GlobalOptions.SetGlobalOption(InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp, true);
             return (await TestDiagnosticTagProducer<InlineDiagnosticsTaggerProvider, InlineDiagnosticsTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
     }

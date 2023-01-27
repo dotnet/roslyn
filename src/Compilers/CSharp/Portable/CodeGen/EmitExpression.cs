@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            var constantValue = expression.ConstantValue;
+            var constantValue = expression.ConstantValueOpt;
             if (constantValue != null)
             {
                 if (!used)
@@ -365,7 +365,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EmitExpression(expression.ReferenceTypeReceiver, used);
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
-            _builder.AdjustStack(-1);
+
+            if (used)
+            {
+                _builder.AdjustStack(-1);
+            }
 
             _builder.MarkLabel(whenValueTypeLabel);
             EmitExpression(expression.ValueTypeReceiver, used);
@@ -382,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(!receiverType.IsValueType ||
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
-            var receiverConstant = receiver.ConstantValue;
+            var receiverConstant = receiver.ConstantValueOpt;
             if (receiverConstant?.IsNull == false)
             {
                 // const but not null, must be a reference type
@@ -408,9 +412,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // or if we have a ref-constrained T (to do box just once) 
             // or if we deal with stack local (reads are destructive)
             // or if we have default(T) (to do box just once)
-            var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
+            var nullCheckOnCopy = (expression.ForceCopyOfNullableValueType && notConstrained &&
+                                   ((TypeParameterSymbol)receiverType).EffectiveInterfacesNoUseSiteDiagnostics.IsEmpty) || // This could be a nullable value type, which must be copied in order to not mutate the original value
+                                   LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
-                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
+                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
+                                   (notConstrained && IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker.Analyze(expression));
 
             // ===== RECEIVER
             if (nullCheckOnCopy)
@@ -559,6 +566,64 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (receiverTemp != null)
             {
                 FreeTemp(receiverTemp);
+            }
+        }
+
+        /// <summary>
+        /// We must use a temp when there is a chance that evaluation of the call arguments
+        /// could actually modify value of the reference type reciever. The call must use
+        /// the original (unmodified) receiver.
+        /// </summary>
+        private sealed class IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private readonly BoundLoweredConditionalAccess _conditionalAccess;
+            private bool? _result;
+
+            private IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker(BoundLoweredConditionalAccess conditionalAccess)
+            {
+                _conditionalAccess = conditionalAccess;
+            }
+
+            public static bool Analyze(BoundLoweredConditionalAccess conditionalAccess)
+            {
+                var walker = new IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker(conditionalAccess);
+                walker.Visit(conditionalAccess.WhenNotNull);
+                Debug.Assert(walker._result.HasValue);
+                return walker._result.GetValueOrDefault();
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                if (_result.HasValue)
+                {
+                    return null;
+                }
+
+                return base.Visit(node);
+            }
+
+            public override BoundNode VisitCall(BoundCall node)
+            {
+                if (node.ReceiverOpt is BoundConditionalReceiver { Id: var id } && id == _conditionalAccess.Id)
+                {
+                    Debug.Assert(!_result.HasValue);
+                    _result = !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(node.Arguments);
+                    return null;
+                }
+
+                return base.VisitCall(node);
+            }
+
+            public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
+            {
+                if (node.Id == _conditionalAccess.Id)
+                {
+                    Debug.Assert(!_result.HasValue);
+                    _result = false;
+                    return null;
+                }
+
+                return base.VisitConditionalReceiver(node);
             }
         }
 
@@ -1400,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(receiver.Type.IsVerifierReference(), "this is not a reference");
             Debug.Assert(receiver.Kind != BoundKind.BaseReference, "base should always use call");
 
-            var constVal = receiver.ConstantValue;
+            var constVal = receiver.ConstantValueOpt;
             if (constVal != null)
             {
                 // only when this is a constant Null, we need a callvirt
@@ -1626,15 +1691,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    // calling a method defined in a base class.
+                    // calling a method defined in a base class or interface.
 
                     // When calling a method that is virtual in metadata on a struct receiver, 
                     // we use a constrained virtual call. If possible, it will skip boxing.
                     if (method.IsMetadataVirtual())
                     {
-                        // NB: all methods that a struct could inherit from bases are non-mutating
-                        //     treat receiver as ReadOnly
-                        tempOpt = EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                        tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
                         callKind = CallKind.ConstrainedCallVirt;
                     }
                     else
@@ -1809,7 +1872,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (receiver is
                     BoundLocal { LocalSymbol.IsKnownToReferToTempIfReferenceType: true } or
-                    BoundComplexConditionalReceiver)
+                    BoundComplexConditionalReceiver or
+                    BoundConditionalReceiver { Type: { IsReferenceType: false, IsValueType: false } })
             {
                 return true;
             }
@@ -1826,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var current = expression;
                 while (true)
                 {
-                    if (current.ConstantValue != null)
+                    if (current.ConstantValueOpt != null)
                     {
                         return true;
                     }
@@ -2309,7 +2373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // in-place is not advantageous for reference types or constants
             if (!rightType.IsTypeParameter())
             {
-                if (rightType.IsReferenceType || (right.ConstantValue != null && rightType.SpecialType != SpecialType.System_Decimal))
+                if (rightType.IsReferenceType || (right.ConstantValueOpt != null && rightType.SpecialType != SpecialType.System_Decimal))
                 {
                     return false;
                 }
@@ -3370,7 +3434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </remarks>
         private void EmitConditionalOperator(BoundConditionalOperator expr, bool used)
         {
-            Debug.Assert(expr.ConstantValue == null, "Constant value should have been emitted directly");
+            Debug.Assert(expr.ConstantValueOpt == null, "Constant value should have been emitted directly");
 
             object consequenceLabel = new object();
             object doneLabel = new object();

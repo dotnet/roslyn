@@ -573,6 +573,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
+                    // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
+                    // whenever new values are added here.
                     return true;
                 case ErrorCode.Void:
                 case ErrorCode.Unknown:
@@ -2273,6 +2275,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget:
+                case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
+                case ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion:
+                case ErrorCode.ERR_BadSpecialByRefUsing:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
