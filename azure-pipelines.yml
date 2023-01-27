@@ -206,6 +206,7 @@ stages:
           include:
           - src/Compilers/*
           - src/Dependencies/*
+          - eng/*
 
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
