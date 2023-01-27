@@ -1,2 +1,1 @@
 static Microsoft.CodeAnalysis.CSharpExtensions.ContainsDirective(this Microsoft.CodeAnalysis.SyntaxNode! node, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
-static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsIdentifierContainerDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool

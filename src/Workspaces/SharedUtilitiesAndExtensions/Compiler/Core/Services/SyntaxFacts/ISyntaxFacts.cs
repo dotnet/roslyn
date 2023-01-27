@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
         /// </summary>
         bool IsPreprocessorKeyword(SyntaxToken token);
         bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        bool IsIdentifierContainerPreprocessorDirectiveTrivia(SyntaxNode node);
 
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);

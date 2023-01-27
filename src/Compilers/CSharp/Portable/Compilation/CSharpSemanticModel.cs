@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            if (!isSpeculative && IsInStructuredTriviaNotContainingIdentifiers(node))
+            if (!isSpeculative && IsInStructuredTriviaOtherThanCrefOrNameAttribute(node))
             {
                 return false;
             }
@@ -1253,29 +1253,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.SyntaxTree == this.SyntaxTree;
         }
 
-        private static bool IsInStructuredTriviaNotContainingIdentifiers(CSharpSyntaxNode node)
+        private static bool IsInStructuredTriviaOtherThanCrefOrNameAttribute(CSharpSyntaxNode node)
         {
-            return IsInStructuredTriviaNotContainingIdentifiers(node, out _);
-        }
-        private static bool IsInStructuredTriviaNotContainingIdentifiers(CSharpSyntaxNode node, out SyntaxKind decisiveParentSyntaxKind)
-        {
-            decisiveParentSyntaxKind = default;
             while (node != null)
             {
-                decisiveParentSyntaxKind = node.Kind();
-                switch (decisiveParentSyntaxKind)
-                {
-                    case SyntaxKind.XmlCrefAttribute:
-                    case SyntaxKind.XmlNameAttribute:
-                        return false;
-                }
-
-                if (SyntaxFacts.IsIdentifierContainerDirectiveTrivia(decisiveParentSyntaxKind))
+                if (node.Kind() == SyntaxKind.XmlCrefAttribute || node.Kind() == SyntaxKind.XmlNameAttribute)
                 {
                     return false;
                 }
-
-                if (node.IsStructuredTrivia)
+                else if (node.IsStructuredTrivia)
                 {
                     return true;
                 }

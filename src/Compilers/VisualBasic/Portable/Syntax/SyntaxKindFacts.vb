@@ -877,20 +877,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Public Shared Function IsIdentifierContainerDirectiveTrivia(kind As SyntaxKind) As Boolean
-            Select Case kind
-
-                Case SyntaxKind.IfDirectiveTrivia,
-                     SyntaxKind.ElseIfDirectiveTrivia,
-                     SyntaxKind.ConstDirectiveTrivia
-                    Return True
-
-                Case Else
-                    Return False
-            End Select
-
-        End Function
-
     End Class
 
 End Namespace

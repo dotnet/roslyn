@@ -86,9 +86,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return Nothing
                     End If
 
-                    If VisualBasicSyntaxFacts.Instance.IsIdentifierContainerPreprocessorDirectiveTrivia(ancestor) Then
-                        Return semanticModel.Compilation.CreatePreprocessingSymbol(token.Text)
-                    End If
+                    Select Case ancestor.Kind()
+                        Case SyntaxKind.IfDirectiveTrivia,
+                             SyntaxKind.ElseIfDirectiveTrivia,
+                             SyntaxKind.ConstDirectiveTrivia
+                            Return semanticModel.Compilation.CreatePreprocessingSymbol(token.Text)
+                    End Select
                 End If
             Next
 

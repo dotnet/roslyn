@@ -1779,14 +1779,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind == SyntaxKind.SingleLineDocumentationCommentTrivia ||
                 kind == SyntaxKind.MultiLineDocumentationCommentTrivia;
         }
-
-        public static bool IsIdentifierContainerDirectiveTrivia(SyntaxKind kind)
-        {
-            return kind
-                is SyntaxKind.IfDirectiveTrivia
-                or SyntaxKind.ElifDirectiveTrivia
-                or SyntaxKind.DefineDirectiveTrivia
-                or SyntaxKind.UndefDirectiveTrivia;
-        }
     }
 }

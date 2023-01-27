@@ -87,13 +87,13 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
         return await FindAllSolutionDocumentsAsync(project.Solution, HasDirectiveProbablyContainsIdentifier, symbol, cancellationToken)
             .ConfigureAwait(false);
 
-        static async ValueTask<bool> HasDirectiveProbablyContainsIdentifier(Document document, IPreprocessingSymbol symbol, CancellationToken ct)
+        static async ValueTask<bool> HasDirectiveProbablyContainsIdentifier(Document document, IPreprocessingSymbol symbol, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(ct).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root is not { ContainsDirectives: true })
                 return false;
 
-            var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(ct).ConfigureAwait(false);
+            var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
             return syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
         }
     }

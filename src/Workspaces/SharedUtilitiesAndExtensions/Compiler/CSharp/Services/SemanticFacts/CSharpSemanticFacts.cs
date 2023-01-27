@@ -84,8 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (CSharpSyntaxFacts.Instance.IsExecutableStatement(ancestor))
                     return null;
 
-                if (CSharpSyntaxFacts.Instance.IsIdentifierContainerPreprocessorDirectiveTrivia(ancestor))
-                    return semanticModel.Compilation.CreatePreprocessingSymbol(token.ValueText);
+                switch (ancestor.Kind())
+                {
+                    case SyntaxKind.IfDirectiveTrivia:
+                    case SyntaxKind.ElifDirectiveTrivia:
+                    case SyntaxKind.DefineDirectiveTrivia:
+                    case SyntaxKind.UndefDirectiveTrivia:
+                        return semanticModel.Compilation.CreatePreprocessingSymbol(token.ValueText);
+                }
             }
 
             return null;
