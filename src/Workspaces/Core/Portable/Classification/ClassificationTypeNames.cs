@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string ModuleName = "module name";
         public const string StructName = "struct name";
         public const string RecordStructName = "record struct name";
+        public const string PreprocessingName = "preprocessing name";
         public const string TypeParameterName = "type parameter name";
 
         public const string FieldName = "field name";

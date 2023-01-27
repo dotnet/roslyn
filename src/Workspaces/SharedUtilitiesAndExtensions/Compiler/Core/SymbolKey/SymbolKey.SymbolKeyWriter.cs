@@ -159,6 +159,11 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.BodyLevel);
                     BodyLevelSymbolKey.Create(symbol, this);
                 }
+                else if (symbol is IPreprocessingSymbol preprocessingSymbol)
+                {
+                    WriteType(SymbolKeyType.Preprocessing);
+                    PreprocessingSymbolKey.Instance.Create(preprocessingSymbol, this);
+                }
                 else
                 {
                     symbol.Accept(this);
@@ -486,12 +491,6 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.TypeParameter);
                     TypeParameterSymbolKey.Instance.Create(typeParameterSymbol, this);
                 }
-            }
-
-            public override void VisitPreprocessing(IPreprocessingSymbol preprocessingSymbol)
-            {
-                WriteType(SymbolKeyType.Preprocessing);
-                PreprocessingSymbolKey.Instance.Create(preprocessingSymbol, this);
             }
 
             public bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)

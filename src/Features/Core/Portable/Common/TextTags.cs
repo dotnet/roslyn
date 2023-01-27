@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis
         public const string Constant = nameof(Constant);
         public const string Record = nameof(Record);
         public const string RecordStruct = nameof(RecordStruct);
+        public const string Preprocessing = nameof(Preprocessing);
 
         /// <summary>
         /// Indicates the start of a text container. The elements after <see cref="ContainerStart"/> through (but not

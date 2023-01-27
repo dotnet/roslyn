@@ -75,17 +75,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         void ISymbol.Accept(SymbolVisitor visitor)
         {
-            visitor.VisitPreprocessing(this);
+            throw new NotSupportedException();
         }
 
         TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
-            return visitor.VisitPreprocessing(this)!;
+            throw new NotSupportedException();
         }
 
         TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitPreprocessing(this, argument);
+            throw new NotSupportedException();
         }
 
         string? ISymbol.GetDocumentationCommentId() => null;
@@ -94,22 +94,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         string ISymbol.ToDisplayString(SymbolDisplayFormat? format)
         {
-            return SymbolDisplay.ToDisplayString(this, format);
+            return _name;
         }
 
         ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat? format)
         {
-            return SymbolDisplay.ToDisplayParts(this, format);
+            return ToDisplayParts();
         }
 
         string ISymbol.ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
         {
-            return SymbolDisplay.ToMinimalDisplayString(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
+            return _name;
         }
 
         ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
         {
-            return SymbolDisplay.ToMinimalDisplayParts(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
+            return ToDisplayParts();
+        }
+
+        private ImmutableArray<SymbolDisplayPart> ToDisplayParts()
+        {
+            var part = new SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, this, _name);
+            return ImmutableArray.Create(part);
         }
 
         SymbolKind ISymbol.Kind => SymbolKind.Preprocessing;

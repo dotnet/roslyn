@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis
                 SymbolDisplayPartKind.ConstantName => TextTags.Constant,
                 SymbolDisplayPartKind.RecordClassName => TextTags.Record,
                 SymbolDisplayPartKind.RecordStructName => TextTags.RecordStruct,
+                SymbolDisplayPartKind.PreprocessingName => TextTags.Preprocessing,
                 _ => string.Empty,
             };
     }

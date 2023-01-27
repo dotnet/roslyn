@@ -75,9 +75,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Function VisitTypeParameter(symbol As TypeParameterSymbol) As TResult
             Return DefaultVisit(symbol)
         End Function
-
-        Public Overridable Function VisitPreprocessing(symbol As PreprocessingSymbol) As TResult
-            Return DefaultVisit(symbol)
-        End Function
     End Class
 End Namespace

@@ -146,27 +146,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Overrides Sub Accept(visitor As SymbolVisitor)
-            visitor.VisitPreprocessing(Me)
+            Throw New NotSupportedException()
         End Sub
 
         Public Overloads Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
-            visitor.VisitPreprocessing(Me)
+            Throw New NotSupportedException()
         End Sub
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
-            Return visitor.VisitPreprocessing(Me)
+            Throw New NotSupportedException()
         End Function
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitPreprocessing(Me, argument)
+            Throw New NotSupportedException()
         End Function
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
-            Return visitor.VisitPreprocessing(Me)
+            Throw New NotSupportedException()
         End Function
 
         Friend Overloads Overrides Function Accept(Of TArgument, TResult)(visitor As VisualBasicSymbolVisitor(Of TArgument, TResult), arg As TArgument) As TResult
-            Return visitor.VisitPreprocessing(Me, arg)
+            Throw New NotSupportedException()
+        End Function
+
+        Private Function ISymbol_ToDisplayString(Optional format As SymbolDisplayFormat = Nothing) As String Implements ISymbol.ToDisplayString
+            Return Name
+        End Function
+
+        Private Function ISymbol_ToDisplayParts(Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart) Implements ISymbol.ToDisplayParts
+            Return ToDisplayParts()
+        End Function
+
+        Private Function ISymbol_ToMinimalDisplayString(semanticModel As SemanticModel, position As Integer, Optional format As SymbolDisplayFormat = Nothing) As String Implements ISymbol.ToMinimalDisplayString
+            Return Name
+        End Function
+
+        Private Function ISymbol_ToMinimalDisplayParts(semanticModel As SemanticModel, position As Integer, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart) Implements ISymbol.ToMinimalDisplayParts
+            Return ToDisplayParts()
+        End Function
+
+        Private Shadows Function ToDisplayParts() As ImmutableArray(Of SymbolDisplayPart)
+            Dim part = New SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, Me, Name)
+            Return ImmutableArray.Create(part)
         End Function
     End Class
 
