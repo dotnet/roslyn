@@ -12952,6 +12952,26 @@ done:;
         private delegate PostSkipAction SkipBadTokens<TNode>(
             LanguageParser parser, ref SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind expectedKind, SyntaxKind closeTokenKind) where TNode : GreenNode;
 
+        /// <summary>
+        /// Parses a comma separated list of nodes.
+        /// </summary>
+        /// <typeparam name="TNode">The type of node to return back in the <see cref="SeparatedSyntaxList{TNode}"/>.</typeparam>
+        /// <param name="openToken">The token preceding the separated elements.  Used to attach skipped tokens to if no
+        /// elements have been parsed out yet, and the error recovery algorithm chooses to continue parsing, versus
+        /// aborting the list parsing.</param>
+        /// <param name="closeTokenKind">The token kind to look for that indicates the list is complete</param>
+        /// <param name="isPossibleElement">Callback to indicate if the parser is at a point in the source that could
+        /// parse out a <typeparamref name="TNode"/>.</param>
+        /// <param name="parseElement">Callback to actually parse out an element.  May be called even at a location
+        /// where <paramref name="isPossibleElement"/> returned <see langword="false"/> for.</param>
+        /// <param name="skipBadTokens">Error recovery callback.  Used to determine if the list parsing routine should
+        /// skip tokens (attaching them to the last thing successfully parsed), and continue looking for more elements.
+        /// Or if it should abort parsing the list entirely.</param>
+        /// <param name="allowTrailingSeparator">Whether or not a trailing comma is allowed at the end of the list. For
+        /// example, an array initializer allows for a trailing comma at the end of it, while a parameter list does
+        /// not.</param>
+        /// <param name="requireOneElement">Whether or not at least one element is required in the list.  For example, a
+        /// parameter list does not require any elements, while an attribute list "<c>[...]</c>" does.</param>
         private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
