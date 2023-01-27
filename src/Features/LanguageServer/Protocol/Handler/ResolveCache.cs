@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// 'data' field on the actual item.  This type is a general cache that helps keep track of data between requests.
 /// This is a general cache that helps perform that function.
 /// </summary>
-    internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntry : class
+internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntry : class
 {
     /// <summary>
     /// Maximum number of cache entries allowed in cache. Must be >= 1.
