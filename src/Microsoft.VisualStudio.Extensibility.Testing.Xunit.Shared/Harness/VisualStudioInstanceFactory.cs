@@ -348,7 +348,7 @@ namespace Xunit.Harness
                     $"\"{installationPath}\"",
                     string.Join(" ", extensions.Select(extension => $"\"{extension}\"")));
 
-                var installProcessStartInfo = CreateSilentStartInfo(installerAssemblyPath, arguments);
+                var installProcessStartInfo = CreateStartInfo(installerAssemblyPath, silent: true, arguments);
                 installProcessStartInfo.RedirectStandardError = true;
                 installProcessStartInfo.RedirectStandardOutput = true;
                 using var installProcess = Process.Start(installProcessStartInfo);
@@ -379,7 +379,7 @@ namespace Xunit.Harness
             if (version.Major >= 16)
             {
                 // Make sure the start window doesn't show on launch
-                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" \"{rootSuffix}\" HKCU General OnEnvironmentStartup dword 10")).WaitForExit();
+                Process.Start(CreateStartInfo(vsRegEditExeFile, silent: true, $"set \"{installationPath}\" \"{rootSuffix}\" HKCU General OnEnvironmentStartup dword 10")).WaitForExit();
             }
 
             var vsLaunchArgs = string.Empty;
@@ -392,14 +392,14 @@ namespace Xunit.Harness
             //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
             if (version.Major >= 12)
             {
-                var clearCacheProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/clearcache {vsLaunchArgs}"));
+                var clearCacheProcess = Process.Start(CreateStartInfo(vsExeFile, silent: true, $"/clearcache {vsLaunchArgs}"));
                 TakeSnapshotEveryTimeSpanUntilProcessExit(clearCacheProcess, "clearcache");
             }
 
-            var updateConfigProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/updateconfiguration {vsLaunchArgs}"));
+            var updateConfigProcess = Process.Start(CreateStartInfo(vsExeFile, silent: true, $"/updateconfiguration {vsLaunchArgs}"));
             TakeSnapshotEveryTimeSpanUntilProcessExit(updateConfigProcess, "updateconfiguration");
 
-            var resetSettingsProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {vsLaunchArgs}"));
+            var resetSettingsProcess = Process.Start(CreateStartInfo(vsExeFile, silent: true, $"/resetsettings General.vssettings /command \"File.Exit\" {vsLaunchArgs}"));
             TakeSnapshotEveryTimeSpanUntilProcessExit(resetSettingsProcess, "resetsettings");
 
             // Make sure we kill any leftover processes spawned by the host
@@ -407,14 +407,14 @@ namespace Xunit.Harness
             IntegrationHelper.KillProcess("VsJITDebugger");
             IntegrationHelper.KillProcess("dexplore");
 
-            var process = Process.Start(vsExeFile, vsLaunchArgs);
+            var process = Process.Start(CreateStartInfo(vsExeFile, silent: false, vsLaunchArgs));
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
 
-            ProcessStartInfo CreateSilentStartInfo(string fileName, string arguments)
+            ProcessStartInfo CreateStartInfo(string fileName, bool silent, string arguments)
             {
-                var startInfo = new ProcessStartInfo(fileName, arguments) { CreateNoWindow = true, UseShellExecute = false };
+                var startInfo = new ProcessStartInfo(fileName, arguments) { CreateNoWindow = silent, UseShellExecute = false };
                 foreach (var variable in environmentVariables)
                 {
                     if (string.IsNullOrEmpty(variable.Value))
