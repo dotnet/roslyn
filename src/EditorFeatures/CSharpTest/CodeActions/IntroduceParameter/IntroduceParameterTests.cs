@@ -1990,5 +1990,40 @@ public class C
 
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
+
+        [Fact]
+        public async Task TestIntroduceParameterOnAttributeArgument()
+        {
+            var code =
+@"
+public class C
+{
+    [Theory]
+    [InlineData([|""A""|])]
+    public void Test(string s)
+    {
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact]
+        public async Task TestIntroduceParameterOnArgument()
+        {
+            var code =
+@"
+public class C
+{
+    public void Test(int x)
+    {
+        Test([|5|]);
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
     }
 }
