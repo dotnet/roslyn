@@ -42,7 +42,7 @@
       <_OriginalNuGetPackageRoot>$(NuGetPackageRoot)</_OriginalNuGetPackageRoot>
 
       <!-- Use the first variable in the definition of $(_XUnitConsoleExePath) to change environment variables as part of launching tests -->
-      <NuGetPackageRoot>cmd" /c &amp; (set DOTNET_MULTILEVEL_LOOKUP=) &amp; (set DOTNET_INSTALL_DIR=) &amp; (set DOTNET_ROOT=) &amp; "$(NuGetPackageRoot)</NuGetPackageRoot>
+      <NuGetPackageRoot>cmd" /c &amp; (set DOTNET_MULTILEVEL_LOOKUP=) &amp; (set DOTNET_INSTALL_DIR=) &amp; (set DotNetRoot=) &amp; (set DotNetTool=) &amp; "$(NuGetPackageRoot)</NuGetPackageRoot>
     </PropertyGroup>
   </Target>
 
