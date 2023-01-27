@@ -32,5 +32,11 @@ namespace Xunit
         /// </list>
         /// </value>
         int MaxAttempts { get; }
+
+        /// <summary>
+        /// Gets the environment variables to set before launching the Visual Studio test process. Each variable has the
+        /// form <c>key=value</c>.
+        /// </summary>
+        string[] EnvironmentVariables { get; }
     }
 }

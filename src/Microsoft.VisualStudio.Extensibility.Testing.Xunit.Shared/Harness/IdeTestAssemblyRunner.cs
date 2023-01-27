@@ -267,9 +267,16 @@ namespace Xunit.Harness
                     executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, finalAttempt, completedTestCaseIds, cancellationTokenSource.Token);
                     marshalledObjects.Add(executionMessageSinkFilter);
 
+                    // Use SetItems instead of ToImmutableDictionary to avoid exceptions in the case of value conflicts
+                    var environmentVariables = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase).SetItems(
+                        visualStudioInstanceKey.EnvironmentVariables.Select(
+                            variable => variable.IndexOf('=') is var index && index > 0
+                                ? new KeyValuePair<string, string>(variable.Substring(0, index), variable.Substring(index + 1))
+                                : new KeyValuePair<string, string>(variable, string.Empty)));
+
                     // Install a COM message filter to handle retry operations when the first attempt fails
                     using (var messageFilter = new MessageFilter())
-                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioInstanceKey.Version), visualStudioInstanceKey.RootSuffix, GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
+                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioInstanceKey.Version), visualStudioInstanceKey.RootSuffix, environmentVariables, GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
                     {
                         using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, knownTestCasesByUniqueId, finalAttempt, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, ExecutionOptions))
                         {

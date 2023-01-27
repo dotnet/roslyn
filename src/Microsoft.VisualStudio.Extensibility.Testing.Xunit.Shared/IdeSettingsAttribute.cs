@@ -14,6 +14,7 @@ namespace Xunit
             MaxVersion = VisualStudioVersion.Unspecified;
             RootSuffix = null;
             MaxAttempts = 0;
+            EnvironmentVariables = new string[0];
         }
 
         public VisualStudioVersion MinVersion
@@ -35,6 +36,12 @@ namespace Xunit
         }
 
         public int MaxAttempts
+        {
+            get;
+            set;
+        }
+
+        public string[] EnvironmentVariables
         {
             get;
             set;
