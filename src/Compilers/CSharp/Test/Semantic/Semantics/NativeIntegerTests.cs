@@ -3750,8 +3750,7 @@ class Program
             }
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
-        [Fact]
+        [Fact, WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         public void AliasName_04()
         {
             var source =
@@ -3762,25 +3761,33 @@ class Program
     A1 F1() => default;
     A2 F2() => default;
 }";
-            var expectedDiagnostics = new[]
-            {
-                // (1,12): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,12): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // using A1 = nint;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 12),
-                // (2,12): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(1, 12),
+                // (1,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using A1 = nint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("using type alias").WithLocation(1, 12),
+                // (2,12): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // using A2 = nuint;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 12)
-            };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(2, 12),
+                // (2,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using A2 = nuint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("using type alias").WithLocation(2, 12));
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using A1 = nint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("using type alias").WithLocation(1, 12),
+                // (2,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using A2 = nuint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("using type alias").WithLocation(2, 12));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
-        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
-        [Fact]
+        [Fact, WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         public void AliasName_05()
         {
             var source1 =
@@ -3802,6 +3809,9 @@ namespace nuint
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
 

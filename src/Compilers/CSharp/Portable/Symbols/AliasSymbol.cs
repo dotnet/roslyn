@@ -409,7 +409,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, nullableType.QuestionToken.GetLocation());
             }
 
-            return annotatedNamespaceOrType.NamespaceOrTypeSymbol;
+            var namespaceOrType = annotatedNamespaceOrType.NamespaceOrTypeSymbol;
+            if (namespaceOrType is TypeSymbol { IsNativeIntegerWrapperType: true } &&
+                (usingDirective.Type.IsNint || usingDirective.Type.IsNuint))
+            {
+                // using X = nint;
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.Type);
+            }
+
+            return namespaceOrType;
         }
 
         internal override bool RequiresCompletion
