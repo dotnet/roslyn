@@ -2464,7 +2464,7 @@ public class Derived : Base
         // Equivalent to 
         // class Base
         // {
-        //     public required modopt(object) int Prop1 { get; set; }
+        //     public virtual required modopt(object) int Prop1 { get; set; }
         // }
         var @base = @"
 .class public auto ansi beforefieldinit Base

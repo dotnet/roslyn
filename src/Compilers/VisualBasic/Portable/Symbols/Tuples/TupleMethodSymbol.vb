@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
             Get
-                Throw ExceptionUtilities.Unreachable()
+                Return _underlyingMethod.HasSetsRequiredMembers
             End Get
         End Property
     End Class

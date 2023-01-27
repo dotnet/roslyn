@@ -547,20 +547,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Next
         End Function
 
-        Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
-            Get
-                Debug.Assert(_underlyingType.AllRequiredMembers.IsEmpty)
-                Return ImmutableSegmentedDictionary(Of String, Symbol).Empty
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
-            Get
-                Debug.Assert(Not _underlyingType.HasRequiredMembersError)
-                Return False
-            End Get
-        End Property
-
         Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
             Get
                 Debug.Assert(Not _underlyingType.HasAnyDeclaredRequiredMembers)

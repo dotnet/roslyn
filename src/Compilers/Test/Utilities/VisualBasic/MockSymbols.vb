@@ -380,18 +380,6 @@ Friend Class MockNamedTypeSymbol
         Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
     End Function
 
-    Friend Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
-        Get
-            Return ImmutableSegmentedDictionary(Of String, Symbol).Empty
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property HasRequiredMembersError As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
     Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
         Get
             Return False

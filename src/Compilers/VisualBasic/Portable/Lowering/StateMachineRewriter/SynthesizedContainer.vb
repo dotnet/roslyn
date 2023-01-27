@@ -322,19 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
 
-        Friend NotOverridable Overrides ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
-            Get
-                Return ImmutableSegmentedDictionary(Of String, Symbol).Empty
-            End Get
-        End Property
-
-        Friend NotOverridable Overrides ReadOnly Property HasRequiredMembersError As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+        Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
             Get
                 Return False
             End Get
