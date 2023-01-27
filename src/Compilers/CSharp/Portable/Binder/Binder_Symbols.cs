@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var errorResult = CreateErrorIfLookupOnTypeParameter(node.Parent, qualifierOpt, identifierValueText, 0, diagnostics);
-            if (errorResult is null)
+            if (errorResult is not null)
             {
                 return TypeWithAnnotations.Create(errorResult);
             }

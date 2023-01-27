@@ -5011,5 +5011,103 @@ class C2 {}
             Assert.Equal("alias1=C1", model.GetSpeculativeAliasInfo(tree.GetRoot().Span.End, alias1, SpeculativeBindingOption.BindAsExpression).ToTestDisplayString());
             Assert.Equal("alias1=C1", model.GetSpeculativeAliasInfo(tree.GetRoot().Span.End, alias1, SpeculativeBindingOption.BindAsTypeOrNamespace).ToTestDisplayString());
         }
+
+        [Fact]
+        public void GlobalAliasToType1()
+        {
+            var source1 = @"
+global using X = int;
+";
+            var source2 = @"
+class C
+{
+    X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType_CompilationOptionOff()
+        {
+            var source1 = @"
+global using unsafe X = int*;
+";
+            var source2 = @"
+class C
+{
+    unsafe X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType_CompilationOptionOn_CSharp11()
+        {
+            var source1 = @"
+global using unsafe X = int*;
+";
+            var source2 = @"
+class C
+{
+    unsafe X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType1()
+        {
+            var source1 = @"
+global using unsafe X = int*;
+";
+            var source2 = @"
+class C
+{
+    X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType2()
+        {
+            var source1 = @"
+global using X = int*;
+";
+            var source2 = @"
+class C
+{
+    unsafe X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType3()
+        {
+            var source1 = @"
+global using unsafe X = int*;
+";
+            var source2 = @"
+class C
+{
+    unsafe X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
     }
 }
