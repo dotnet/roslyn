@@ -721,6 +721,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
+                            if (usingDirective.UnsafeKeyword != default)
+                                diagnostics.Add(ErrorCode.ERR_BadUnsafeInUsingDirective, usingDirective.UnsafeKeyword.GetLocation());
+
                             var directiveDiagnostics = BindingDiagnosticBag.GetInstance();
                             Debug.Assert(directiveDiagnostics.DiagnosticBag is object);
                             Debug.Assert(directiveDiagnostics.DependenciesBag is object);

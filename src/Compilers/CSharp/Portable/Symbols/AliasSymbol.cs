@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ? ResolveExternAliasTarget(newDiagnostics)
                     : ResolveAliasTarget((UsingDirectiveSyntax)_directive.GetSyntax(), newDiagnostics, basesBeingResolved);
 
-                if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
+                if (Interlocked.CompareExchange(ref _aliasTarget, symbol, null) is null)
                 {
                     // Note: It's important that we don't call newDiagnosticsToReadOnlyAndFree here. That call
                     // can force the prompt evaluation of lazy initialized diagnostics.  That in turn can 

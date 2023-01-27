@@ -356,10 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void StaticUsingDirectiveRefType()
         {
             var text = @"using static x = ref int;";
-            UsingTree(text,
-                // (1,18): error CS9105: Using alias cannot be a 'ref' type.
-                // using static x = ref int;
-                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 18));
+            UsingTree(text);
             CreateCompilation(text).VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using static x = ref int;
@@ -372,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 14),
                 // (1,18): error CS9105: Using alias cannot be a 'ref' type.
                 // using static x = ref int;
-                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 18));
+                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref").WithLocation(1, 18));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -840,10 +837,7 @@ struct A { }";
         {
             var text = @"using unsafe System;";
 
-            UsingTree(text,
-                // (1,7): error CS9106: Only a using alias can be 'unsafe'.
-                // using unsafe System;
-                Diagnostic(ErrorCode.ERR_BadUnsafeInUsingDirective, "unsafe").WithLocation(1, 7));
+            UsingTree(text);
             CreateCompilation(text).VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using unsafe System;
@@ -874,10 +868,7 @@ struct A { }";
         {
             var text = @"using static unsafe System.Console;";
 
-            UsingTree(text,
-                // (1,14): error CS9106: Only a using alias can be 'unsafe'.
-                // using static unsafe System.Console;
-                Diagnostic(ErrorCode.ERR_BadUnsafeInUsingDirective, "unsafe").WithLocation(1, 14));
+            UsingTree(text);
             CreateCompilation(text).VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using static unsafe System.Console;
@@ -993,10 +984,7 @@ struct A { }";
         public void AliasUsingDirectiveRefType()
         {
             var text = @"using x = ref int;";
-            UsingTree(text,
-                // (1,11): error CS9000: Using alias cannot be a 'ref' type.
-                // using x = ref int;
-                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 11));
+            UsingTree(text);
             CreateCompilation(text).VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using x = ref int;
@@ -1006,7 +994,7 @@ struct A { }";
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "x").WithArguments("x").WithLocation(1, 7),
                 // (1,11): error CS9105: Using alias cannot be a 'ref' type.
                 // using x = ref int;
-                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref int").WithLocation(1, 11));
+                Diagnostic(ErrorCode.ERR_BadRefInUsingAlias, "ref").WithLocation(1, 11));
 
             N(SyntaxKind.CompilationUnit);
             {

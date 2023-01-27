@@ -825,15 +825,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // deal with getting arbitrary types back.
                 type = alias == null ? this.ParseQualifiedName() : this.ParseType();
 
-                if (type is RefTypeSyntax)
-                    type = AddError(type, ErrorCode.ERR_BadRefInUsingAlias);
-
                 // If we can see a semicolon ahead, then the current token was probably supposed to be an identifier
                 if (type.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
                     type = AddTrailingSkippedSyntax(type, this.EatToken());
-
-                if (unsafeToken != null && alias == null)
-                    unsafeToken = AddError(unsafeToken, ErrorCode.ERR_BadUnsafeInUsingDirective);
 
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }

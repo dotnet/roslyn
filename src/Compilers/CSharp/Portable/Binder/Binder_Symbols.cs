@@ -477,10 +477,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // ref needs to be handled by the caller
                         var refTypeSyntax = (RefTypeSyntax)syntax;
-                        var refToken = refTypeSyntax.RefKeyword;
                         if (!syntax.HasErrors)
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refToken.GetLocation(), refToken.ToString());
+                            var refToken = refTypeSyntax.RefKeyword;
+
+                            // Specialized diagnostic if our parent is a using directive.
+                            if (refTypeSyntax.Parent is UsingDirectiveSyntax)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadRefInUsingAlias, refToken.GetLocation());
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refToken.GetLocation(), refToken.ToString());
+                            }
                         }
 
                         return BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
