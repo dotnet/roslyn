@@ -1465,12 +1465,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     // Patterns such as 'e is not $$', 'e is 1 or $$', 'e is ($$', and 'e is null or global::$$' should be invalid here
                     // as they are incomplete patterns.
-                    return !(leftToken.IsKind(SyntaxKind.OrKeyword) ||
-                        leftToken.IsKind(SyntaxKind.AndKeyword) ||
-                        leftToken.IsKind(SyntaxKind.NotKeyword) ||
-                        leftToken.IsKind(SyntaxKind.OpenParenToken) ||
-                        leftToken.IsKind(SyntaxKind.ColonColonToken) ||
-                        leftToken.IsKind(SyntaxKind.DotDotToken));
+                    return leftToken.Kind() is not (SyntaxKind.OrKeyword
+                        or SyntaxKind.AndKeyword
+                        or SyntaxKind.NotKeyword
+                        or SyntaxKind.OpenParenToken
+                        or SyntaxKind.ColonColonToken
+                        or SyntaxKind.DotDotToken
+                        or SyntaxKind.OpenBraceToken);
                 }
 
                 // We want to make sure that IsAtEndOfPattern returns true even when the user is in the middle of typing a keyword
