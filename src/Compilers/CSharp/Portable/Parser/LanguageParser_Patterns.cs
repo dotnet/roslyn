@@ -525,19 +525,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxKind.GreaterThanEqualsToken;
         }
 
-        private static (SyntaxToken open, PostSkipAction action) SkipBadPatternListTokens<T>(
-            LanguageParser @this, SyntaxToken open, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
+        private static PostSkipAction SkipBadPatternListTokens<T>(
+            LanguageParser @this, ref SyntaxToken open, SeparatedSyntaxListBuilder<T> list, SyntaxKind expectedKind, SyntaxKind closeKind)
             where T : CSharpSyntaxNode
         {
             if (@this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBraceToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken)
-                return (open, PostSkipAction.Abort);
+                return PostSkipAction.Abort;
 
-            var action = @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
+            return @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleSubpatternElement(),
                 static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
                 expectedKind, closeKind);
-
-            return (open, action);
         }
 
         private SwitchExpressionSyntax ParseSwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword)
