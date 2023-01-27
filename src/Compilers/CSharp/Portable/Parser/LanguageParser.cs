@@ -12052,9 +12052,6 @@ done:;
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
-            // Historically, if we have a trailing separator here, we have reported a special error of "expression
-            // expected" instead of "invalid expression term".  To preserve that, we pass `trailingSeparatorError:
-            // ErrorCode.ERR_ExpressionExpected` below.
             var initializers = this.ParseCommaSeparatedSyntaxList(
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
