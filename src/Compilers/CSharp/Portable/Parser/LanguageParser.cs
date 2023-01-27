@@ -12961,33 +12961,13 @@ done:;
             bool allowTrailingSeparator,
             bool requireOneElement = false) where TNode : GreenNode
         {
-            return ParseSeparatedSyntaxList(
-                ref openToken,
-                SyntaxKind.CommaToken,
-                closeTokenKind,
-                isPossibleElement,
-                parseElement,
-                skipBadTokens,
-                allowTrailingSeparator,
-                requireOneElement);
-        }
-
-        private SeparatedSyntaxList<TNode> ParseSeparatedSyntaxList<TNode>(
-            ref SyntaxToken openToken,
-            SyntaxKind separatorTokenKind,
-            SyntaxKind closeTokenKind,
-            Func<LanguageParser, bool> isPossibleElement,
-            Func<LanguageParser, TNode> parseElement,
-            SkipBadTokens<TNode> skipBadTokens,
-            bool allowTrailingSeparator,
-            bool requireOneElement = false) where TNode : GreenNode
-        {
+            var separatorTokenKind = SyntaxKind.CommaToken;
             var argNodes = _pool.AllocateSeparated<TNode>();
 
 tryAgain:
-            if (this.CurrentToken.Kind != closeTokenKind || requireOneElement)
+            if (requireOneElement || this.CurrentToken.Kind != closeTokenKind)
             {
-                if (isPossibleElement(this) || this.CurrentToken.Kind == separatorTokenKind || requireOneElement)
+                if (requireOneElement || this.CurrentToken.Kind == separatorTokenKind || isPossibleElement(this))
                 {
                     // first argument
                     argNodes.Add(parseElement(this));
