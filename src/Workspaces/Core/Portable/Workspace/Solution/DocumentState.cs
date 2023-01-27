@@ -27,45 +27,43 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap = new();
 
         // properties inherited from the containing project:
-        private readonly HostLanguageServices _languageServices;
+        public LanguageServices LanguageServices { get; }
         private readonly ParseOptions? _options;
 
         // null if the document doesn't support syntax trees:
         private readonly ValueSource<TreeAndVersion>? _treeSource;
 
         protected DocumentState(
-            HostLanguageServices languageServices,
-            HostWorkspaceServices solutionServices,
+            LanguageServices languageServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions? options,
             ITextAndVersionSource textSource,
             LoadTextOptions loadTextOptions,
             ValueSource<TreeAndVersion>? treeSource)
-            : base(solutionServices, documentServiceProvider, attributes, textSource, loadTextOptions)
+            : base(languageServices.SolutionServices, documentServiceProvider, attributes, textSource, loadTextOptions)
         {
             Contract.ThrowIfFalse(_options is null == _treeSource is null);
 
-            _languageServices = languageServices;
+            LanguageServices = languageServices;
             _options = options;
             _treeSource = treeSource;
         }
 
         public DocumentState(
+            LanguageServices languageServices,
             DocumentInfo info,
             ParseOptions? options,
-            LoadTextOptions loadTextOptions,
-            HostLanguageServices languageServices,
-            HostWorkspaceServices services)
-            : base(info, loadTextOptions, services)
+            LoadTextOptions loadTextOptions)
+            : base(languageServices.SolutionServices, info, loadTextOptions)
         {
-            _languageServices = languageServices;
+            LanguageServices = languageServices;
             _options = options;
 
             // If this is document that doesn't support syntax, then don't even bother holding
             // onto any tree source.  It will never be used to get a tree, and can only hurt us
             // by possibly holding onto data that might cause a slow memory leak.
-            if (languageServices.SyntaxTreeFactory == null)
+            if (languageServices.GetService<ISyntaxTreeFactoryService>() == null)
             {
                 _treeSource = null;
             }
@@ -90,9 +88,6 @@ namespace Microsoft.CodeAnalysis
         internal bool SupportsSyntaxTree
             => _treeSource != null;
 
-        public HostLanguageServices LanguageServices
-            => _languageServices;
-
         public ParseOptions? ParseOptions
             => _options;
 
@@ -107,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             LoadTextOptions loadTextOptions,
             string? filePath,
             ParseOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             PreservationMode mode = PreservationMode.PreserveValue)
         {
             return new AsyncLazy<TreeAndVersion>(
@@ -121,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             LoadTextOptions loadTextOptions,
             string? filePath,
             ParseOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
@@ -137,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             LoadTextOptions loadTextOptions,
             string? filePath,
             ParseOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
@@ -151,7 +146,7 @@ namespace Microsoft.CodeAnalysis
         private static TreeAndVersion CreateTreeAndVersion(
             string? filePath,
             ParseOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             TextAndVersion textAndVersion,
             CancellationToken cancellationToken)
         {
@@ -314,11 +309,10 @@ namespace Microsoft.CodeAnalysis
                 newLoadTextOptions,
                 Attributes.SyntaxTreeFilePath,
                 _options,
-                _languageServices) : null;
+                LanguageServices) : null;
 
             return new DocumentState(
                 LanguageServices,
-                LanguageServices.WorkspaceServices,
                 Services,
                 Attributes,
                 _options,
@@ -366,10 +360,10 @@ namespace Microsoft.CodeAnalysis
 
                 SyntaxTree? newTree = null;
 
-                var syntaxKinds = _languageServices.GetRequiredService<ISyntaxKindsService>();
+                var syntaxKinds = LanguageServices.GetRequiredService<ISyntaxKindsService>();
                 if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
                 {
-                    var treeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                    var treeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                     newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);
                 }
 
@@ -383,11 +377,10 @@ namespace Microsoft.CodeAnalysis
                 LoadTextOptions,
                 Attributes.SyntaxTreeFilePath,
                 options,
-                _languageServices);
+                LanguageServices);
 
             return new DocumentState(
                 LanguageServices,
-                LanguageServices.WorkspaceServices,
                 Services,
                 Attributes.With(sourceCodeKind: options.Kind),
                 options,
@@ -419,8 +412,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(attributes != Attributes);
 
             return new DocumentState(
-                _languageServices,
-                LanguageServices.WorkspaceServices,
+                LanguageServices,
                 Services,
                 attributes,
                 _options,
@@ -442,11 +434,10 @@ namespace Microsoft.CodeAnalysis
                     LoadTextOptions,
                     newAttributes.SyntaxTreeFilePath,
                     _options,
-                    _languageServices) : null;
+                    LanguageServices) : null;
 
             return new DocumentState(
-                _languageServices,
-                solutionServices,
+                LanguageServices,
                 Services,
                 newAttributes,
                 _options,
@@ -483,13 +474,12 @@ namespace Microsoft.CodeAnalysis
                     LoadTextOptions,
                     Attributes.SyntaxTreeFilePath,
                     _options,
-                    _languageServices,
+                    LanguageServices,
                     mode); // TODO: understand why the mode is given here. If we're preserving text by identity, why also preserve the tree?
             }
 
             return new DocumentState(
                 LanguageServices,
-                solutionServices,
                 Services,
                 Attributes,
                 _options,
@@ -526,14 +516,13 @@ namespace Microsoft.CodeAnalysis
                 encoding = null;
             }
 
-            var syntaxTreeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+            var syntaxTreeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
             Contract.ThrowIfNull(_options);
             var (text, treeAndVersion) = CreateTreeWithLazyText(newRoot, newTextVersion, newTreeVersion, encoding, LoadTextOptions.ChecksumAlgorithm, Attributes, _options, syntaxTreeFactory);
 
             return new DocumentState(
                 LanguageServices,
-                solutionServices,
                 Services,
                 Attributes,
                 _options,

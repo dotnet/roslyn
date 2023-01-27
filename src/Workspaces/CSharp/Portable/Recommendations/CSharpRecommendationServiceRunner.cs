@@ -437,6 +437,11 @@ internal partial class CSharpRecommendationService
             if (containerSymbol == null)
                 return default;
 
+            // We don't provide any member from System.Void (which is valid only in the context of typeof operation).
+            // Try to bail early to avoid unnecessary work even though compiler will handle this case for us.
+            if (containerSymbol is INamedTypeSymbol typeSymbol && typeSymbol.IsSystemVoid())
+                return default;
+
             Debug.Assert(!excludeInstance || !excludeStatic);
 
             // nameof(X.|

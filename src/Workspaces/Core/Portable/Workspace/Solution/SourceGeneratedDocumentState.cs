@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis
             SourceGeneratedDocumentIdentity documentIdentity,
             SourceText generatedSourceText,
             ParseOptions parseOptions,
-            HostLanguageServices languageServices,
-            HostWorkspaceServices solutionServices)
+            LanguageServices languageServices)
         {
             var loadTextOptions = new LoadTextOptions(generatedSourceText.ChecksumAlgorithm);
             var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis
             return new SourceGeneratedDocumentState(
                 documentIdentity,
                 languageServices,
-                solutionServices,
                 documentServiceProvider: SourceGeneratedTextDocumentServiceProvider.Instance,
                 new DocumentInfo.DocumentAttributes(
                     documentIdentity.DocumentId,
@@ -52,15 +50,14 @@ namespace Microsoft.CodeAnalysis
 
         private SourceGeneratedDocumentState(
             SourceGeneratedDocumentIdentity documentIdentity,
-            HostLanguageServices languageServices,
-            HostWorkspaceServices solutionServices,
+            LanguageServices languageServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
             ITextAndVersionSource textSource,
             LoadTextOptions loadTextOptions,
             ValueSource<TreeAndVersion> treeSource)
-            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
+            : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
         {
             Identity = documentIdentity;
         }
@@ -85,8 +82,7 @@ namespace Microsoft.CodeAnalysis
                 Identity,
                 sourceText,
                 parseOptions,
-                this.LanguageServices,
-                this.solutionServices);
+                LanguageServices);
         }
 
         /// <summary>

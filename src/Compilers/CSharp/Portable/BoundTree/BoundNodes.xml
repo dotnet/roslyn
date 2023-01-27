@@ -1717,7 +1717,7 @@
   <!--  This node represents a complex receiver for a call, or a conditional access.  
         At runtime, when its type is a value type, ValueTypeReceiver should be used as a receiver. 
         Otherwise, ReferenceTypeReceiver should be used.  
-        This kind of receiver is created only by SpillSequenceSpiller rewriter. 
+        This kind of receiver is created only by SpillSequenceSpiller and LocalRewriter. 
   -->
   <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
