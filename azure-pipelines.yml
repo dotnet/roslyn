@@ -207,6 +207,7 @@ stages:
           - src/Compilers/*
           - src/Dependencies/*
           - eng/*
+          - src/Tools/Source/CompilerGeneratorTools/*
 
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
