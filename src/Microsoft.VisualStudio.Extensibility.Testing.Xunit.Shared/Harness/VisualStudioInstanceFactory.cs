@@ -77,12 +77,12 @@ namespace Xunit.Harness
         /// <summary>
         /// Returns a <see cref="VisualStudioInstanceContext"/>, starting a new instance of Visual Studio if necessary.
         /// </summary>
-        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(Version version, string? rootSuffix, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds)
+        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(Version version, string? rootSuffix, ImmutableDictionary<string, string> environmentVariables, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds)
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
             bool shouldStartNewInstance = ShouldStartNewInstance(version, requiredPackageIds);
-            await UpdateCurrentlyRunningInstanceAsync(version, rootSuffix, extensionFiles, requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
+            await UpdateCurrentlyRunningInstanceAsync(version, rootSuffix, environmentVariables, extensionFiles, requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
 
             return new VisualStudioInstanceContext(_currentlyRunningInstance!, this);
         }
@@ -124,7 +124,7 @@ namespace Xunit.Harness
         /// <summary>
         /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        private async Task UpdateCurrentlyRunningInstanceAsync(Version version, string? rootSuffix, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
+        private async Task UpdateCurrentlyRunningInstanceAsync(Version version, string? rootSuffix, ImmutableDictionary<string, string> environmentVariables, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
         {
             Process hostProcess;
             DTE dte;
@@ -142,7 +142,7 @@ namespace Xunit.Harness
                 installationPath = instance.Item1;
                 actualVersion = instance.Item2;
 
-                hostProcess = await StartNewVisualStudioProcessAsync(installationPath, version, rootSuffix, extensionFiles).ConfigureAwait(true);
+                hostProcess = await StartNewVisualStudioProcessAsync(installationPath, version, rootSuffix, environmentVariables, extensionFiles).ConfigureAwait(true);
 
                 // We wait until the DTE instance is up before we're good
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -326,7 +326,7 @@ namespace Xunit.Harness
                                 "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
-        private static async Task<Process> StartNewVisualStudioProcessAsync(string installationPath, Version version, string? rootSuffix, ImmutableList<string> extensionFiles)
+        private static async Task<Process> StartNewVisualStudioProcessAsync(string installationPath, Version version, string? rootSuffix, ImmutableDictionary<string, string> environmentVariables, ImmutableList<string> extensionFiles)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
@@ -414,7 +414,20 @@ namespace Xunit.Harness
 
             ProcessStartInfo CreateSilentStartInfo(string fileName, string arguments)
             {
-                return new ProcessStartInfo(fileName, arguments) { CreateNoWindow = true, UseShellExecute = false };
+                var startInfo = new ProcessStartInfo(fileName, arguments) { CreateNoWindow = true, UseShellExecute = false };
+                foreach (var variable in environmentVariables)
+                {
+                    if (string.IsNullOrEmpty(variable.Value))
+                    {
+                        startInfo.EnvironmentVariables.Remove(variable.Key);
+                    }
+                    else
+                    {
+                        startInfo.EnvironmentVariables[variable.Key] = variable.Value;
+                    }
+                }
+
+                return startInfo;
             }
         }
 

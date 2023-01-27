@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)IdeFactTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeTheoryTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VisualStudioInstanceKeyTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XunitAssemblyInfo.cs" />
   </ItemGroup>
 </Project>
