@@ -5025,7 +5025,10 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (2,18): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // global using X = int;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("using type alias").WithLocation(2, 18));
 
             CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
@@ -5043,7 +5046,13 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // global using unsafe X = int*;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 14),
+                // (4,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe X Goo() => default;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo").WithLocation(4, 14));
         }
 
         [Fact]
@@ -5059,7 +5068,10 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (2,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // global using unsafe X = int*;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 14));
         }
 
         [Fact]
@@ -5075,7 +5087,10 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (4,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     X Goo() => default;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(4, 5));
         }
 
         [Fact]
@@ -5091,7 +5106,10 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // global using X = int*;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 18));
         }
 
         [Fact]
