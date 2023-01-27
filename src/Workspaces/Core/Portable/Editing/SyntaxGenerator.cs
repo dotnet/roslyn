@@ -183,15 +183,13 @@ namespace Microsoft.CodeAnalysis.Editing
                 name,
                 typeParameters: method.TypeParameters.Select(p => TypeParameter(p)),
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
                 accessibility: method.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(method),
                 statements: statements);
 
             if (method.TypeParameters.Length > 0)
-            {
                 decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
-            }
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
@@ -227,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var decl = OperatorDeclaration(
                 GetOperatorKind(method),
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
                 accessibility: method.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(method),
                 statements: statements);
@@ -359,12 +357,12 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             return PropertyDeclaration(
-                    property.Name,
-                    TypeExpression(property.Type),
-                    getAccessor,
-                    setAccessor,
-                    propertyAccessibility,
-                    DeclarationModifiers.From(property));
+                property.Name,
+                TypeExpression(property.Type, property.RefKind),
+                getAccessor,
+                setAccessor,
+                propertyAccessibility,
+                DeclarationModifiers.From(property));
         }
 
         private protected abstract SyntaxNode PropertyDeclaration(
@@ -409,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return IndexerDeclaration(
                 indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
-                TypeExpression(indexer.Type),
+                TypeExpression(indexer.Type, indexer.RefKind),
                 indexer.DeclaredAccessibility,
                 DeclarationModifiers.From(indexer),
                 getAccessorStatements,
@@ -1843,7 +1841,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates an expression that denotes a type.
         /// </summary>
-        public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol);
+        public SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
+            => TypeExpression(typeSymbol, RefKind.None);
+
+        private protected abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind);
 
         /// <summary>
         /// Creates an expression that denotes a type. If addImport is false,
