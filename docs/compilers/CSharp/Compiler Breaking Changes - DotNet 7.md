@@ -1,5 +1,19 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## System.TypedReference considered managed
+
+***Introduced in Visual Studio 2022 version 17.6***
+
+Moving forward the `System.TypedReference` type is considered managed.
+
+```csharp
+unsafe
+{
+    TypedReference* r = null; // warning: This takes the address of, gets the size of, or declares a pointer to a managed type
+    var a = stackalloc TypedReference[1]; // error: Cannot take the address of, get the size of, or declare a pointer to a managed type
+}
+```
+
 ## Ref safety errors do not affect conversion from lambda expression to delegate
 
 ***Introduced in Visual Studio 2022 version 17.5***
