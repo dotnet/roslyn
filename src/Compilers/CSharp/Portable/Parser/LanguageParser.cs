@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 static @this => @this.IsPossibleAttribute(),
                 static @this => @this.ParseAttribute(),
                 static (@this, openBracket, list, expectedKind, closeKind) => (openBracket, skipBadAttributeListTokens(@this, list, expectedKind, closeKind)),
-                allowTrailingSeparator: false,
+                allowTrailingSeparator: true,
                 requireOneElement: true);
 
             return _syntaxFactory.AttributeList(
