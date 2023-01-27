@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleAttributeArgument(),
                 static @this => @this.ParseAttributeArgument(),
-                static (@this, openParen, argNodes, expectedKind, closeKind) => skipBadAttributeArgumentTokens(@this, openParen, argNodes, expectedKind, closeKind),
+                skipBadAttributeArgumentTokens,
                 allowTrailingSeparator: false);
 
             return _syntaxFactory.AttributeArgumentList(
@@ -4204,7 +4204,7 @@ parse_member_name:;
                 closeKind,
                 static @this => @this.IsPossibleParameter(),
                 static @this => @this.ParseParameter(),
-                static (@this, open, nodes, expectedKind, closeKind) => skipBadParameterListTokens(@this, open, nodes, expectedKind, closeKind),
+                skipBadParameterListTokens,
                 allowTrailingSeparator: false);
 
             _termState = saveTerm;
@@ -8709,7 +8709,7 @@ done:;
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
-                static (@this, startToken, list, expectedKind, closeKind) => skipBadForStatementExpressionListTokens(@this, startToken, list, expectedKind, closeKind),
+                skipBadForStatementExpressionListTokens,
                 allowTrailingSeparator: false);
 
             static (SyntaxToken startToken, PostSkipAction action) skipBadForStatementExpressionListTokens(
@@ -11073,7 +11073,7 @@ done:;
                         SyntaxKind.CloseBracketToken,
                         static @this => @this.IsPossibleArgumentExpression(),
                         static @this => @this.ParseArgumentExpression(isIndexer: true),
-                        static (@this, openToken, list, expectedKind, closeKind) => skipBadArgumentListTokens(@this, openToken, list, expectedKind, closeKind),
+                        skipBadArgumentListTokens,
                         allowTrailingSeparator: false);
                 }
                 else
@@ -11083,7 +11083,7 @@ done:;
                         SyntaxKind.CloseParenToken,
                         static @this => @this.IsPossibleArgumentExpression(),
                         static @this => @this.ParseArgumentExpression(isIndexer: false),
-                        static (@this, openToken, list, expectedKind, closeKind) => skipBadArgumentListTokens(@this, openToken, list, expectedKind, closeKind),
+                        skipBadArgumentListTokens,
                         allowTrailingSeparator: false);
                 }
             }
@@ -12190,7 +12190,7 @@ done:;
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleVariableInitializer(),
                 static @this => @this.ParseVariableInitializer(),
-                static (@this, openBrace, list, expectedKind, closeKind) => skipBadArrayInitializerTokens(@this, openBrace, list, expectedKind, closeKind),
+                skipBadArrayInitializerTokens,
                 allowTrailingSeparator: true);
 
             return _syntaxFactory.InitializerExpression(
@@ -12465,7 +12465,7 @@ done:;
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleLambdaParameter(),
                 static @this => @this.ParseLambdaParameter(),
-                static (@this, openParen, nodes, expectedKind, closeKind) => skipBadLambdaParameterListTokens(@this, openParen, nodes, expectedKind, closeKind),
+                skipBadLambdaParameterListTokens,
                 allowTrailingSeparator: false);
 
             _termState = saveTerm;
