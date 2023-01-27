@@ -2162,9 +2162,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
         ERR_BadSpecialByRefUsing = 9104,
-        #endregion
-
-        #region diagnostics introduced for C# preview
 
         ERR_BadRefInUsingAlias = 9105,
         ERR_BadUnsafeInUsingDirective = 9106,
