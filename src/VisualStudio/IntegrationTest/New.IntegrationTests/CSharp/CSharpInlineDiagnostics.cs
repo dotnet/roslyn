@@ -58,7 +58,12 @@ class Program
         {
             await TestServices.InlineDiagnostics.EnableOptionsAsync(LanguageName, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig",
-                contents: "dotnet_style_allow_multiple_blank_lines_experimental = false:warning\r\n", cancellationToken: HangMitigatingCancellationToken);
+                contents: @"
+[*.cs]
+
+dotnet_style_allow_multiple_blank_lines_experimental = false:warning",
+                cancellationToken: HangMitigatingCancellationToken);
+
             await SetUpEditorAsync(@"
 class Program
 {
@@ -70,8 +75,9 @@ $$
 }
 ", HangMitigatingCancellationToken);
 
+            Thread.Sleep(5000);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList, FeatureAttribute.InlineDiagnostics }, HangMitigatingCancellationToken);
-
+            Thread.Sleep(5000);
             var (count, tags) = await TestServices.InlineDiagnostics.EnsureInlineDiagnosticsCountAndLocation(HangMitigatingCancellationToken);
             Assert.Equal(expected: 1, actual: count);
             Assert.Equal(expected: "compiler warning", actual: tags[0].ErrorType);
