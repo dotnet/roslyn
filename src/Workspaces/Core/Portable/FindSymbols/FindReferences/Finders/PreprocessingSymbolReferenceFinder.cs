@@ -80,40 +80,31 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
+        using var _ = ArrayBuilder<Document>.GetInstance(out var resultDocuments);
+
         // NOTE: We intentionally search for all documents in the entire solution. This is because
         //       the symbols are validly bound by their requested name, despite their current definition
         //       state. Therefore, the same symbol name could be shared across multiple projects and
         //       configured in the project configuration with the same shared identifier.
 
-        return await FindAllSolutionDocumentsAsync(project.Solution, HasDirectiveProbablyContainsIdentifier, symbol, cancellationToken)
-            .ConfigureAwait(false);
+        var solution = project.Solution;
+        foreach (var solutionProject in solution.Projects)
+        {
+            foreach (var document in await solutionProject.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (await HasDirectiveProbablyContainsIdentifier(document, cancellationToken).ConfigureAwait(false))
+                    resultDocuments.Add(document);
+            }
+        }
 
-        static async ValueTask<bool> HasDirectiveProbablyContainsIdentifier(Document document, IPreprocessingSymbol symbol, CancellationToken cancellationToken)
+        return resultDocuments.ToImmutable();
+
+        async ValueTask<bool> HasDirectiveProbablyContainsIdentifier(Document document, CancellationToken cancellationToken)
         {
             var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
             return syntaxTreeIndex.ContainsDirective
                 && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
         }
-    }
-
-    private static async Task<ImmutableArray<Document>> FindAllSolutionDocumentsAsync<T>(
-        Solution solution,
-        Func<Document, T, CancellationToken, ValueTask<bool>> predicateAsync,
-        T value,
-        CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<Document>.GetInstance(out var documents);
-
-        foreach (var project in solution.Projects)
-        {
-            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (await predicateAsync(document, value, cancellationToken).ConfigureAwait(false))
-                    documents.Add(document);
-            }
-        }
-
-        return documents.ToImmutable();
     }
 
     private static async ValueTask<ImmutableArray<FinderLocation>> FindPreprocessingReferencesInTokensAsync(
