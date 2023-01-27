@@ -336,6 +336,10 @@ Delta: Gamma: Beta: Test B
 
                 var name = AssemblyName.GetAssemblyName(testFixture.Delta2.Path);
                 Assert.Equal(name.FullName, assembly.GetName().FullName);
+
+                VerifyDependencyAssemblies(
+                    loader,
+                    testFixture.Delta1.Path);
             });
         }
 

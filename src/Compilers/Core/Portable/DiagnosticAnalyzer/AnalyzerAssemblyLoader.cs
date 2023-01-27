@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
             // Not a managed assembly, nothing else to do
             if (assemblyName is null)
             {
-                throw new ArgumentException("Not a valid assembly");
+                throw new ArgumentException($"Not a valid assembly: {originalAnalyzerPath}");
             }
 
             try
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (tuple is { } info)
                 {
-                    return (info.AssemblyName, info.RealAssemblyPath);
+                    return info;
                 }
             }
 
