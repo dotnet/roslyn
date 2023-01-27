@@ -8197,11 +8197,10 @@ done:;
                 // function, meaning we shouldn't consider accessibility
                 // modifiers to be the start of a statement
                 static p => !p.IsPossibleStatement(acceptAccessibilityMods: false),
-                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken,
                 expected,
                 closeKind: SyntaxKind.None,
-                out trailingTrivia
-            );
+                out trailingTrivia);
         }
 
         private bool IsPossibleStatement(bool acceptAccessibilityMods)
