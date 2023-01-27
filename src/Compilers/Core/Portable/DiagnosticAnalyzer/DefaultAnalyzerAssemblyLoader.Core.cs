@@ -38,28 +38,16 @@ namespace Microsoft.CodeAnalysis
                "System.Collections.Concurrent",
                "System.Collections.Immutable",
                "System.Console",
-#if !NET6_0_OR_GREATER
-               "System.Diagnostics.Debug",
-#endif
                "System.Diagnostics.StackTrace",
                "System.Diagnostics.Tracing",
                "System.IO.Compression",
-#if !NET6_0_OR_GREATER
-               "System.IO.FileSystem",
-#endif
                "System.Linq",
                "System.Linq.Expressions",
                "System.Memory",
                "System.Reflection.Metadata",
                "System.Reflection.Primitives",
-#if !NET6_0_OR_GREATER
-               "System.Resources.ResourceManager",
-#endif
                "System.Runtime",
                "System.Runtime.CompilerServices.Unsafe",
-#if !NET6_0_OR_GREATER
-               "System.Runtime.Extensions",
-#endif
                "System.Runtime.InteropServices",
                "System.Runtime.InteropServices.RuntimeInformation",
                "System.Runtime.Loader",
@@ -71,9 +59,6 @@ namespace Microsoft.CodeAnalysis
                "System.Text.Encoding.Extensions",
                "System.Text.RegularExpressions",
                "System.Threading",
-#if !NET6_0_OR_GREATER
-               "System.Threading.Tasks",
-#endif
                "System.Threading.Tasks.Parallel",
                "System.Threading.Thread",
                "System.Threading.ThreadPool",
