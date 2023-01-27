@@ -50,11 +50,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return _symbolInfoCache.GetOrAdd(node, static (n, arg) => arg._semanticModel.GetSymbolInfo(n, arg.cancellationToken), (_semanticModel, cancellationToken));
         }
 
-        public PreprocessingSymbolInfo GetPreprocessingSymbolInfo(SyntaxToken token)
-        {
-            return _semanticModel.GetPreprocessingSymbolInfo(token);
-        }
-
         public IAliasSymbol? GetAliasInfo(
             ISemanticFactsService semanticFacts, SyntaxToken token, CancellationToken cancellationToken)
         {

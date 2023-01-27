@@ -17,8 +17,8 @@ internal partial struct SymbolKey
 
         protected sealed override SymbolKeyResolution Resolve(SymbolKeyReader reader, IPreprocessingSymbol? contextualSymbol, out string? failureReason)
         {
-            var preprocessingName = reader.ReadRequiredString();
             failureReason = null;
+            var preprocessingName = reader.ReadRequiredString();
             var preprocessingSymbol = reader.Compilation.CreatePreprocessingSymbol(preprocessingName);
             return new(preprocessingSymbol);
         }

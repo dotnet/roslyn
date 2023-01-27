@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             var kinds = syntaxFacts.SyntaxKinds;
 
             var ifDirectiveKind = kinds.IfDirectiveTrivia;
-            var elseIfDirectiveKind = kinds.ElseIfDirectiveTrivia;
+            var elseIfDirectiveKind = kinds.ElifDirectiveTrivia;
 
             while (node is not null)
             {

@@ -2954,6 +2954,16 @@ _Default:
             Return VisualBasicPreprocessingSymbolInfo.None
         End Function
 
+        ''' <summary>
+        ''' Gets the preprocessing symbol info for the preprocessing symbol defined in the #Const directive.
+        ''' </summary>
+        ''' <param name="node">A #Const directive trivia node.</param>
+        Public Shadows Function GetPreprocessingSymbolInfo(node As ConstDirectiveTriviaSyntax) As VisualBasicPreprocessingSymbolInfo
+            CheckSyntaxNode(node)
+            Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node.Name)
+            Return RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo, node.Name)
+        End Function
+
         Private Function RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo As VisualBasicPreprocessingSymbolInfo, token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
 
             If symbolInfo.Symbol IsNot Nothing Then
@@ -3225,14 +3235,15 @@ _Default:
             Return Nothing
         End Function
 
-        Protected NotOverridable Overrides Function GetPreprocessingSymbolInfoCore(token As SyntaxToken) As PreprocessingSymbolInfo
-            Return GetPreprocessingSymbolInfo(token)
-        End Function
-
         Protected NotOverridable Overrides Function GetPreprocessingSymbolInfoCore(node As SyntaxNode) As PreprocessingSymbolInfo
             Dim nameSyntax = TryCast(node, IdentifierNameSyntax)
             If nameSyntax IsNot Nothing Then
                 Return GetPreprocessingSymbolInfo(nameSyntax)
+            End If
+
+            Dim constSyntax = TryCast(node, ConstDirectiveTriviaSyntax)
+            If constSyntax IsNot Nothing Then
+                Return GetPreprocessingSymbolInfo(constSyntax)
             End If
 
             Return Nothing

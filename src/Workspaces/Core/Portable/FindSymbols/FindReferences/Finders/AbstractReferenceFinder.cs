@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        private static async ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+        private static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
             ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
         {
             // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : state.SyntaxFacts.TryGetBindableParent(token);
             parent ??= token.Parent!;
 
-            return await SymbolsMatchAsync(symbol, state, parent, cancellationToken).ConfigureAwait(false);
+            return SymbolsMatchAsync(symbol, state, parent, cancellationToken);
         }
 
         protected static async ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(

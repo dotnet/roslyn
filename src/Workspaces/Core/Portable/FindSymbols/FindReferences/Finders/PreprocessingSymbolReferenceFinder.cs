@@ -132,8 +132,8 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
     private static async ValueTask<bool> PreprocessingSymbolsMatchAsync(
         IPreprocessingSymbol searchSymbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
     {
-        var symbolInfo = state.Cache.GetPreprocessingSymbolInfo(token);
-        return await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false);
+        var symbol = state.SemanticModel.Compilation.CreatePreprocessingSymbol(token.ValueText);
+        return await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbol, cancellationToken).ConfigureAwait(false);
     }
 
     private static FinderLocation CreateFinderLocation(FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis
             Field = 'F',
             FunctionPointer = 'G',
             DynamicType = 'I',
+            Preprocessing = 'J',
             BuiltinOperator = 'L',
             Method = 'M',
             Namespace = 'N',
@@ -48,7 +49,6 @@ namespace Microsoft.CodeAnalysis
             Reference = '#',
             Null = '!',
             TypeParameterOrdinal = '@',
-            Preprocessing = '*',
         }
 
         private class SymbolKeyWriter : SymbolVisitor, IDisposable

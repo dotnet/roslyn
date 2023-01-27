@@ -975,13 +975,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CSharpTypeInfo.None;
             }
-            else if (IsInStructuredTriviaNotContainingIdentifiers(expression, out var decisiveParentSyntaxKind))
-            {
-                if (SyntaxFacts.IsIdentifierContainerDirectiveTrivia(decisiveParentSyntaxKind))
-                {
-                    return CSharpTypeInfo.None;
-                }
-            }
             else if (SyntaxFacts.IsDeclarationExpressionType(expression, out DeclarationExpressionSyntax parent))
             {
                 switch (parent.Designation.Kind())
@@ -4858,24 +4851,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node);
 
         /// <summary>
-        /// If the given token is within a preprocessing directive, gets the preprocessing symbol info for it.
-        /// Define and undefine directive trivia parents are supported too.
-        /// </summary>
-        /// <param name="token">Preprocessing symbol syntax token.</param>
-        public new PreprocessingSymbolInfo GetPreprocessingSymbolInfo(SyntaxToken token)
-        {
-            var parent = token.Parent as CSharpSyntaxNode;
-            CheckSyntaxNode(parent);
-
-            if (parent.Kind() is SyntaxKind.DefineDirectiveTrivia or SyntaxKind.UndefDirectiveTrivia)
-                return CreatePreprocessingSymbolInfo(token);
-
-            if (parent is IdentifierNameSyntax identifier)
-                return GetPreprocessingSymbolInfo(identifier);
-
-            return PreprocessingSymbolInfo.None;
-        }
-        /// <summary>
         /// If the given node is within a preprocessing directive, gets the preprocessing symbol info for it.
         /// </summary>
         /// <param name="node">Preprocessing symbol identifier node.</param>
@@ -4889,6 +4864,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return PreprocessingSymbolInfo.None;
+        }
+        /// <summary>
+        /// Gets the preprocessing symbol info for the preprocessing symbol defined in the #define directive.
+        /// </summary>
+        /// <param name="node">A #define directive trivia node.</param>
+        public PreprocessingSymbolInfo GetPreprocessingSymbolInfo(DefineDirectiveTriviaSyntax node)
+        {
+            CheckSyntaxNode(node);
+            return CreatePreprocessingSymbolInfo(node.Name);
+        }
+        /// <summary>
+        /// Gets the preprocessing symbol info for the preprocessing symbol undefined in the #undef directive.
+        /// </summary>
+        /// <param name="node">An #undef directive trivia node.</param>
+        public PreprocessingSymbolInfo GetPreprocessingSymbolInfo(UndefDirectiveTriviaSyntax node)
+        {
+            CheckSyntaxNode(node);
+            return CreatePreprocessingSymbolInfo(node.Name);
         }
 
         private PreprocessingSymbolInfo CreatePreprocessingSymbolInfo(in SyntaxToken identifier)
@@ -5117,16 +5110,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node is IdentifierNameSyntax nameSyntax ? GetAliasInfo(nameSyntax, cancellationToken) : null;
         }
 
-        protected sealed override PreprocessingSymbolInfo GetPreprocessingSymbolInfoCore(SyntaxToken token)
-        {
-            return GetPreprocessingSymbolInfo(token);
-        }
-
         protected sealed override PreprocessingSymbolInfo GetPreprocessingSymbolInfoCore(SyntaxNode node)
         {
-            return node is IdentifierNameSyntax nameSyntax
-                ? GetPreprocessingSymbolInfo(nameSyntax)
-                : PreprocessingSymbolInfo.None;
+            return node switch
+            {
+                IdentifierNameSyntax nameSyntax => GetPreprocessingSymbolInfo(nameSyntax),
+                DefineDirectiveTriviaSyntax defineSyntax => GetPreprocessingSymbolInfo(defineSyntax),
+                UndefDirectiveTriviaSyntax undefSyntax => GetPreprocessingSymbolInfo(undefSyntax),
+                _ => PreprocessingSymbolInfo.None
+            };
         }
 
         protected sealed override ISymbol GetDeclaredSymbolCore(SyntaxNode node, CancellationToken cancellationToken)

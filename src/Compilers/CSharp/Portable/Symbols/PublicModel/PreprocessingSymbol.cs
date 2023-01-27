@@ -45,13 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 return false;
             }
 
-            if (obj is PreprocessingSymbol csharpPreprocessingSymbol)
-            {
-                return _name == csharpPreprocessingSymbol._name;
-            }
-
-            // If we do not encounter a C# preprocessing symbol, we still
-            // compare against the symbol's name directly.
             return _name == other.Name;
         }
 
@@ -73,20 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         Accessibility ISymbol.DeclaredAccessibility => Accessibility.NotApplicable;
 
-        void ISymbol.Accept(SymbolVisitor visitor)
-        {
-            throw new NotSupportedException();
-        }
+        void ISymbol.Accept(SymbolVisitor visitor) => throw new NotSupportedException();
 
-        TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            throw new NotSupportedException();
-        }
+        TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new NotSupportedException();
 
-        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            throw new NotSupportedException();
-        }
+        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => throw new NotSupportedException();
 
         string? ISymbol.GetDocumentationCommentId() => null;
 
