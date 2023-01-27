@@ -1117,6 +1117,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
             }
 
+            var mincorlib = element.Attribute(CommonReferencesMinCorlibName);
+            if (mincorlib != null &&
+                ((bool?)mincorlib).HasValue &&
+                ((bool?)mincorlib).Value)
+            {
+                references = new List<MetadataReference> { TestBase.MinCorlibRef };
+            }
+
             return references;
         }
 
