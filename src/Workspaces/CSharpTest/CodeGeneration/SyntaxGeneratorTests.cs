@@ -1659,6 +1659,20 @@ public interface IFace
                 "interface i\r\n{\r\n    t f { get; set; }\r\n}");
         }
 
+        [Fact, WorkItem(66377, "https://github.com/dotnet/roslyn/issues/66377")]
+        public void TestInterfaceVariance()
+        {
+            var compilation = Compile("""
+                interface I<in X, out Y> { }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("I").Single();
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                "internal interface I<in X, out Y>\r\n{\r\n}");
+        }
+
         [Fact]
         public void TestEnumDeclarations()
         {
