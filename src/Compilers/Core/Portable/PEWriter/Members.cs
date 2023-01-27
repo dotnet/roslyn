@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Metalama.Compiler;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Debugging;
@@ -1034,6 +1035,21 @@ namespace Microsoft.Cci
                     }
                 }
             }
+
+            // <Metalama>
+
+            if (member.GetInternalSymbol() is { } symbol)
+            {
+                foreach (var syntaxReference in symbol.GetISymbol().DeclaringSyntaxReferences)
+                {
+                    if (syntaxReference.GetSyntax().HasAnnotation(MetalamaCompilerAnnotations.IncludeInReferenceAssemblyAnnotation))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // </Metalama>
 
             return false;
         }
