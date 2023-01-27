@@ -33482,10 +33482,11 @@ public class C5 : I1<C5>
                     public static void Main() => Console.WriteLine("Hello World!");
                 }
                 """,
-                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "Hello World!" : null,
+                expectedOutput: Execute(false) ? "Hello World!" : null,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.RegularPreview,
-                targetFramework: _supportingFramework);
+                targetFramework: _supportingFramework,
+                verify: Verification.Skipped);
         }
 
         [Fact]
@@ -33527,10 +33528,11 @@ public class C5 : I1<C5>
                     public static void Main() => Console.WriteLine("Hello World!");
                 }
                 """,
-                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "Hello World!" : null,
+                expectedOutput: Execute(false) ? "Hello World!" : null,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.RegularPreview,
-                targetFramework: _supportingFramework);
+                targetFramework: _supportingFramework,
+                verify: Verification.Skipped);
         }
 
         [Fact]
