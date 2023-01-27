@@ -115,8 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             if (closingPointLine - openingPointLine == 1)
             {
                 // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
-                var newLineString = options.FormattingOptions.NewLine;
                 var closingToken = document.Root.FindTokenOnLeftOfPosition(context.ClosingPoint);
+                var newLineString = options.FormattingOptions.NewLine;
+                newLineEdit = new TextChange(new TextSpan(closingToken.FullSpan.Start, 0), newLineString);
 
                 var generator = document.LanguageServices.GetRequiredService<SyntaxGeneratorInternal>();
                 var endOfLine = generator.EndOfLine(newLineString);
@@ -125,7 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 document = document.WithChangedRoot(rootToFormat, cancellationToken);
 
                 // Modify the closing point location to adjust for the newly inserted line.
-                newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), newLineString);
                 closingPoint += newLineString.Length;
             }
 
