@@ -3838,5 +3838,227 @@ class C
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
             compilation.VerifyEmitDiagnostics();
         }
+
+        [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        public void UnobservedAwaitableExpression_AsyncTopLevelStatement()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+await Task.Yield();
+
+C c = new C();
+c.M(); // 1
+c.MAsync(); // 2
+Action a1 = () => c.M();
+Action a2 = async () => { await Task.Yield(); c.M(); }; // 3
+Action a3 = () => c.MAsync(); // 4
+Action a4 = async () => { await Task.Yield(); c.MAsync(); }; // 5
+
+I i = new C();
+i.M(); // 6
+i.MAsync(); // 7
+Action a5 = () => i.M();
+Action a6 = async () => { await Task.Yield(); i.M(); }; // 8
+Action a7 = () => i.MAsync();
+Action a8 = async () => { await Task.Yield(); i.MAsync(); }; // 9
+
+public class D
+{
+    public async Task M2()
+    {
+        await Task.Yield();
+
+        C c = new C();
+        c.M(); // 10
+        c.MAsync(); // 11
+        Action a1 = () => c.M();
+        Action a2 = async () => { await Task.Yield(); c.M(); }; // 12
+        Action a3 = () => c.MAsync(); // 13
+        Action a4 = async () => { await Task.Yield(); c.MAsync(); }; // 14
+
+        I i = new C();
+        i.M(); // 15
+        i.MAsync(); // 16
+        Action a5 = () => i.M();
+        Action a6 = async () => { await Task.Yield(); i.M(); }; // 17
+        Action a7 = () => i.MAsync();
+        Action a8 = async () => { await Task.Yield(); i.MAsync(); }; // 18
+    }
+}
+
+public interface I
+{
+    Task M();
+    Task MAsync();
+}
+
+public class C : I
+{
+    public Task M() => throw null;
+    public async Task MAsync() => await Task.Yield();
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // c.M(); // 1
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(7, 1),
+                // (8,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // c.MAsync(); // 2
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(8, 1),
+                // (10,47): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // Action a2 = async () => { await Task.Yield(); c.M(); }; // 3
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(10, 47),
+                // (11,19): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // Action a3 = () => c.MAsync(); // 4
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(11, 19),
+                // (12,47): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // Action a4 = async () => { await Task.Yield(); c.MAsync(); }; // 5
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(12, 47),
+                // (15,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // i.M(); // 6
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(15, 1),
+                // (16,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // i.MAsync(); // 7
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(16, 1),
+                // (18,47): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // Action a6 = async () => { await Task.Yield(); i.M(); }; // 8
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(18, 47),
+                // (20,47): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // Action a8 = async () => { await Task.Yield(); i.MAsync(); }; // 9
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(20, 47),
+                // (29,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         c.M(); // 10
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(29, 9),
+                // (30,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         c.MAsync(); // 11
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(30, 9),
+                // (32,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         Action a2 = async () => { await Task.Yield(); c.M(); }; // 12
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(32, 55),
+                // (33,27): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         Action a3 = () => c.MAsync(); // 13
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(33, 27),
+                // (34,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         Action a4 = async () => { await Task.Yield(); c.MAsync(); }; // 14
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(34, 55),
+                // (37,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         i.M(); // 15
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(37, 9),
+                // (38,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         i.MAsync(); // 16
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(38, 9),
+                // (40,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         Action a6 = async () => { await Task.Yield(); i.M(); }; // 17
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(40, 55),
+                // (42,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         Action a8 = async () => { await Task.Yield(); i.MAsync(); }; // 18
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(42, 55)
+                );
+        }
+
+        [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        public void UnobservedAwaitableExpression_NonAsyncTopLevelStatements_Task()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+C c = new C();
+c.M(); // 1
+c.MAsync(); // 2
+Action a1 = () => c.M();
+Action a2 = () => c.MAsync(); // 3
+
+I i = new C();
+i.M(); // 4
+i.MAsync(); // 5
+Action a3 = () => i.M();
+Action a4 = () => i.MAsync();
+
+public interface I
+{
+    Task M();
+    Task MAsync();
+}
+
+public class C : I
+{
+    public Task M() => throw null;
+    public async Task MAsync() => await Task.Yield();
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // c.M(); // 1
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(5, 1),
+                // (6,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // c.MAsync(); // 2
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(6, 1),
+                // (8,19): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // Action a2 = () => c.MAsync(); // 3
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(8, 19),
+                // (11,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // i.M(); // 4
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(11, 1),
+                // (12,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // i.MAsync(); // 5
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(12, 1)
+                );
+        }
+
+        [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        public void UnobservedAwaitableExpression_NonAsyncTopLevelStatements_TaskT()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+C c = new C();
+c.M(); // 1
+c.MAsync(); // 2
+Action a1 = () => c.M();
+Action a2 = () => c.MAsync(); // 3
+
+I i = new C();
+i.M(); // 4
+i.MAsync(); // 5
+Action a3 = () => i.M();
+Action a4 = () => i.MAsync(); // 6
+
+public interface I
+{
+    Task<int> M();
+    Task<int> MAsync();
+}
+
+public class C : I
+{
+    public Task<int> M() => throw null;
+    public async Task<int> MAsync() { await Task.Yield(); throw null; }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // c.M(); // 1
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(5, 1),
+                // (6,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // c.MAsync(); // 2
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(6, 1),
+                // (8,19): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // Action a2 = () => c.MAsync(); // 3
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(8, 19),
+                // (11,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // i.M(); // 4
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(11, 1),
+                // (12,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // i.MAsync(); // 5
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(12, 1)
+                );
+        }
     }
 }

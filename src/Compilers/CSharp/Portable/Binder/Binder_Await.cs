@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -76,15 +77,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // could generate a lot of noise if we warned on it. Finally, we only want
             // to warn on method calls, not other kinds of expressions.
 
-            if (expression.Kind != BoundKind.Call)
+            if (expression.Kind != BoundKind.Call ||
+                expression.HasAnyErrors)
             {
                 return false;
             }
 
             var type = expression.Type;
-            if ((type is null) ||
+            if (type is null ||
                 type.IsDynamic() ||
-                (type.IsVoidType()))
+                type.IsVoidType())
             {
                 return false;
             }
@@ -105,7 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Finally, if we're in an async method, and the expression could be awaited, report that it is instead discarded.
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-            if (containingMethod is null || !containingMethod.IsAsync)
+            if (containingMethod is null
+                || !(containingMethod.IsAsync || containingMethod is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 return false;
             }
@@ -115,8 +118,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (containingMethod is SynthesizedSimpleProgramEntryPointSymbol { IsAsync: false })
+            {
+                var bag = BindingDiagnosticBag.GetInstance(withDependencies: false, withDiagnostics: true);
+                try
+                {
+                    _ = BindAwait(expression, expression.Syntax, bag);
+                    // Top-level statements are always allowed to use `await`, so we
+                    // can ignore specific errors
+                    Debug.Assert(bag.DiagnosticBag is not null);
+                    return !bag.DiagnosticBag.AsEnumerableWithoutResolution().Any(isErrorOtherThanBadAwait);
+                }
+                finally
+                {
+                    bag.Free();
+                }
+            }
+
             var boundAwait = BindAwait(expression, expression.Syntax, BindingDiagnosticBag.Discarded);
             return !boundAwait.HasAnyErrors;
+
+            static bool isErrorOtherThanBadAwait(Diagnostic diagnostic)
+            {
+#pragma warning disable format
+                return diagnostic.Severity == DiagnosticSeverity.Error &&
+                    diagnostic is not DiagnosticWithInfo { Code: (int)ErrorCode.ERR_BadAwaitWithoutAsync or
+                        (int)ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod };
+#pragma warning restore format
+            }
         }
 
         /// <summary>
