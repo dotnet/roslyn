@@ -5220,9 +5220,17 @@ parse_member_name:;
 
             if (!openBrace.IsMissing)
             {
-                var builder = _pool.AllocateSeparated<EnumMemberDeclarationSyntax>();
-                this.ParseEnumMemberDeclarations(ref openBrace, builder);
-                members = _pool.ToListAndFree(builder);
+                // It's not uncommon for people to use semicolons to separate out enum members.  So be resilient to
+                // that, successfully consuming them as separators, while telling the user it needs to be a comma
+                // instead.
+                members = this.ParseCommaSeparatedSyntaxList(
+                    ref openBrace,
+                    SyntaxKind.CloseBraceToken,
+                    static @this => @this.IsPossibleEnumMemberDeclaration(),
+                    static @this => @this.ParseEnumMemberDeclaration(),
+                    skipBadEnumMemberListTokens,
+                    allowTrailingSeparator: true,
+                    allowSemicolonAsSeparator: true);
             }
 
             return _syntaxFactory.EnumDeclaration(
@@ -5235,71 +5243,15 @@ parse_member_name:;
                 members,
                 this.EatToken(SyntaxKind.CloseBraceToken),
                 TryEatToken(SyntaxKind.SemicolonToken));
-        }
 
-        private void ParseEnumMemberDeclarations(
-            ref SyntaxToken openBrace,
-            SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> members)
-        {
-            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            static PostSkipAction skipBadEnumMemberListTokens(
+                LanguageParser @this, ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
             {
-tryAgain:
-                if (this.IsPossibleEnumMemberDeclaration() || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.SemicolonToken)
-                {
-                    // first member
-                    members.Add(this.ParseEnumMemberDeclaration());
-
-                    // additional members
-                    while (true)
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.SemicolonToken || this.IsPossibleEnumMemberDeclaration())
-                        {
-                            if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                            {
-                                // semicolon instead of comma.. consume it with error and act as if it were a comma.
-                                members.AddSeparator(this.EatTokenWithPrejudice(SyntaxKind.CommaToken));
-                            }
-                            else
-                            {
-                                members.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            }
-
-                            // check for exit case after legal trailing comma
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                            {
-                                break;
-                            }
-                            else if (!this.IsPossibleEnumMemberDeclaration())
-                            {
-                                goto tryAgain;
-                            }
-
-                            members.Add(this.ParseEnumMemberDeclaration());
-                            continue;
-                        }
-                        else if (this.SkipBadEnumMemberListTokens(ref openBrace, members, SyntaxKind.CommaToken) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (this.SkipBadEnumMemberListTokens(ref openBrace, members, SyntaxKind.IdentifierToken) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
-                }
+                return @this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
+                    static p => p.CurrentToken.Kind is not SyntaxKind.CommaToken and not SyntaxKind.SemicolonToken && !p.IsPossibleEnumMemberDeclaration(),
+                    static (p, closeKind) => p.CurrentToken.Kind == closeKind,
+                    expectedKind, closeKind);
             }
-        }
-
-        private PostSkipAction SkipBadEnumMemberListTokens(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> list, SyntaxKind expected)
-        {
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
-                static p => p.CurrentToken.Kind is not SyntaxKind.CommaToken and not SyntaxKind.SemicolonToken && !p.IsPossibleEnumMemberDeclaration(),
-                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken,
-                expected);
         }
 
         private EnumMemberDeclarationSyntax ParseEnumMemberDeclaration()
@@ -12972,6 +12924,13 @@ done:;
         /// not.</param>
         /// <param name="requireOneElement">Whether or not at least one element is required in the list.  For example, a
         /// parameter list does not require any elements, while an attribute list "<c>[...]</c>" does.</param>
+        /// <param name="allowSemicolonAsSeparator">Whether or not an errant semicolon found in a location where a comma
+        /// is expected should just be treated as a comma (still with an error reported).  Useful for constructs where users
+        /// often forget which separator is needed and use the wrong one.</param>
+        /// <remarks>
+        /// All the callbacks should passed as static lambdas or static methods to prevent unnecessary delegate
+        /// allocations.
+        /// </remarks>
         private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
@@ -12979,33 +12938,39 @@ done:;
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
-            bool requireOneElement = false) where TNode : GreenNode
+            bool requireOneElement = false,
+            bool allowSemicolonAsSeparator = false) where TNode : GreenNode
         {
+            // If we ever want this function to parse out separated lists with a different separator, we can
+            // parameterize this method on this value.
             var separatorTokenKind = SyntaxKind.CommaToken;
-            var argNodes = _pool.AllocateSeparated<TNode>();
+            var nodes = _pool.AllocateSeparated<TNode>();
 
 tryAgain:
             if (requireOneElement || this.CurrentToken.Kind != closeTokenKind)
             {
-                if (requireOneElement || this.CurrentToken.Kind == separatorTokenKind || isPossibleElement(this))
+                if (requireOneElement || shouldParseSeparatorOrElement())
                 {
                     // first argument
-                    argNodes.Add(parseElement(this));
+                    nodes.Add(parseElement(this));
 
                     // now that we've gotten one element, we don't require any more.
                     requireOneElement = false;
 
-                    // comma + argument or end?
+                    // Ensure that if parsing separators/elements doesn't move us forward, that we always bail out from
+                    // parsing this list.
                     int lastTokenPosition = -1;
                     while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == closeTokenKind)
-                        {
                             break;
-                        }
-                        else if (this.CurrentToken.Kind == separatorTokenKind || isPossibleElement(this))
+
+                        if (shouldParseSeparatorOrElement())
                         {
-                            argNodes.AddSeparator(this.EatToken(separatorTokenKind));
+                            // If we got a semicolon instead of comma, consume it with error and act as if it were a comma.
+                            nodes.AddSeparator(this.CurrentToken.Kind == SyntaxKind.SemicolonToken
+                                ? this.EatTokenWithPrejudice(separatorTokenKind)
+                                : this.EatToken(separatorTokenKind));
 
                             if (allowTrailingSeparator)
                             {
@@ -13020,28 +12985,43 @@ tryAgain:
                                 }
                             }
 
-                            argNodes.Add(parseElement(this));
+                            nodes.Add(parseElement(this));
+                            continue;
                         }
-                        else
-                        {
-                            // Something we didn't recognize, try to skip tokens, reporting that we expected a separator here.
-                            if (skipBadTokens(this, ref openToken, argNodes, separatorTokenKind, closeTokenKind) == PostSkipAction.Abort)
-                                break;
-                        }
+
+                        // Something we didn't recognize, try to skip tokens, reporting that we expected a separator here.
+                        if (skipBadTokens(this, ref openToken, nodes, separatorTokenKind, closeTokenKind) == PostSkipAction.Abort)
+                            break;
                     }
                 }
-                else
+                else if (skipBadTokens(this, ref openToken, nodes, SyntaxKind.IdentifierToken, closeTokenKind) == PostSkipAction.Continue)
                 {
                     // Something we didn't recognize, try to skip tokens, reporting that we expected an identifier here.
                     // While 'identifier' may not be completely accurate in terms of what the list needs, it's a
                     // generally good 'catch all' indicating that some name/expr was needed, where something else
                     // invalid was found.
-                    if (skipBadTokens(this, ref openToken, argNodes, SyntaxKind.IdentifierToken, closeTokenKind) == PostSkipAction.Continue)
-                        goto tryAgain;
+                    goto tryAgain;
                 }
             }
 
-            return _pool.ToListAndFree(argNodes);
+            return _pool.ToListAndFree(nodes);
+
+            bool shouldParseSeparatorOrElement()
+            {
+                // if we're on a separator, we def should parse it out as such.
+                if (this.CurrentToken.Kind == separatorTokenKind)
+                    return true;
+
+                // We're not on a valid separator, but we want to be resilient for the user accidentally using the wrong
+                // one in common cases.
+                if (allowSemicolonAsSeparator && this.CurrentToken.Kind is SyntaxKind.SemicolonToken)
+                    return true;
+
+                if (isPossibleElement(this))
+                    return true;
+
+                return false;
+            }
         }
 
         private DisposableResetPoint GetDisposableResetPoint(bool resetOnDispose)
