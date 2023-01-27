@@ -7,13 +7,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -114,43 +112,45 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             // If there is not already an empty line inserted between the braces, insert one.
             TextChange? newLineEdit = null;
-            var textToFormat = originalDocumentText;
             if (closingPointLine - openingPointLine == 1)
             {
+                // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
                 var newLineString = options.FormattingOptions.NewLine;
-                newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), newLineString);
-                textToFormat = originalDocumentText.WithChanges(newLineEdit.Value);
+                var closingToken = document.Root.FindTokenOnLeftOfPosition(context.ClosingPoint);
+
+                var generator = document.LanguageServices.GetRequiredService<SyntaxGeneratorInternal>();
+                var endOfLine = generator.EndOfLine(newLineString);
+
+                var rootToFormat = document.Root.ReplaceToken(closingToken, closingToken.WithPrependedLeadingTrivia(endOfLine));
+                document = document.WithChangedRoot(rootToFormat, cancellationToken);
 
                 // Modify the closing point location to adjust for the newly inserted line.
+                newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), newLineString);
                 closingPoint += newLineString.Length;
             }
 
-            var documentToFormat = document.WithChangedText(textToFormat, cancellationToken);
-
             // Format the text that contains the newly inserted line.
             var (formattedRoot, formattingChanges, newClosingPoint) = FormatTrackingSpan(
-                documentToFormat,
+                document,
                 openingPoint,
                 closingPoint,
                 braceFormattingIndentationRules: GetBraceFormattingIndentationRulesAfterReturn(options),
                 options,
                 cancellationToken);
 
-            closingPoint = newClosingPoint;
-            var formattedText = textToFormat.WithChanges(formattingChanges);
+            var newDocument = document.WithChangedRoot(formattedRoot, cancellationToken);
 
             // Get the empty line between the curly braces.
-            var desiredCaretLine = GetLineBetweenCurlys(closingPoint, formattedText);
+            var desiredCaretLine = GetLineBetweenCurlys(newClosingPoint, newDocument.Text);
             Debug.Assert(desiredCaretLine.GetFirstNonWhitespacePosition() == null, "the line between the formatted braces is not empty");
 
             // Set the caret position to the properly indented column in the desired line.
-            var newDocument = document.WithChangedRoot(formattedRoot, cancellationToken);
             var caretPosition = GetIndentedLinePosition(newDocument, newDocument.Text, desiredCaretLine.LineNumber, options, cancellationToken);
 
             // The new line edit is calculated against the original text, d0, to get text d1.
             // The formatting edits are calculated against d1 to get text d2.
             // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
-            var overallChanges = newLineEdit != null ? GetMergedChanges(newLineEdit.Value, formattingChanges, formattedText) : formattingChanges;
+            var overallChanges = newLineEdit != null ? GetMergedChanges(newLineEdit.Value, formattingChanges, newDocument.Text) : formattingChanges;
             return new BraceCompletionResult(overallChanges, caretPosition);
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
