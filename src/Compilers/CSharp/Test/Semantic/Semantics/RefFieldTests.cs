@@ -28807,6 +28807,192 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference3(out s1).RefField").WithArguments("method", "GetReadonlyReference3").WithLocation(14, 9));
         }
 
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefensiveCopy_RefReadOnlyReceiver_01()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        S s = new();
+                        ref readonly S r = ref s;
+                        M(in r);
+                        Console.WriteLine(r);
+                    }
+                    static void M(in S s)
+                    {
+                        R r = new(in s);
+                        r.S.M();
+                    }
+                }
+                struct S
+                {
+                    int i;
+                    public void M() { i++; }
+                    public readonly override string ToString() => i.ToString();
+                }
+                ref struct R
+                {
+                    public ref readonly S S;
+                    public R(in S s) { S = ref s; }
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: "0");
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  1
+                  .locals init (R V_0, //r
+                                S V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "R..ctor(in S)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  ldfld      "ref readonly S R.S"
+                  IL_000d:  ldobj      "S"
+                  IL_0012:  stloc.1
+                  IL_0013:  ldloca.s   V_1
+                  IL_0015:  call       "void S.M()"
+                  IL_001a:  ret
+                }
+                """);
+        }
+
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefensiveCopy_RefReadOnlyReceiver_02()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        R r = new R(new S());
+                        Console.WriteLine(r.S);
+                    }
+                }
+                struct S
+                {
+                    int i;
+                    public void M1() { i++; }
+                    public readonly void M2() { }
+                    public readonly override string ToString() => i.ToString();
+                }
+                ref struct R
+                {
+                    public ref readonly S S;
+                    public R(in S s)
+                    {
+                        S = ref s;
+                        S.M1();
+                    }
+                    public R(in S s, object o)
+                    {
+                        S = ref s;
+                        S.M2();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: "0");
+            verifier.VerifyIL("R..ctor(in S)", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  2
+                  .locals init (S V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "ref readonly S R.S"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldfld      "ref readonly S R.S"
+                  IL_000d:  ldobj      "S"
+                  IL_0012:  stloc.0
+                  IL_0013:  ldloca.s   V_0
+                  IL_0015:  call       "void S.M1()"
+                  IL_001a:  ret
+                }
+                """);
+            verifier.VerifyIL("R..ctor(in S, object)", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "ref readonly S R.S"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldfld      "ref readonly S R.S"
+                  IL_000d:  call       "readonly void S.M2()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefensiveCopy_RefReadOnlyReceiver_03()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        R r1 = new R(new S()) { P1 = 1 };
+                        Console.WriteLine(r1.S);
+                        R r2 = new R(new S()) { P2 = 2 };
+                        Console.WriteLine(r2.S);
+                    }
+                }
+                struct S
+                {
+                    int i;
+                    public void M() { i++; }
+                    public readonly override string ToString() => i.ToString();
+                }
+                ref struct R
+                {
+                    public ref readonly S S;
+                    public R(in S s)
+                    {
+                        S = ref s;
+                    }
+                    public object P1
+                    {
+                        get { return null; }
+                        set { S.M(); }
+                    }
+                    public object P2
+                    {
+                        get { return null; }
+                        init { S.M(); }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: """
+                0
+                0
+                """);
+            string expectedIL = """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  .locals init (S V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "ref readonly S R.S"
+                  IL_0006:  ldobj      "S"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  call       "void S.M()"
+                  IL_0013:  ret
+                }
+                """;
+            verifier.VerifyIL("R.P1.set", expectedIL);
+            verifier.VerifyIL("R.P2.init", expectedIL);
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]

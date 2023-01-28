@@ -1,9 +1,3 @@
-*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.GetHashCode() -> int
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.ScopedKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.WithScopedKeyword(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
-*REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
-Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp11 = 1100 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax.AddElements(params Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax.CloseBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -32,18 +26,9 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.OperatorToken.get -> Mi
 Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken operatorToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.WithOperatorToken(Microsoft.CodeAnalysis.SyntaxToken operatorToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax!
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.FileKeyword = 8449 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.ScopedKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax!
-Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
-Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.WithScopedKeyword(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
-Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.ScopedType = 9075 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitCollectionCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDictionaryElement(Microsoft.CodeAnalysis.CSharp.Syntax.DictionaryElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSpreadElement(Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
@@ -51,8 +36,6 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.DictionaryElementSyntax.Accept(Mic
 override Microsoft.CodeAnalysis.CSharp.Syntax.DictionaryElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
 override Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
-override Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
-override Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
 override Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CollectionCreationExpression(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!> elements = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax!
@@ -60,22 +43,19 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CollectionCreationExpression(
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DictionaryElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.DictionaryElementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DictionaryElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression, Microsoft.CodeAnalysis.SyntaxToken colonToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.DictionaryElementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax!
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ScopedType(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SpreadElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SpreadElement(Microsoft.CodeAnalysis.SyntaxToken operatorToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax!
 static Microsoft.CodeAnalysis.CSharpExtensions.ContainsDirective(this Microsoft.CodeAnalysis.SyntaxNode! node, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitCollectionCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDictionaryElement(Microsoft.CodeAnalysis.CSharp.Syntax.DictionaryElementSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax! node) -> void
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSpreadElement(Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitCollectionCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.CollectionCreationExpressionSyntax! node) -> TResult?
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDictionaryElement(Microsoft.CodeAnalysis.CSharp.Syntax.DictionaryElementSyntax! node) -> TResult?
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax! node) -> TResult?
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax! node) -> TResult?
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSpreadElement(Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax! node) -> TResult?
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CollectionCreationExpression = 9076 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExpressionElement = 9077 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SpreadElement = 9078 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DictionaryElement = 9079 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+static Microsoft.CodeAnalysis.CSharpExtensions.ContainsDirective(this Microsoft.CodeAnalysis.SyntaxNode! node, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool

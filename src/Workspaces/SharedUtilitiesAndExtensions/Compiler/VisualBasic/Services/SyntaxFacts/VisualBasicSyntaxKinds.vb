@@ -18,6 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return CType(CType(CType(kind, SyntaxKind), Object), TSyntaxKind)
         End Function
 
+        Public Function Convert(Of TSyntaxKind As Structure)(kind As TSyntaxKind) As Integer Implements ISyntaxKinds.Convert
+            ' Boxing/Unboxing casts from Object to SyntaxKind will be erased by jit.
+            Return CType(CType(CType(kind, Object), SyntaxKind), Integer)
+        End Function
+
         Public ReadOnly Property ConflictMarkerTrivia As Integer = SyntaxKind.ConflictMarkerTrivia Implements ISyntaxKinds.ConflictMarkerTrivia
         Public ReadOnly Property DisabledTextTrivia As Integer = SyntaxKind.DisabledTextTrivia Implements ISyntaxKinds.DisabledTextTrivia
         Public ReadOnly Property EndOfLineTrivia As Integer = SyntaxKind.EndOfLineTrivia Implements ISyntaxKinds.EndOfLineTrivia
@@ -33,10 +38,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property IfDirectiveTrivia As Integer = SyntaxKind.IfDirectiveTrivia Implements ISyntaxKinds.IfDirectiveTrivia
 
         Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
+        Public ReadOnly Property CloseBracketToken As Integer? = Nothing Implements ISyntaxKinds.CloseBracketToken
+        Public ReadOnly Property CloseParenToken As Integer = SyntaxKind.CloseParenToken Implements ISyntaxKinds.CloseParenToken
         Public ReadOnly Property ColonToken As Integer = SyntaxKind.ColonToken Implements ISyntaxKinds.ColonToken
         Public ReadOnly Property CharacterLiteralToken As Integer = SyntaxKind.CharacterLiteralToken Implements ISyntaxKinds.CharacterLiteralToken
         Public ReadOnly Property DotToken As Integer = SyntaxKind.DotToken Implements ISyntaxKinds.DotToken
+        Public ReadOnly Property GreaterThanToken As Integer = SyntaxKind.GreaterThanToken Implements ISyntaxKinds.GreaterThanToken
         Public ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken Implements ISyntaxKinds.InterpolatedStringTextToken
+        Public ReadOnly Property LessThanToken As Integer = SyntaxKind.LessThanToken Implements ISyntaxKinds.LessThanToken
+        Public ReadOnly Property OpenBraceToken As Integer = SyntaxKind.OpenBraceToken Implements ISyntaxKinds.OpenBraceToken
+        Public ReadOnly Property OpenBracketToken As Integer? = Nothing Implements ISyntaxKinds.OpenBracketToken
+        Public ReadOnly Property OpenParenToken As Integer = SyntaxKind.OpenParenToken Implements ISyntaxKinds.OpenParenToken
         Public ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken Implements ISyntaxKinds.QuestionToken
         Public ReadOnly Property StringLiteralToken As Integer = SyntaxKind.StringLiteralToken Implements ISyntaxKinds.StringLiteralToken
         Public ReadOnly Property SingleLineRawStringLiteralToken As Integer? Implements ISyntaxKinds.SingleLineRawStringLiteralToken
