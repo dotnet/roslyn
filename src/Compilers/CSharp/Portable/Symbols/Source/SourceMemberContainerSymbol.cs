@@ -3212,7 +3212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                Debug.Assert(false); // Add a test if this assert fails
                 var membersAndInituializers = GetMembersAndInitializers();
                 nonTypeMembersToCheck = membersAndInituializers.NonTypeMembers;
                 primaryConstructor = membersAndInituializers.PrimaryConstructor;
