@@ -58,4 +58,3 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.CollectionCreationExpression = 9076 -> 
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExpressionElement = 9077 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SpreadElement = 9078 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DictionaryElement = 9079 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-static Microsoft.CodeAnalysis.CSharpExtensions.ContainsDirective(this Microsoft.CodeAnalysis.SyntaxNode! node, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
