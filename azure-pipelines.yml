@@ -324,12 +324,6 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - task: PowerShell@2
-        displayName: Restore
-        inputs:
-          filePath: eng/build.ps1
-          arguments: -configuration Debug -prepareMachine -ci -restore -binaryLogName Restore.binlog
-
       - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
         displayName: Run BuildValidator
 
