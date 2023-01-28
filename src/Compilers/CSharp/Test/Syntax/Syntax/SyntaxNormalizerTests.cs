@@ -415,12 +415,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeStatement1()
+        public void TestNormalizeExpressionStatement()
         {
-            // expressions
             TestNormalizeStatement("a;", "a;");
+        }
 
-            // blocks
+        [Fact]
+        public void TestNormalizeBlockStatements()
+        {
             TestNormalizeStatement(
                 "{a;}", """
                 {
@@ -447,8 +449,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   b;
                 }
                 """);
+        }
 
-            // if
+        [Fact]
+        public void TestNormalizeIfStatements()
+        {
             TestNormalizeStatement(
                 "if(a)b;", """
                 if (a)
@@ -483,8 +488,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 else if (c)
                   d;
                 """);
+        }
 
-            // while
+        [Fact]
+        public void TestNormalizeWhileStatements()
+        {
             TestNormalizeStatement(
                 "while(a)b;", """
                 while (a)
@@ -497,8 +505,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   b;
                 }
                 """);
+        }
 
-            // do 
+        [Fact]
+        public void TestNormalizeDoWhileStatement()
+        {
             TestNormalizeStatement(
                 "do{a;}while(b);", """
                 do
@@ -507,8 +518,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 while (b);
                 """);
+        }
 
-            // for
+        [Fact]
+        public void TestNormalizeForStatements()
+        {
             TestNormalizeStatement(
                 "for(a;b;c)d;", """
                 for (a; b; c)
@@ -519,15 +533,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 for (;;)
                   a;
                 """);
+        }
 
-            // foreach
+        [Fact]
+        public void TestNormalizeForeachStatement()
+        {
             TestNormalizeStatement(
                 "foreach(a in b)c;", """
                 foreach (a in b)
                   c;
                 """);
+        }
 
-            // try
+        [Fact]
+        public void TestNormalizeTryStatements()
+        {
             TestNormalizeStatement(
                 "try{a;}catch(b){c;}", """
                 try
@@ -550,8 +570,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   b;
                 }
                 """);
+        }
 
-            // other
+        [Fact]
+        public void TestNormalizeOtherStatements()
+        {
             TestNormalizeStatement(
                 "lock(a)b;", """
                 lock (a)
@@ -588,15 +611,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   a;
                 }
                 """);
+        }
 
-            // declaration statements
+        [Fact]
+        public void TestNormalizeDeclarationStatements()
+        {
             TestNormalizeStatement("a b;", "a b;");
             TestNormalizeStatement("a?b;", "a? b;");
             TestNormalizeStatement("a b,c;", "a b, c;");
             TestNormalizeStatement("a b=c;", "a b = c;");
             TestNormalizeStatement("a b=c,d=e;", "a b = c, d = e;");
+        }
 
-            // empty statements
+        [Fact]
+        public void TestNormalizeEmptyStatements()
+        {
             TestNormalizeStatement(";", ";");
             TestNormalizeStatement(
                 "{;;}", """
@@ -605,8 +634,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   ;
                 }
                 """);
+        }
 
-            // labelled statements
+        [Fact]
+        public void TestNormalizeLabelStatements()
+        {
             TestNormalizeStatement(
                 "goo:;", """
                 goo:
@@ -617,8 +649,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 goo:
                   a;
                 """);
+        }
 
-            // return/goto
+        [Fact]
+        public void TestNormalizeReturnAndGotoStatements()
+        {
             TestNormalizeStatement("return;", "return;");
             TestNormalizeStatement("return(a);", "return (a);");
             TestNormalizeStatement("continue;", "continue;");
@@ -630,8 +665,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("throw;", "throw;");
             TestNormalizeStatement("throw a;", "throw a;");
             TestNormalizeStatement("return this.Bar()", "return this.Bar()");
+        }
 
-            // switch
+        [Fact]
+        public void TestNormalizeSwitchStatements()
+        {
             TestNormalizeStatement(
                 "switch(a){case b:c;}", """
                 switch (a)
@@ -695,8 +733,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   }
                 }
                 """);
+        }
 
-            // curlies
+        [Fact]
+        public void TestNormalizeStatements_Curlies()
+        {
             TestNormalizeStatement(
                 "{if(goo){}if(bar){}}", """
                 {
@@ -710,7 +751,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
 
-            // Queries
+        }
+
+        [Fact]
+        public void TestNormalizeStatements_Queries()
+        {
             TestNormalizeStatement(
                 "int i=from v in vals select v;", """
                 int i =
@@ -740,8 +785,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     where g > 10
                     select g;
                 """);
+        }
 
-            // Generics
+        [Fact]
+        public void TestNormalizeStatements_Generics()
+        {
             TestNormalizeStatement("Func<string, int> f = blah;", "Func<string, int> f = blah;");
         }
 
