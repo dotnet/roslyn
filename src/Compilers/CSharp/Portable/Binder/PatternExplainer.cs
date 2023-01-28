@@ -403,6 +403,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
                     var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
                     int lengthValue = lengthValues.Sample.Int32Value;
+                    if (lengthValue > 20)
+                    {
+                        // Avoid generating arbitrarily long pattern examples
+                        return null;
+                    }
+
                     if (slice != null)
                     {
                         if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
