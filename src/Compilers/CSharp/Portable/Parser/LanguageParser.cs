@@ -12796,7 +12796,7 @@ done:;
                     list.Add(this.ParseOrdering());
                     continue;
                 }
-                else if (this.SkipBadOrderingListTokens(list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                else if (skipBadOrderingListTokens(list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {
                     break;
                 }
@@ -12805,18 +12805,18 @@ done:;
             return _syntaxFactory.OrderByClause(
                 @orderby,
                 _pool.ToListAndFree(list));
-        }
 
-        private PostSkipAction SkipBadOrderingListTokens(SeparatedSyntaxListBuilder<OrderingSyntax> list, SyntaxKind expected)
-        {
-            CSharpSyntaxNode tmp = null;
-            Debug.Assert(list.Count > 0);
-            return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseParenToken
-                    || p.CurrentToken.Kind == SyntaxKind.SemicolonToken
-                    || p.IsCurrentTokenQueryContextualKeyword,
-                expected);
+            PostSkipAction skipBadOrderingListTokens(SeparatedSyntaxListBuilder<OrderingSyntax> list, SyntaxKind expected)
+            {
+                CSharpSyntaxNode tmp = null;
+                Debug.Assert(list.Count > 0);
+                return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                    static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseParenToken
+                        || p.CurrentToken.Kind == SyntaxKind.SemicolonToken
+                        || p.IsCurrentTokenQueryContextualKeyword,
+                    expected);
+            }
         }
 
         private OrderingSyntax ParseOrdering()
