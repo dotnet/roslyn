@@ -5321,7 +5321,6 @@ static class Test
         [Fact, WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]
         public void CS1525ERR_InvalidExprTerm_02()
         {
-            // Made this consistent with all other separated syntax list parsing.
             var test = @"
 using System.Collections.Generic;
 using System.Collections;
