@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var containingType = primaryConstructor.ContainingType;
 
-                foreach (var member in containingType.GetMembers())
+                foreach (SourceMemberMethodSymbol sourceMethod in containingType.GetMethodsPossiblyCapturingPrimaryConstructorParameters())
                 {
                     Binder? bodyBinder;
                     CSharpSyntaxNode? syntaxNode;
 
-                    getBodyBinderAndSyntaxIfPossiblyCapturingMethod(member, out bodyBinder, out syntaxNode);
+                    getBodyBinderAndSyntax(sourceMethod, out bodyBinder, out syntaxNode);
                     if (bodyBinder is null)
                     {
                         continue;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string name = "<" + parameter.Name + ">PC__BackingField";
 
                     // PROTOTYPE(PrimaryConstructors): Ever read-only?
-                    result.Add(parameter, new SynthesizedFieldSymbol(containingType, parameter.Type, name));
+                    result.Add(parameter, new SynthesizedPrimaryConstructorParameterBackingFieldSymbol(parameter, name));
                 }
 
                 captured.Free();
@@ -97,26 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                void getBodyBinderAndSyntaxIfPossiblyCapturingMethod(Symbol member, out Binder? bodyBinder, out CSharpSyntaxNode? syntaxNode)
+                void getBodyBinderAndSyntax(SourceMemberMethodSymbol sourceMethod, out Binder? bodyBinder, out CSharpSyntaxNode? syntaxNode)
                 {
                     bodyBinder = null;
                     syntaxNode = null;
-
-                    if ((object)member == primaryConstructor)
-                    {
-                        return;
-                    }
-
-                    if (member.IsStatic ||
-                        !(member is MethodSymbol method && MethodCompiler.GetMethodToCompile(method) is SourceMemberMethodSymbol sourceMethod))
-                    {
-                        return;
-                    }
-
-                    if (sourceMethod.IsExtern)
-                    {
-                        return;
-                    }
 
                     bodyBinder = sourceMethod.TryGetBodyBinder();
 

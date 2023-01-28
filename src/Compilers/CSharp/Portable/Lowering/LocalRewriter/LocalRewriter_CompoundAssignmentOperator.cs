@@ -676,8 +676,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference: // a special kind of parameter
                 case BoundKind.PseudoVariable:
-                    // No temporaries are needed. Just generate local = local + value
-                    return VisitExpression(originalLHS);
+                    {
+                        // No temporaries are needed. Just generate local = local + value
+                        var result = VisitExpression(originalLHS);
+                        Debug.Assert((object)result == originalLHS || IsCapturedPrimaryConstructorParameter(originalLHS)); // If this fails, we might need to add tests for new scenarios and relax the assert.
+                        return result;
+                    }
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
@@ -831,6 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !ConstantValueIsTrivial(type);
 
                 case BoundKind.Parameter:
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
                     return localsMayBeAssignedOrCaptured || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
 
                 case BoundKind.Local:
@@ -860,12 +865,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (expression.Kind)
             {
+                case BoundKind.Parameter:
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
+                    goto case BoundKind.Local;
+                case BoundKind.Local:
+                case BoundKind.Lambda:
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
                 case BoundKind.Literal:
-                case BoundKind.Parameter:
-                case BoundKind.Local:
-                case BoundKind.Lambda:
                     return false;
 
                 case BoundKind.Conversion:

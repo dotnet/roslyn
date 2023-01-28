@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetSyntax().PrimaryConstructorBaseTypeIfClass;
         }
 
+        public new SourceMemberContainerTypeSymbol ContainingType => (SourceMemberContainerTypeSymbol)base.ContainingType;
+
         protected override bool AllowRefOrOut => !(ContainingType is { IsRecord: true } or { IsRecordStruct: true });
 
         internal override bool IsExpressionBodied => false;

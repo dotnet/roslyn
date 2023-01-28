@@ -312,6 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         return false;
                     case BoundKind.Parameter:
+                        Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
+                        goto case BoundKind.Local;
+
                     case BoundKind.Local:
                         // A ref to a local variable or formal parameter is safe to reorder; it
                         // never has a side effect or consumes one.
@@ -373,6 +376,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                 }
             }
+        }
+
+        internal static bool IsCapturedPrimaryConstructorParameter(BoundExpression expression)
+        {
+            return expression is BoundParameter { ParameterSymbol: { ContainingSymbol: SynthesizedPrimaryConstructor primaryCtor } parameter } &&
+                   primaryCtor.GetCapturedParameters().ContainsKey(parameter);
         }
 
         private enum ReceiverCaptureMode

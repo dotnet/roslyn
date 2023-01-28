@@ -251,7 +251,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.ParameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryCtor &&
                 primaryCtor.GetCapturedParameters().TryGetValue(node.ParameterSymbol, out var field))
             {
-                return new BoundFieldAccess(node.Syntax, new BoundThisReference(node.Syntax, primaryCtor.ContainingType), field, ConstantValue.NotAvailable, LookupResultKind.Viable, node.Type);
+                Debug.Assert(CanBePassedByReference(node));
+                var result = new BoundFieldAccess(node.Syntax, new BoundThisReference(node.Syntax, primaryCtor.ContainingType), field, ConstantValue.NotAvailable, LookupResultKind.Viable, node.Type);
+                Debug.Assert(CanBePassedByReference(result));
+                return result;
             }
 
             return base.VisitParameter(node);

@@ -861,6 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(PrimaryConstructors): Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
         private void CompileFieldLikeEventAccessor(SourceEventSymbol eventSymbol, bool isAddMethod)
         {
             MethodSymbol accessor = isAddMethod ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
@@ -1926,6 +1927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
                     if (property is not null && property.IsAutoPropertyWithGetAccessor)
                     {
+                        // PROTOTYPE(PrimaryConstructors): Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
 

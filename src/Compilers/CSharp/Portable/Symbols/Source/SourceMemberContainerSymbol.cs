@@ -1460,17 +1460,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 switch (m.Kind)
                 {
-                    case SymbolKind.Method:
-                        // PROTOTYPE(PrimaryConstructors): Locate other places where these fields should be asked for. 
-                        if (m is SynthesizedPrimaryConstructor primaryCtor)
-                        {
-                            foreach (var f in primaryCtor.GetBackingFields())
-                            {
-                                yield return f;
-                            }
-                        }
-                        break;
-
                     case SymbolKind.Field:
                         if (m is TupleErrorFieldSymbol)
                         {
@@ -1690,12 +1679,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var membersAndInitializers = this.GetMembersAndInitializers();
 
             IEnumerable<Symbol> result = membersAndInitializers.NonTypeMembers.Where(IsInstanceFieldOrEvent);
-
-            if (membersAndInitializers.PrimaryConstructor?.GetBackingFields() is { } backingFields &&
-                backingFields != (object)SpecializedCollections.EmptyEnumerable<FieldSymbol>())
-            {
-                result = result.Concat(backingFields);
-            }
 
             return result;
         }
@@ -2313,12 +2296,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // If this is a backing field, report the error on the associated property.
                         var symbol = field.AssociatedSymbol ?? field;
-
-                        if (symbol.Kind == SymbolKind.Parameter)
-                        {
-                            // We should stick to members for this error.
-                            symbol = field;
-                        }
 
                         // Struct member '{0}' of type '{1}' causes a cycle in the struct layout
                         diagnostics.Add(ErrorCode.ERR_StructLayoutCycle, symbol.Locations[0], symbol, type);
@@ -3222,6 +3199,129 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal IEnumerable<SourceMemberMethodSymbol> GetMethodsPossiblyCapturingPrimaryConstructorParameters()
+        {
+            ImmutableArray<Symbol> nonTypeMembersToCheck;
+            SynthesizedPrimaryConstructor? primaryConstructor;
+
+            var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
+            if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)
+            {
+                nonTypeMembersToCheck = declared.NonTypeMembers;
+                primaryConstructor = declared.PrimaryConstructor;
+            }
+            else
+            {
+                Debug.Assert(false); // Add a test if this assert fails
+                var membersAndInituializers = GetMembersAndInitializers();
+                nonTypeMembersToCheck = membersAndInituializers.NonTypeMembers;
+                primaryConstructor = membersAndInituializers.PrimaryConstructor;
+            }
+
+            Debug.Assert(primaryConstructor is not null);
+            Debug.Assert(!this.IsDelegateType());
+
+            foreach (var member in nonTypeMembersToCheck)
+            {
+                if ((object)member == primaryConstructor)
+                {
+                    continue;
+                }
+
+                if (member.IsStatic ||
+                    !(member is MethodSymbol method && MethodCompiler.GetMethodToCompile(method) is SourceMemberMethodSymbol sourceMethod))
+                {
+                    continue;
+                }
+
+                if (sourceMethod.IsExtern)
+                {
+                    continue;
+                }
+
+                if (sourceMethod.IsAbstract || sourceMethod.SynthesizesLoweredBoundBody)
+                {
+                    continue;
+                }
+
+                yield return sourceMethod;
+            }
+        }
+
+        internal ImmutableArray<Symbol> GetMembersToMatchAgainsDeclarationSpan()
+        {
+            var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
+            if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)
+            {
+                Debug.Assert(declared.PrimaryConstructor is not null);
+                return declared.NonTypeMembers;
+            }
+            else
+            {
+                var membersAndInituializers = GetMembersAndInitializers();
+                Debug.Assert(membersAndInituializers.PrimaryConstructor is not null);
+                return membersAndInituializers.NonTypeMembers;
+            }
+        }
+
+        internal ImmutableArray<Symbol> GetCandidateMembersForLookup(string name)
+        {
+            if (this is { IsRecord: true } or { IsRecordStruct: true } ||
+                this.state.HasComplete(CompletionPart.Members))
+            {
+                return GetMembers(name);
+            }
+
+            ImmutableArray<Symbol> types = GetTypeMembers(name).Cast<NamedTypeSymbol, Symbol>();
+
+            ImmutableArray<Symbol> nonTypeMembersToCheck;
+            SynthesizedPrimaryConstructor? primaryConstructor;
+
+            var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
+            if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)
+            {
+                nonTypeMembersToCheck = declared.NonTypeMembers;
+                primaryConstructor = declared.PrimaryConstructor;
+            }
+            else
+            {
+                var membersAndInituializers = GetMembersAndInitializers();
+                nonTypeMembersToCheck = membersAndInituializers.NonTypeMembers;
+                primaryConstructor = membersAndInituializers.PrimaryConstructor;
+            }
+
+            Debug.Assert(primaryConstructor is not null);
+
+            if (primaryConstructor.ParameterCount == 0)
+            {
+                return GetMembers(name);
+            }
+
+            ArrayBuilder<Symbol>? memberBuilder = null;
+
+            foreach (var member in nonTypeMembersToCheck)
+            {
+                if (member.IsAccessor() || member.IsIndexer())
+                {
+                    continue;
+                }
+
+                if (member.Name == name)
+                {
+                    memberBuilder ??= ArrayBuilder<Symbol>.GetInstance(types.Length + 1);
+                    memberBuilder.Add(member);
+                }
+            }
+
+            if (memberBuilder is null)
+            {
+                return types;
+            }
+
+            memberBuilder.AddRange(types);
+            return memberBuilder.ToImmutableAndFree();
+        }
+
         private void AddSynthesizedMembers(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
             if (TypeKind is TypeKind.Class)
@@ -3805,11 +3905,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(ctor is object);
 
                 members.Add(ctor);
+                members.AddRange(ctor.GetBackingFields());
                 members.AddRange(membersSoFar);
                 builder.SetNonTypeMembers(members);
 
                 return;
             }
+
+            Debug.Assert(declaredMembersAndInitializers.PrimaryConstructor?.GetBackingFields().Any() != true);
 
             ParameterListSyntax? paramList = declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList;
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
