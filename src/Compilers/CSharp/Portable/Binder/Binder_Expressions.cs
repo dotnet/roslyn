@@ -7475,7 +7475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
 
-                    if (IsMoveableVariable(receiver, out Symbol accessedLocalOrParameterOpt) != isFixedStatementExpression)
+                    if (IsMoveableVariable(receiver, accessedLocalOrParameterOpt: out _) != isFixedStatementExpression)
                     {
                         if (indexed)
                         {
