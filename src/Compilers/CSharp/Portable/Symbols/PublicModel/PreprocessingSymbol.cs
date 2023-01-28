@@ -78,28 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         string ISymbol.ToDisplayString(SymbolDisplayFormat? format)
         {
-            return _name;
+            return SymbolDisplay.ToDisplayString(this, format);
         }
 
         ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat? format)
         {
-            return ToDisplayParts();
+            return SymbolDisplay.ToDisplayParts(this, format);
         }
 
         string ISymbol.ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
         {
-            return _name;
+            return SymbolDisplay.ToMinimalDisplayString(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
         }
 
         ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
         {
-            return ToDisplayParts();
-        }
-
-        private ImmutableArray<SymbolDisplayPart> ToDisplayParts()
-        {
-            var part = new SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, this, _name);
-            return ImmutableArray.Create(part);
+            return SymbolDisplay.ToMinimalDisplayParts(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
         }
 
         SymbolKind ISymbol.Kind => SymbolKind.Preprocessing;

@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
             var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
-            symbol.Accept(visitor);
+            visitor.VisitSymbol(symbol);
 
             return builder.ToImmutableAndFree();
         }
