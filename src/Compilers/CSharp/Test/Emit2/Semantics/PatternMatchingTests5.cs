@@ -3294,96 +3294,43 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: "True");
             compilation.VerifyIL("C.Test", """
 {
-  // Code size      244 (0xf4)
+  // Code size       73 (0x49)
   .maxstack  2
   .locals init (bool V_0,
-                uint V_1)
+                int V_1,
+                char V_2)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  ldc.i4     0x330ca589
-  IL_000d:  bgt.un.s   IL_0047
-  IL_000f:  ldloc.1
-  IL_0010:  ldc.i4     0x310ca263
-  IL_0015:  bgt.un.s   IL_002f
-  IL_0017:  ldloc.1
-  IL_0018:  ldc.i4     0x300ca0d0
-  IL_001d:  beq        IL_00b2
-  IL_0022:  ldloc.1
-  IL_0023:  ldc.i4     0x310ca263
-  IL_0028:  beq.s      IL_00a3
-  IL_002a:  br         IL_00f0
-  IL_002f:  ldloc.1
-  IL_0030:  ldc.i4     0x320ca3f6
-  IL_0035:  beq        IL_00d0
-  IL_003a:  ldloc.1
-  IL_003b:  ldc.i4     0x330ca589
-  IL_0040:  beq.s      IL_00c1
-  IL_0042:  br         IL_00f0
-  IL_0047:  ldloc.1
-  IL_0048:  ldc.i4     0x360caa42
-  IL_004d:  bgt.un.s   IL_0064
-  IL_004f:  ldloc.1
-  IL_0050:  ldc.i4     0x340ca71c
-  IL_0055:  beq.s      IL_0076
-  IL_0057:  ldloc.1
-  IL_0058:  ldc.i4     0x360caa42
-  IL_005d:  beq.s      IL_0094
-  IL_005f:  br         IL_00f0
-  IL_0064:  ldloc.1
-  IL_0065:  ldc.i4     0x370cabd5
-  IL_006a:  beq.s      IL_0085
-  IL_006c:  ldloc.1
-  IL_006d:  ldc.i4     0x3d0cb547
-  IL_0072:  beq.s      IL_00df
-  IL_0074:  br.s       IL_00f0
-  IL_0076:  ldarg.0
-  IL_0077:  ldstr      "1"
-  IL_007c:  call       "bool string.op_Equality(string, string)"
-  IL_0081:  brtrue.s   IL_00ec
-  IL_0083:  br.s       IL_00f0
-  IL_0085:  ldarg.0
-  IL_0086:  ldstr      "2"
-  IL_008b:  call       "bool string.op_Equality(string, string)"
-  IL_0090:  brtrue.s   IL_00ec
-  IL_0092:  br.s       IL_00f0
-  IL_0094:  ldarg.0
-  IL_0095:  ldstr      "3"
-  IL_009a:  call       "bool string.op_Equality(string, string)"
-  IL_009f:  brtrue.s   IL_00ec
-  IL_00a1:  br.s       IL_00f0
-  IL_00a3:  ldarg.0
-  IL_00a4:  ldstr      "4"
-  IL_00a9:  call       "bool string.op_Equality(string, string)"
-  IL_00ae:  brtrue.s   IL_00ec
-  IL_00b0:  br.s       IL_00f0
-  IL_00b2:  ldarg.0
-  IL_00b3:  ldstr      "5"
-  IL_00b8:  call       "bool string.op_Equality(string, string)"
-  IL_00bd:  brtrue.s   IL_00ec
-  IL_00bf:  br.s       IL_00f0
-  IL_00c1:  ldarg.0
-  IL_00c2:  ldstr      "6"
-  IL_00c7:  call       "bool string.op_Equality(string, string)"
-  IL_00cc:  brtrue.s   IL_00ec
-  IL_00ce:  br.s       IL_00f0
-  IL_00d0:  ldarg.0
-  IL_00d1:  ldstr      "7"
-  IL_00d6:  call       "bool string.op_Equality(string, string)"
-  IL_00db:  brtrue.s   IL_00ec
-  IL_00dd:  br.s       IL_00f0
-  IL_00df:  ldarg.0
-  IL_00e0:  ldstr      "8"
-  IL_00e5:  call       "bool string.op_Equality(string, string)"
-  IL_00ea:  brfalse.s  IL_00f0
-  IL_00ec:  ldc.i4.1
-  IL_00ed:  stloc.0
-  IL_00ee:  br.s       IL_00f2
-  IL_00f0:  ldc.i4.0
-  IL_00f1:  stloc.0
-  IL_00f2:  ldloc.0
-  IL_00f3:  ret
+  IL_0001:  brfalse.s  IL_0045
+  IL_0003:  ldarg.0
+  IL_0004:  call       "int string.Length.get"
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  ldc.i4.1
+  IL_000c:  bne.un.s   IL_0045
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  call       "char string.this[int].get"
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.2
+  IL_0017:  ldc.i4.s   49
+  IL_0019:  sub
+  IL_001a:  switch    (
+        IL_0041,
+        IL_0041,
+        IL_0041,
+        IL_0041,
+        IL_0041,
+        IL_0041,
+        IL_0041,
+        IL_0041)
+  IL_003f:  br.s       IL_0045
+  IL_0041:  ldc.i4.1
+  IL_0042:  stloc.0
+  IL_0043:  br.s       IL_0047
+  IL_0045:  ldc.i4.0
+  IL_0046:  stloc.0
+  IL_0047:  ldloc.0
+  IL_0048:  ret
 }
 """);
         }

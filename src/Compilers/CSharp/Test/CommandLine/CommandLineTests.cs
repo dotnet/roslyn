@@ -7191,6 +7191,29 @@ public class C
         }
 
         [Fact]
+        public void CreateCompilationWithDisableLengthBasedSwitch()
+        {
+            string source = """
+public class C
+{
+}
+""";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "a.cs", "/features:disable-length-based-switch" });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+            Assert.True(((CSharpCompilation)comp).FeatureDisableLengthBasedSwitch);
+
+            cmd = CreateCSharpCompiler(null, dir.Path, new[] { "a.cs" });
+            comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+            Assert.False(((CSharpCompilation)comp).FeatureDisableLengthBasedSwitch);
+        }
+
+        [Fact]
         public void CreateCompilation_MainAndTargetIncompatibilities()
         {
             string source = @"
