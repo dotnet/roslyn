@@ -186,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _trackStaticMembers = trackStaticMembers;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         internal DefiniteAssignmentPass(
@@ -204,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         /// <summary>
@@ -225,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         private static SourceAssemblySymbol? GetSourceAssembly(
@@ -1006,13 +1009,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Normalize(ref LocalState state)
         {
-#if REFERENCE_STATE
-            if (state is null)
-            {
-                return;
-            }
-#endif 
-
             int oldNext = state.Assigned.Capacity;
             int n = variableBySlot.Count;
             state.Assigned.EnsureCapacity(n);
