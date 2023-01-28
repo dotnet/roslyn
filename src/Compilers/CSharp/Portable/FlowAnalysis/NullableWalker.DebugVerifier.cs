@@ -46,12 +46,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!verifier._visitedExpressions.Contains(analyzedNode))
                         {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {analyzedNode.GetDebuggerDisplay()}");
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
                         }
                     }
                 }
-
-                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}.");
+                else if (verifier._analyzedNullabilityMap.Count < verifier._visitedExpressions.Count)
+                {
+                    foreach (var verifiedNode in verifier._visitedExpressions)
+                    {
+                        if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
+                        {
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                        }
+                    }
+                }
             }
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)

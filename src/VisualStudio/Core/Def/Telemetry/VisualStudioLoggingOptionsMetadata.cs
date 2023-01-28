@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class VisualStudioLoggingOptionsMetadata
     {
-        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new("InternalDiagnosticsOptions", "EnableFileLoggingForDiagnostics", defaultValue: false);
+        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new("InternalDiagnosticsOptions_EnableFileLoggingForDiagnostics", defaultValue: false);
     }
 }

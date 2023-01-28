@@ -29,40 +29,39 @@ internal static class BlockStructureOptionsStorage
             IsMetadataAsSource = isMetadataAsSource,
         };
 
-    private const string FeatureName = "BlockStructureOptions";
-
     public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = new(
-        FeatureName, "ShowBlockStructureGuidesForCommentsAndPreprocessorRegions", BlockStructureOptions.Default.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions);
+        "BlockStructureOptions_ShowBlockStructureGuidesForCommentsAndPreprocessorRegions", BlockStructureOptions.Default.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions);
 
     public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForDeclarationLevelConstructs = new(
-        FeatureName, "ShowBlockStructureGuidesForDeclarationLevelConstructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForDeclarationLevelConstructs);
+        "BlockStructureOptions_ShowBlockStructureGuidesForDeclarationLevelConstructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForDeclarationLevelConstructs);
 
     public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForCodeLevelConstructs = new(
-        FeatureName, "ShowBlockStructureGuidesForCodeLevelConstructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForCodeLevelConstructs);
+        "BlockStructureOptions_ShowBlockStructureGuidesForCodeLevelConstructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForCodeLevelConstructs);
 
     public static readonly PerLanguageOption2<bool> ShowOutliningForCommentsAndPreprocessorRegions = new(
-        FeatureName, "ShowOutliningForCommentsAndPreprocessorRegions", BlockStructureOptions.Default.ShowOutliningForCommentsAndPreprocessorRegions);
+        "BlockStructureOptions_ShowOutliningForCommentsAndPreprocessorRegions", BlockStructureOptions.Default.ShowOutliningForCommentsAndPreprocessorRegions);
 
     public static readonly PerLanguageOption2<bool> ShowOutliningForDeclarationLevelConstructs = new(
-        FeatureName, "ShowOutliningForDeclarationLevelConstructs", BlockStructureOptions.Default.ShowOutliningForDeclarationLevelConstructs);
+        "BlockStructureOptions_ShowOutliningForDeclarationLevelConstructs", BlockStructureOptions.Default.ShowOutliningForDeclarationLevelConstructs);
 
     public static readonly PerLanguageOption2<bool> ShowOutliningForCodeLevelConstructs = new(
-        FeatureName, "ShowOutliningForCodeLevelConstructs", BlockStructureOptions.Default.ShowOutliningForCodeLevelConstructs);
+        "BlockStructureOptions_ShowOutliningForCodeLevelConstructs", BlockStructureOptions.Default.ShowOutliningForCodeLevelConstructs);
 
     public static readonly PerLanguageOption2<bool> CollapseRegionsWhenFirstOpened = new(
-        FeatureName, "CollapseRegionsWhenFirstOpened", BlockStructureOptions.Default.CollapseRegionsWhenFirstOpened);
+        "BlockStructureOptions_CollapseRegionsWhenFirstOpened", BlockStructureOptions.Default.CollapseRegionsWhenFirstOpened);
 
     public static readonly PerLanguageOption2<bool> CollapseImportsWhenFirstOpened = new(
-        FeatureName, "CollapseImportsWhenFirstOpened", BlockStructureOptions.Default.CollapseImportsWhenFirstOpened);
+        "BlockStructureOptions_CollapseImportsWhenFirstOpened", BlockStructureOptions.Default.CollapseImportsWhenFirstOpened);
 
     public static readonly PerLanguageOption2<bool> CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened = new(
-        FeatureName, "CollapseMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened);
+        "BlockStructureOptions_CollapseMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened);
+
     public static readonly PerLanguageOption2<bool> CollapseMetadataSignatureFilesWhenFirstOpened = new(
-        FeatureName, "CollapseEmptyMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseEmptyMetadataImplementationsWhenFirstOpened);
+        "BlockStructureOptions_CollapseEmptyMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseEmptyMetadataImplementationsWhenFirstOpened);
 
     public static readonly PerLanguageOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
-        FeatureName, "CollapseRegionsWhenCollapsingToDefinitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions);
+        "BlockStructureOptions_CollapseRegionsWhenCollapsingToDefinitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions);
 
     public static readonly PerLanguageOption2<int> MaximumBannerLength = new(
-        FeatureName, "MaximumBannerLength", BlockStructureOptions.Default.MaximumBannerLength);
+        "BlockStructureOptions_MaximumBannerLength", BlockStructureOptions.Default.MaximumBannerLength);
 }

@@ -5507,32 +5507,42 @@ End Module
 
 
 0
-1
+0
 hello
 hello")
 
             c.VerifyIL("C(Of T).Print()",
             <![CDATA[
 {
-  // Code size       48 (0x30)
-  .maxstack  1
-  .locals init (T V_0) //temp
+  // Code size       73 (0x49)
+  .maxstack  2
+  .locals init (T V_0, //temp
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "C(Of T).field As T"
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  box        "T"
-  IL_000d:  brtrue.s   IL_0012
-  IL_000f:  ldnull
-  IL_0010:  br.s       IL_001f
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  constrained. "T"
-  IL_001a:  callvirt   "Function Object.ToString() As String"
-  IL_001f:  call       "Sub System.Console.WriteLine(String)"
-  IL_0024:  ldloc.0
-  IL_0025:  box        "T"
-  IL_002a:  call       "Sub System.Console.WriteLine(Object)"
-  IL_002f:  ret
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. "T"
+  IL_0033:  callvirt   "Function Object.ToString() As String"
+  IL_0038:  call       "Sub System.Console.WriteLine(String)"
+  IL_003d:  ldloc.0
+  IL_003e:  box        "T"
+  IL_0043:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0048:  ret
 }
 ]]>)
         End Sub
@@ -10333,6 +10343,166 @@ End Class
   IL_002e:  ldloc.0
   IL_002f:  ret
 }")
+        End Sub
+
+        <Fact>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
+        Public Sub NullableSideEffects_01()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Structure S1
+    private count As Integer
+    Public Overrides Function ToString() As String
+        count+=1
+        Return count.ToString()
+    End Function
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim x1 As new S1?(new S1())
+        System.Console.Write(Test1(x1))
+        System.Console.Write(x1.ToString())
+        x1 = Nothing
+        System.Console.Write(Test1(x1) is Nothing)
+    End Sub
+
+    Shared Function Test1(Of T)(ByRef x As T) As String
+        return x?.ToString() 
+    End Function
+End Class
+    </file>
+</compilation>, expectedOutput:="11True").VerifyDiagnostics()
+
+            c.VerifyIL("Program.Test1(Of T)(ByRef T)",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "T"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0024
+  IL_0011:  ldobj      "T"
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        "T"
+  IL_001f:  brtrue.s   IL_0024
+  IL_0021:  pop
+  IL_0022:  ldnull
+  IL_0023:  ret
+  IL_0024:  constrained. "T"
+  IL_002a:  callvirt   "Function Object.ToString() As String"
+  IL_002f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
+        Public Sub NullableSideEffects_02()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Structure S1
+    private count As Integer
+    Public Overrides Function ToString() As String
+        count+=1
+        Return count.ToString()
+    End Function
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim x1 As new S1?(new S1())
+        System.Console.Write(Test1(x1))
+        System.Console.Write(x1.ToString())
+        x1 = Nothing
+        System.Console.Write(Test1(x1) is Nothing)
+    End Sub
+
+    Shared Function Test1(Of T)(ByRef x As T) As String
+        Dim y = x    
+        Dim result = y?.ToString() 
+        x = y
+        Return result
+    End Function
+End Class
+    </file>
+</compilation>, expectedOutput:="11True").VerifyDiagnostics()
+
+            c.VerifyIL("Program.Test1(Of T)(ByRef T)",
+            <![CDATA[
+{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (T V_0, //y
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "T"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        "T"
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. "T"
+  IL_0033:  callvirt   "Function Object.ToString() As String"
+  IL_0038:  ldarg.0
+  IL_0039:  ldloc.0
+  IL_003a:  stobj      "T"
+  IL_003f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")>
+        Public Sub NullableSideEffects_03()
+            Dim c = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Structure S1
+End Structure
+
+MustInherit Class C0(Of U)
+    MustOverride Function Test1(Of T As U)(ByRef x As T) As String
+End Class
+
+Class C1
+    Inherits C0(Of S1?)
+
+    Overrides Function Test1(Of T As S1?)(ByRef x As T) As String
+        Dim y = x    
+        Dim result = y?.ToString() 
+        x = y
+        Return result
+    End Function
+End Class
+    </file>
+</compilation>)
+
+            c.AssertTheseEmitDiagnostics(
+<expected> 
+BC30487: Operator '?' is not defined for type 'T'.
+        Dim result = y?.ToString() 
+                      ~
+</expected>)
         End Sub
 
     End Class

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -399,8 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
-        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals =
-            new Dictionary<LocalSymbol, LocalDefUseInfo>();
+        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
         // we do that by placing a fake dummy local at one end of a branch and force that it is accessible at another.
@@ -1537,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _counter += 1;
             }
 
-            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.Type);
+            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.ForceCopyOfNullableValueType, node.Type);
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
@@ -1556,6 +1556,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EnsureStackState(cookie); // implicit label here 
 
             SetStackDepth(origStack); // alternative is evaluated with original stack 
+
+            var unwrappedSequence = node.ReferenceTypeReceiver;
+
+            while (unwrappedSequence is BoundSequence sequence)
+            {
+                unwrappedSequence = sequence.Value;
+            }
+
+            if (unwrappedSequence is BoundLocal { LocalSymbol: { } localSymbol })
+            {
+                ShouldNotSchedule(localSymbol);
+            }
+
             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 
@@ -2214,7 +2227,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return null; }
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             throw new NotImplementedException();
         }

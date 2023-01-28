@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
-        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InlineDiagnosticsOptions.EnableInlineDiagnostics);
-        protected sealed override ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray.Create<IOption>(InlineDiagnosticsOptions.Location);
+        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(InlineDiagnosticsOptions.EnableInlineDiagnostics);
+        protected sealed override ImmutableArray<IOption2> FeatureOptions { get; } = ImmutableArray.Create<IOption2>(InlineDiagnosticsOptions.Location);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

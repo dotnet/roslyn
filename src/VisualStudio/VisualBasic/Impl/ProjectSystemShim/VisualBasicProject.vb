@@ -54,10 +54,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Private Shadows Property VisualStudioProjectOptionsProcessor As OptionsProcessor
             Get
-                Return DirectCast(MyBase.VisualStudioProjectOptionsProcessor, OptionsProcessor)
+                Return DirectCast(MyBase.ProjectSystemProjectOptionsProcessor, OptionsProcessor)
             End Get
             Set(value As OptionsProcessor)
-                MyBase.VisualStudioProjectOptionsProcessor = value
+                MyBase.ProjectSystemProjectOptionsProcessor = value
             End Set
         End Property
 

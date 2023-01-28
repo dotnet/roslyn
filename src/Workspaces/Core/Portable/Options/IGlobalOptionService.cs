@@ -5,9 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -15,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// Provides services for reading and writing global client (in-proc) options
     /// shared across all workspaces.
     /// </summary>
-    internal interface IGlobalOptionService
+    internal interface IGlobalOptionService : IOptionsReader
     {
         /// <summary>
         /// Gets the current value of the specific option.

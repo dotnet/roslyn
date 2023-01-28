@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             whenNotNull: notNullAccess,
                             whenNullOpt: whenNullOpt,
                             id: conditionalAccess.Id,
+                            forceCopyOfNullableValueType: conditionalAccess.ForceCopyOfNullableValueType,
                             type: rewrittenResultType
                         );
                     }

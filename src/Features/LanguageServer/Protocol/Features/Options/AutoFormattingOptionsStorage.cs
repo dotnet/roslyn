@@ -18,14 +18,14 @@ internal static class AutoFormattingOptionsStorage
         };
 
     internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
-        "FormattingOptions", OptionGroup.Default, "AutoFormattingOnReturn", AutoFormattingOptions.Default.FormatOnReturn);
+        "FormattingOptions_AutoFormattingOnReturn", AutoFormattingOptions.Default.FormatOnReturn);
 
     public static readonly PerLanguageOption2<bool> FormatOnTyping = new(
-        "FormattingOptions", OptionGroup.Default, "AutoFormattingOnTyping", AutoFormattingOptions.Default.FormatOnTyping);
+        "FormattingOptions_AutoFormattingOnTyping", AutoFormattingOptions.Default.FormatOnTyping);
 
     public static readonly PerLanguageOption2<bool> FormatOnSemicolon = new(
-        "FormattingOptions", OptionGroup.Default, "AutoFormattingOnSemicolon", AutoFormattingOptions.Default.FormatOnSemicolon);
+        "FormattingOptions_AutoFormattingOnSemicolon", AutoFormattingOptions.Default.FormatOnSemicolon);
 
     public static readonly PerLanguageOption2<bool> FormatOnCloseBrace = new(
-        "BraceCompletionOptions", "AutoFormattingOnCloseBrace", defaultValue: AutoFormattingOptions.Default.FormatOnCloseBrace);
+        "BraceCompletionOptions_AutoFormattingOnCloseBrace", AutoFormattingOptions.Default.FormatOnCloseBrace);
 }

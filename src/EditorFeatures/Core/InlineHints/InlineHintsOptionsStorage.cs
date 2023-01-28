@@ -39,70 +39,56 @@ namespace Microsoft.CodeAnalysis.InlineHints
               ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
           };
 
-        private const string FeatureName = "InlineHintsOptions";
-
         //  Parameter hints
 
         public static readonly PerLanguageOption2<bool> EnabledForParameters =
-            new(FeatureName,
-                nameof(EnabledForParameters),
+            new("InlineHintsOptions_EnabledForParameters",
                 InlineParameterHintsOptions.Default.EnabledForParameters);
 
         public static readonly PerLanguageOption2<bool> ForLiteralParameters =
-            new(FeatureName,
-                nameof(ForLiteralParameters),
+            new("InlineHintsOptions_ForLiteralParameters",
                 InlineParameterHintsOptions.Default.ForLiteralParameters);
 
         public static readonly PerLanguageOption2<bool> ForIndexerParameters =
-            new(FeatureName,
-                nameof(ForIndexerParameters),
+            new("InlineHintsOptions_ForIndexerParameters",
                 InlineParameterHintsOptions.Default.ForIndexerParameters);
 
         public static readonly PerLanguageOption2<bool> ForObjectCreationParameters =
-            new(FeatureName,
-                nameof(ForObjectCreationParameters),
+            new("InlineHintsOptions_ForObjectCreationParameters",
                 InlineParameterHintsOptions.Default.ForObjectCreationParameters);
 
         public static readonly PerLanguageOption2<bool> ForOtherParameters =
-            new(FeatureName,
-                nameof(ForOtherParameters),
+            new("InlineHintsOptions_ForOtherParameters",
                 InlineParameterHintsOptions.Default.ForOtherParameters);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatDifferOnlyBySuffix =
-            new(FeatureName,
-                nameof(SuppressForParametersThatDifferOnlyBySuffix),
+            new("InlineHintsOptions_SuppressForParametersThatDifferOnlyBySuffix",
                 InlineParameterHintsOptions.Default.SuppressForParametersThatDifferOnlyBySuffix);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchMethodIntent =
-            new(FeatureName,
-                nameof(SuppressForParametersThatMatchMethodIntent),
+            new("InlineHintsOptions_SuppressForParametersThatMatchMethodIntent",
                 InlineParameterHintsOptions.Default.SuppressForParametersThatMatchMethodIntent);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchArgumentName =
-            new(FeatureName,
-                nameof(SuppressForParametersThatMatchArgumentName),
+            new("InlineHintsOptions_SuppressForParametersThatMatchArgumentName",
                 InlineParameterHintsOptions.Default.SuppressForParametersThatMatchArgumentName);
 
         // Type Hints
 
         public static readonly PerLanguageOption2<bool> EnabledForTypes =
-            new(FeatureName,
-                nameof(EnabledForTypes),
+            new("InlineHintsOptions_EnabledForTypes",
                 defaultValue: InlineTypeHintsOptions.Default.EnabledForTypes);
 
         public static readonly PerLanguageOption2<bool> ForImplicitVariableTypes =
-            new(FeatureName,
-                nameof(ForImplicitVariableTypes),
+            new("InlineHintsOptions_ForImplicitVariableTypes",
                 defaultValue: InlineTypeHintsOptions.Default.ForImplicitVariableTypes);
 
         public static readonly PerLanguageOption2<bool> ForLambdaParameterTypes =
-            new(FeatureName,
-                nameof(ForLambdaParameterTypes),
+            new("InlineHintsOptions_ForLambdaParameterTypes",
                 defaultValue: InlineTypeHintsOptions.Default.ForLambdaParameterTypes);
 
         public static readonly PerLanguageOption2<bool> ForImplicitObjectCreation =
-            new(FeatureName,
-                nameof(ForImplicitObjectCreation),
+            new("InlineHintsOptions_ForImplicitObjectCreation",
                 defaultValue: InlineTypeHintsOptions.Default.ForImplicitObjectCreation);
     }
 }

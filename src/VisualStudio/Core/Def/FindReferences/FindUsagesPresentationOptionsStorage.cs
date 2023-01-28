@@ -15,6 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// next FindReferences call.
         /// </summary>
         public static readonly Option2<int> DefinitionGroupingPriority = new(
-            "FindUsagesOptions", "DefinitionGroupingPriority", defaultValue: -1);
+            "FindUsagesOptions_DefinitionGroupingPriority", defaultValue: -1);
     }
 }

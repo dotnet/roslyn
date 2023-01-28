@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     isExtern: symbol.IsExtern,
                     isAsync: method?.IsAsync == true,
                     isRequired: symbol.IsRequired(),
-                    isFile: (symbol as INamedTypeSymbol)?.IsFileLocal == true);
+                    isFile: type?.IsFileLocal == true);
             }
 
             // Only named types, members of named types, and local functions have modifiers.

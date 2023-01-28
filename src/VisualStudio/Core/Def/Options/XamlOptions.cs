@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Xaml
 {
@@ -20,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
     /// </summary>
     internal sealed class XamlOptions
     {
-        private const string FeatureName = "XamlOptions";
-
-        public static readonly Option2<bool> EnableLspIntelliSenseFeatureFlag = new(FeatureName, nameof(EnableLspIntelliSenseFeatureFlag), defaultValue: false);
+        public static readonly Option2<bool> EnableLspIntelliSenseFeatureFlag = new("XamlOptions_EnableLspIntelliSenseFeatureFlag", defaultValue: false);
     }
 }

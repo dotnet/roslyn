@@ -18,7 +18,7 @@ internal static class MetadataAsSourceOptionsStorage
             NavigateToSourceLinkAndEmbeddedSources = globalOptions.GetOption(NavigateToSourceLinkAndEmbeddedSources),
         };
 
-    public static Option2<bool> NavigateToDecompiledSources = new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true);
-    public static Option2<bool> AlwaysUseDefaultSymbolServers = new("FeatureOnOffOptions", "AlwaysUseDefaultSymbolServers", defaultValue: true);
-    public static Option2<bool> NavigateToSourceLinkAndEmbeddedSources = new("FeatureOnOffOptions", "NavigateToSourceLinkAndEmbeddedSources", defaultValue: true);
+    public static Option2<bool> NavigateToDecompiledSources = new("FeatureOnOffOptions_NavigateToDecompiledSources", defaultValue: true);
+    public static Option2<bool> AlwaysUseDefaultSymbolServers = new("FeatureOnOffOptions_AlwaysUseDefaultSymbolServers", defaultValue: true);
+    public static Option2<bool> NavigateToSourceLinkAndEmbeddedSources = new("FeatureOnOffOptions_NavigateToSourceLinkAndEmbeddedSources", defaultValue: true);
 }

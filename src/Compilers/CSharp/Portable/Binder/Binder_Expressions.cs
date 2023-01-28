@@ -1352,14 +1352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadNullableTypeof, node.Location);
                 hasError = true;
             }
-            else if (this.InAttributeArgument && type.ContainsFunctionPointer())
-            {
-                // https://github.com/dotnet/roslyn/issues/48765 tracks removing this error and properly supporting function
-                // pointers in attribute types. Until then, we don't know how serialize them, so error instead of crashing
-                // during emit.
-                diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, node.Location);
-                hasError = true;
-            }
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
             return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
@@ -2933,18 +2925,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if a bad special by ref local was found.
+        /// Reports an error when a bad special by-ref local was found.
         /// </summary>
-        internal static bool CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax, bool forUsingExpression = false)
         {
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
                 && type.IsRestrictedType())
             {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
-                return true;
+                Error(diagnostics, forUsingExpression ? ErrorCode.ERR_BadSpecialByRefUsing : ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
             }
-            return false;
         }
 
         internal GlobalExpressionVariable LookupDeclaredField(SingleVariableDesignationSyntax variableDesignator)
@@ -8998,6 +8988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             MethodSymbol methodSymbol,
             ImmutableArray<ScopedKind>? parameterScopesOverride = null,
+            ImmutableArray<bool>? parameterHasUnscopedRefAttributesOverride = null,
             RefKind? returnRefKindOverride = null,
             TypeWithAnnotations? returnTypeOverride = null)
         {
@@ -9007,9 +8998,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = returnTypeOverride ?? methodSymbol.ReturnTypeWithAnnotations;
             var returnRefKind = returnRefKindOverride ?? methodSymbol.RefKind;
             var parameterScopes = parameterScopesOverride ??
-                (parameters.Any(p => p.EffectiveScope != ScopedKind.None) ?
-                parameters.SelectAsArray(p => p.EffectiveScope) :
-                default);
+                (parameters.Any(p => p.EffectiveScope != ScopedKind.None) ? parameters.SelectAsArray(p => p.EffectiveScope) : default);
+            var parameterHasUnscopedRefAttributes = parameterHasUnscopedRefAttributesOverride ??
+                (parameters.Any(p => p.HasUnscopedRefAttribute) ? parameters.SelectAsArray(p => p.HasUnscopedRefAttribute) : default);
             var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
@@ -9041,7 +9032,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnRefKind == RefKind.None &&
                 parameterDefaultValues.IsDefault &&
                 (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)) &&
-                (parameterScopes.IsDefault || parameterScopes.All(scope => scope == ScopedKind.None)))
+                (parameterScopes.IsDefault || parameterScopes.All(scope => scope == ScopedKind.None)) &&
+                (parameterHasUnscopedRefAttributes.IsDefault || parameterHasUnscopedRefAttributes.All(p => !p)))
             {
                 var wkDelegateType = returnsVoid ?
                     WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length) :
@@ -9076,8 +9068,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i],
                         parameterScopes.IsDefault ? ScopedKind.None : parameterScopes[i],
                         parameterDefaultValues.IsDefault ? null : parameterDefaultValues[i],
-                        isParams: hasParamsArray && i == parameterTypes.Length - 1)
-                    );
+                        isParams: hasParamsArray && i == parameterTypes.Length - 1,
+                        hasUnscopedRefAttribute: parameterHasUnscopedRefAttributes.IsDefault ? false : parameterHasUnscopedRefAttributes[i]));
             }
             fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, ScopedKind.None));
 
