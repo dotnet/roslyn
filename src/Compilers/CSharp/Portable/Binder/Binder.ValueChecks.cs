@@ -4158,6 +4158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var colElement = (BoundCollectionElementInitializer)expr;
                     return CheckValEscape(colElement.Arguments, escapeFrom, escapeTo, diagnostics);
 
+                case BoundKind.CollectionLiteralExpression:
+                    // PROTOTYPE: Are there cases where the escape scope is narrower than CallingMethod?
+                    return true;
+
                 case BoundKind.PointerElementAccess:
                     var accessedExpression = ((BoundPointerElementAccess)expr).Expression;
                     return CheckValEscape(accessedExpression.Syntax, accessedExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);

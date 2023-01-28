@@ -537,6 +537,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
         System_Collections_Generic_KeyValuePair_KV__ctor,
+        System_Collections_Generic_List_T__ctor,
+        System_Collections_Generic_List_T__Add,
+        System_Collections_Generic_List_T__ToArray,
 
         Count
 

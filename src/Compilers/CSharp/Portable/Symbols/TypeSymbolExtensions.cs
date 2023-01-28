@@ -1271,46 +1271,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static readonly string[] s_systemCollectionsGenericNamespaceName = new[] { "Generic", "Collections", "System", "" };
+        private static readonly string[] s_systemNamespaceNames = new[] { "System", "" };
+        private static readonly string[] s_systemCollectionsGenericNamespaceNames = new[] { "Generic", "Collections", "System", "" };
 
-        internal static bool IsKeyValuePair(this TypeSymbol type)
+        private static bool IsNamedTypeWithOneTypeArgument(TypeSymbol type, string[] namespaceNames, string metadataName, out TypeWithAnnotations typeArgument)
         {
-            return type is NamedTypeSymbol { MetadataName: "KeyValuePair`2", Arity: 2 } &&
-                IsNamespaceName(type.ContainingSymbol, s_systemCollectionsGenericNamespaceName);
+            if (type is NamedTypeSymbol { Arity: 1, TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: var typeArguments } namedType
+                && namedType.MetadataName == metadataName
+                && IsNamespaceName(type.ContainingSymbol, namespaceNames))
+            {
+                typeArgument = typeArguments[0];
+                return true;
+            }
+
+            typeArgument = default;
+            return false;
         }
 
-        // PROTOTYPE: These three extension methods should check type is not a nested type.
+        private static bool IsNamedTypeWithTwoTypeArguments(TypeSymbol type, string[] namespaceNames, string metadataName, out TypeWithAnnotations typeArgument1, out TypeWithAnnotations typeArgument2)
+        {
+            if (type is NamedTypeSymbol { Arity: 2, TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: var typeArguments } namedType
+                && namedType.MetadataName == metadataName
+                && IsNamespaceName(type.ContainingSymbol, namespaceNames))
+            {
+                typeArgument1 = typeArguments[0];
+                typeArgument2 = typeArguments[1];
+                return true;
+            }
+
+            typeArgument1 = default;
+            typeArgument2 = default;
+            return false;
+        }
+
+        internal static bool IsKeyValuePair(this TypeSymbol type)
+            => IsNamedTypeWithTwoTypeArguments(type, s_systemCollectionsGenericNamespaceNames, "KeyValuePair`2", out _, out _);
+
+        internal static bool IsIDictionaryKV(this TypeSymbol type)
+            => IsNamedTypeWithTwoTypeArguments(type, s_systemCollectionsGenericNamespaceNames, "IDictionary`2", out _, out _);
+
+        internal static bool IsIReadOnlyDictionaryKV(this TypeSymbol type)
+            => IsNamedTypeWithTwoTypeArguments(type, s_systemCollectionsGenericNamespaceNames, "IReadOnlyDictionary`2", out _, out _);
+
+        internal static bool IsSpanT(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+            => IsNamedTypeWithOneTypeArgument(type, s_systemNamespaceNames, "Span`1", out typeArgument);
+
+        internal static bool IsReadOnlySpanT(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+            => IsNamedTypeWithOneTypeArgument(type, s_systemNamespaceNames, "ReadOnlySpan`1", out typeArgument);
+
+        internal static bool IsSpanOrReadOnlySpanT(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+            => type.IsSpanT(out typeArgument) || type.IsReadOnlySpanT(out typeArgument);
+
         internal static bool IsSpanChar(this TypeSymbol type)
         {
-            return type is NamedTypeSymbol
-            {
-                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
-                MetadataName: "Span`1",
-                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
-            }
-            && arguments[0].SpecialType == SpecialType.System_Char;
+            return type.IsSpanT(out var typeArgument)
+                && typeArgument.SpecialType == SpecialType.System_Char;
         }
 
         internal static bool IsReadOnlySpanChar(this TypeSymbol type)
         {
-            return type is NamedTypeSymbol
-            {
-                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
-                MetadataName: "ReadOnlySpan`1",
-                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
-            }
-            && arguments[0].SpecialType == SpecialType.System_Char;
+            return type.IsReadOnlySpanT(out var typeArgument)
+                && typeArgument.SpecialType == SpecialType.System_Char;
         }
 
         internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
         {
-            return type is NamedTypeSymbol
-            {
-                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
-                MetadataName: "ReadOnlySpan`1" or "Span`1",
-                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
-            }
-            && arguments[0].SpecialType == SpecialType.System_Char;
+            return type.IsSpanOrReadOnlySpanT(out var typeArgument)
+                && typeArgument.SpecialType == SpecialType.System_Char;
         }
 
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix

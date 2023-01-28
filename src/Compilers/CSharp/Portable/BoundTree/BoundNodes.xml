@@ -1843,8 +1843,14 @@
   <Node Name="BoundCollectionLiteralExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <!-- Constructor will be null for arrays and type parameters. -->
+    <!-- Constructor will be null for arrays that are constructed from initializers directly and for type parameters. -->
     <Field Name="Constructor" Type="MethodSymbol?" Null="allow"/>
+    <!-- An intermediate collection type when the target is an array or span that is not constructed from initializers directly. -->
+    <Field Name="CollectionType" Type="NamedTypeSymbol?" Null="allow"/>
+    <!-- Method used to create an array from the intermediate collection type. -->
+    <Field Name="ToArray" Type="MethodSymbol?" Null="allow"/>
+    <!-- Constructor to create a span from an array. -->
+    <Field Name="SpanConstructor" Type="MethodSymbol?" Null="allow"/>
     <!-- An expression placeholder value representing the initialized object or collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" />
     <!--
@@ -1852,7 +1858,7 @@
       - BoundExpression: element added with array or span element assignment
       - BoundCollectionLiteralElement: element added with an applicable Add() method
       - BoundCollectionLiteralDictionaryElement: key-value pair element added with an applicable indexer assignment
-      - BoundCollectionLiteralSpreadOperator: enumerable element with items added with a specific initializer
+      - BoundCollectionLiteralSpreadElement: enumerable element with items added with a specific initializer
     -->
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
@@ -1986,7 +1992,7 @@
     <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <Field Name="ElementConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
     <Field Name="AddElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <Field Name="AddMethodInvocation" Type="BoundExpression?" Null="allow"/>
+    <Field Name="AddMethodInvocation" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <!-- Collection literal key-value pair added with an applicable indexer assignment. -->
@@ -2000,15 +2006,15 @@
   </Node>
 
   <!-- Collection literal enumerable with items added with a specific initializer. -->
-  <Node Name="BoundCollectionLiteralSpreadOperator" Base="BoundExpression">
+  <Node Name="BoundCollectionLiteralSpreadElement" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
+    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo" Null="disallow"/>
     <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <Field Name="ElementConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
-    <Field Name="AddElementPlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true" Null="disallow"/>
-    <Field Name="AddMethodInvocation" Type="BoundExpression"/>
+    <Field Name="AddElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <Field Name="AddMethodInvocation" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <Node Name="BoundImplicitReceiver" Base="BoundExpression">

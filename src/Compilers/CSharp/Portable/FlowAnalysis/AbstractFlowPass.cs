@@ -1936,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitCollectionLiteralSpreadOperator(BoundCollectionLiteralSpreadOperator node)
+        public override BoundNode VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
         {
             VisitRvalue(node.Expression);
             return null;

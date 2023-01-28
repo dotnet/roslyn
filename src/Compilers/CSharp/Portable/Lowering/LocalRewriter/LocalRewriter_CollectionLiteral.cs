@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -18,39 +17,74 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
-            var collectionType = node.Type;
+            var syntax = node.Syntax;
+            var collectionType = node.CollectionType ?? node.Type;
             var initializers = node.Initializers;
-            if (collectionType is ArrayTypeSymbol) // PROTOTYPE: Span<T> and ReadOnlySpan<T> should also use this code path.
-            {
-                if (initializers.Any(e => e.Kind == BoundKind.CollectionLiteralSpreadOperator))
-                {
-                    // A collection literal with a spread operator cannot be lowered to an array initializer
-                    // because the array size is not known at compile time. Instead, the array is created
-                    // from an intermediate List<T> is created.
-                    throw ExceptionUtilities.Unreachable(); // PROTOTYPE: ...
-                }
 
-                return VisitCollectionLiteralArrayExpression(node);
+            if (collectionType is ArrayTypeSymbol arrayType)
+            {
+                return MakeCollectionLiteralArrayExpression(syntax, arrayType, initializers);
             }
 
-            var syntax = node.Syntax;
-            var constructor = node.Constructor;
+            BoundExpression collection;
+
+            if (collectionType.IsSpanOrReadOnlySpanT(out var elementType))
+            {
+                collection = MakeCollectionLiteralArrayExpression(syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType), initializers);
+            }
+            else
+            {
+                Debug.Assert(node.Constructor is { });
+                var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                BoundLocal temp;
+                MakeCollectionLiteralExpression(syntax, (NamedTypeSymbol)collectionType, node.Constructor, node.Placeholder, initializers, sideEffects, out temp);
+
+                collection = new BoundSequence(
+                    syntax,
+                    ImmutableArray.Create(temp.LocalSymbol),
+                    sideEffects.ToImmutableAndFree(),
+                    temp,
+                    collectionType);
+
+                if (node.ToArray is { } toArrayMethod)
+                {
+                    Debug.Assert(TypeSymbol.Equals(collection.Type, toArrayMethod.ContainingType, TypeCompareKind.AllIgnoreOptions));
+                    collection = _factory.Call(collection, toArrayMethod);
+                }
+            }
+
+            var targetType = node.Type;
+            if (node.SpanConstructor is { } spanConstructor)
+            {
+                Debug.Assert(TypeSymbol.Equals(collection.Type, spanConstructor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(TypeSymbol.Equals(targetType, spanConstructor.ContainingType, TypeCompareKind.AllIgnoreOptions));
+                collection = new BoundObjectCreationExpression(syntax, spanConstructor, collection);
+            }
+
+            return collection;
+        }
+
+        private void MakeCollectionLiteralExpression(
+            SyntaxNode syntax,
+            NamedTypeSymbol collectionType,
+            MethodSymbol constructor,
+            BoundObjectOrCollectionValuePlaceholder placeholder,
+            ImmutableArray<BoundExpression> initializers,
+            ArrayBuilder<BoundExpression> sideEffects,
+            out BoundLocal temp)
+        {
+            Debug.Assert(constructor is { });
+
             BoundExpression rewrittenReceiver = constructor.IsDefaultValueTypeConstructor()
                 ? new BoundDefaultExpression(syntax, collectionType)
                 : new BoundObjectCreationExpression(syntax, constructor);
 
-            if (initializers.IsEmpty)
-            {
-                return rewrittenReceiver;
-            }
-
             // Create a temp for the collection.
-            BoundAssignmentOperator boundAssignmentToTemp;
-            BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out boundAssignmentToTemp, isKnownToReferToTempIfReferenceType: true);
-            rewrittenReceiver = temp;
+            BoundAssignmentOperator assignmentToTemp;
+            temp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+            sideEffects.Add(assignmentToTemp);
 
-            var placeholder = node.Placeholder;
-            AddPlaceholderReplacement(placeholder, rewrittenReceiver);
+            AddPlaceholderReplacement(placeholder, temp);
 
             var loweredInitializers = ArrayBuilder<BoundExpression>.GetInstance(initializers.Length);
 
@@ -64,10 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenInitializer = MakeCollectionLiteralElement(element);
                         break;
                     case BoundCollectionLiteralDictionaryElement dictionaryElement:
-                        rewrittenInitializer = MakeCollectionLiteralDictionaryElement(rewrittenReceiver, dictionaryElement);
+                        rewrittenInitializer = MakeCollectionLiteralDictionaryElement(temp, dictionaryElement);
                         break;
-                    case BoundCollectionLiteralSpreadOperator spreadInitializer:
-                        rewrittenInitializer = MakeCollectionLiteralSpreadOperator(spreadInitializer);
+                    case BoundCollectionLiteralSpreadElement spreadElement:
+                        rewrittenInitializer = MakeCollectionLiteralSpreadElement(spreadElement);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
@@ -80,28 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RemovePlaceholderReplacement(placeholder);
 
-            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(1 + loweredInitializers.Count);
-            sideEffects.Add(boundAssignmentToTemp);
             sideEffects.AddRange(loweredInitializers);
             loweredInitializers.Free();
-
-            return new BoundSequence(
-                syntax,
-                ImmutableArray.Create(temp.LocalSymbol),
-                sideEffects.ToImmutableAndFree(),
-                temp,
-                collectionType);
         }
 
-        private BoundExpression VisitCollectionLiteralArrayExpression(BoundCollectionLiteralExpression node)
+        private BoundExpression MakeCollectionLiteralArrayExpression(
+            SyntaxNode syntax,
+            ArrayTypeSymbol arrayType,
+            ImmutableArray<BoundExpression> initializers)
         {
-            var arrayType = (ArrayTypeSymbol?)node.Type;
-            Debug.Assert(arrayType is { });
-
-            var elementType = arrayType.ElementType;
-            var syntax = node.Syntax;
-            var initializers = node.Initializers;
-
             int n = initializers.Length;
             BoundArrayInitialization? initialization = null;
 
@@ -193,17 +214,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isCompoundAssignment: false);
         }
 
-        private BoundExpression MakeCollectionLiteralSpreadOperator(BoundCollectionLiteralSpreadOperator initializer)
+        private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement initializer)
         {
-            var enumeratorInfo = initializer.EnumeratorInfoOpt;
+            var enumeratorInfo = initializer.EnumeratorInfo;
+            var addElementPlaceholder = initializer.AddElementPlaceholder;
+
             Debug.Assert(enumeratorInfo is { });
+            Debug.Assert(addElementPlaceholder is { });
 
             var syntax = initializer.Syntax;
             var iterationVariable = _factory.SynthesizedLocal(enumeratorInfo.ElementType, syntax);
 
-            AddPlaceholderReplacement(initializer.AddElementPlaceholder, _factory.Local(iterationVariable));
-            var rewrittenBody = _factory.ExpressionStatement(VisitExpression(initializer.AddMethodInvocation));
-            RemovePlaceholderReplacement(initializer.AddElementPlaceholder);
+            AddPlaceholderReplacement(addElementPlaceholder, _factory.Local(iterationVariable));
+            var rewrittenAdd = VisitExpression(initializer.AddMethodInvocation);
+            var rewrittenBody = _factory.ExpressionStatement(rewrittenAdd!);
+            RemovePlaceholderReplacement(addElementPlaceholder);
 
             var statement = RewriteForEachEnumerator(
                 initializer,

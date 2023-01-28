@@ -3432,16 +3432,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (initializer)
                 {
-                    case BoundCollectionElementInitializer collectionElementInitializer:
-                        VisitCollectionElementInitializer(collectionElementInitializer, node.Type, delayCompletionForType: false);
+                    case BoundCollectionLiteralElement element:
+                        VisitRvalue(element.Expression);
+                        // PROTOTYPE: Visit Add() similar to VisitCollectionElementInitializer.
                         break;
-                    case BoundCollectionLiteralDictionaryElement dictionaryElementInitializer:
-                        VisitRvalue(dictionaryElementInitializer.Key);
-                        VisitRvalue(dictionaryElementInitializer.Value);
-                        // PROTOTYPE: Visit indexer method, similar to visiting Add() in VisitCollectionElementInitializer above.
+                    case BoundCollectionLiteralDictionaryElement dictionaryElement:
+                        VisitRvalue(dictionaryElement.Key);
+                        VisitRvalue(dictionaryElement.Value);
+                        // PROTOTYPE: Visit indexer method, similar to visiting Add() in VisitCollectionElementInitializer.
                         break;
-                    case BoundCollectionLiteralSpreadOperator spreadInitializer:
-                        VisitRvalue(spreadInitializer.Expression);
+                    case BoundCollectionLiteralSpreadElement spreadElement:
+                        VisitRvalue(spreadElement.Expression);
                         // PROTOTYPE: Visit enumerator element initializer.
                         break;
                     default:

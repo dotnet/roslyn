@@ -882,27 +882,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitCollectionLiteralElement(BoundCollectionLiteralElement node)
-        {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            if (node.AddElementPlaceholder is { } placeholder)
-            {
-                placeholders.Add((placeholder, _localScopeDepth)); // PROTOTYPE: _localScopeDepth is too restrictive.
-            }
-
-            using var region = new PlaceholderRegion(this, placeholders);
-            return base.VisitCollectionLiteralElement(node);
-        }
-
-        public override BoundNode? VisitCollectionLiteralSpreadOperator(BoundCollectionLiteralSpreadOperator node)
-        {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            placeholders.Add((node.AddElementPlaceholder, _localScopeDepth)); // PROTOTYPE: _localScopeDepth is too restrictive.
-
-            using var region = new PlaceholderRegion(this, placeholders);
-            return base.VisitCollectionLiteralSpreadOperator(node);
-        }
-
         private static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
             var location = syntax.GetLocation();

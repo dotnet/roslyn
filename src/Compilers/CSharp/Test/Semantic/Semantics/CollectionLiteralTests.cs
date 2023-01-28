@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -82,16 +83,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        int[] a = Create();
+                        object[] a = Create();
                         Console.WriteLine((a.Length, a[0], a[1]));
                     }
-                    static int[] Create() => [2, 3];
+                    static object[] Create() => [2, 3];
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "(2, 2, 3)");
             verifier.VerifyIL("Program.Create", """
                 {
-                  // Code size       15 (0xf)
+                  // Code size       25 (0x19)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  newarr     "object"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.2
+                  IL_0009:  box        "int"
+                  IL_000e:  stelem.ref
+                  IL_000f:  dup
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  ldc.i4.3
+                  IL_0012:  box        "int"
+                  IL_0017:  stelem.ref
+                  IL_0018:  ret
+                }
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Span_Empty()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Span<int> a = Create();
+                        Console.WriteLine(a.Length);
+                    }
+                    static Span<int> Create() => [];
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: "0");
+            verifier.VerifyIL("Program.Create", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  newarr     "int"
+                  IL_0006:  newobj     "System.Span<int>..ctor(int[])"
+                  IL_000b:  ret
+                }
+                """);
+            // PROTOTYPE: Test the same with ReadOnlySpan<int>.
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Span_WithElements()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Span<int> a = Create();
+                        Console.WriteLine((a.Length, a[0], a[1]));
+                    }
+                    static Span<int> Create() => [2, 3];
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: "(2, 2, 3)");
+            verifier.VerifyIL("Program.Create", """
+                {
+                  // Code size       20 (0x14)
                   .maxstack  4
                   IL_0000:  ldc.i4.2
                   IL_0001:  newarr     "int"
@@ -103,9 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_000b:  ldc.i4.1
                   IL_000c:  ldc.i4.3
                   IL_000d:  stelem.i4
-                  IL_000e:  ret
+                  IL_000e:  newobj     "System.Span<int>..ctor(int[])"
+                  IL_0013:  ret
                 }
                 """);
+            // PROTOTYPE: Test the same with ReadOnlySpan<int>.
         }
 
         // PROTOTYPE: Test array creation with k:v and ..e elements.
@@ -228,12 +297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             // PROTOTYPE: Conversion errors should highlight k or v not k:v.
             comp.VerifyEmitDiagnostics(
-                // (4,67): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                // (4,67): error CS0029: Cannot implicitly convert type 'object' to 'string'
                 //     static Dictionary<string, int> Create(object k, object v) => [k:v];
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "k:v").WithArguments("object", "string").WithLocation(4, 67),
-                // (4,67): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "k:v").WithArguments("object", "string").WithLocation(4, 67),
+                // (4,67): error CS0029: Cannot implicitly convert type 'object' to 'int'
                 //     static Dictionary<string, int> Create(object k, object v) => [k:v];
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "k:v").WithArguments("object", "int").WithLocation(4, 67));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "k:v").WithArguments("object", "int").WithLocation(4, 67));
         }
 
         [Fact]
@@ -525,9 +594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Test when Create2() returns IEnumerable<int> instead.
         [Fact]
-        public void Spread_IntoArray()
+        public void Spread_Array_01()
         {
             string source = """
                 using System;
@@ -591,6 +659,243 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
+        [Fact]
+        public void Spread_Array_02()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] a = Create1();
+                        Console.WriteLine((a.Length, a[0], a[1], a[2], a[3]));
+                    }
+                    static int[] Create1() => [1, ..Create2(), 2];
+                    static int[] Create2() => [3, 4];
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(4, 1, 3, 4, 2)");
+            verifier.VerifyIL("Program.Create1", """
+                {
+                  // Code size       90 (0x5a)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.Generic.List<int>.Enumerator V_1,
+                                int V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  box        "int"
+                  IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0012:  call       "System.Collections.Generic.List<int> Program.Create2()"
+                  IL_0017:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
+                  IL_001c:  stloc.1
+                  .try
+                  {
+                    IL_001d:  br.s       IL_0033
+                    IL_001f:  ldloca.s   V_1
+                    IL_0021:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
+                    IL_0026:  stloc.2
+                    IL_0027:  ldloc.0
+                    IL_0028:  ldloc.2
+                    IL_0029:  box        "int"
+                    IL_002e:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_0033:  ldloca.s   V_1
+                    IL_0035:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
+                    IL_003a:  brtrue.s   IL_001f
+                    IL_003c:  leave.s    IL_004c
+                  }
+                  finally
+                  {
+                    IL_003e:  ldloca.s   V_1
+                    IL_0040:  constrained. "System.Collections.Generic.List<int>.Enumerator"
+                    IL_0046:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_004b:  endfinally
+                  }
+                  IL_004c:  ldloc.0
+                  IL_004d:  ldc.i4.2
+                  IL_004e:  box        "int"
+                  IL_0053:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0058:  ldloc.0
+                  IL_0059:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Spread_Array_03()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] a = Create1();
+                        Console.WriteLine((a.Length, a[0], a[1], a[2], a[3]));
+                    }
+                    static int[] Create1() => [1, ..Create2(), 2];
+                    static object[] Create2() => [3, 4];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: We should report one error rather than two, an the error should refer to int[] target rather than List<int>.
+            comp.VerifyDiagnostics(
+                // (9,37): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
+                //     static int[] Create1() => [1, ..Create2(), 2];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "Create2()").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(9, 37),
+                // (9,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //     static int[] Create1() => [1, ..Create2(), 2];
+                Diagnostic(ErrorCode.ERR_BadArgType, "Create2()").WithArguments("1", "object", "int").WithLocation(9, 37));
+        }
+
+        [Fact]
+        public void Spread_Array_04()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        object[] a = Create1();
+                        Console.WriteLine((a.Length, a[0], a[1], a[2], a[3]));
+                    }
+                    static object[] Create1() => [1, ..Create2(), 2];
+                    static IEnumerable<int> Create2() => new[] { 3, 4 };
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(4, 1, 3, 4, 2)");
+            verifier.VerifyIL("Program.Create1", """
+                {
+                  // Code size       89 (0x59)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.Generic.IEnumerator<int> V_1,
+                                int V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  box        "int"
+                  IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0012:  call       "System.Collections.Generic.IEnumerable<int> Program.Create2()"
+                  IL_0017:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                  IL_001c:  stloc.1
+                  .try
+                  {
+                    IL_001d:  br.s       IL_0032
+                    IL_001f:  ldloc.1
+                    IL_0020:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_0025:  stloc.2
+                    IL_0026:  ldloc.0
+                    IL_0027:  ldloc.2
+                    IL_0028:  box        "int"
+                    IL_002d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_0032:  ldloc.1
+                    IL_0033:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0038:  brtrue.s   IL_001f
+                    IL_003a:  leave.s    IL_0046
+                  }
+                  finally
+                  {
+                    IL_003c:  ldloc.1
+                    IL_003d:  brfalse.s  IL_0045
+                    IL_003f:  ldloc.1
+                    IL_0040:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0045:  endfinally
+                  }
+                  IL_0046:  ldloc.0
+                  IL_0047:  ldc.i4.2
+                  IL_0048:  box        "int"
+                  IL_004d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0052:  ldloc.0
+                  IL_0053:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_0058:  ret
+                }
+                """);
+        }
+
+        // PROTOTYPE: Test when Create2() returns IEnumerable<int> instead.
+        // PROTOTYPE: Test with ReadOnlySpan<T>.
+        // PROTOTYPE: Test when spread element is Span<T>, which is not enumerable. What are the requirements for an expression to be spreadable?
+        // PROTOTYPE: Test array literal with spread element (so the length is not known) where the spread
+        // is a (pattern-based?) enumerable of int*, since int* is not a valid type argument for List<T>.
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Spread_Span()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Span<object> a = Create1();
+                        Console.WriteLine((a.Length, a[0], a[1], a[2], a[3]));
+                    }
+                    static Span<object> Create1() => [1, ..Create2(), 2];
+                    static object[] Create2() => [3, 4];
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: "(4, 1, 3, 4, 2)");
+            verifier.VerifyIL("Program.Create1", """
+                {
+                  // Code size       96 (0x60)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.IEnumerator V_1,
+                                object V_2,
+                                System.IDisposable V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  box        "int"
+                  IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0012:  call       "object[] Program.Create2()"
+                  IL_0017:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
+                  IL_001c:  stloc.1
+                  .try
+                  {
+                    IL_001d:  br.s       IL_002d
+                    IL_001f:  ldloc.1
+                    IL_0020:  callvirt   "object System.Collections.IEnumerator.Current.get"
+                    IL_0025:  stloc.2
+                    IL_0026:  ldloc.0
+                    IL_0027:  ldloc.2
+                    IL_0028:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_002d:  ldloc.1
+                    IL_002e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0033:  brtrue.s   IL_001f
+                    IL_0035:  leave.s    IL_0048
+                  }
+                  finally
+                  {
+                    IL_0037:  ldloc.1
+                    IL_0038:  isinst     "System.IDisposable"
+                    IL_003d:  stloc.3
+                    IL_003e:  ldloc.3
+                    IL_003f:  brfalse.s  IL_0047
+                    IL_0041:  ldloc.3
+                    IL_0042:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0047:  endfinally
+                  }
+                  IL_0048:  ldloc.0
+                  IL_0049:  ldc.i4.2
+                  IL_004a:  box        "int"
+                  IL_004f:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0054:  ldloc.0
+                  IL_0055:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_005a:  newobj     "System.Span<object>..ctor(object[])"
+                  IL_005f:  ret
+                }
+                """);
+            // PROTOTYPE: Test the same with ReadOnlySpan<int>.
+        }
+
         // PROTOTYPE: Test spread elements that implement IEnumerable or IEnumerable pattern but not IEnumerable<T>.
         // PROTOTYPE: Test spread elements that are dynamic type - test with non-dictionary and dictionary targets.
         // PROTOTYPE: Review ForEachLoopBinder.BindForEachPartsWorker() and add appropriate tests for the various scenarios
@@ -650,18 +955,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(source);
             verifier.VerifyIL("Program.M1", """
                 {
-                  // Code size       25 (0x19)
+                  // Code size       35 (0x23)
                   .maxstack  2
                   .locals init (S1<int> V_0)
                   IL_0000:  ldloca.s   V_0
                   IL_0002:  initobj    "S1<int>"
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  ldc.i4.1
-                  IL_000b:  call       "void S1<int>.Add(int)"
-                  IL_0010:  ldloca.s   V_0
-                  IL_0012:  ldc.i4.2
-                  IL_0013:  call       "void S1<int>.Add(int)"
-                  IL_0018:  ret
+                  IL_0008:  ldloc.0
+                  IL_0009:  pop
+                  IL_000a:  ldloca.s   V_0
+                  IL_000c:  initobj    "S1<int>"
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  ldc.i4.1
+                  IL_0015:  call       "void S1<int>.Add(int)"
+                  IL_001a:  ldloca.s   V_0
+                  IL_001c:  ldc.i4.2
+                  IL_001d:  call       "void S1<int>.Add(int)"
+                  IL_0022:  ret
                 }
                 """);
             verifier.VerifyIL("Program.M2", """
