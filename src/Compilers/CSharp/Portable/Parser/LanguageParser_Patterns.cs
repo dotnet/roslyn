@@ -289,7 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     static @this => @this.IsPossibleSubpatternElement(),
                     static @this => @this.ParseSubpatternElement(),
                     SkipBadPatternListTokens,
-                    allowTrailingSeparator: false);
+                    allowTrailingSeparator: false,
+                    requireOneElement: false,
+                    allowSemicolonAsSeparator: false);
                 var closeParenToken = this.EatToken(SyntaxKind.CloseParenToken);
 
                 parsePropertyPatternClause(out PropertyPatternClauseSyntax? propertyPatternClause0);
@@ -481,7 +483,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 static @this => @this.IsPossibleSubpatternElement(),
                 static @this => @this.ParseSubpatternElement(),
                 SkipBadPatternListTokens,
-                allowTrailingSeparator: true);
+                allowTrailingSeparator: true,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.PropertyPatternClause(
                 openBraceToken,
@@ -595,7 +599,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 static @this => @this.IsPossibleSubpatternElement(),
                 static @this => @this.ParsePattern(Precedence.Conditional),
                 SkipBadPatternListTokens,
-                allowTrailingSeparator: true);
+                allowTrailingSeparator: true,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.ListPattern(
                 openBracket,

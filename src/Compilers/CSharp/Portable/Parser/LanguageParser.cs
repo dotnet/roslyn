@@ -896,7 +896,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 static @this => @this.ParseAttribute(),
                 skipBadAttributeListTokens,
                 allowTrailingSeparator: true,
-                requireOneElement: true);
+                requireOneElement: true,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.AttributeList(
                 openBracket,
@@ -949,7 +950,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 static @this => @this.IsPossibleAttributeArgument(),
                 static @this => @this.ParseAttributeArgument(),
                 skipBadAttributeArgumentTokens,
-                allowTrailingSeparator: false);
+                allowTrailingSeparator: false,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.AttributeArgumentList(
                 openParen,
@@ -4200,7 +4203,9 @@ parse_member_name:;
                 static @this => @this.IsPossibleParameter(),
                 static @this => @this.ParseParameter(),
                 skipBadParameterListTokens,
-                allowTrailingSeparator: false);
+                allowTrailingSeparator: false,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
@@ -5230,6 +5235,7 @@ parse_member_name:;
                     static @this => @this.ParseEnumMemberDeclaration(),
                     skipBadEnumMemberListTokens,
                     allowTrailingSeparator: true,
+                    requireOneElement: false,
                     allowSemicolonAsSeparator: true);
             }
 
@@ -5430,7 +5436,8 @@ parse_member_name:;
                 static @this => @this.ParseTypeParameter(),
                 skipBadTypeParameterListTokens,
                 allowTrailingSeparator: false,
-                requireOneElement: true);
+                requireOneElement: true,
+                allowSemicolonAsSeparator: false);
 
             _termState = saveTerm;
 
@@ -8652,7 +8659,9 @@ done:;
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
                 skipBadForStatementExpressionListTokens,
-                allowTrailingSeparator: false);
+                allowTrailingSeparator: false,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             static PostSkipAction skipBadForStatementExpressionListTokens(
                 LanguageParser @this, ref SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
@@ -11015,7 +11024,9 @@ done:;
                         static @this => @this.IsPossibleArgumentExpression(),
                         static @this => @this.ParseArgumentExpression(isIndexer: true),
                         skipBadArgumentListTokens,
-                        allowTrailingSeparator: false);
+                        allowTrailingSeparator: false,
+                        requireOneElement: false,
+                        allowSemicolonAsSeparator: false);
                 }
                 else
                 {
@@ -11025,7 +11036,9 @@ done:;
                         static @this => @this.IsPossibleArgumentExpression(),
                         static @this => @this.ParseArgumentExpression(isIndexer: false),
                         skipBadArgumentListTokens,
-                        allowTrailingSeparator: false);
+                        allowTrailingSeparator: false,
+                        requireOneElement: false,
+                        allowSemicolonAsSeparator: false);
                 }
             }
             else if (isIndexer && this.CurrentToken.Kind == closeKind)
@@ -11806,7 +11819,9 @@ done:;
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseAnonymousTypeMemberInitializer(),
                 SkipBadInitializerListTokens,
-                allowTrailingSeparator: true);
+                allowTrailingSeparator: true,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.AnonymousObjectCreationExpression(
                 @new,
@@ -11929,7 +11944,9 @@ done:;
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
                 SkipBadInitializerListTokens,
-                allowTrailingSeparator: true);
+                allowTrailingSeparator: true,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.WithExpression(
                 receiverExpression,
@@ -11953,7 +11970,9 @@ done:;
                 static @this => @this.IsInitializerMember(),
                 static @this => @this.ParseObjectOrCollectionInitializerMember(),
                 SkipBadInitializerListTokens,
-                allowTrailingSeparator: true);
+                allowTrailingSeparator: true,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             var kind = isObjectInitializer(initializers) ? SyntaxKind.ObjectInitializerExpression : SyntaxKind.CollectionInitializerExpression;
 
@@ -12058,7 +12077,9 @@ done:;
                 static @this => @this.IsPossibleExpression(),
                 static @this => @this.ParseExpressionCore(),
                 SkipBadInitializerListTokens,
-                allowTrailingSeparator: false);
+                allowTrailingSeparator: false,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ComplexElementInitializerExpression,
@@ -12125,7 +12146,9 @@ done:;
                 static @this => @this.IsPossibleVariableInitializer(),
                 static @this => @this.ParseVariableInitializer(),
                 skipBadArrayInitializerTokens,
-                allowTrailingSeparator: true);
+                allowTrailingSeparator: true,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ArrayInitializerExpression,
@@ -12396,7 +12419,9 @@ done:;
                 static @this => @this.IsPossibleLambdaParameter(),
                 static @this => @this.ParseLambdaParameter(),
                 skipBadLambdaParameterListTokens,
-                allowTrailingSeparator: false);
+                allowTrailingSeparator: false,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             _termState = saveTerm;
 
@@ -12935,8 +12960,8 @@ done:;
             Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
-            bool requireOneElement = false,
-            bool allowSemicolonAsSeparator = false) where TNode : GreenNode
+            bool requireOneElement,
+            bool allowSemicolonAsSeparator) where TNode : GreenNode
         {
             // If we ever want this function to parse out separated lists with a different separator, we can
             // parameterize this method on this value.
