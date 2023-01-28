@@ -12137,9 +12137,6 @@ done:;
         private InitializerExpressionSyntax ParseArrayInitializer()
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-
-            // NOTE:  This loop allows " { <initexpr>, } " but not " { , } "
-
             var list = this.ParseCommaSeparatedSyntaxList(
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
