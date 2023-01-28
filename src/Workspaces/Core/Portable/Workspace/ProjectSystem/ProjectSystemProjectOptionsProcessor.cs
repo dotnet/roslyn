@@ -157,6 +157,15 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             _commandLineArgumentsForCommandLine = _commandLineParserService.Parse(arguments, Path.GetDirectoryName(_project.FilePath), isInteractive: false, sdkDirectory: null);
         }
 
+        /// <summary>
+        /// Returns the parsed command line arguments for the arguments set with <see cref="SetCommandLine(ImmutableArray{string})"/>.
+        /// </summary>
+        public CommandLineArguments GetParsedCommandLineArguments()
+        {
+            // Since this is just reading a single reference field, there's no reason to take a lock.
+            return _commandLineArgumentsForCommandLine;
+        }
+
         private void UpdateProjectOptions_NoLock()
         {
             var effectiveRuleSetPath = ExplicitRuleSetFilePath ?? _commandLineArgumentsForCommandLine.RuleSetPath;

@@ -3412,8 +3412,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
             => namespaceOrTypeSymbol.GenerateNameSyntax();
 
-        public override SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
-            => typeSymbol.GenerateTypeSyntax();
+        private protected override SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind)
+        {
+            var type = typeSymbol.GenerateTypeSyntax();
+            return refKind switch
+            {
+                RefKind.Ref => SyntaxFactory.RefType(type),
+                RefKind.RefReadOnly => SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword), type),
+                _ => type,
+            };
+        }
 
         public override SyntaxNode TypeExpression(SpecialType specialType)
             => specialType switch
