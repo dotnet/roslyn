@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeExpression1()
+        public void TestNormalizeDifferentExpressions()
         {
             TestNormalizeExpression("!a", "!a");
             TestNormalizeExpression("-a", "-a");
