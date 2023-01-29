@@ -227,6 +227,11 @@
         <target state="translated">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft oder ein Feld vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Fehler in der Befehlszeilensyntax: "{0}" ist kein gültiger Wert für die Option "{1}". Der Wert muss im Format "{2}" vorliegen.</target>
@@ -668,8 +673,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Die Verwendung eines Funktionszeigertyps in "typeof" in einem Attribut wird nicht unterstützt.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">Die Verwendung eines Funktionszeigertyps in "typeof" in einem Attribut wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -1647,19 +1652,24 @@
         <target state="translated">"{0}" ist mit dem Attribut "UnmanagedCallersOnly" versehen und kann nicht in einen Delegattyp konvertiert werden. Rufen Sie einen Funktionszeiger auf diese Methode ab.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation.</target>
+        <target state="translated">"UnscopedRefAttribute" kann nicht auf eine Schnittstellenimplementierung angewendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</target>
+        <target state="translated">"UnscopedRefAttribute" kann nur auf Strukturinstanzmethoden und -eigenschaften und nicht auf Konstruktoren oder init-only-Member angewendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</target>
+        <target state="translated">"UnscopedRefAttribute" kann nicht auf diesen Parameter angewendet werden, da er standardmäßig nicht bereichsgesteuert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">

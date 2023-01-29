@@ -400,8 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
-        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals =
-            new Dictionary<LocalSymbol, LocalDefUseInfo>();
+        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
         // we do that by placing a fake dummy local at one end of a branch and force that it is accessible at another.
@@ -1373,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 RecordBranch(label);
             }
 
-            return node.Update(boundExpression, node.Cases, node.DefaultLabel);
+            return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt);
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -1552,30 +1551,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var cookie = GetStackStateCookie(); // implicit goto here 
 
             SetStackDepth(origStack); // consequence is evaluated with original stack 
-            var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
-
-            EnsureStackState(cookie); // implicit label here 
-
-            SetStackDepth(origStack); // alternative is evaluated with original stack 
-            var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
-
-            EnsureStackState(cookie); // implicit label here 
-
-            return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type);
-        }
-
-        public override BoundNode VisitComplexReceiver(BoundComplexReceiver node)
-        {
-            EnsureOnlyEvalStack();
-
-            var origStack = StackDepth();
-
-            PushEvalStack(null, ExprContext.None);
-
-            var cookie = GetStackStateCookie(); // implicit goto here 
-
-            SetStackDepth(origStack); // consequence is evaluated with original stack 
-
             var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 

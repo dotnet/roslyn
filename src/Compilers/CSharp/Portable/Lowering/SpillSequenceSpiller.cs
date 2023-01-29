@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly SyntheticBoundNodeFactory _F;
         private readonly PooledDictionary<LocalSymbol, LocalSymbol> _tempSubstitution;
-        private readonly PooledDictionary<LocalSymbol, BoundComplexReceiver> _receiverSubstitution;
+        private readonly PooledDictionary<LocalSymbol, BoundComplexConditionalReceiver> _receiverSubstitution;
 
         private SpillSequenceSpiller(
             MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState,
             PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution,
-            PooledDictionary<LocalSymbol, BoundComplexReceiver> receiverSubstitution,
+            PooledDictionary<LocalSymbol, BoundComplexConditionalReceiver> receiverSubstitution,
             BindingDiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
@@ -182,11 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class LocalSubstituter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private readonly PooledDictionary<LocalSymbol, LocalSymbol> _tempSubstitution;
-            private readonly PooledDictionary<LocalSymbol, BoundComplexReceiver> _receiverSubstitution;
+            private readonly PooledDictionary<LocalSymbol, BoundComplexConditionalReceiver> _receiverSubstitution;
 
             private LocalSubstituter(
                 PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution,
-                PooledDictionary<LocalSymbol, BoundComplexReceiver> receiverSubstitution,
+                PooledDictionary<LocalSymbol, BoundComplexConditionalReceiver> receiverSubstitution,
                 int recursionDepth = 0)
                 : base(recursionDepth)
             {
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static BoundNode Rewrite(
                 PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution,
-                PooledDictionary<LocalSymbol, BoundComplexReceiver> receiverSubstitution,
+                PooledDictionary<LocalSymbol, BoundComplexConditionalReceiver> receiverSubstitution,
                 BoundNode node)
             {
                 if (tempSubstitution.Count == 0)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var tempSubstitution = PooledDictionary<LocalSymbol, LocalSymbol>.GetInstance();
-            var receiverSubstitution = PooledDictionary<LocalSymbol, BoundComplexReceiver>.GetInstance();
+            var receiverSubstitution = PooledDictionary<LocalSymbol, BoundComplexConditionalReceiver>.GetInstance();
             var spiller = new SpillSequenceSpiller(method, body.Syntax, compilationState, tempSubstitution, receiverSubstitution, diagnostics);
             BoundNode result = spiller.Visit(body);
             result = LocalSubstituter.Rewrite(tempSubstitution, receiverSubstitution, result);
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 IsComplexConditionalInitializationOfReceiverRef(
                                     assignment,
                                     out LocalSymbol receiverRefLocal,
-                                    out BoundComplexReceiver complexReceiver,
+                                    out BoundComplexConditionalReceiver complexReceiver,
                                     out BoundLocal valueTypeReceiver,
                                     out BoundLocal referenceTypeReceiver))
                             {
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsComplexConditionalInitializationOfReceiverRef(
             BoundAssignmentOperator assignment,
             out LocalSymbol outReceiverRefLocal,
-            out BoundComplexReceiver outComplexReceiver,
+            out BoundComplexConditionalReceiver outComplexReceiver,
             out BoundLocal outValueTypeReceiver,
             out BoundLocal outReferenceTypeReceiver)
         {
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     IsRef: true,
                     Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } receiverRefLocal },
-                    Right: BoundComplexReceiver
+                    Right: BoundComplexConditionalReceiver
                     {
                         ValueTypeReceiver: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } } valueTypeReceiver,
                         ReferenceTypeReceiver: BoundSequence
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.Expression);
-            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel));
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt));
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
@@ -984,9 +984,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var cache = _F.Local(_F.SynthesizedLocal(receiverType));
                     receiverBuilder.AddLocal(cache.LocalSymbol);
-                    receiverBuilder.AddStatement(_F.ExpressionStatement(new BoundComplexReceiver(node.Syntax, cache, _F.Sequence(new[] { _F.AssignmentExpression(cache, receiver) }, cache), receiverType) { WasCompilerGenerated = true }));
+                    receiverBuilder.AddStatement(_F.ExpressionStatement(new BoundComplexConditionalReceiver(node.Syntax, cache, _F.Sequence(new[] { _F.AssignmentExpression(cache, receiver) }, cache), receiverType) { WasCompilerGenerated = true }));
 
-                    receiver = new BoundComplexReceiver(node.Syntax, receiver, cache, receiverType) { WasCompilerGenerated = true };
+                    receiver = _F.ComplexConditionalReceiver(receiver, cache);
                     _F.Syntax = save_Syntax;
                 }
 

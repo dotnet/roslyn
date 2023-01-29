@@ -22,16 +22,16 @@ public class VisualStudioOptionStorageTests
         var storages = VisualStudioOptionStorage.Storages;
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
 
-        // Options with per-language values shouldn't be defined in langauge-specific assembly since then they wouldn't be applicable to the other language.
+        // Options with per-language values shouldn't be defined in language-specific assembly since then they wouldn't be applicable to the other language.
 
         var perLanguageOptionsDefinedInIncorrectAssembly =
             from info in infos
             where info.Value.Option.IsPerLanguage && info.Value.ContainingAssemblyLanguage is "CSharp" or "VisualBasic"
-            select info;
+            select info.Key;
 
         Assert.Empty(perLanguageOptionsDefinedInIncorrectAssembly);
 
-        // languge specific options have correct name prefix and are defined in language specific assemblies:
+        // language specific options have correct name prefix and are defined in language specific assemblies:
 
         var languageSpecificOptionsHaveIncorrectPrefix =
             from info in infos
@@ -39,7 +39,7 @@ public class VisualStudioOptionStorageTests
             where info.Value.Option.Definition.IsEditorConfigOption // TODO: remove condition once all options have config name https://github.com/dotnet/roslyn/issues/65787
             where info.Key.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "CSharp" ||
                   info.Key.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "VisualBasic"
-            select (info);
+            select info.Key;
 
         Assert.Empty(languageSpecificOptionsHaveIncorrectPrefix);
 
@@ -52,6 +52,18 @@ public class VisualStudioOptionStorageTests
             select info.Key;
 
         Assert.Empty(publicOptionsWithoutPublicAccessor);
+
+        // Options with per-langauge values specify %LANGUAGE% in the storage key, and vice versa.
+
+        var optionsWithIncorrectLanguageSubstitution =
+            from info in infos
+            let option = info.Value.Option
+            where option.IsPerLanguage !=
+                  VisualStudioOptionStorage.Storages.TryGetValue(info.Key, out var storage) &&
+                  storage is VisualStudioOptionStorage.RoamingProfileStorage { IsPerLanguage: true }
+            select info.Key;
+
+        Assert.Empty(optionsWithIncorrectLanguageSubstitution);
 
         // no two option names map to the same storage (however, there may be multiple option definitions that share the same option name and storage):
 
@@ -97,7 +109,8 @@ public class VisualStudioOptionStorageTests
             "CSharpFormattingOptions_SpaceWithinCastParentheses",                           // public option deserialized via CSharpVisualStudioOptionStorageReadFallbacks
             "CSharpFormattingOptions_SpaceWithinExpressionParentheses",                     // public option deserialized via CSharpVisualStudioOptionStorageReadFallbacks
             "CSharpFormattingOptions_SpaceWithinOtherParentheses",                          // public option deserialized via CSharpVisualStudioOptionStorageReadFallbacks
-            "dotnet_style_operator_placement_when_wrapping",                                // TODO: https://github.com/dotnet/roslyn/issues/66062
+            "dotnet_remove_unnecessary_suppression_exclusions",                             // Doesn't have VS UI. TODO: https://github.com/dotnet/roslyn/issues/66062
+            "dotnet_style_operator_placement_when_wrapping",                                // Doesn't have VS UI. TODO: https://github.com/dotnet/roslyn/issues/66062
             "dotnet_style_prefer_foreach_explicit_cast_in_source",                          // For a small customer segment, doesn't warrant VS UI.
             "end_of_line",                                                                  // persisted by the editor
             "ExtensionManagerOptions_DisableCrashingExtensions",                            // TODO: remove? https://github.com/dotnet/roslyn/issues/66063

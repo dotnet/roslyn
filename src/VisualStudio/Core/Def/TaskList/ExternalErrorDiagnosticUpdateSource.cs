@@ -797,6 +797,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
+                // Compiler diagnostics reported on additional documents indicate mapped diagnostics, such as compiler diagnostics
+                // in razor files which are actually reported on generated source files but mapped to razor files during build.
+                // These are not reported on additional files during live analysis, and can be considered to be build-only diagnostics.
+                if (IsAdditionalDocumentDiagnostic(project, diagnosticData) &&
+                    diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
+                {
+                    return false;
+                }
+
                 if (IsSupportedLiveDiagnosticId(project, diagnosticData.Id))
                 {
                     return true;
@@ -834,6 +843,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         (diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Line > 0 ||
                          diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Character > 0);
                 }
+
+                static bool IsAdditionalDocumentDiagnostic(Project project, DiagnosticData diagnosticData)
+                    => diagnosticData.DocumentId != null && project.ContainsAdditionalDocument(diagnosticData.DocumentId);
             }
 
             private bool IsSupportedLiveDiagnosticId(Project project, string id)

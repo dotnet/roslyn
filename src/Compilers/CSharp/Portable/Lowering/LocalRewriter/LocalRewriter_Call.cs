@@ -701,10 +701,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     assignmentToTemp.Update(
                         assignmentToTemp.Left,
 #pragma warning disable format
-                        new BoundComplexReceiver(receiverTemp.Syntax,
-                                                 intermediateRef,
-                                                 _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, intermediateRef) }, cache),
-                                                 receiverType) { WasCompilerGenerated = true },
+                        new BoundComplexConditionalReceiver(receiverTemp.Syntax,
+                                                            intermediateRef,
+                                                            _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, intermediateRef) }, cache),
+                                                            receiverType) { WasCompilerGenerated = true },
 #pragma warning restore format
                         assignmentToTemp.IsRef,
                         assignmentToTemp.Type);
