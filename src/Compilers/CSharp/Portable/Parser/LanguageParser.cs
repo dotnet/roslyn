@@ -11834,7 +11834,9 @@ done:;
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.PlusPlusToken:
                 case SyntaxKind.MinusMinusToken:
-                case SyntaxKind.OpenBracketToken:
+                // PROTOTYPE: We allow `(X)[...]` as a cast of a collection expression.  This could break existing
+                // code like (A.B.C)[0].
+                // case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.DotToken:
                 case SyntaxKind.MinusGreaterThanToken:
                 case SyntaxKind.QuestionQuestionToken:
