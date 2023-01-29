@@ -173,7 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         LoweredConditionalAccess,
         ConditionalReceiver,
         ComplexConditionalReceiver,
-        ComplexReceiver,
         MethodGroup,
         PropertyGroup,
         Call,
@@ -3541,7 +3540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchDispatch : BoundStatement
     {
-        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, bool hasErrors = false)
+        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, LengthBasedStringSwitchData? lengthBasedStringSwitchDataOpt, bool hasErrors = false)
             : base(BoundKind.SwitchDispatch, syntax, hasErrors || expression.HasErrors())
         {
 
@@ -3552,20 +3551,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expression = expression;
             this.Cases = cases;
             this.DefaultLabel = defaultLabel;
+            this.LengthBasedStringSwitchDataOpt = lengthBasedStringSwitchDataOpt;
         }
 
         public BoundExpression Expression { get; }
         public ImmutableArray<(ConstantValue value, LabelSymbol label)> Cases { get; }
         public LabelSymbol DefaultLabel { get; }
+        public LengthBasedStringSwitchData? LengthBasedStringSwitchDataOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchDispatch(this);
 
-        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel)
+        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, LengthBasedStringSwitchData? lengthBasedStringSwitchDataOpt)
         {
-            if (expression != this.Expression || cases != this.Cases || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel))
+            if (expression != this.Expression || cases != this.Cases || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || lengthBasedStringSwitchDataOpt != this.LengthBasedStringSwitchDataOpt)
             {
-                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, this.HasErrors);
+                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, lengthBasedStringSwitchDataOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5789,39 +5790,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (valueTypeReceiver != this.ValueTypeReceiver || referenceTypeReceiver != this.ReferenceTypeReceiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundComplexConditionalReceiver(this.Syntax, valueTypeReceiver, referenceTypeReceiver, type, this.HasErrors);
-                result.CopyAttributes(this);
-                return result;
-            }
-            return this;
-        }
-    }
-
-    internal sealed partial class BoundComplexReceiver : BoundExpression
-    {
-        public BoundComplexReceiver(SyntaxNode syntax, BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ComplexReceiver, syntax, type, hasErrors || valueTypeReceiver.HasErrors() || referenceTypeReceiver.HasErrors())
-        {
-
-            RoslynDebug.Assert(valueTypeReceiver is object, "Field 'valueTypeReceiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(referenceTypeReceiver is object, "Field 'referenceTypeReceiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.ValueTypeReceiver = valueTypeReceiver;
-            this.ReferenceTypeReceiver = referenceTypeReceiver;
-        }
-
-        public new TypeSymbol Type => base.Type!;
-        public BoundExpression ValueTypeReceiver { get; }
-        public BoundExpression ReferenceTypeReceiver { get; }
-
-        [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitComplexReceiver(this);
-
-        public BoundComplexReceiver Update(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver, TypeSymbol type)
-        {
-            if (valueTypeReceiver != this.ValueTypeReceiver || referenceTypeReceiver != this.ReferenceTypeReceiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
-            {
-                var result = new BoundComplexReceiver(this.Syntax, valueTypeReceiver, referenceTypeReceiver, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8682,8 +8650,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitConditionalReceiver((BoundConditionalReceiver)node, arg);
                 case BoundKind.ComplexConditionalReceiver:
                     return VisitComplexConditionalReceiver((BoundComplexConditionalReceiver)node, arg);
-                case BoundKind.ComplexReceiver:
-                    return VisitComplexReceiver((BoundComplexReceiver)node, arg);
                 case BoundKind.MethodGroup:
                     return VisitMethodGroup((BoundMethodGroup)node, arg);
                 case BoundKind.PropertyGroup:
@@ -8979,7 +8945,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConditionalReceiver(BoundConditionalReceiver node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitComplexReceiver(BoundComplexReceiver node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitMethodGroup(BoundMethodGroup node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPropertyGroup(BoundPropertyGroup node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCall(BoundCall node, A arg) => this.DefaultVisit(node, arg);
@@ -9204,7 +9169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConditionalReceiver(BoundConditionalReceiver node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitComplexReceiver(BoundComplexReceiver node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitMethodGroup(BoundMethodGroup node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPropertyGroup(BoundPropertyGroup node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCall(BoundCall node) => this.DefaultVisit(node);
@@ -9926,12 +9890,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitConditionalReceiver(BoundConditionalReceiver node) => null;
         public override BoundNode? VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
-        {
-            this.Visit(node.ValueTypeReceiver);
-            this.Visit(node.ReferenceTypeReceiver);
-            return null;
-        }
-        public override BoundNode? VisitComplexReceiver(BoundComplexReceiver node)
         {
             this.Visit(node.ValueTypeReceiver);
             this.Visit(node.ReferenceTypeReceiver);
@@ -10787,7 +10745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSwitchDispatch(BoundSwitchDispatch node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            return node.Update(expression, node.Cases, node.DefaultLabel);
+            return node.Update(expression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt);
         }
         public override BoundNode? VisitIfStatement(BoundIfStatement node)
         {
@@ -11148,13 +11106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(node.Id, type);
         }
         public override BoundNode? VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
-        {
-            BoundExpression valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
-            BoundExpression referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
-            TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(valueTypeReceiver, referenceTypeReceiver, type);
-        }
-        public override BoundNode? VisitComplexReceiver(BoundComplexReceiver node)
         {
             BoundExpression valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
             BoundExpression referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
@@ -13197,24 +13148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitComplexReceiver(BoundComplexReceiver node)
-        {
-            BoundExpression valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
-            BoundExpression referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
-            BoundComplexReceiver updatedNode;
-
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                updatedNode = node.Update(valueTypeReceiver, referenceTypeReceiver, infoAndType.Type!);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type);
-            }
-            return updatedNode;
-        }
-
         public override BoundNode? VisitMethodGroup(BoundMethodGroup node)
         {
             ImmutableArray<MethodSymbol> methods = GetUpdatedArray(node, node.Methods);
@@ -15023,6 +14956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("cases", node.Cases, null),
             new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+            new TreeDumperNode("lengthBasedStringSwitchDataOpt", node.LengthBasedStringSwitchDataOpt, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
@@ -15546,15 +15480,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         );
         public override TreeDumperNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node, object? arg) => new TreeDumperNode("complexConditionalReceiver", null, new TreeDumperNode[]
-        {
-            new TreeDumperNode("valueTypeReceiver", null, new TreeDumperNode[] { Visit(node.ValueTypeReceiver, null) }),
-            new TreeDumperNode("referenceTypeReceiver", null, new TreeDumperNode[] { Visit(node.ReferenceTypeReceiver, null) }),
-            new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
-            new TreeDumperNode("hasErrors", node.HasErrors, null)
-        }
-        );
-        public override TreeDumperNode VisitComplexReceiver(BoundComplexReceiver node, object? arg) => new TreeDumperNode("complexReceiver", null, new TreeDumperNode[]
         {
             new TreeDumperNode("valueTypeReceiver", null, new TreeDumperNode[] { Visit(node.ValueTypeReceiver, null) }),
             new TreeDumperNode("referenceTypeReceiver", null, new TreeDumperNode[] { Visit(node.ReferenceTypeReceiver, null) }),
