@@ -830,12 +830,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,2): error CS1001: Identifier expected
                 // ["A", "B"][0].C();
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, @"""A""").WithLocation(1, 2),
-                // (1,2): error CS1001: Identifier expected
+                // (1,2): error CS1003: Syntax error, ',' expected
                 // ["A", "B"][0].C();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"""A""").WithLocation(1, 2),
-                // (1,7): error CS1001: Identifier expected
-                // ["A", "B"][0].C();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"""B""").WithLocation(1, 7),
+                Diagnostic(ErrorCode.ERR_SyntaxError, @"""A""").WithArguments(",").WithLocation(1, 2),
                 // (1,7): error CS1001: Identifier expected
                 // ["A", "B"][0].C();
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, @"""B""").WithLocation(1, 7));
@@ -857,13 +854,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                             }
                             N(SyntaxKind.CommaToken);
-                            M(SyntaxKind.Attribute);
-                            {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                            }
                             N(SyntaxKind.CloseBracketToken);
                         }
                         N(SyntaxKind.InvocationExpression);

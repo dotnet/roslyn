@@ -16,6 +16,7 @@ efforts behind them.
 | [nameof accessing instance members](https://github.com/dotnet/roslyn/issues/40229) | main | [In Progress](https://github.com/dotnet/roslyn/pull/48754) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [333fred](https://github.com/333fred), [AlekseyTs](https://github.com/AlekseyTs)  | [333fred](https://github.com/333fred) |
 | [Lambda default parameters](https://github.com/dotnet/csharplang/issues/6051) | [lambda-default-parameters](https://github.com/dotnet/roslyn/tree/features/lambda-default-parameters) | [Merged into 17.5p2](https://github.com/dotnet/roslyn/issues/62485) | [adamperlin](https://github.com/adamperlin), [jjonescz](https://github.com/jjonescz) | [333fred](https://github.com/333fred), [cston](https://github.com/cston)  | [captainsafia](https://github.com/captainsafia) | 
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [In Progress](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
+| [Collection Literals](https://github.com/dotnet/csharplang/issues/5354) | [CollectionLiterals](https://github.com/dotnet/roslyn/tree/features/CollectionLiterals) | | [cston](https://github.com/cston) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
   
 # C# 11.0
 

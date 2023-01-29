@@ -33432,5 +33432,129 @@ public class C5 : I1<C5>
                     Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_2").WithLocation(80, 45)
                 );
         }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPoint()
+        {
+            CreateCompilation("""
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPoint()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPointWithImplementation()
+        {
+            CompileAndVerify("""
+                using System;
+
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+
+                class Program : IProgram
+                {
+                    public static void Main() => Console.WriteLine("Hello World!");
+                }
+                """,
+                expectedOutput: Execute(false) ? "Hello World!" : null,
+                options: TestOptions.DebugExe,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: _supportingFramework,
+                verify: Verification.Skipped);
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPointWithExplicitImplementation()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+
+                class Program : IProgram
+                {
+                    static void IProgram.Main() => Console.WriteLine("Hello World!");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPointWithImplementation()
+        {
+            CompileAndVerify("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+
+                class Program : IProgram
+                {
+                    public static void Main() => Console.WriteLine("Hello World!");
+                }
+                """,
+                expectedOutput: Execute(false) ? "Hello World!" : null,
+                options: TestOptions.DebugExe,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: _supportingFramework,
+                verify: Verification.Skipped);
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPointWithExplicitImplementation()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+
+                class Program : IProgram
+                {
+                    static void IProgram.Main() => Console.WriteLine("Hello World!");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
     }
 }
