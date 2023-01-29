@@ -3239,7 +3239,6 @@ class C
             EOF();
         }
 
-
         [Fact]
         public void TestTrailingComma4()
         {
