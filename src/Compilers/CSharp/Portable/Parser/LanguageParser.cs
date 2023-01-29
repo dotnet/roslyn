@@ -11871,63 +11871,28 @@ done:;
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenBracketToken);
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
-
-            var list = _pool.AllocateSeparated<CollectionElementSyntax>();
-
-            if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
-            {
-tryAgain:
-                if (IsPossibleCollectionElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    list.Add(this.ParseCollectionElement());
-
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
-                        {
-                            break;
-                        }
-                        else if (IsPossibleCollectionElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                        {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-
-                            // check for exit case after legal trailing comma
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                            {
-                                break;
-                            }
-                            else if (!IsPossibleCollectionElement())
-                            {
-                                goto tryAgain;
-                            }
-
-                            list.Add(this.ParseCollectionElement());
-                            continue;
-                        }
-                        else if (skipBadCollectionElementTokens(ref openBracket, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (skipBadCollectionElementTokens(ref openBracket, list, SyntaxKind.CommaToken) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
-                }
-            }
+            var list = this.ParseCommaSeparatedSyntaxList(
+                ref openBracket,
+                SyntaxKind.CloseBracketToken,
+                static @this => @this.IsPossibleCollectionElement(),
+                static @this => @this.ParseCollectionElement(),
+                skipBadCollectionElementTokens,
+                allowTrailingSeparator: true,
+                requireOneElement: false,
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.CollectionCreationExpression(
                 openBracket,
-                _pool.ToListAndFree(list),
+                list,
                 this.EatToken(SyntaxKind.CloseBracketToken));
 
-            PostSkipAction skipBadCollectionElementTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<CollectionElementSyntax> list, SyntaxKind expected)
+            static PostSkipAction skipBadCollectionElementTokens(
+                LanguageParser @this, ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<CollectionElementSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
             {
-                return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
-                    p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleCollectionElement(),
-                    static (p, closeToken) => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken,
-                    expected);
+                return @this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
+                    static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleCollectionElement(),
+                    static (p, closeKind) => p.CurrentToken.Kind == closeKind,
+                    expectedKind, closeKind);
             }
         }
 
