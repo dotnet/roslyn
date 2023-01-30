@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private static readonly EditorConfigValueSerializer<bool> s_bool = new(
             parseValue: ParseBoolean,
-            serializeValue: value => value ? "true" : "false");
+            serializeValue: SerializeBoolean);
 
         private static readonly EditorConfigValueSerializer<int> s_int32 = new(
             parseValue: str => int.TryParse(str, out var result) ? result : new Optional<int>(),
@@ -31,18 +31,13 @@ namespace Microsoft.CodeAnalysis.Options
 
         private static readonly EditorConfigValueSerializer<bool?> s_nullableBoolean = new(
             parseValue: ParseNullableBoolean,
-            serializeValue: value =>
-            {
-                if (value == null)
-                {
-                    return "null";
-                }
-
-                return value.Value ? "true" : "false";
-            });
+            serializeValue: value => value == null ? "null" : SerializeBoolean(value.Value));
 
         private static Optional<bool> ParseBoolean(string str)
             => bool.TryParse(str, out var result) ? result : new Optional<bool>();
+
+        private static string SerializeBoolean(bool value)
+            => value ? "true" : "false";
 
         private static Optional<bool?> ParseNullableBoolean(string str)
         {
