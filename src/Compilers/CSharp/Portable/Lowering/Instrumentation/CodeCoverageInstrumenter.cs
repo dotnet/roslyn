@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             Instrumenter previous,
-            [NotNullWhen(true)] out CodeCoverageInstrumenter instrumenter)
+            [NotNullWhen(true)] out CodeCoverageInstrumenter? instrumenter)
         {
             instrumenter = null;
 
