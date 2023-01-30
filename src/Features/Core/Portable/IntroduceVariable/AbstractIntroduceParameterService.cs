@@ -125,29 +125,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         private static bool IsValidExpression(SyntaxNode expression, ISyntaxFactsService syntaxFacts)
         {
-            // Need to special case for expressions that are contained within a parameter
-            // because it is technically "contained" within a method, but an expression in a parameter does not make
-            // sense to introduce.
-            var parameterNode = expression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsParameter);
-            if (parameterNode is not null)
-            {
-                return false;
-            }
-
-            // Need to special case for expressions that are contained within arguments/attribute arguments
-            // because they're 'contained' within a method, but not valid expressions to introduce
-            var argumentNode = expression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsArgument);
-            if (argumentNode is not null)
-            {
-                return false;
-            }
-
-            var attributeArgumentNode = expression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttributeArgument);
-            if (attributeArgumentNode is not null)
-            {
-                return false;
-            }
-
             // Need to special case for highlighting of method types because they are also "contained" within a method,
             // but it does not make sense to introduce a parameter in that case.
             if (syntaxFacts.IsInNamespaceOrTypeContext(expression))
@@ -158,6 +135,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // Need to special case for expressions whose direct parent is a MemberAccessExpression since they will
             // never introduce a parameter that makes sense in that case.
             if (syntaxFacts.IsNameOfAnyMemberAccessExpression(expression))
+            {
+                return false;
+            }
+
+            // Need to special case for expressions that are contained within a parameter or attribute argument
+            // because it is technically "contained" within a method, but does not make
+            // sense to introduce.
+            var invalidNode = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsAttributeArgument(node) || syntaxFacts.IsParameter(node));
+            if (invalidNode is not null)
             {
                 return false;
             }

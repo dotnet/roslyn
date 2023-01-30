@@ -2008,22 +2008,5 @@ public class C
 
             await TestMissingInRegularAndScriptAsync(code);
         }
-
-        [Fact]
-        public async Task TestIntroduceParameterOnArgument()
-        {
-            var code =
-@"
-public class C
-{
-    public void Test(int x)
-    {
-        Test([|5|]);
-    }
-}
-";
-
-            await TestMissingInRegularAndScriptAsync(code);
-        }
     }
 }
