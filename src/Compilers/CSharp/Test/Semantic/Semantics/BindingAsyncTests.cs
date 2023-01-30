@@ -3839,10 +3839,10 @@ class C
             compilation.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
-        public void UnobservedAwaitableExpression_AsyncTopLevelStatement()
+        [Theory, CombinatorialData, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        public void UnobservedAwaitableExpression_AsyncTopLevelStatement(bool voidReturn)
         {
-            var src = """
+            var src = $$"""
 using System;
 using System.Threading.Tasks;
 
@@ -3863,6 +3863,8 @@ Action a5 = () => i.M();
 Action a6 = async () => { await Task.Yield(); i.M(); }; // 8
 Action a7 = () => i.MAsync();
 Action a8 = async () => { await Task.Yield(); i.MAsync(); }; // 9
+
+{{(voidReturn ? "" : "return 42;")}}
 
 public class D
 {
@@ -3929,43 +3931,43 @@ public class C : I
                 // (20,47): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 // Action a8 = async () => { await Task.Yield(); i.MAsync(); }; // 9
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(20, 47),
-                // (29,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // (31,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         c.M(); // 10
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(29, 9),
-                // (30,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(31, 9),
+                // (32,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         c.MAsync(); // 11
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(30, 9),
-                // (32,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Action a2 = async () => { await Task.Yield(); c.M(); }; // 12
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(32, 55),
-                // (33,27): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Action a3 = () => c.MAsync(); // 13
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(33, 27),
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(32, 9),
                 // (34,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         Action a2 = async () => { await Task.Yield(); c.M(); }; // 12
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.M()").WithLocation(34, 55),
+                // (35,27): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         Action a3 = () => c.MAsync(); // 13
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(35, 27),
+                // (36,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Action a4 = async () => { await Task.Yield(); c.MAsync(); }; // 14
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(34, 55),
-                // (37,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(36, 55),
+                // (39,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         i.M(); // 15
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(37, 9),
-                // (38,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(39, 9),
+                // (40,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         i.MAsync(); // 16
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(38, 9),
-                // (40,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Action a6 = async () => { await Task.Yield(); i.M(); }; // 17
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(40, 55),
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(40, 9),
                 // (42,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         Action a6 = async () => { await Task.Yield(); i.M(); }; // 17
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(42, 55),
+                // (44,55): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Action a8 = async () => { await Task.Yield(); i.MAsync(); }; // 18
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(42, 55)
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(44, 55)
                 );
 
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
-            Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.Equal(voidReturn ? "System.Threading.Tasks.Task" : "System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
-        public void UnobservedAwaitableExpression_NonAsyncTopLevelStatements_Task()
+        [Theory, CombinatorialData, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        public void UnobservedAwaitableExpression_NonAsyncTopLevelStatements_Task(bool voidReturn)
         {
-            var src = """
+            var src = $$"""
 using System;
 using System.Threading.Tasks;
 
@@ -3980,6 +3982,15 @@ i.M(); // 4
 i.MAsync(); // 5
 Action a3 = () => i.M();
 Action a4 = () => i.MAsync();
+
+object o = null;
+lock(o)
+{
+    c.M();
+    c.MAsync(); // 6
+}
+
+{{(voidReturn ? "" : "return 42;")}}
 
 public interface I
 {
@@ -4009,17 +4020,20 @@ public class C : I
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.M()").WithLocation(11, 1),
                 // (12,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 // i.MAsync(); // 5
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(12, 1)
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(12, 1),
+                // (20,5): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //     c.MAsync(); // 6
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "c.MAsync()").WithLocation(20, 5)
                 );
 
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
-            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.Equal(voidReturn ? "System.Void" : "System.Int32", entryPoint.ReturnType.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
-        public void UnobservedAwaitableExpression_NonAsyncTopLevelStatements_TaskT()
+        [Theory, CombinatorialData, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
+        public void UnobservedAwaitableExpression_NonAsyncTopLevelStatements_TaskT(bool voidReturn)
         {
-            var src = """
+            var src = $$"""
 using System;
 using System.Threading.Tasks;
 
@@ -4034,6 +4048,8 @@ i.M(); // 4
 i.MAsync(); // 5
 Action a3 = () => i.M();
 Action a4 = () => i.MAsync(); // 6
+
+{{(voidReturn ? "" : "return 42;")}}
 
 public interface I
 {
@@ -4067,7 +4083,7 @@ public class C : I
                 );
 
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
-            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.Equal(voidReturn ? "System.Void" : "System.Int32", entryPoint.ReturnType.ToTestDisplayString());
         }
     }
 }

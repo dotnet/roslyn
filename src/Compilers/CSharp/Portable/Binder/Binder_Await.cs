@@ -131,7 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable format
                     return bag.DiagnosticBag.AsEnumerableWithoutResolution().All(d =>
                         d.Severity != DiagnosticSeverity.Error ||
-                        d is { Code: (int)ErrorCode.ERR_BadAwaitWithoutAsync or (int)ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod });
+                        d is { Code: (int)ErrorCode.ERR_BadAwaitWithoutAsync or
+                            (int)ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod or
+                            (int)ErrorCode.ERR_BadAwaitWithoutAsyncMethod });
 #pragma warning restore format
                 }
                 finally
