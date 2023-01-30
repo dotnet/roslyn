@@ -342,7 +342,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return false;
             }
 
-            public unsafe void CopyFromIndirect(object value)
+            public void CopyFromIndirect(object value)
             {
                 VarEnum vt = (VarEnum)(((int)this.VariantType) & ~((int)VarEnum.VT_BYREF));
 
@@ -350,95 +350,103 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 {
                     if (vt == VarEnum.VT_DISPATCH || vt == VarEnum.VT_UNKNOWN || vt == VarEnum.VT_BSTR)
                     {
-                        *(IntPtr*)this._typeUnion._unionTypes._byref = IntPtr.Zero;
+                        Marshal.WriteIntPtr(this._typeUnion._unionTypes._byref, IntPtr.Zero);
                     }
                     return;
                 }
 
                 if ((vt & VarEnum.VT_ARRAY) != 0)
                 {
-                    VariantHelper vArray;
-                    Marshal.GetNativeVariantForObject(value, (IntPtr)(void*)&vArray);
-                    *(IntPtr*)this._typeUnion._unionTypes._byref = vArray._typeUnion._unionTypes._byref;
+                    IntPtr vArray = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(VariantHelper)));
+                    try
+                    {
+                        Marshal.GetNativeVariantForObject(value, vArray);
+                        Marshal.WriteIntPtr(this._typeUnion._unionTypes._byref, Marshal.PtrToStructure<VariantHelper>(vArray)._typeUnion._unionTypes._byref);
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(vArray);
+                    }
+
                     return;
                 }
 
                 switch (vt)
                 {
                     case VarEnum.VT_I1:
-                        *(sbyte*)this._typeUnion._unionTypes._byref = (sbyte)value;
+                        Marshal.WriteByte(this._typeUnion._unionTypes._byref, unchecked((byte)(sbyte)value));
                         break;
 
                     case VarEnum.VT_UI1:
-                        *(byte*)this._typeUnion._unionTypes._byref = (byte)value;
+                        Marshal.WriteByte(this._typeUnion._unionTypes._byref, (byte)value);
                         break;
 
                     case VarEnum.VT_I2:
-                        *(short*)this._typeUnion._unionTypes._byref = (short)value;
+                        Marshal.WriteInt16(this._typeUnion._unionTypes._byref, (short)value);
                         break;
 
                     case VarEnum.VT_UI2:
-                        *(ushort*)this._typeUnion._unionTypes._byref = (ushort)value;
+                        Marshal.WriteInt16(this._typeUnion._unionTypes._byref, unchecked((short)(ushort)value));
                         break;
 
                     case VarEnum.VT_BOOL:
                         // VARIANT_TRUE  = -1
                         // VARIANT_FALSE = 0
-                        *(short*)this._typeUnion._unionTypes._byref = (bool)value ? (short)-1 : (short)0;
+                        Marshal.WriteInt16(this._typeUnion._unionTypes._byref, (bool)value ? (short)-1 : (short)0);
                         break;
 
                     case VarEnum.VT_I4:
                     case VarEnum.VT_INT:
-                        *(int*)this._typeUnion._unionTypes._byref = (int)value;
+                        Marshal.WriteInt32(this._typeUnion._unionTypes._byref, (int)value);
                         break;
 
                     case VarEnum.VT_UI4:
                     case VarEnum.VT_UINT:
-                        *(uint*)this._typeUnion._unionTypes._byref = (uint)value;
+                        Marshal.WriteInt32(this._typeUnion._unionTypes._byref, unchecked((int)(uint)value));
                         break;
 
                     case VarEnum.VT_ERROR:
-                        *(int*)this._typeUnion._unionTypes._byref = ((ErrorWrapper)value).ErrorCode;
+                        Marshal.WriteInt32(this._typeUnion._unionTypes._byref, ((ErrorWrapper)value).ErrorCode);
                         break;
 
                     case VarEnum.VT_I8:
-                        *(long*)this._typeUnion._unionTypes._byref = (long)value;
+                        Marshal.WriteInt64(this._typeUnion._unionTypes._byref, (long)value);
                         break;
 
                     case VarEnum.VT_UI8:
-                        *(ulong*)this._typeUnion._unionTypes._byref = (ulong)value;
+                        Marshal.WriteInt64(this._typeUnion._unionTypes._byref, unchecked((long)(ulong)value));
                         break;
 
                     case VarEnum.VT_R4:
-                        *(float*)this._typeUnion._unionTypes._byref = (float)value;
+                        Marshal.StructureToPtr((float)value, this._typeUnion._unionTypes._byref, false);
                         break;
 
                     case VarEnum.VT_R8:
-                        *(double*)this._typeUnion._unionTypes._byref = (double)value;
+                        Marshal.WriteInt64(this._typeUnion._unionTypes._byref, BitConverter.DoubleToInt64Bits((double)value));
                         break;
 
                     case VarEnum.VT_DATE:
-                        *(double*)this._typeUnion._unionTypes._byref = ((DateTime)value).ToOADate();
+                        Marshal.WriteInt64(this._typeUnion._unionTypes._byref, BitConverter.DoubleToInt64Bits(((DateTime)value).ToOADate()));
                         break;
 
                     case VarEnum.VT_UNKNOWN:
-                        *(IntPtr*)this._typeUnion._unionTypes._byref = Marshal.GetIUnknownForObject(value);
+                        Marshal.WriteIntPtr(this._typeUnion._unionTypes._byref, Marshal.GetIUnknownForObject(value));
                         break;
 
                     case VarEnum.VT_DISPATCH:
-                        *(IntPtr*)this._typeUnion._unionTypes._byref = Marshal.GetIDispatchForObject(value);
+                        Marshal.WriteIntPtr(this._typeUnion._unionTypes._byref, Marshal.GetIDispatchForObject(value));
                         break;
 
                     case VarEnum.VT_BSTR:
-                        *(IntPtr*)this._typeUnion._unionTypes._byref = Marshal.StringToBSTR((string)value);
+                        Marshal.WriteIntPtr(this._typeUnion._unionTypes._byref, Marshal.StringToBSTR((string)value));
                         break;
 
                     case VarEnum.VT_CY:
-                        *(long*)this._typeUnion._unionTypes._byref = decimal.ToOACurrency((decimal)value);
+                        Marshal.WriteInt64(this._typeUnion._unionTypes._byref, decimal.ToOACurrency((decimal)value));
                         break;
 
                     case VarEnum.VT_DECIMAL:
-                        *(decimal*)this._typeUnion._unionTypes._byref = (decimal)value;
+                        Marshal.StructureToPtr((decimal)value, this._typeUnion._unionTypes._byref, false);
                         break;
 
                     case VarEnum.VT_VARIANT:
@@ -489,12 +497,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     case VarEnum.VT_DISPATCH: return AsDispatch;
 
                     default:
-                        unsafe
+                        var unmanagedCopy = Marshal.AllocHGlobal(Marshal.SizeOf(GetType()));
+                        try
                         {
-                            fixed (void* pThis = &this)
-                            {
-                                return Marshal.GetObjectForNativeVariant((System.IntPtr)pThis);
-                            }
+                            Marshal.StructureToPtr(this, unmanagedCopy, false);
+                            return Marshal.GetObjectForNativeVariant(unmanagedCopy);
+                        }
+                        finally
+                        {
+                            Marshal.FreeHGlobal(unmanagedCopy);
                         }
                 }
             }
@@ -522,12 +533,16 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         || (vt == VarEnum.VT_VARIANT)
                         || (vt == VarEnum.VT_RECORD))
                 {
-                    unsafe
+                    var unmanagedCopy = Marshal.AllocHGlobal(Marshal.SizeOf(GetType()));
+                    try
                     {
-                        fixed (void* pThis = &this)
-                        {
-                            VariantClear((IntPtr)pThis);
-                        }
+                        Marshal.StructureToPtr(this, unmanagedCopy, false);
+                        VariantClear(unmanagedCopy);
+                        this = Marshal.PtrToStructure<VariantHelper>(unmanagedCopy);
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(unmanagedCopy);
                     }
 
                     Debug.Assert(IsEmpty);
