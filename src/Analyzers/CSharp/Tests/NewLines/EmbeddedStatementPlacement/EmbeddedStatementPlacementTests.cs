@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.EmbeddedStatementPlacement
@@ -307,7 +308,7 @@ class TestClass
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact, WorkItem(66017, "https://github.com/dotnet/roslyn/issues/66017")]
         public async Task EmptyStatementAfterSwitch()
         {
             var source = @"
