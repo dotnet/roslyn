@@ -356,13 +356,21 @@ namespace Microsoft.CodeAnalysis.Editing
                 setAccessor = SetAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements);
             }
 
-            return PropertyDeclaration(
+            var propDecl = PropertyDeclaration(
                 property.Name,
                 TypeExpression(property.Type, property.RefKind),
                 getAccessor,
                 setAccessor,
                 propertyAccessibility,
                 DeclarationModifiers.From(property));
+
+            if (property.ExplicitInterfaceImplementations.Length > 0)
+            {
+                propDecl = this.WithExplicitInterfaceImplementations(propDecl,
+                    ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations));
+            }
+
+            return propDecl;
         }
 
         private protected abstract SyntaxNode PropertyDeclaration(
@@ -405,13 +413,21 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode>? getAccessorStatements = null,
             IEnumerable<SyntaxNode>? setAccessorStatements = null)
         {
-            return IndexerDeclaration(
+            var indexerDecl = IndexerDeclaration(
                 indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
                 TypeExpression(indexer.Type, indexer.RefKind),
                 indexer.DeclaredAccessibility,
                 DeclarationModifiers.From(indexer),
                 getAccessorStatements,
                 setAccessorStatements);
+
+            if (indexer.ExplicitInterfaceImplementations.Length > 0)
+            {
+                indexerDecl = this.WithExplicitInterfaceImplementations(indexerDecl,
+                    ImmutableArray<ISymbol>.CastUp(indexer.ExplicitInterfaceImplementations));
+            }
+
+            return indexerDecl;
         }
 
         /// <summary>
@@ -438,11 +454,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode EventDeclaration(IEventSymbol symbol)
         {
-            return EventDeclaration(
+            var ev = EventDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
                 symbol.DeclaredAccessibility,
                 DeclarationModifiers.From(symbol));
+
+            if (symbol.ExplicitInterfaceImplementations.Length > 0)
+            {
+                ev = this.WithExplicitInterfaceImplementations(ev,
+                    ImmutableArray<ISymbol>.CastUp(symbol.ExplicitInterfaceImplementations));
+            }
+
+            return ev;
         }
 
         /// <summary>
@@ -686,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Destructor:
                             return DestructorDeclaration(method);
 
-                        case MethodKind.Ordinary:
+                        case MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation:
                             return MethodDeclaration(method);
 
                         case MethodKind.UserDefinedOperator or MethodKind.Conversion:
