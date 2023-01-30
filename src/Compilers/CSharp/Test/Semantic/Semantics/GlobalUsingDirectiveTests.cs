@@ -5021,7 +5021,7 @@ global using X = int;
             var source2 = @"
 class C
 {
-    X Goo() => default;
+    X Goo(int i) => i;
 }
 ";
 
@@ -5121,7 +5121,7 @@ global using unsafe X = int*;
             var source2 = @"
 class C
 {
-    unsafe X Goo() => default;
+    unsafe X Goo(int* p) => p;
 }
 ";
 
