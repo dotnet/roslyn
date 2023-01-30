@@ -10,7 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -109,5 +111,35 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public static IEnumerable<string?> GetApplicableLanguages(IOption option)
             => (option is IPerLanguageValuedOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+
+        public static NamingStylePreferences GetNonDefaultNamingStylePreference()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                Guid.NewGuid(),
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
+                accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+
+            return new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+        }
     }
 }
