@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we were looking up "dynamic" or "nint" at the topmost level and didn't find anything good,
             // use that particular type (assuming the /langversion is supported).
             if (qualifierOpt is null &&
-                !isViableTypeOrNamespace(result))
+                !isViableType(result))
             {
                 if (node.Identifier.ValueText == "dynamic")
                 {
@@ -890,7 +890,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    bindingResult = BindNativeIntegerSymbolIfAny(node, diagnostics);
+                    // nint/nuint is allowed to bind to an existing namespace.
+                    if (!isViableNamespace(result))
+                    {
+                        bindingResult = BindNativeIntegerSymbolIfAny(node, diagnostics);
+                    }
                 }
             }
 
@@ -942,12 +946,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            static bool isViableTypeOrNamespace(LookupResult result)
+            static bool isViableType(LookupResult result)
             {
                 if (!result.IsMultiViable)
-                {
                     return false;
-                }
 
                 foreach (var s in result.Symbols)
                 {
@@ -957,10 +959,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (((AliasSymbol)s).Target.Kind == SymbolKind.NamedType) return true;
                             break;
                         case SymbolKind.NamedType:
-                        case SymbolKind.Namespace:
                         case SymbolKind.TypeParameter:
                             return true;
                     }
+                }
+
+                return false;
+            }
+
+            static bool isViableNamespace(LookupResult result)
+            {
+                if (!result.IsMultiViable)
+                    return false;
+
+                foreach (var s in result.Symbols)
+                {
+                    if (s.Kind == SymbolKind.Namespace)
+                        return true;
                 }
 
                 return false;
