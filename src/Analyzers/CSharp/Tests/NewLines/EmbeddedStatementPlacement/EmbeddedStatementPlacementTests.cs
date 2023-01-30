@@ -306,5 +306,42 @@ class TestClass
                 Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task EmptyStatementAfterSwitch()
+        {
+            var source = @"
+class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                break;
+        }[|;|]
+    }
+}";
+            var fixedCode = @"
+class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                break;
+        }
+
+        ;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
     }
 }

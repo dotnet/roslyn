@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                     if (!previousToken.IsCloseBraceOfExpression())
                     {
+                        if (currentToken.IsKind(SyntaxKind.SemicolonToken) && currentToken.Parent is EmptyStatementSyntax)
+                            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+
                         if (!currentToken.IsKind(SyntaxKind.SemicolonToken) &&
                             !currentToken.IsParenInParenthesizedExpression() &&
                             !currentToken.IsCommaInInitializerExpression() &&
@@ -268,6 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
+
+                // if it's a standalone empty statement, don't adjust it at all.
+                if (currentToken.Parent is EmptyStatementSyntax)
+                    return null;
 
                 // * ;
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
