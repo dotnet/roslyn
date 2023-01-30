@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This type provides means for instrumenting compiled methods for dynamic analysis.
     /// It can be combined with other <see cref="Instrumenter"/>s.
     /// </summary>
-    internal sealed class DynamicAnalysisInjector : CompoundInstrumenter
+    internal sealed class CodeCoverageInstrumenter : CompoundInstrumenter
     {
         private readonly MethodSymbol _method;
         private readonly BoundStatement _methodBody;
@@ -35,25 +36,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DebugDocumentProvider _debugDocumentProvider;
         private readonly SyntheticBoundNodeFactory _methodBodyFactory;
 
-        public static DynamicAnalysisInjector TryCreate(
+        public static bool TryCreate(
             MethodSymbol method,
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
             BindingDiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
-            Instrumenter previous)
+            Instrumenter previous,
+            out CodeCoverageInstrumenter instrumenter)
         {
+            instrumenter = null;
+
             // Do not instrument implicitly-declared methods, except for constructors.
             // Instrument implicit constructors in order to instrument member initializers.
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor)
             {
-                return null;
+                return false;
             }
 
             // Do not instrument methods marked with or in scope of ExcludeFromCodeCoverageAttribute.
             if (IsExcludedFromCodeCoverage(method))
             {
-                return null;
+                return false;
             }
 
             MethodSymbol createPayloadForMethodsSpanningSingleFile = GetCreatePayloadOverload(
@@ -71,17 +75,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Do not instrument any methods if CreatePayload is not present.
             if ((object)createPayloadForMethodsSpanningSingleFile == null || (object)createPayloadForMethodsSpanningMultipleFiles == null)
             {
-                return null;
+                return false;
             }
 
             // Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
             // CreatePayload will fail at run time with an infinite recursion if it is instrumented.
             if (method.Equals(createPayloadForMethodsSpanningSingleFile) || method.Equals(createPayloadForMethodsSpanningMultipleFiles))
             {
-                return null;
+                return false;
             }
 
-            return new DynamicAnalysisInjector(
+            instrumenter = new CodeCoverageInstrumenter(
                 method,
                 methodBody,
                 methodBodyFactory,
@@ -90,9 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 debugDocumentProvider,
                 previous);
+
+            return true;
         }
 
-        private DynamicAnalysisInjector(
+        private CodeCoverageInstrumenter(
             MethodSymbol method,
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
@@ -128,6 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Restore context
             methodBodyFactory.CurrentFunction = oldMethod;
         }
+
+        protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
+            => throw ExceptionUtilities.Unreachable(); // we don't currently need this
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {

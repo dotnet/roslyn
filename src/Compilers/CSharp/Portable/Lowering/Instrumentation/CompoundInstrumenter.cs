@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// to the constructor of this class. Usually, derived types are going to let the base (this class) to do its work first
     /// and then operate on the result they get back.
     /// </summary>
-    internal class CompoundInstrumenter : Instrumenter
+    internal abstract class CompoundInstrumenter : Instrumenter
     {
         public CompoundInstrumenter(Instrumenter previous)
         {
@@ -23,6 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public Instrumenter Previous { get; }
+
+        /// <summary>
+        /// Returns <see cref="CompoundInstrumenter"/> with <see cref="Previous"/> instrumenter set to <paramref name="previous"/>.
+        /// </summary>
+        public CompoundInstrumenter WithPrevious(Instrumenter previous)
+            => ReferenceEquals(previous, Previous) ? this : WithPreviousImpl(previous);
+
+        protected abstract CompoundInstrumenter WithPreviousImpl(Instrumenter previous);
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
         {
