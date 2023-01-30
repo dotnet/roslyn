@@ -2355,6 +2355,29 @@ public class C { } // end").Members[0];
                 "public global::System.Int32 Prop { protected get; set; }");
         }
 
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a);
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : default { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                "");
+        }
+
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements
