@@ -4013,7 +4013,7 @@ public class C : I
                 );
 
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
-            Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
         }
 
         [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
