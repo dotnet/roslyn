@@ -4343,10 +4343,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCollectionCreationExpression(CollectionCreationExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            if (MessageID.IDS_FeatureCollectionLiterals.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)syntax.SyntaxTree.Options) is { } diagnosticInfo)
-            {
-                diagnostics.Add(diagnosticInfo, syntax.OpenBracketToken.GetLocation());
-            }
+            // PROTOTYPE: Add CheckFeatureAvailability(this MessageID feature, BindingDiagnosticBag diagnostics, SyntaxToken syntax)
+            // overload to only allocate the Location instance when the feature check fails.
+            MessageID.IDS_FeatureCollectionLiterals.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
             return new BoundUnconvertedCollectionLiteralExpression(syntax, this);
         }
 
@@ -5896,7 +5895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
             var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
 
-            var initializerBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            var initializerBuilder = ArrayBuilder<BoundExpression>.GetInstance(syntax.Elements.Count);
             foreach (var elementInitializer in syntax.Elements)
             {
                 initializerBuilder.Add(
