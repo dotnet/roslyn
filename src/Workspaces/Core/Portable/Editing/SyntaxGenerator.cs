@@ -147,14 +147,29 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a method declaration.
         /// </summary>
-        public abstract SyntaxNode MethodDeclaration(
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public SyntaxNode MethodDeclaration(
             string name,
             IEnumerable<SyntaxNode>? parameters = null,
             IEnumerable<string>? typeParameters = null,
             SyntaxNode? returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
-            IEnumerable<SyntaxNode>? statements = null);
+            IEnumerable<SyntaxNode>? statements = null)
+        {
+            return MethodDeclaration(
+                name, parameters, typeParameters?.Select(n => TypeParameter(n)), returnType, accessibility, modifiers, statements);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        private protected abstract SyntaxNode MethodDeclaration(
+            string name,
+            IEnumerable<SyntaxNode>? parameters,
+            IEnumerable<SyntaxNode>? typeParameters,
+            SyntaxNode? returnType,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
+            IEnumerable<SyntaxNode>? statements);
 
         /// <summary>
         /// Creates a method declaration matching an existing method symbol.
@@ -166,16 +181,15 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var decl = MethodDeclaration(
                 name,
+                typeParameters: method.TypeParameters.Select(p => TypeParameter(p)),
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
                 accessibility: method.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(method),
                 statements: statements);
 
             if (method.TypeParameters.Length > 0)
-            {
                 decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
-            }
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
@@ -211,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var decl = OperatorDeclaration(
                 GetOperatorKind(method),
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
                 accessibility: method.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(method),
                 statements: statements);
@@ -289,6 +303,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.IsParams);
         }
 
+        private protected abstract SyntaxNode TypeParameter(ITypeParameterSymbol typeParameter);
+        private protected abstract SyntaxNode TypeParameter(string name);
+
         private protected abstract SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference);
 
         /// <summary>
@@ -340,12 +357,12 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             return PropertyDeclaration(
-                    property.Name,
-                    TypeExpression(property.Type),
-                    getAccessor,
-                    setAccessor,
-                    propertyAccessibility,
-                    DeclarationModifiers.From(property));
+                property.Name,
+                TypeExpression(property.Type, property.RefKind),
+                getAccessor,
+                setAccessor,
+                propertyAccessibility,
+                DeclarationModifiers.From(property));
         }
 
         private protected abstract SyntaxNode PropertyDeclaration(
@@ -390,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return IndexerDeclaration(
                 indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
-                TypeExpression(indexer.Type),
+                TypeExpression(indexer.Type, indexer.RefKind),
                 indexer.DeclaredAccessibility,
                 DeclarationModifiers.From(indexer),
                 getAccessorStatements,
@@ -518,35 +535,71 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a class declaration.
         /// </summary>
-        public abstract SyntaxNode ClassDeclaration(
+        public SyntaxNode ClassDeclaration(
             string name,
             IEnumerable<string>? typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
             SyntaxNode? baseType = null,
             IEnumerable<SyntaxNode>? interfaceTypes = null,
-            IEnumerable<SyntaxNode>? members = null);
+            IEnumerable<SyntaxNode>? members = null)
+        {
+            return ClassDeclaration(
+                name, typeParameters?.Select(n => TypeParameter(n)), accessibility, modifiers, baseType, interfaceTypes, members);
+        }
+
+        private protected abstract SyntaxNode ClassDeclaration(
+            string name,
+            IEnumerable<SyntaxNode>? typeParameters,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
+            SyntaxNode? baseType,
+            IEnumerable<SyntaxNode>? interfaceTypes,
+            IEnumerable<SyntaxNode>? members);
 
         /// <summary>
         /// Creates a struct declaration.
         /// </summary>
-        public abstract SyntaxNode StructDeclaration(
+        public SyntaxNode StructDeclaration(
             string name,
             IEnumerable<string>? typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode>? interfaceTypes = null,
-            IEnumerable<SyntaxNode>? members = null);
+            IEnumerable<SyntaxNode>? members = null)
+        {
+            return StructDeclaration(
+                name, typeParameters?.Select(n => TypeParameter(n)), accessibility, modifiers, interfaceTypes, members);
+        }
+
+        private protected abstract SyntaxNode StructDeclaration(
+            string name,
+            IEnumerable<SyntaxNode>? typeParameters,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
+            IEnumerable<SyntaxNode>? interfaceTypes,
+            IEnumerable<SyntaxNode>? members);
 
         /// <summary>
         /// Creates a interface declaration.
         /// </summary>
-        public abstract SyntaxNode InterfaceDeclaration(
+        public SyntaxNode InterfaceDeclaration(
             string name,
             IEnumerable<string>? typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             IEnumerable<SyntaxNode>? interfaceTypes = null,
-            IEnumerable<SyntaxNode>? members = null);
+            IEnumerable<SyntaxNode>? members = null)
+        {
+            return InterfaceDeclaration(
+                name, typeParameters?.Select(n => TypeParameter(n)), accessibility, interfaceTypes, members);
+        }
+
+        private protected abstract SyntaxNode InterfaceDeclaration(
+            string name,
+            IEnumerable<SyntaxNode>? typeParameters,
+            Accessibility accessibility,
+            IEnumerable<SyntaxNode>? interfaceTypes,
+            IEnumerable<SyntaxNode>? members);
 
         /// <summary>
         /// Creates an enum declaration.
@@ -575,13 +628,25 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a delegate declaration.
         /// </summary>
-        public abstract SyntaxNode DelegateDeclaration(
+        public SyntaxNode DelegateDeclaration(
             string name,
             IEnumerable<SyntaxNode>? parameters = null,
             IEnumerable<string>? typeParameters = null,
             SyntaxNode? returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default);
+            DeclarationModifiers modifiers = default)
+        {
+            return DelegateDeclaration(
+                name, parameters, typeParameters?.Select(n => TypeParameter(n)), returnType, accessibility, modifiers);
+        }
+
+        private protected abstract SyntaxNode DelegateDeclaration(
+            string name,
+            IEnumerable<SyntaxNode>? parameters,
+            IEnumerable<SyntaxNode>? typeParameters,
+            SyntaxNode? returnType,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers);
 
         /// <summary>
         /// Creates a declaration matching an existing symbol.
@@ -637,6 +702,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Class:
                             declaration = ClassDeclaration(
                                 type.Name,
+                                type.TypeParameters.Select(p => TypeParameter(p)),
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 baseType: (type.BaseType != null) ? TypeExpression(type.BaseType) : null,
@@ -646,6 +712,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Struct:
                             declaration = StructDeclaration(
                                 type.Name,
+                                type.TypeParameters.Select(p => TypeParameter(p)),
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 interfaceTypes: type.Interfaces.Select(TypeExpression),
@@ -654,6 +721,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Interface:
                             declaration = InterfaceDeclaration(
                                 type.Name,
+                                type.TypeParameters.Select(p => TypeParameter(p)),
                                 accessibility: type.DeclaredAccessibility,
                                 interfaceTypes: type.Interfaces.Select(TypeExpression),
                                 members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
@@ -670,6 +738,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             {
                                 declaration = DelegateDeclaration(
                                     type.Name,
+                                    typeParameters: type.TypeParameters.Select(p => TypeParameter(p)),
                                     parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
                                     returnType: invoke.ReturnsVoid ? null : TypeExpression(invoke.ReturnType),
                                     accessibility: type.DeclaredAccessibility,
@@ -734,7 +803,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             if (typeParameters.Length > 0)
             {
-                declaration = WithTypeParameters(declaration, typeParameters.Select(tp => tp.Name));
+                declaration = WithTypeParameters(declaration, typeParameters.Select(tp => TypeParameter(tp)));
 
                 foreach (var tp in typeParameters)
                 {
@@ -758,7 +827,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
         /// </summary>
-        public abstract SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<string> typeParameters);
+        public SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<string> typeParameters)
+            => WithTypeParameters(declaration, typeParameters.Select(n => TypeParameter(n)));
+
+        private protected abstract SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<SyntaxNode> typeParameters);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
@@ -1769,7 +1841,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates an expression that denotes a type.
         /// </summary>
-        public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol);
+        public SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
+            => TypeExpression(typeSymbol, RefKind.None);
+
+        private protected abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind);
 
         /// <summary>
         /// Creates an expression that denotes a type. If addImport is false,
