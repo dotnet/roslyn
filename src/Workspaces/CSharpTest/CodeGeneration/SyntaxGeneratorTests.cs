@@ -2373,6 +2373,29 @@ public class C { } // end").Members[0];
                 "public const global::System.Int32 F;");
         }
 
+        [Fact, WorkItem(66374, "https://github.com/dotnet/roslyn/issues/66374")]
+        public void TestDestructor1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    ~C()
+                    {
+                    }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers(WellKnownMemberNames.DestructorName).Single();
+
+            VerifySyntax<DestructorDeclarationSyntax>(
+                Generator.Declaration(method), """
+                ~C()
+                {
+                }
+                """);
+        }
+
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements

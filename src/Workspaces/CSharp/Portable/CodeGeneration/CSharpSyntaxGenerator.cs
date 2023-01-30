@@ -336,6 +336,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 CreateBlock(statements));
         }
 
+        private protected override SyntaxNode DestructorDeclaration(IMethodSymbol destructorMethod)
+            => SyntaxFactory.DestructorDeclaration(destructorMethod.ContainingType.Name).WithBody(SyntaxFactory.Block());
+
         public override SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
