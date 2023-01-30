@@ -2355,6 +2355,60 @@ public class C { } // end").Members[0];
                 "public global::System.Int32 Prop { protected get; set; }");
         }
 
+        [Fact, WorkItem(66375, "https://github.com/dotnet/roslyn/issues/66375")]
+        public void TestExplicitInterface1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public interface IGoo
+                {
+                    void BarMethod();
+                    int BarProp { get; }
+                    int this[int x] { get; }
+                    event System.Action E;
+                }
+
+                public class Goo : IGoo
+                {
+                    void IGoo.BarMethod() { }
+                    int IGoo.BarProp => 0;
+                    int IGoo.this[int x] => 0;
+                    event System.Action IGoo.E { add { } remove { } }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("Goo");
+            var method = type.GetMembers().Single(m => m is IMethodSymbol { MethodKind: MethodKind.ExplicitInterfaceImplementation });
+            var property = type.GetMembers().Single(m => m is IPropertySymbol { IsIndexer: false });
+            var indexer = type.GetMembers().Single(m => m is IPropertySymbol { IsIndexer: true });
+            var ev = type.GetMembers().Single(m => m is IEventSymbol);
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                void global::IGoo.BarMethod()
+                {
+                }
+                """);
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "global::System.Int32 global::IGoo.BarProp { get; }");
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.Declaration(indexer),
+                """
+                global::System.Int32 global::IGoo.this[global::System.Int32 x]
+                {
+                    get
+                    {
+                    }
+                }
+                """);
+            VerifySyntax<EventFieldDeclarationSyntax>(
+                Generator.Declaration(ev),
+                """
+                event global::System.Action IGoo.E;
+                """);
+        }
+
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements
