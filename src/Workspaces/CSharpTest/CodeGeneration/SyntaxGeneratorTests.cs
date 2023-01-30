@@ -2355,7 +2355,7 @@ public class C { } // end").Members[0];
                 "public global::System.Int32 Prop { protected get; set; }");
         }
 
-        [Fact]
+        [Fact, WorkItem(66380, "https://github.com/dotnet/roslyn/issues/66380")]
         public void TestConstantFieldDeclarations()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
