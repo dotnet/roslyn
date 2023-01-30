@@ -17,15 +17,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     [Shared]
     internal class LspOptionPersisterProvider : IOptionPersisterProvider
     {
+        private readonly IGlobalOptionService _globalOptionService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LspOptionPersisterProvider()
+        public LspOptionPersisterProvider(IGlobalOptionService globalOptionService)
         {
+            _globalOptionService = globalOptionService;
         }
 
         public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<IOptionPersister>(new LspOptionPersister());
+            return new ValueTask<IOptionPersister>(new LspOptionPersister(_globalOptionService));
         }
     }
 }

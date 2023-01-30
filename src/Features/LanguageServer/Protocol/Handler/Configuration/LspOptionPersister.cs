@@ -14,18 +14,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     internal class LspOptionPersister : IOptionPersister
     {
-        public LspOptionPersister() { }
+        private readonly IGlobalOptionService _globalOptionService;
 
-        public bool TryFetch(OptionKey optionKey, out object? value)
+        public LspOptionPersister(IGlobalOptionService globalOptionService)
         {
-            value = null;
-            return false;
+            _globalOptionService = globalOptionService;
         }
 
-        public bool TryPersist(OptionKey optionKey, object? value)
+        public bool TryFetch(OptionKey2 optionKey, out object? value)
         {
-            value = null;
-            return false;
+            throw new NotImplementedException();
+        }
+
+        public bool TryPersist(OptionKey2 optionKey, object? value)
+        {
+            throw new NotImplementedException("LSP does not support write option from server to client");
         }
     }
 }
