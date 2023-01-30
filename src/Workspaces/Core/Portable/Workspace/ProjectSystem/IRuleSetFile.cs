@@ -8,7 +8,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 {
     internal interface IRuleSetFile
     {

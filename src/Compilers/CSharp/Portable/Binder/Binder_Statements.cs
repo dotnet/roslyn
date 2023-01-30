@@ -1097,10 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax))
-            {
-                hasErrors = true;
-            }
+            CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax);
 
             if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
             {
@@ -1565,8 +1562,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
                         {
-                            (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
-                            (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                            (ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                            (ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
                             (_, false) => ErrorCode.ERR_RefAssignNarrower,
                             (_, true) => ErrorCode.WRN_RefAssignNarrower
                         };

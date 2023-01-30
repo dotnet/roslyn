@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -41,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
             Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
-            Assert.Equal(fixedExpectations, normalized)
+            AssertEx.Equal(fixedExpectations, normalized)
         End Sub
 
         Private Shared Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -1059,6 +1060,26 @@ End Operator")
 End Operator")
         End Sub
 
+        <Fact, WorkItem(65833, "https://github.com/dotnet/roslyn/issues/65833")>
+        Public Sub TestConversionOperatorDeclaration()
+            Dim gcHandleType = _emptyCompilation.GetTypeByMetadataName(GetType(GCHandle).FullName)
+            Dim Conversion = gcHandleType.GetMembers().OfType(Of IMethodSymbol)().Single(
+                Function(m) m.Name = WellKnownMemberNames.ExplicitConversionName AndAlso m.Parameters(0).Type.Equals(gcHandleType))
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.Declaration(Conversion),
+"Public Shared Narrowing Operator CType(value As Global.System.Runtime.InteropServices.GCHandle) As Global.System.IntPtr
+End Operator")
+
+            Dim doubleType = _emptyCompilation.GetSpecialType(SpecialType.System_Decimal)
+            Conversion = doubleType.GetMembers().OfType(Of IMethodSymbol)().Single(
+                Function(m) m.Name = WellKnownMemberNames.ImplicitConversionName AndAlso m.Parameters(0).Type.Equals(_emptyCompilation.GetSpecialType(SpecialType.System_Byte)))
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.Declaration(Conversion),
+"Public Shared Widening Operator CType(value As System.Byte) As System.Decimal
+End Operator")
+        End Sub
+
         <Fact>
         Public Sub MethodDeclarationCanRoundTrip()
             Dim tree = VisualBasicSyntaxTree.ParseText(
@@ -1537,6 +1558,21 @@ End Interface")
 
     Default ReadOnly Property Item(y As x) As t
 
+End Interface")
+        End Sub
+
+        <Fact, WorkItem(66377, "https://github.com/dotnet/roslyn/issues/66377")>
+        Public Sub TestInterfaceVariance()
+            Dim compilation = Compile("
+interface I(of in X, out Y)
+end interface
+                ")
+
+            Dim symbol = compilation.GlobalNamespace.GetMembers("I").Single()
+
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                Generator.Declaration(symbol),
+"Friend Interface I(Of In X, Out Y)
 End Interface")
         End Sub
 
@@ -2302,6 +2338,81 @@ End Enum")
     Level1 = CByte(1)
     Level2 = CByte(2)
 End Enum")
+        End Sub
+
+        <Fact, WorkItem(66381, "https://github.com/dotnet/roslyn/issues/66381")>
+        Public Sub TestDelegateDeclarationFromSymbol()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("Public Delegate Sub D()"))
+            Dim type = compilation.GetTypeByMetadataName("D")
+            VerifySyntax(Of DelegateStatementSyntax)(Generator.Declaration(type), "Public Delegate Sub D()")
+        End Sub
+
+        <Fact, WorkItem(65835, "https://github.com/dotnet/roslyn/issues/65835")>
+        Public Sub TestMethodDeclarationFromSymbol()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Sub M(ParamArray arr() As Integer)
+    End Sub
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("M").Single()
+
+            VerifySyntax(Of MethodBlockSyntax)(Generator.Declaration(method),
+"Public Sub M(ParamArray arr As System.Int32())
+End Sub")
+        End Sub
+
+        <Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")>
+        Public Sub TestPropertyDeclarationFromSymbol1()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Property Prop As Integer
+        Get
+        End Get
+
+        Protected Set
+        End Set
+    End Property
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("Prop").Single()
+
+            VerifySyntax(Of PropertyBlockSyntax)(Generator.Declaration(method),
+"Public Property Prop As System.Int32
+    Get
+    End Get
+
+    Protected Set
+    End Set
+End Property")
+        End Sub
+
+        <Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")>
+        Public Sub TestPropertyDeclarationFromSymbol2()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Property Prop As Integer
+        Protected Get
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers("Prop").Single()
+
+            VerifySyntax(Of PropertyBlockSyntax)(Generator.Declaration(method),
+"Public Property Prop As System.Int32
+    Protected Get
+    End Get
+
+    Set
+    End Set
+End Property")
         End Sub
 #End Region
 

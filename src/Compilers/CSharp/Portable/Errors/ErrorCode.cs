@@ -2160,6 +2160,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParamsArrayInLambdaOnly = 9100,
         ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
+        ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
+        ERR_BadSpecialByRefUsing = 9104,
 
         ERR_InvalidPrimaryConstructorParameterReference = 9500, // PROTOTYPE(PrimaryConstructors): pack numbers
         ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver = 9501,
