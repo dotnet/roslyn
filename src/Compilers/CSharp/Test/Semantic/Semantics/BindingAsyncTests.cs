@@ -3957,6 +3957,9 @@ public class C : I
                 //         Action a8 = async () => { await Task.Yield(); i.MAsync(); }; // 18
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(42, 55)
                 );
+
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
         }
 
         [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
@@ -4008,6 +4011,9 @@ public class C : I
                 // i.MAsync(); // 5
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(12, 1)
                 );
+
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
         }
 
         [Fact, WorkItem(64964, "https://github.com/dotnet/roslyn/issues/64964")]
@@ -4059,6 +4065,9 @@ public class C : I
                 // i.MAsync(); // 5
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MAsync()").WithLocation(12, 1)
                 );
+
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
         }
     }
 }

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (containingMethod is SynthesizedSimpleProgramEntryPointSymbol { IsAsync: false })
+            if (containingMethod is { IsAsync: false })
             {
                 var bag = BindingDiagnosticBag.GetInstance(withDependencies: false, withDiagnostics: true);
                 try
@@ -127,7 +127,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Top-level statements are always allowed to use `await`, so we
                     // can ignore specific errors
                     Debug.Assert(bag.DiagnosticBag is not null);
-                    return !bag.DiagnosticBag.AsEnumerableWithoutResolution().Any(isErrorOtherThanBadAwait);
+
+#pragma warning disable format
+                    return bag.DiagnosticBag.AsEnumerableWithoutResolution().All(d =>
+                        d.Severity != DiagnosticSeverity.Error ||
+                        d is { Code: (int)ErrorCode.ERR_BadAwaitWithoutAsync or (int)ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod });
+#pragma warning restore format
                 }
                 finally
                 {
@@ -137,15 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundAwait = BindAwait(expression, expression.Syntax, BindingDiagnosticBag.Discarded);
             return !boundAwait.HasAnyErrors;
-
-            static bool isErrorOtherThanBadAwait(Diagnostic diagnostic)
-            {
-#pragma warning disable format
-                return diagnostic.Severity == DiagnosticSeverity.Error &&
-                    diagnostic is not DiagnosticWithInfo { Code: (int)ErrorCode.ERR_BadAwaitWithoutAsync or
-                        (int)ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod };
-#pragma warning restore format
-            }
         }
 
         /// <summary>
