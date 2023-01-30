@@ -2897,6 +2897,283 @@ End Class
         End Sub
 
         <Fact()>
+        Public Sub TestOptionalParameterValue_Enum()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Imports Microsoft.VisualBasic
+
+Enum E
+    A = 1
+    B = 2
+    C = 4
+End Enum
+
+Class C
+    Sub M(Optional a As E = 0, Optional b As E = 1, Optional c As E = 2)
+    End Sub
+End Class
+            </file>
+</compilation>
+
+            Dim findSymbol =
+                Function(globalns As NamespaceSymbol) globalns _
+                    .GetMember(Of NamedTypeSymbol)("C") _
+                    .GetMember(Of MethodSymbol)("M")
+
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:=
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
+                    SymbolDisplayParameterOptions.IncludeType Or
+                    SymbolDisplayParameterOptions.IncludeName Or
+                    SymbolDisplayParameterOptions.IncludeDefaultValue)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "M(a As E = 0, b As E = A, c As E = B)",
+                {
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation
+                })
+        End Sub
+
+        <Fact()>
+        Public Sub TestOptionalParameterValue_FlagsEnum()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Imports Microsoft.VisualBasic
+&lt;System.FlagsAttribute&gt;
+Enum E
+    A = 1
+    B = 2
+    C = 4
+    D = A Or B Or C
+End Enum
+
+Class C
+    Sub M(Optional a As E = 0, Optional b As E = E.A, Optional c As E = E.A Or E.B, Optional d As E = E.A Or E.B Or E.C)
+    End Sub
+End Class
+            </file>
+</compilation>
+
+            Dim findSymbol =
+                Function(globalns As NamespaceSymbol) globalns _
+                    .GetMember(Of NamedTypeSymbol)("C") _
+                    .GetMember(Of MethodSymbol)("M")
+
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:=
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
+                    SymbolDisplayParameterOptions.IncludeType Or
+                    SymbolDisplayParameterOptions.IncludeName Or
+                    SymbolDisplayParameterOptions.IncludeDefaultValue)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "M(a As E = 0, b As E = A, c As E = A Or B, d As E = D)",
+                {
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation
+                })
+        End Sub
+
+        <Fact()>
+        Public Sub TestOptionalParameterValue_NullableEnum()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Imports Microsoft.VisualBasic
+&lt;System.FlagsAttribute&gt;
+Enum E
+    A = 1
+    B = 2
+    C = 4
+    D = A Or B Or C
+End Enum
+
+Class C
+    Sub M(Optional a As E? = 0, Optional b As E? = E.A, Optional c As E? = E.A Or E.B, Optional d As E? = E.A Or E.B Or E.C, Optional e As E? = Nothing)
+    End Sub
+End Class
+            </file>
+</compilation>
+
+            Dim findSymbol =
+                Function(globalns As NamespaceSymbol) globalns _
+                    .GetMember(Of NamedTypeSymbol)("C") _
+                    .GetMember(Of MethodSymbol)("M")
+
+            Dim format = New SymbolDisplayFormat(
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:=
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
+                    SymbolDisplayParameterOptions.IncludeType Or
+                    SymbolDisplayParameterOptions.IncludeName Or
+                    SymbolDisplayParameterOptions.IncludeDefaultValue)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "M(a As E? = 0, b As E? = A, c As E? = A Or B, d As E? = D, e As E? = Nothing)",
+                {
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation
+                })
+        End Sub
+
+        <Fact()>
         Public Sub TestOptionalParameterValue_InvariantCulture1()
             Dim text =
 <compilation>

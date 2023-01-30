@@ -3020,12 +3020,6 @@ namespace Microsoft.Cci
                 SerializeCustomModifiers(encoder.CustomModifiers(), local.CustomModifiers);
             }
 
-            if (module.IsPlatformType(local.Type, PlatformType.SystemTypedReference))
-            {
-                encoder.TypedReference();
-                return;
-            }
-
             SerializeTypeReference(encoder.Type(local.IsReference, local.IsPinned), local.Type);
         }
 
@@ -3319,23 +3313,13 @@ namespace Microsoft.Cci
         {
             var type = parameterTypeInformation.GetType(Context);
 
-            if (module.IsPlatformType(type, PlatformType.SystemTypedReference))
-            {
-                Debug.Assert(!parameterTypeInformation.IsByReference);
-                SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
+            Debug.Assert(parameterTypeInformation.RefCustomModifiers.Length == 0 || parameterTypeInformation.IsByReference);
+            SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.RefCustomModifiers);
 
-                encoder.TypedReference();
-            }
-            else
-            {
-                Debug.Assert(parameterTypeInformation.RefCustomModifiers.Length == 0 || parameterTypeInformation.IsByReference);
-                SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.RefCustomModifiers);
+            var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
 
-                var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
-
-                SerializeCustomModifiers(typeEncoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
-                SerializeTypeReference(typeEncoder, type);
-            }
+            SerializeCustomModifiers(typeEncoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
+            SerializeTypeReference(typeEncoder, type);
         }
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
@@ -3696,14 +3680,7 @@ namespace Microsoft.Cci
 
             encoder.Parameters(declaredParameters.Length + varargParameters.Length, out returnTypeEncoder, out parametersEncoder);
 
-            if (module.IsPlatformType(returnType, PlatformType.SystemTypedReference))
-            {
-                Debug.Assert(!signature.ReturnValueIsByRef);
-                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
-
-                returnTypeEncoder.TypedReference();
-            }
-            else if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
+            if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
             {
                 Debug.Assert(!signature.ReturnValueIsByRef);
                 Debug.Assert(signature.RefCustomModifiers.IsEmpty);
@@ -3741,8 +3718,13 @@ namespace Microsoft.Cci
         {
             while (true)
             {
-                // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
-                Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
+                if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
+                {
+                    // We should use `SignatureTypeEncoder.TypedReference()` once such a method is available
+                    // Tracked by https://github.com/dotnet/runtime/issues/80812
+                    encoder.Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+                    return;
+                }
 
                 if (typeReference is IModifiedTypeReference modifiedTypeReference)
                 {
