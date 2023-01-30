@@ -89,10 +89,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 return;
             }
 
-            INamedTypeSymbol? type = invocation.GetReceiverType(context.Compilation, beforeConversion: false, context.CancellationToken);
-
             // If we're not in one of the known immutable types, quit
-            if (type is not null && type.GetBaseTypesAndThis().Any(immutableTypeSymbols.Contains))
+            if (invocation.GetReceiverType(context.Compilation, beforeConversion: false, context.CancellationToken) is INamedTypeSymbol type
+                && type.GetBaseTypesAndThis().Any(immutableTypeSymbols.Contains))
             {
                 context.ReportDiagnostic(invocation.CreateDiagnostic(DoNotIgnoreReturnValueDiagnosticRule, type.Name, methodName));
             }

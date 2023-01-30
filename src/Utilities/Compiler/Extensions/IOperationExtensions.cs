@@ -25,13 +25,13 @@ namespace Analyzer.Utilities.Extensions
         /// If the invocation actually involves a conversion from A to some other type, say 'C', on which B is invoked,
         /// then this method returns type A if <paramref name="beforeConversion"/> is true, and C if false.
         /// </summary>
-        public static INamedTypeSymbol? GetReceiverType(this IInvocationOperation invocation, Compilation compilation, bool beforeConversion, CancellationToken cancellationToken)
+        public static ITypeSymbol? GetReceiverType(this IInvocationOperation invocation, Compilation compilation, bool beforeConversion, CancellationToken cancellationToken)
         {
             if (invocation.Instance != null)
             {
                 return beforeConversion ?
                     GetReceiverType(invocation.Instance.Syntax, compilation, cancellationToken) :
-                    invocation.Instance.Type as INamedTypeSymbol;
+                    invocation.Instance.Type;
             }
             else if (invocation.TargetMethod.IsExtensionMethod && !invocation.TargetMethod.Parameters.IsEmpty)
             {
@@ -40,22 +40,22 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return beforeConversion ?
                         GetReceiverType(firstArg.Value.Syntax, compilation, cancellationToken) :
-                        firstArg.Value.Type as INamedTypeSymbol;
+                        firstArg.Value.Type;
                 }
                 else if (invocation.TargetMethod.Parameters[0].IsParams)
                 {
-                    return invocation.TargetMethod.Parameters[0].Type as INamedTypeSymbol;
+                    return invocation.TargetMethod.Parameters[0].Type;
                 }
             }
 
             return null;
         }
 
-        private static INamedTypeSymbol? GetReceiverType(SyntaxNode receiverSyntax, Compilation compilation, CancellationToken cancellationToken)
+        private static ITypeSymbol? GetReceiverType(SyntaxNode receiverSyntax, Compilation compilation, CancellationToken cancellationToken)
         {
             var model = compilation.GetSemanticModel(receiverSyntax.SyntaxTree);
             var typeInfo = model.GetTypeInfo(receiverSyntax, cancellationToken);
-            return typeInfo.Type as INamedTypeSymbol;
+            return typeInfo.Type;
         }
 
         public static bool HasNullConstantValue(this IOperation operation)
