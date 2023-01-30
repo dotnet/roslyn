@@ -25,13 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindAwait(expression, node, diagnostics);
         }
 
-        private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, BindingDiagnosticBag diagnostics,
-            bool skipAsyncContextCheck = false)
+        private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
             var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
 
-            ReportBadAwaitDiagnostics(node, node.Location, diagnostics, ref hasErrors, skipAsyncContextCheck);
+            ReportBadAwaitDiagnostics(node, node.Location, diagnostics, ref hasErrors);
             var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: expression);
 
             // Spec 7.7.7.2:
@@ -43,14 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
         }
 
-        internal void ReportBadAwaitDiagnostics(SyntaxNode node, Location location, BindingDiagnosticBag diagnostics,
-            ref bool hasErrors, bool skipAsyncContextCheck = false)
+        internal void ReportBadAwaitDiagnostics(SyntaxNode node, Location location, BindingDiagnosticBag diagnostics, ref bool hasErrors)
         {
-            if (!skipAsyncContextCheck)
-            {
-                hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
-            }
-
+            hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
             hasErrors |= ReportBadAwaitContext(node, location, diagnostics);
         }
 
@@ -122,8 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var boundAwait = BindAwait(expression, expression.Syntax, BindingDiagnosticBag.Discarded, skipAsyncContextCheck: true);
-            return !boundAwait.HasAnyErrors;
+            // Could we bind await on this expression (ignoring whether we are in async context)?
+            var syntax = expression.Syntax;
+            if (ReportBadAwaitContext(syntax, syntax.Location, BindingDiagnosticBag.Discarded))
+            {
+                return false;
+            }
+
+            var placeholder = new BoundAwaitableValuePlaceholder(syntax, expression.Type);
+            return GetAwaitableExpressionInfo(expression: placeholder, getAwaiterArgument: placeholder,
+                isDynamic: out _, getAwaiter: out _, isCompleted: out _, getResult: out _, getAwaiterGetResultCall: out _,
+                node: syntax, diagnostics: BindingDiagnosticBag.Discarded);
         }
 
         /// <summary>
