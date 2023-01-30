@@ -201,10 +201,14 @@ namespace Microsoft.CodeAnalysis.Editing
                         {
                             if (!HasSomeConstraint(typeParameter))
                             {
+                                // if there are no constraints, add `where T : default` so it's known this not an NVT
+                                // and is just an unconstrained type parameter.
                                 decl = WithDefaultConstraint(decl, typeParameter.Name);
                             }
                             else if (!typeParameter.HasValueTypeConstraint)
                             {
+                                // if there are some constraints, add `where T : class` so it's known this is not an NVT
+                                // and must specifically be some reference type.
                                 decl = WithTypeConstraint(decl, typeParameter.Name, SpecialTypeConstraintKind.ReferenceType);
                             }
                         }
