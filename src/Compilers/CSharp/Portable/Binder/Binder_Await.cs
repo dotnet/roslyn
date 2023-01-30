@@ -118,32 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (containingMethod is { IsAsync: false })
-            {
-                var bag = BindingDiagnosticBag.GetInstance(withDependencies: false, withDiagnostics: true);
-                try
-                {
-                    _ = BindAwait(expression, expression.Syntax, bag);
-                    // Top-level statements are always allowed to use `await`, so we
-                    // can ignore specific errors
-                    Debug.Assert(bag.DiagnosticBag is not null);
-
-#pragma warning disable format
-                    return bag.DiagnosticBag.AsEnumerableWithoutResolution().All(d =>
-                        d.Severity != DiagnosticSeverity.Error ||
-                        d is { Code: (int)ErrorCode.ERR_BadAwaitWithoutAsync or
-                            (int)ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod or
-                            (int)ErrorCode.ERR_BadAwaitWithoutAsyncMethod });
-#pragma warning restore format
-                }
-                finally
-                {
-                    bag.Free();
-                }
-            }
-
-            var boundAwait = BindAwait(expression, expression.Syntax, BindingDiagnosticBag.Discarded);
-            return !boundAwait.HasAnyErrors;
+            // Could we bind await on this expression (ignoring whether we are in async context)?
+            var syntax = expression.Syntax;
+            var placeholder = new BoundAwaitableValuePlaceholder(syntax, expression.Type);
+            bool hasErrors = ReportBadAwaitContext(syntax, syntax.Location, BindingDiagnosticBag.Discarded);
+            _ = BindAwaitInfo(placeholder, syntax, BindingDiagnosticBag.Discarded, ref hasErrors, expressionOpt: expression);
+            return !hasErrors;
         }
 
         /// <summary>
