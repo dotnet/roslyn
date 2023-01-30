@@ -523,6 +523,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         private static bool IsIdentityStructCastThatMustBePreserved(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // Identity struct casts will make a copy.  This copy may need to be kept to preserve semantics that only
+            // the copy is being manipulated and not the original struct.
+            //
+            // Note: this is an innacurate heuristic.  Generally speaking, practically any member accessed off of a
+            // struct might mutate it (like accessing .Length on an ImmutableArray).  But practically speaking that is
+            // highly unlikely to actually mutate.  To avoid many false negatives from allowing us to simplify pointless
+            // struct casts, we only look for a very narrow case that just rises up to be potentially problematic.
+            // Specifically, the invocation of a non-known method on a non-known struct type where neitehr the struct
+            // nor method are readonly.
+
             var conversion = semanticModel.GetConversion(castedExpressionNode, cancellationToken);
             if (!conversion.IsIdentity)
                 return false;
