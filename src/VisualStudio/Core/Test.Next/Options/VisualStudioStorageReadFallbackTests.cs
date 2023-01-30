@@ -26,7 +26,8 @@ public class VisualStudioStorageReadFallbackTests
         var exportProvider = VisualStudioTestCompositions.LanguageServices.ExportProviderFactory.CreateExportProvider();
         foreach (var export in exportProvider.GetExports<IVisualStudioStorageReadFallback, OptionNameMetadata>())
         {
-            var langauge = export.Metadata.ConfigName.StartsWith("visual_basic_") ? LanguageNames.VisualBasic : LanguageNames.CSharp;
+            var langauge = export.Metadata.ConfigName.StartsWith("csharp_") || export.Metadata.ConfigName.StartsWith("visual_basic_")
+                ? null : LanguageNames.CSharp;
 
             // if no flags are set the result should be default:
             Assert.Equal(default(Optional<object?>), export.Value.TryRead(langauge, (storageKey, storageType) => default(Optional<object?>)));
