@@ -530,6 +530,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 statements);
         }
 
+        private protected abstract SyntaxNode DestructorDeclaration(IMethodSymbol destructorMethod);
+
         /// <summary>
         /// Converts method, property and indexer declarations into public interface implementations.
         /// This is equivalent to an implicit C# interface implementation (you can access it via the interface or directly via the named member.)
@@ -704,6 +706,9 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Constructor:
                         case MethodKind.SharedConstructor:
                             return ConstructorDeclaration(method);
+
+                        case MethodKind.Destructor:
+                            return DestructorDeclaration(method);
 
                         case MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation:
                             return MethodDeclaration(method);
