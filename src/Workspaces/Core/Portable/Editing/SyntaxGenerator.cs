@@ -189,7 +189,23 @@ namespace Microsoft.CodeAnalysis.Editing
                 statements: statements);
 
             if (method.TypeParameters.Length > 0)
-                decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
+            {
+                // Overrides are special.  Specifically, in an override, if a type parameter has no constraints, then we
+                // want to still add `where T : default` if that type parameter is used with NRT (e.g. `T?`) that way
+                // the language can distinguish if this is a Nullable Value Type or not.
+                if (method.IsOverride)
+                {
+                    foreach (var typeParameter in method.TypeParameters)
+                    {
+                        if (!HasSomeConstraint(typeParameter) && HasNullableAnnotation(typeParameter, method))
+                            decl = WithDefaultConstraint(decl, typeParameter.Name);
+                    }
+                }
+                else
+                {
+                    decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
+                }
+            }
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
@@ -198,6 +214,17 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             return decl;
+
+            bool HasNullableAnnotation(ITypeParameterSymbol typeParameter, IMethodSymbol method)
+            {
+                return method.ReturnType.GetReferencedTypeParameters().Any(t => IsNullableAnnotatedTypeParameter(typeParameter, t)) ||
+                    method.Parameters.Any(p => p.Type.GetReferencedTypeParameters().Any(t => IsNullableAnnotatedTypeParameter(typeParameter, t)));
+            }
+
+            static bool IsNullableAnnotatedTypeParameter(ITypeParameterSymbol typeParameter, ITypeParameterSymbol current)
+            {
+                return Equals(current, typeParameter) && current.NullableAnnotation == NullableAnnotation.Annotated;
+            }
         }
 
         /// <summary>
@@ -506,6 +533,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 statements);
         }
 
+        private protected abstract SyntaxNode DestructorDeclaration(IMethodSymbol destructorMethod);
+
         /// <summary>
         /// Converts method, property and indexer declarations into public interface implementations.
         /// This is equivalent to an implicit C# interface implementation (you can access it via the interface or directly via the named member.)
@@ -681,6 +710,9 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.SharedConstructor:
                             return ConstructorDeclaration(method);
 
+                        case MethodKind.Destructor:
+                            return DestructorDeclaration(method);
+
                         case MethodKind.Ordinary:
                             return MethodDeclaration(method);
 
@@ -807,7 +839,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 foreach (var tp in typeParameters)
                 {
-                    if (tp.HasConstructorConstraint || tp.HasReferenceTypeConstraint || tp.HasValueTypeConstraint || tp.ConstraintTypes.Length > 0)
+                    if (HasSomeConstraint(tp))
                     {
                         declaration = this.WithTypeConstraint(declaration, tp.Name,
                             kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
@@ -820,6 +852,9 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return declaration;
         }
+
+        private static bool HasSomeConstraint(ITypeParameterSymbol typeParameter)
+            => typeParameter.HasConstructorConstraint || typeParameter.HasReferenceTypeConstraint || typeParameter.HasValueTypeConstraint || typeParameter.ConstraintTypes.Length > 0;
 
         internal abstract SyntaxNode WithExplicitInterfaceImplementations(
             SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations, bool removeDefaults = true);
@@ -842,6 +877,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds a type constraint to a type parameter of a declaration.
         /// </summary>
         public abstract SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types = null);
+
+        private protected abstract SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName);
 
         /// <summary>
         /// Adds a type constraint to a type parameter of a declaration.

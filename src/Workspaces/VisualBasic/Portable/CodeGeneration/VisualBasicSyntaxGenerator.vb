@@ -1351,6 +1351,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 statements:=stats)
         End Function
 
+        Private Protected Overrides Function DestructorDeclaration(destructorMethod As IMethodSymbol) As SyntaxNode
+            Return SyntaxFactory.SubBlock(
+                SyntaxFactory.SubStatement(
+                    attributeLists:=Nothing,
+                    modifiers:=SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword), SyntaxFactory.Token(SyntaxKind.OverridesKeyword)),
+                    SyntaxFactory.Identifier("Finalize"),
+                    typeParameterList:=Nothing,
+                    SyntaxFactory.ParameterList(),
+                    asClause:=Nothing,
+                    handlesClause:=Nothing,
+                    implementsClause:=Nothing),
+                SyntaxFactory.List(Of StatementSyntax)())
+        End Function
+
         Private Protected Overrides Function ClassDeclaration(
             name As String,
             typeParameters As IEnumerable(Of SyntaxNode),
@@ -2882,6 +2896,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Return ReplaceTypeParameterList(declaration, Function(old) WithTypeParameterConstraints(old, typeParameterName, clause))
+        End Function
+
+        Private Protected Overrides Function WithDefaultConstraint(declaration As SyntaxNode, typeParameterName As String) As SyntaxNode
+            ' Not supported in VB (no nullable reference types)
+            Return declaration
         End Function
 
         Private Shared Function WithTypeParameterConstraints(typeParameterList As TypeParameterListSyntax, typeParameterName As String, clause As TypeParameterConstraintClauseSyntax) As TypeParameterListSyntax

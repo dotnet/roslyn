@@ -2414,6 +2414,23 @@ End Class"))
     End Set
 End Property")
         End Sub
+
+        <Fact, WorkItem(66374, "https://github.com/dotnet/roslyn/issues/66374")>
+        Public Sub TestDestructor1()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Protected Overrides Sub Finalize()
+    End Sub
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers(WellKnownMemberNames.DestructorName).Single()
+
+            VerifySyntax(Of MethodBlockSyntax)(Generator.Declaration(method),
+"Protected Overrides Sub Finalize()
+End Sub")
+        End Sub
+
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"

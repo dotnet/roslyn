@@ -2375,7 +2375,89 @@ public class C { } // end").Members[0];
 
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.Declaration(property),
-                "");
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : default
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint2()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : class;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint3()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : struct;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66374, "https://github.com/dotnet/roslyn/issues/66374")]
+        public void TestDestructor1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    ~C()
+                    {
+                    }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var method = type.GetMembers(WellKnownMemberNames.DestructorName).Single();
+
+            VerifySyntax<DestructorDeclarationSyntax>(
+                Generator.Declaration(method), """
+                ~C()
+                {
+                }
+                """);
         }
 
         #endregion

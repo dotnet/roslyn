@@ -336,6 +336,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 CreateBlock(statements));
         }
 
+        private protected override SyntaxNode DestructorDeclaration(IMethodSymbol destructorMethod)
+            => SyntaxFactory.DestructorDeclaration(destructorMethod.ContainingType.Name).WithBody(SyntaxFactory.Block());
+
         public override SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
@@ -1821,6 +1824,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 DelegateDeclarationSyntax @delegate => @delegate.WithConstraintClauses(WithTypeConstraints(@delegate.ConstraintClauses, typeParameterName, kinds, types)),
                 _ => declaration,
             };
+
+        private protected override SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName)
+        {
+            var method = (MethodDeclarationSyntax)declaration;
+            return method.AddConstraintClauses(SyntaxFactory.TypeParameterConstraintClause(
+                typeParameterName).AddConstraints(SyntaxFactory.DefaultConstraint()));
+        }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> WithTypeConstraints(
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types)
