@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' This type provides means for instrumenting compiled methods for dynamic analysis.
     ''' It can be combined with other <see cref= "Instrumenter"/>s.
     ''' </summary>
-    Friend NotInheritable Class DynamicAnalysisInjector
+    Friend NotInheritable Class CodeCoverageInstrumenter
         Inherits CompoundInstrumenter
 
         Private ReadOnly _method As MethodSymbol
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             methodBodyFactory As SyntheticBoundNodeFactory,
             diagnostics As BindingDiagnosticBag,
             debugDocumentProvider As DebugDocumentProvider,
-            previous As Instrumenter) As DynamicAnalysisInjector
+            previous As Instrumenter) As CodeCoverageInstrumenter
 
             ' Do not instrument implicitly-declared methods, except for constructors.
             ' Instrument implicit constructors in order to instrument member initializers.
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Return New DynamicAnalysisInjector(
+            Return New CodeCoverageInstrumenter(
                 method,
                 methodBody,
                 methodBodyFactory,

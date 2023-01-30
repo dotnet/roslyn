@@ -2470,6 +2470,24 @@ public class C { } // end").Members[0];
                 """);
         }
 
+        [Fact, WorkItem(66380, "https://github.com/dotnet/roslyn/issues/66380")]
+        public void TestConstantFieldDeclarations()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public const int F;
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var field = type.GetMembers("F").Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.Int32 F;");
+        }
+
         [Fact, WorkItem(66374, "https://github.com/dotnet/roslyn/issues/66374")]
         public void TestDestructor1()
         {
