@@ -25,12 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindAwait(expression, node, diagnostics);
         }
 
-        private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, BindingDiagnosticBag diagnostics)
+        private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, BindingDiagnosticBag diagnostics,
+            bool skipAsyncContextCheck = false)
         {
             bool hasErrors = false;
             var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
 
-            ReportBadAwaitDiagnostics(node, node.Location, diagnostics, ref hasErrors);
+            ReportBadAwaitDiagnostics(node, node.Location, diagnostics, ref hasErrors, skipAsyncContextCheck);
             var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: expression);
 
             // Spec 7.7.7.2:
@@ -42,9 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
         }
 
-        internal void ReportBadAwaitDiagnostics(SyntaxNode node, Location location, BindingDiagnosticBag diagnostics, ref bool hasErrors)
+        internal void ReportBadAwaitDiagnostics(SyntaxNode node, Location location, BindingDiagnosticBag diagnostics,
+            ref bool hasErrors, bool skipAsyncContextCheck = false)
         {
-            hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
+            if (!skipAsyncContextCheck)
+            {
+                hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
+            }
+
             hasErrors |= ReportBadAwaitContext(node, location, diagnostics);
         }
 
@@ -116,12 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Could we bind await on this expression (ignoring whether we are in async context)?
-            var syntax = expression.Syntax;
-            var placeholder = new BoundAwaitableValuePlaceholder(syntax, expression.Type);
-            bool hasErrors = ReportBadAwaitContext(syntax, syntax.Location, BindingDiagnosticBag.Discarded);
-            _ = BindAwaitInfo(placeholder, syntax, BindingDiagnosticBag.Discarded, ref hasErrors, expressionOpt: expression);
-            return !hasErrors;
+            var boundAwait = BindAwait(expression, expression.Syntax, BindingDiagnosticBag.Discarded, skipAsyncContextCheck: true);
+            return !boundAwait.HasAnyErrors;
         }
 
         /// <summary>
