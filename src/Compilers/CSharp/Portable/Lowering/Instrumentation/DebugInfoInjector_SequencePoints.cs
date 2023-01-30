@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void GetBreakpointSpan(VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
             Debug.Assert(declaratorSyntax.Parent != null);
-
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
+            Debug.Assert(declarationSyntax.Parent != null);
 
             if (declarationSyntax.Variables.First() == declaratorSyntax)
             {
-                switch (declarationSyntax.Parent!.Kind())
+                switch (declarationSyntax.Parent.Kind())
                 {
                     case SyntaxKind.EventFieldDeclaration:
                     case SyntaxKind.FieldDeclaration:
@@ -172,7 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int end;
             if (declarationSyntax.Variables.Count == 1)
             {
-
                 // [|int x = 1;|]
                 // [|public static int x = 1;|]
                 end = declarationSyntax.Parent.Span.End;

@@ -409,7 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnStatement.ExpressionOpt != null &&
                 returnStatement.ExpressionOpt.Syntax != null)
             {
-                SyntaxKind parentKind = returnStatement.ExpressionOpt.Syntax.Parent!.Kind();
+                Debug.Assert(returnStatement.ExpressionOpt.Syntax.Parent != null);
+
+                SyntaxKind parentKind = returnStatement.ExpressionOpt.Syntax.Parent.Kind();
                 switch (parentKind)
                 {
                     case SyntaxKind.ParenthesizedLambdaExpression:
