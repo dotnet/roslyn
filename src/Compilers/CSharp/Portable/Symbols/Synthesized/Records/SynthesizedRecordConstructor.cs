@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsNullableAnalysisEnabled()
         {
-            return ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
+            return ContainingType.IsNullableEnabledForConstructorsAndInitializers(IsStatic);
         }
 
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)

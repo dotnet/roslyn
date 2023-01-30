@@ -3247,7 +3247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<Symbol> GetMembersToMatchAgainsDeclarationSpan()
+        internal ImmutableArray<Symbol> GetMembersToMatchAgainstDeclarationSpan()
         {
             var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
             if (declared is not null && declared != DeclaredMembersAndInitializers.UninitializedSentinel)

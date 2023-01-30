@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (container is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null } sourceMemberContainerTypeSymbol)
                 {
-                    foreach (Symbol sym in sourceMemberContainerTypeSymbol.GetMembersToMatchAgainsDeclarationSpan())
+                    foreach (Symbol sym in sourceMemberContainerTypeSymbol.GetMembersToMatchAgainstDeclarationSpan())
                     {
                         if (sym.IsAccessor())
                         {
