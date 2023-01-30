@@ -197,8 +197,17 @@ namespace Microsoft.CodeAnalysis.Editing
                 {
                     foreach (var typeParameter in method.TypeParameters)
                     {
-                        if (!HasSomeConstraint(typeParameter) && HasNullableAnnotation(typeParameter, method))
-                            decl = WithDefaultConstraint(decl, typeParameter.Name);
+                        if (HasNullableAnnotation(typeParameter, method))
+                        {
+                            if (!HasSomeConstraint(typeParameter))
+                            {
+                                decl = WithDefaultConstraint(decl, typeParameter.Name);
+                            }
+                            else if (!typeParameter.HasValueTypeConstraint)
+                            {
+                                decl = WithTypeConstraint(decl, typeParameter.Name, SpecialTypeConstraintKind.ReferenceType);
+                            }
+                        }
                     }
                 }
                 else
