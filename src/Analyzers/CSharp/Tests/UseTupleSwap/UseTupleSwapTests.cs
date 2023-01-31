@@ -470,5 +470,92 @@ args[1] = temp;
 ",
             }.RunAsync();
         }
+
+        [Fact, WorkItem(66427, "https://github.com/dotnet/roslyn/issues/66427")]
+        public async Task NotOnRefStruct()
+        {
+            var code = @"
+ref struct S { }
+
+class C
+{
+    void M()
+    {
+        S v0 = default;
+        S v1 = default;
+
+        var vTmp = v0;
+        v0 = v1;
+        v1 = vTmp;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66427, "https://github.com/dotnet/roslyn/issues/66427")]
+        public async Task OnNormalStruct()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                struct S { }
+
+                class C
+                {
+                    void M()
+                    {
+                        S v0 = default;
+                        S v1 = default;
+
+                        [|var|] vTmp = v0;
+                        v0 = v1;
+                        v1 = vTmp;
+                    }
+                }
+                """,
+                FixedCode = """
+                struct S { }
+
+                class C
+                {
+                    void M()
+                    {
+                        S v0 = default;
+                        S v1 = default;
+
+                        (v1, v0) = (v0, v1);
+                    }
+                }
+                """,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66427, "https://github.com/dotnet/roslyn/issues/66427")]
+        public async Task NotOnPointer()
+        {
+            var code = @"
+class C
+{
+    unsafe void M(int* v0, int* v1)
+    {
+        var vTmp = v0;
+        v0 = v1;
+        v1 = vTmp;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
     }
 }

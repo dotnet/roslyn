@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This type provides means for instrumenting compiled methods for dynamic analysis.
     /// It can be combined with other <see cref="Instrumenter"/>s.
     /// </summary>
-    internal sealed class DynamicAnalysisInjector : CompoundInstrumenter
+    internal sealed class CodeCoverageInstrumenter : CompoundInstrumenter
     {
         private readonly MethodSymbol _method;
         private readonly BoundStatement _methodBody;
@@ -28,32 +28,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol _createPayloadForMethodsSpanningMultipleFiles;
         private readonly ArrayBuilder<SourceSpan> _spansBuilder;
         private ImmutableArray<SourceSpan> _dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
-        private readonly BoundStatement _methodEntryInstrumentation;
+        private readonly BoundStatement? _methodEntryInstrumentation;
         private readonly ArrayTypeSymbol _payloadType;
         private readonly LocalSymbol _methodPayload;
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
         private readonly SyntheticBoundNodeFactory _methodBodyFactory;
 
-        public static DynamicAnalysisInjector TryCreate(
+        public static bool TryCreate(
             MethodSymbol method,
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
             BindingDiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
-            Instrumenter previous)
+            Instrumenter previous,
+            [NotNullWhen(true)] out CodeCoverageInstrumenter? instrumenter)
         {
+            instrumenter = null;
+
             // Do not instrument implicitly-declared methods, except for constructors.
             // Instrument implicit constructors in order to instrument member initializers.
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor)
             {
-                return null;
+                return false;
             }
 
             // Do not instrument methods marked with or in scope of ExcludeFromCodeCoverageAttribute.
             if (IsExcludedFromCodeCoverage(method))
             {
-                return null;
+                return false;
             }
 
             MethodSymbol createPayloadForMethodsSpanningSingleFile = GetCreatePayloadOverload(
@@ -69,19 +72,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
 
             // Do not instrument any methods if CreatePayload is not present.
-            if ((object)createPayloadForMethodsSpanningSingleFile == null || (object)createPayloadForMethodsSpanningMultipleFiles == null)
+            if (createPayloadForMethodsSpanningSingleFile is null || createPayloadForMethodsSpanningMultipleFiles is null)
             {
-                return null;
+                return false;
             }
 
             // Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
             // CreatePayload will fail at run time with an infinite recursion if it is instrumented.
             if (method.Equals(createPayloadForMethodsSpanningSingleFile) || method.Equals(createPayloadForMethodsSpanningMultipleFiles))
             {
-                return null;
+                return false;
             }
 
-            return new DynamicAnalysisInjector(
+            instrumenter = new CodeCoverageInstrumenter(
                 method,
                 methodBody,
                 methodBodyFactory,
@@ -90,9 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 debugDocumentProvider,
                 previous);
+
+            return true;
         }
 
-        private DynamicAnalysisInjector(
+        private CodeCoverageInstrumenter(
             MethodSymbol method,
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
-            if (!method.IsImplicitlyDeclared && !(method is SynthesizedSimpleProgramEntryPointSymbol))
+            if (!method.IsImplicitlyDeclared && method is not SynthesizedSimpleProgramEntryPointSymbol)
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
@@ -129,12 +134,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodBodyFactory.CurrentFunction = oldMethod;
         }
 
+        protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
+            => throw ExceptionUtilities.Unreachable(); // we don't currently need this
+
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {
             Debug.Assert(method.MethodKind != MethodKind.LocalFunction && method.MethodKind != MethodKind.AnonymousFunction);
 
             var containingType = method.ContainingType;
-            while ((object)containingType != null)
+            while (containingType is not null)
             {
                 if (containingType.IsDirectlyExcludedFromCodeCoverage)
                 {
@@ -225,11 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodBodyFactory.Literal(dynamicAnalysisSpans.Length)));
         }
 
-#nullable enable
         public override BoundStatement? CreateBlockPrologue(BoundBlock original, out LocalSymbol? synthesizedLocal)
-#nullable disable
         {
-            BoundStatement previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
+            BoundStatement? previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (_methodBody == original)
             {
                 _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
@@ -404,6 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnStatement.ExpressionOpt != null &&
                 returnStatement.ExpressionOpt.Syntax != null)
             {
+                Debug.Assert(returnStatement.ExpressionOpt.Syntax.Parent != null);
+
                 SyntaxKind parentKind = returnStatement.ExpressionOpt.Syntax.Parent.Kind();
                 switch (parentKind)
                 {
@@ -425,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             ifConditionGotoBody = base.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
-            WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
+            var whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
             Debug.Assert(whenClause != null);
 
             // Instrument the statement using a factory with the same syntax as the clause, so that the instrumentation appears to be part of the clause.
@@ -529,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UsingStatement:
                     {
                         BoundUsingStatement usingStatement = (BoundUsingStatement)statement;
-                        syntaxForSpan = ((BoundNode)usingStatement.ExpressionOpt ?? usingStatement.DeclarationsOpt).Syntax;
+                        syntaxForSpan = ((BoundNode?)usingStatement.ExpressionOpt ?? usingStatement.DeclarationsOpt)!.Syntax;
                         break;
                     }
                 case BoundKind.FixedStatement:
@@ -556,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SyntaxNode MethodDeclarationIfAvailable(SyntaxNode body)
         {
-            SyntaxNode parent = body.Parent;
+            SyntaxNode? parent = body.Parent;
 
             if (parent != null)
             {
@@ -578,43 +586,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // If the method, property, etc. has attributes, the attributes are excluded from the span of the method definition.
-        private static Text.TextSpan SkipAttributes(SyntaxNode syntax)
+        private static TextSpan SkipAttributes(SyntaxNode syntax)
         {
             switch (syntax.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
                     MethodDeclarationSyntax methodSyntax = (MethodDeclarationSyntax)syntax;
-                    return SkipAttributes(syntax, methodSyntax.AttributeLists, methodSyntax.Modifiers, default(SyntaxToken), methodSyntax.ReturnType);
+                    return SkipAttributes(syntax, methodSyntax.AttributeLists, methodSyntax.Modifiers, keyword: default, methodSyntax.ReturnType);
 
                 case SyntaxKind.PropertyDeclaration:
                     PropertyDeclarationSyntax propertySyntax = (PropertyDeclarationSyntax)syntax;
-                    return SkipAttributes(syntax, propertySyntax.AttributeLists, propertySyntax.Modifiers, default(SyntaxToken), propertySyntax.Type);
+                    return SkipAttributes(syntax, propertySyntax.AttributeLists, propertySyntax.Modifiers, keyword: default, propertySyntax.Type);
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.InitAccessorDeclaration:
                     AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)syntax;
-                    return SkipAttributes(syntax, accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
+                    return SkipAttributes(syntax, accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, type: null);
 
                 case SyntaxKind.ConstructorDeclaration:
                     ConstructorDeclarationSyntax constructorSyntax = (ConstructorDeclarationSyntax)syntax;
-                    return SkipAttributes(syntax, constructorSyntax.AttributeLists, constructorSyntax.Modifiers, constructorSyntax.Identifier, null);
+                    return SkipAttributes(syntax, constructorSyntax.AttributeLists, constructorSyntax.Modifiers, constructorSyntax.Identifier, type: null);
 
                 case SyntaxKind.OperatorDeclaration:
                     OperatorDeclarationSyntax operatorSyntax = (OperatorDeclarationSyntax)syntax;
-                    return SkipAttributes(syntax, operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, null);
+                    return SkipAttributes(syntax, operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, type: null);
             }
 
             return syntax.Span;
         }
 
-        private static Text.TextSpan SkipAttributes(SyntaxNode syntax, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax type)
+        private static TextSpan SkipAttributes(SyntaxNode syntax, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax? type)
         {
-            Text.TextSpan originalSpan = syntax.Span;
+            Debug.Assert(keyword.Node != null || type != null);
+
+            var originalSpan = syntax.Span;
             if (attributes.Count > 0)
             {
-                Text.TextSpan startSpan = modifiers.Node != null ? modifiers.Span : (keyword.Node != null ? keyword.Span : type.Span);
-                return new Text.TextSpan(startSpan.Start, originalSpan.Length - (startSpan.Start - originalSpan.Start));
+                var startSpan = modifiers.Node != null ? modifiers.Span : (keyword.Node != null ? keyword.Span : type!.Span);
+                return new TextSpan(startSpan.Start, originalSpan.Length - (startSpan.Start - originalSpan.Start));
             }
 
             return originalSpan;

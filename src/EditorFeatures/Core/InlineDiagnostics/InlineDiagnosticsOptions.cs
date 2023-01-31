@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
         public static readonly PerLanguageOption2<InlineDiagnosticsLocations> Location =
             new("InlineDiagnosticsOptions_Location",
-                defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode);
+                defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<InlineDiagnosticsLocations>());
     }
 }
