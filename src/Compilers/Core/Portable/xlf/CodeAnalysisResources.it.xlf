@@ -79,6 +79,16 @@
         <target state="translated">L'elemento hintName '{0}' contiene un carattere non valido '{1}' alla posizione {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
+      <trans-unit id="HintNameInvalidSegment">
+        <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
+        <target state="new">The hintName '{0}' contains an invalid segment '{1}' at position {2}.</target>
+        <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameNotWithinCurrentDirectory">
+        <source>The hintName '{0}' is not within the current directory.</source>
+        <target state="new">The hintName '{0}' is not within the current directory.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">L'elemento hintName '{0}' del file di origine aggiunto deve essere univoco all'interno di un generatore.</target>
