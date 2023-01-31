@@ -264,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     continue;
                 }
 
-                // Setting a boolean property on this View Model can happen on any thread.
+                // Setting a boolean property on this View Model is allowed to happen on any thread.
                 newItem.IsExpanded = item.IsExpanded;
                 SetIsExpandedOnNewItems(newItem.Children, item.Children);
             }
