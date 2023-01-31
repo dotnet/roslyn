@@ -13,10 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers
     Friend Class VisualBasicMoveStaticMembersRefactoringProvider
         Inherits AbstractMoveStaticMembersRefactoringProvider
 
-#Disable Warning RS0033 ' Importing constructor should be marked with 'ObsoleteAttribute'
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-#Enable Warning RS0033 ' Importing constructor should be marked with 'ObsoleteAttribute'
             MyBase.New()
         End Sub
 
