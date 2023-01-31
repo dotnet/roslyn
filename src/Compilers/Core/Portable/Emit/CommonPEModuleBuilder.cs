@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -131,10 +132,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         /// <remarks>
         /// The PDB content for custom debug information is different between Visual Basic and CSharp.
-        /// E.g. C# always includes a CustomMetadata Header (MD2) that contains the namespace scope counts, where 
-        /// as VB only outputs namespace imports into the namespace scopes. 
+        /// E.g. C# always includes a CustomMetadata Header (MD2) that contains the namespace scope counts, where
+        /// as VB only outputs namespace imports into the namespace scopes.
         /// C# defines forwards in that header, VB includes them into the scopes list.
-        /// 
+        ///
         /// Currently the compiler doesn't allow mixing C# and VB method bodies. Thus this flag can be per module.
         /// It is possible to move this flag to per-method basis but native PDB CDI forwarding would need to be adjusted accordingly.
         /// </remarks>
@@ -218,9 +219,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Builds a list of types, and their documents, that would otherwise not be referenced by any document info
         /// of any methods in those types, or any nested types. This data is helpful for navigating to the source of
         /// types that have no methods in one or more of the source files they are contained in.
-        /// 
+        ///
         /// For example:
-        /// 
+        ///
         /// First.cs:
         /// <code>
         /// partial class Outer
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Emit
         ///     }
         /// }
         /// </code>
-        /// 
+        ///
         /// /// Second.cs:
         /// <code>
         /// partial class Outer
@@ -243,10 +244,10 @@ namespace Microsoft.CodeAnalysis.Emit
         ///     }
         /// }
         /// </code>
-        /// 
+        ///
         /// When navigating to the definition of "Outer" we know about First.cs because of the MethodDebugInfo for Outer.Inner.Method()
         /// but there would be no document information for Second.cs so this method would return that information.
-        /// 
+        ///
         /// When navigating to "Inner" we likewise know about First.cs because of the MethodDebugInfo, and we know about Second.cs because
         /// of the document info for its containing type, so this method would not return information for Inner. In fact this method
         /// will never return information for any nested type.
@@ -256,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract IEnumerable<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context);
 
         /// <summary>
-        /// Number of debug documents in the module. 
+        /// Number of debug documents in the module.
         /// Used to determine capacities of lists and indices when emitting debug info.
         /// </summary>
         public int DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
@@ -346,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns User Strings referenced from the IL in the module. 
+        /// Returns User Strings referenced from the IL in the module.
         /// </summary>
         public IEnumerable<string> GetStrings()
         {
@@ -618,7 +619,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns all top-level (not nested) types defined in the module. 
+        /// Returns all top-level (not nested) types defined in the module.
         /// </summary>
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
         {
