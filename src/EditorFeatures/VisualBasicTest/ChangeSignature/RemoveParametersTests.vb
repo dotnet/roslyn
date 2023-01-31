@@ -162,7 +162,7 @@ Class C
     End Sub
 
     Sub M2()
-        M(Nothing, new:=True)
+        M(Nothing, [new]:=True)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1}
@@ -172,7 +172,7 @@ Class C
     End Sub
 
     Sub M2()
-        M(new:=True)
+        M([new]:=True)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
