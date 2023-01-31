@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void SymbolTree_MouseDown(object sender, EventArgs e)
         {
-            if (sender is StackPanel panel && panel.DataContext is DocumentSymbolDataViewModel symbol)
+            if (sender is StackPanel { DataContext: DocumentSymbolDataViewModel symbolModel })
             {
                 _isNavigating = true;
                 try
