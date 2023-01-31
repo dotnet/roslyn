@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundStatement AddSequencePoint(VariableDeclaratorSyntax declaratorSyntax, BoundStatement rewrittenStatement)
         {
-            SyntaxNode node;
-            TextSpan? part;
-            GetBreakpointSpan(declaratorSyntax, out node, out part);
+            GetBreakpointSpan(declaratorSyntax, out _, out TextSpan? part);
             var result = BoundSequencePoint.Create(declaratorSyntax, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;
@@ -62,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constructorSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
+                Debug.Assert(constructorSyntax.Body != null);
+
                 // [SomeAttribute] static MyCtorName(...) [|{|] ... }
                 var start = constructorSyntax.Body.OpenBraceToken.SpanStart;
                 var end = constructorSyntax.Body.OpenBraceToken.Span.End;
@@ -74,14 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static TextSpan CreateSpan(SyntaxTokenList startOpt, SyntaxNodeOrToken startFallbackOpt, SyntaxNodeOrToken endOpt)
         {
-            Debug.Assert(startFallbackOpt != default(SyntaxNodeOrToken) || endOpt != default(SyntaxNodeOrToken));
+            Debug.Assert(startFallbackOpt != default || endOpt != default);
 
             int startPos;
             if (startOpt.Count > 0)
             {
                 startPos = startOpt.First().SpanStart;
             }
-            else if (startFallbackOpt != default(SyntaxNodeOrToken))
+            else if (startFallbackOpt != default)
             {
                 startPos = startFallbackOpt.SpanStart;
             }
@@ -91,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int endPos;
-            if (endOpt != default(SyntaxNodeOrToken))
+            if (endOpt != default)
             {
                 endPos = GetEndPosition(endOpt);
             }
@@ -104,20 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static int GetEndPosition(SyntaxNodeOrToken nodeOrToken)
-        {
-            if (nodeOrToken.IsToken)
-            {
-                return nodeOrToken.Span.End;
-            }
-            else
-            {
-                return nodeOrToken.AsNode().GetLastToken().Span.End;
-            }
-        }
+            => nodeOrToken.AsNode(out var node) ? node.GetLastToken().Span.End : nodeOrToken.Span.End;
 
         internal static void GetBreakpointSpan(VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
+            Debug.Assert(declaratorSyntax.Parent != null);
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
+            Debug.Assert(declarationSyntax.Parent != null);
 
             if (declarationSyntax.Variables.First() == declaratorSyntax)
             {
@@ -170,7 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void GetFirstLocalOrFieldBreakpointSpan(SyntaxToken? firstToken, VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
+            Debug.Assert(declaratorSyntax.Parent != null);
+
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
+
+            Debug.Assert(declarationSyntax.Parent != null);
 
             // The first token may be a modifier (like public) or using or await
             int start = firstToken?.SpanStart ?? declarationSyntax.SpanStart;
@@ -195,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression AddConditionSequencePoint(BoundExpression condition, SyntaxNode synthesizedVariableSyntax, SyntheticBoundNodeFactory factory)
         {
+            Debug.Assert(condition.Type is not null);
+
             if (!factory.Compilation.Options.EnableEditAndContinue)
             {
                 return condition;
@@ -207,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add hidden sequence point unless the condition is a constant expression.
             // Constant expression must stay a const to not invalidate results of control flow analysis.
             var valueExpression = (condition.ConstantValueOpt == null) ?
-                new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type) :
+                new BoundSequencePointExpression(syntax: null!, expression: factory.Local(local), type: condition.Type) :
                 condition;
 
             return new BoundSequence(

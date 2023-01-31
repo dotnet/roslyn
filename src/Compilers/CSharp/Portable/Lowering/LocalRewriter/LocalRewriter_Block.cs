@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             LocalSymbol? synthesizedLocal;
-            BoundStatement? prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
+            BoundStatement? prologue = Instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
             if (prologue != null)
             {
                 builder.Insert(0, prologue);
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Insert(0, _factory.HiddenSequencePoint());
             }
 
-            BoundStatement? epilogue = _instrumenter.CreateBlockEpilogue(node);
+            BoundStatement? epilogue = Instrumenter.CreateBlockEpilogue(node);
             if (epilogue != null)
             {
                 builder.Add(epilogue);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (node.WasCompilerGenerated || !this.Instrument)
                 ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
-                : _instrumenter.InstrumentNoOpStatement(node, node);
+                : Instrumenter.InstrumentNoOpStatement(node, node);
         }
     }
 }
