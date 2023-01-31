@@ -123,8 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return GetAwaitableExpressionInfo(expression,
-                getAwaiterArgument: new BoundAwaitableValuePlaceholder(syntax, expression.Type),
+            return GetAwaitableExpressionInfo(expression, getAwaiterGetResultCall: out _,
                 node: syntax, diagnostics: BindingDiagnosticBag.Discarded);
         }
 
