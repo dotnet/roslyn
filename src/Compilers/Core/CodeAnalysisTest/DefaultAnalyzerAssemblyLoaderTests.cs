@@ -343,7 +343,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/66621")]
         [CombinatorialData]
         public void AssemblyLoading_AssemblyLocationNotAdded(bool shadowLoad)
         {
