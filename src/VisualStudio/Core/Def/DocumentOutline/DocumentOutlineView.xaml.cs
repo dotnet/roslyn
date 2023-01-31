@@ -87,10 +87,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandOrCollapse(ExpansionOption.Expand);
+            => _viewModel.EnqueueExpandOrCollapse(SearchBox.Text, ExpansionOption.Expand);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandOrCollapse(ExpansionOption.Collapse);
+            => _viewModel.EnqueueExpandOrCollapse(SearchBox.Text, ExpansionOption.Collapse);
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
         {
@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             // Do not respond to caret changing events if we are the ones moving the caret
             if (!e.NewPosition.Equals(e.OldPosition) && !_isNavigating)
             {
-                _viewModel.EnqueueSelectTreeNode(e.NewPosition);
+                _viewModel.EnqueueSelectTreeNode(SearchBox.Text, e.NewPosition);
             }
         }
 

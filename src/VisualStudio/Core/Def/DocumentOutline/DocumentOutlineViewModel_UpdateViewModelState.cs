@@ -28,18 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public void EnqueueFilter(string newText)
             => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, null, null, false));
 
-        public void EnqueueSelectTreeNode(CaretPosition caretPoint)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(null, caretPoint, null, false));
+        public void EnqueueSelectTreeNode(string? newText, CaretPosition caretPoint)
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, caretPoint, null, false));
 
-        public void EnqueueExpandOrCollapse(ExpansionOption option)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(null, null, option, false));
-
-        /// <summary>
-        /// state that is only updated in <see cref="UpdateViewModelStateAsync"/>
-        /// </summary>
-        private string? _currentSearchText = null;
-        private CaretPosition? _currentCaretPosition = null;
-        private ExpansionOption? _currentExpansionOption = null;
+        public void EnqueueExpandOrCollapse(string? newText, ExpansionOption option)
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, null, option, false));
 
         private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<ViewModelStateDataChange> viewModelStateData, CancellationToken cancellationToken)
         {
@@ -51,27 +44,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var expansion = viewModelStateData.SelectLastNonNullOrDefault(static x => x.ExpansionOption);
             var dataUpdated = viewModelStateData.Any(static x => x.DataUpdated);
 
-            if (searchText is not null)
-            {
-                _currentSearchText = searchText;
-            }
-
-            if (position is not null)
-            {
-                _currentCaretPosition = position;
-            }
-
             // These updates always require a valid model to perform
             if (!model.IsEmpty)
             {
-                if (_currentSearchText is null && dataUpdated)
+                if (string.IsNullOrEmpty(searchText) && dataUpdated)
                 {
                     var documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
                     ApplyExpansionStateToNewItems(documentSymbolViewModelItems, DocumentSymbolViewModelItems);
                     DocumentSymbolViewModelItems = documentSymbolViewModelItems;
                 }
 
-                if (_currentSearchText is { } currentQuery)
+                if (searchText is { } currentQuery)
                 {
                     ImmutableArray<DocumentSymbolDataViewModel> documentSymbolViewModelItems;
                     if (currentQuery == string.Empty)
@@ -83,7 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     else
                     {
                         // We are going to show results so we unset any expand / collapse state
-                        _currentExpansionOption = null;
                         documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(
                              DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
                     }
@@ -91,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     DocumentSymbolViewModelItems = documentSymbolViewModelItems;
                 }
 
-                if (_currentCaretPosition is { } currentPosition)
+                if (position is { } currentPosition)
                 {
                     var caretPoint = currentPosition.Point.GetPoint(_textBuffer, PositionAffinity.Predecessor);
                     if (!caretPoint.HasValue)
@@ -108,21 +90,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
                     DocumentOutlineHelper.ExpandAncestors(DocumentSymbolViewModelItems, symbolToSelect.SelectionRangeSpan);
                     symbolToSelect.IsSelected = true;
-                    _currentExpansionOption = null;
                 }
             }
 
             // If we aren't filtering to search results do expand/collapse
             if (expansion is { } expansionOption && string.IsNullOrEmpty(searchText))
             {
-                if (expansionOption == ExpansionOption.Collapse && DocumentSymbolViewModelItems.Any())
-                {
-                    _currentExpansionOption = expansionOption;
-                }
-
                 DocumentOutlineHelper.SetExpansionOption(DocumentSymbolViewModelItems, expansionOption);
             }
-            else if (_currentExpansionOption is ExpansionOption.Collapse)
+            else if (expansion is ExpansionOption.Collapse)
             {
                 DocumentOutlineHelper.SetExpansionOption(DocumentSymbolViewModelItems, ExpansionOption.Collapse);
             }
