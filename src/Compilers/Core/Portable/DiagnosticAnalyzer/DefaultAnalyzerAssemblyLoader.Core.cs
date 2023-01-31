@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                 catch
                 {
                     // Expected to happen when the assembly cannot be resolved in the compiler / host
-                    // AssemblyLoadContext. 
+                    // AssemblyLoadContext.
                 }
 
                 // Prefer registered dependencies in the same directory first.

@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _unbound;
         private readonly TypeMap _inputMap;
 
-        // The container of a substituted named type symbol is typically a named type or a namespace. 
+        // The container of a substituted named type symbol is typically a named type or a namespace.
         // However, in some error-recovery scenarios it might be some other container. For example,
         // consider "int Goo = 123; Goo<string> x = null;" What is the type of x? We construct an error
         // type symbol of arity one associated with local variable symbol Goo; when we construct

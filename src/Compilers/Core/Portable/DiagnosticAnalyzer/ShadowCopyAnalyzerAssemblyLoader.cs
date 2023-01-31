@@ -157,6 +157,10 @@ namespace Microsoft.CodeAnalysis
         private static void CopyFile(string originalPath, string shadowCopyPath)
         {
             var directory = Path.GetDirectoryName(shadowCopyPath);
+            if (directory is null)
+            {
+                throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
+            }
             Directory.CreateDirectory(directory);
 
             File.Copy(originalPath, shadowCopyPath);
