@@ -410,7 +410,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        [WorkItem(66547, "https://github.com/dotnet/roslyn/issues/66547")]
         public async Task RemoveParameters_SpecialSymbolNamedParameter()
         {
             var markup = @"

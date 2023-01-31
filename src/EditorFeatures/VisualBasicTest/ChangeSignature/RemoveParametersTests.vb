@@ -151,5 +151,33 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
 
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem(66547, "https://github.com/dotnet/roslyn/issues/66547")>
+        Public Async Function RemoveParameters_SpecialSymbolNamedParameter() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub $$M(param As Object, Optional [new] As Boolean = False)
+    End Sub
+
+    Sub M2()
+        M(Nothing, new:=True)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {1}
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M(Optional [new] As Boolean = False)
+    End Sub
+
+    Sub M2()
+        M(new:=True)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+
+        End Function
     End Class
 End Namespace
