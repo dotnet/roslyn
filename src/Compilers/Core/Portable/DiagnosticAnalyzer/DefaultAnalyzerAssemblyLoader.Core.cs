@@ -55,6 +55,21 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal void UnloadAll()
+        {
+            List<DirectoryLoadContext> contexts;
+            lock (_guard)
+            {
+                contexts = _loadContextByDirectory.Values.ToList();
+                _loadContextByDirectory.Clear();
+            }
+
+            foreach (var context in contexts)
+            {
+                context.Unload();
+            }
+        }
+
         internal sealed class DirectoryLoadContext : AssemblyLoadContext
         {
             internal string Directory { get; }
@@ -62,6 +77,7 @@ namespace Microsoft.CodeAnalysis
             private readonly AssemblyLoadContext _compilerLoadContext;
 
             public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader, AssemblyLoadContext compilerLoadContext)
+                : base(isCollectible: true)
             {
                 Directory = directory;
                 _loader = loader;

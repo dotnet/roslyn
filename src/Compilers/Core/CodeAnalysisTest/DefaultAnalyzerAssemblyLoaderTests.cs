@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             finally
             {
+                loader.UnloadAll();
                 testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory.Path}");
 
                 foreach (var context in loader.GetDirectoryLoadContextsSnapshot())
@@ -195,11 +196,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
             [CallerMemberName] string? memberName = null)
         {
-            var alc = new AssemblyLoadContext($"Test {memberName}");
-            using var fixture = new AssemblyLoadTestFixture();
-            prepLoadContextAction(alc, fixture);
-            var util = new InvokeUtil();
-            util.Exec(TestOutputHelper, alc, fixture, shadowLoad, testAction.Method.DeclaringType!.FullName!, testAction.Method.Name);
+            var alc = new AssemblyLoadContext($"Test {memberName}", isCollectible: true);
+            try
+            {
+                using var fixture = new AssemblyLoadTestFixture();
+                prepLoadContextAction(alc, fixture);
+                var util = new InvokeUtil();
+                util.Exec(TestOutputHelper, alc, fixture, shadowLoad, testAction.Method.DeclaringType!.FullName!, testAction.Method.Name);
+            }
+            finally
+            {
+                alc.Unload();
+            }
         }
 
 #else
@@ -1241,14 +1249,15 @@ Delta.2: Test D2
         {
             Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
-                StringBuilder sb = new StringBuilder();
-
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                _ = loader.LoadFromPath(testFixture.Delta1.Path);
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var deltaCopy = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                loader.AddDependencyLocation(deltaCopy.Path);
+                _ = loader.LoadFromPath(deltaCopy.Path);
 
                 if (loader is ShadowCopyAnalyzerAssemblyLoader || !ExecutionConditionUtil.IsWindows)
                 {
-                    File.Delete(testFixture.Delta1.Path);
+                    File.Delete(deltaCopy.Path);
                 }
                 else
                 {
