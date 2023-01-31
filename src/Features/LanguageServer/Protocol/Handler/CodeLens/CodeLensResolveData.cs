@@ -9,4 +9,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 /// </summary>
 /// <param name="ResultId">the resultId associated with the code lens list created on original request.</param>
 /// <param name="ListIndex">the index of the specific code lens item in the original list.</param>
-internal record CodeLensResolveData(long ResultId, int ListIndex);
+internal sealed record CodeLensResolveData(long ResultId, int ListIndex);

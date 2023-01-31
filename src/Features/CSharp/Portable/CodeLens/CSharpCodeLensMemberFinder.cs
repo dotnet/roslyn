@@ -60,19 +60,16 @@ internal sealed class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
             _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
-            base.VisitEnumDeclaration(node);
         }
 
         public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
         {
             _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
-            base.VisitPropertyDeclaration(node);
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
-            base.VisitMethodDeclaration(node);
         }
 
         public override void VisitStructDeclaration(StructDeclarationSyntax node)
@@ -84,7 +81,6 @@ internal sealed class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
             _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
-            base.VisitConstructorDeclaration(node);
         }
 
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)

@@ -46,6 +46,9 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
         var codeLensCache = context.GetRequiredLspService<CodeLensCache>();
+
+        // Store the members in the resolve cache so that when we get a resolve request for a particular
+        // member we can re-use the syntax node and span we already computed here.
         var resultId = codeLensCache.UpdateCache(new CodeLensCache.CodeLensCacheEntry(members, request.TextDocument, syntaxVersion));
 
         // TODO - Code lenses need to be refreshed by the server when we detect solution/project wide changes.

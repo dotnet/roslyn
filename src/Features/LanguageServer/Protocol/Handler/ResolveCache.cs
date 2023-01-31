@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// 
 /// On the server side we often need to cache non-serializable data that can't be included in the typical
 /// 'data' field on the actual item.  This type is a general cache that helps keep track of data between requests.
-/// This is a general cache that helps perform that function.
+///
+/// This cache is generally only written to as part of the initial request to store data for later resolution.
+/// It is only read from as part of a resolve request for some data sent in the initial request to restore state.
 /// </summary>
 internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntry : class
 {

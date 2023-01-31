@@ -17,5 +17,5 @@ internal static class LspErrorCodes
     /// Signals that the server detected the contents of the document were modified
     /// outside of normal conditions.
     /// </summary>
-    internal const int ContentModified = -32801;
+    public const int ContentModified = -32801;
 }

@@ -29,7 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
             visitor.Visit(root)
 
             Return builder.ToImmutableAndFree()
-
         End Function
 
         Private NotInheritable Class VisualBasicCodeLensVisitor
@@ -53,17 +52,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
 
             Public Overrides Sub VisitEnumStatement(node As EnumStatementSyntax)
                 _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
-                MyBase.VisitEnumStatement(node)
             End Sub
 
             Public Overrides Sub VisitPropertyStatement(node As PropertyStatementSyntax)
                 _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
-                MyBase.VisitPropertyStatement(node)
             End Sub
 
             Public Overrides Sub VisitMethodStatement(node As MethodStatementSyntax)
                 _memberBuilder.Add(New CodeLensMember(node, node.Identifier.Span))
-                MyBase.VisitMethodStatement(node)
             End Sub
 
             Public Overrides Sub VisitStructureStatement(node As StructureStatementSyntax)
@@ -73,7 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
 
             Public Overrides Sub VisitSubNewStatement(node As SubNewStatementSyntax)
                 _memberBuilder.Add(New CodeLensMember(node, node.NewKeyword.Span))
-                MyBase.VisitSubNewStatement(node)
             End Sub
 
             Public Overrides Sub VisitModuleStatement(node As ModuleStatementSyntax)

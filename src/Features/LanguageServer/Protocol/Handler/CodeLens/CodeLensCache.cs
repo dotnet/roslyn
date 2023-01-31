@@ -9,8 +9,16 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens.CodeLensCache;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
-internal class CodeLensCache : ResolveCache<CodeLensCacheEntry>
+
+internal sealed class CodeLensCache : ResolveCache<CodeLensCacheEntry>
 {
+    /// <summary>
+    /// Use a cache size of 3 as a rough baseline - generally 1 is enough
+    /// however there are certain edge cases (like quickly switching active documents)
+    /// where a resolve request could be made for an older textDocument/codelens request.
+    /// 
+    /// If we discover this number is too low, we can adjust in the future.
+    /// </summary>
     public CodeLensCache() : base(maxCacheSize: 3)
     {
     }
