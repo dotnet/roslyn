@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return GetAwaitableExpressionInfo(expression,
                 getAwaiterArgument: new BoundAwaitableValuePlaceholder(syntax, expression.Type),
-                isDynamic: out _, getAwaiter: out _, isCompleted: out _, getResult: out _, getAwaiterGetResultCall: out _,
                 node: syntax, diagnostics: BindingDiagnosticBag.Discarded);
         }
 
