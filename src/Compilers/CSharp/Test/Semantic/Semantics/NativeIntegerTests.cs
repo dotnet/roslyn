@@ -3851,6 +3851,52 @@ class nint { }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7));
         }
 
+        [Fact, WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        public void AliasName_07()
+        {
+            var source1 =
+@"using A=nint;
+class nint { }
+
+class C
+{
+    void M(A a, global::nint b, System.IntPtr c)
+    {
+        // Ensure that in all cases A binds to the class, and not System.IntPtr
+        System.Console.WriteLine(a == b);
+        System.Console.WriteLine(a == c);
+    }
+}
+";
+
+            var comp = CreateCompilation(source1, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7),
+                // (10,34): error CS0019: Operator '==' cannot be applied to operands of type 'nint' and 'IntPtr'
+                //         System.Console.WriteLine(a == c);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a == c").WithArguments("==", "nint", "System.IntPtr").WithLocation(10, 34));
+
+            comp = CreateCompilation(source1, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7),
+                // (10,34): error CS0019: Operator '==' cannot be applied to operands of type 'nint' and 'IntPtr'
+                //         System.Console.WriteLine(a == c);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a == c").WithArguments("==", "nint", "System.IntPtr").WithLocation(10, 34));
+
+            comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7),
+                // (10,34): error CS0019: Operator '==' cannot be applied to operands of type 'nint' and 'IntPtr'
+                //         System.Console.WriteLine(a == c);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a == c").WithArguments("==", "nint", "System.IntPtr").WithLocation(10, 34));
+        }
+
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void Using_01()
