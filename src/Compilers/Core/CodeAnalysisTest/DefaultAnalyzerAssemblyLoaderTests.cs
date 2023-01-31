@@ -625,7 +625,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/66626")]
         [CombinatorialData]
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void AssemblyLoading_DependencyInDifferentDirectory4(bool shadowLoad)
