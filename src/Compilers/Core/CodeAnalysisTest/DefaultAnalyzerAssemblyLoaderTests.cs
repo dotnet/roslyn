@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #else
 
         // The AsesmblyLoadTestFixture collection can't be taken advantage of on .NET Framework because
-        // it can't be efficiently marhshaled through AppDomains. Have to ignore it here.
+        // it can't be efficiently marshaled through AppDomains. Have to ignore it here.
         public AnalyzerAssemblyLoaderTests(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture _)
         {
             TestOutputHelper = testOutputHelper;
