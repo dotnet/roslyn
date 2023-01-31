@@ -3815,6 +3815,42 @@ namespace nuint
             comp.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        public void AliasName_06()
+        {
+            var source1 =
+@"using A=nint;
+class nint { }
+";
+
+            var comp = CreateCompilation(source1, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A=nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A=nint;").WithLocation(1, 1),
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7));
+
+            comp = CreateCompilation(source1, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A=nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A=nint;").WithLocation(1, 1),
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7));
+
+            comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A=nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A=nint;").WithLocation(1, 1),
+                // (2,7): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(2, 7));
+        }
+
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
         public void Using_01()
