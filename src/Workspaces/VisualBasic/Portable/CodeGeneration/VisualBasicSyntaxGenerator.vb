@@ -2898,6 +2898,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ReplaceTypeParameterList(declaration, Function(old) WithTypeParameterConstraints(old, typeParameterName, clause))
         End Function
 
+        Private Protected Overrides Function WithDefaultConstraint(declaration As SyntaxNode, typeParameterName As String) As SyntaxNode
+            ' Not supported in VB (no nullable reference types)
+            Return declaration
+        End Function
+
         Private Shared Function WithTypeParameterConstraints(typeParameterList As TypeParameterListSyntax, typeParameterName As String, clause As TypeParameterConstraintClauseSyntax) As TypeParameterListSyntax
             If typeParameterList IsNot Nothing Then
                 Dim typeParameter = typeParameterList.Parameters.FirstOrDefault(Function(tp) tp.Identifier.ToString() = typeParameterName)

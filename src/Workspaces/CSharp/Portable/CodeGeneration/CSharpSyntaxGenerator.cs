@@ -1835,6 +1835,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => declaration,
             };
 
+        private protected override SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName)
+        {
+            var method = (MethodDeclarationSyntax)declaration;
+            return method.AddConstraintClauses(SyntaxFactory.TypeParameterConstraintClause(
+                typeParameterName).AddConstraints(SyntaxFactory.DefaultConstraint()));
+        }
+
         private static SyntaxList<TypeParameterConstraintClauseSyntax> WithTypeConstraints(
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types)
         {
