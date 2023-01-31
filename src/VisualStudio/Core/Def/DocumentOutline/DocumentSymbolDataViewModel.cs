@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             => Equals(obj as DocumentSymbolDataViewModel);
 
         public bool Equals(DocumentSymbolDataViewModel? other)
-            => (object)this == other ||
+            => ReferenceEquals(this, other) ||
                  (other is not null &&
                    (RangeSpan.Span, Name, SymbolKind) ==
                    (other.RangeSpan.Span, other.Name, other.SymbolKind));
