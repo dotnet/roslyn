@@ -1006,7 +1006,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    // `using nuint` not legal.
+                    // `using nint;` not legal where 'nint' has the System.IntPtr meaning. It is legal if you were to
+                    // have `namespace nint { }` somewhere.  That is handled though in our caller.
                     return null;
                 case ArgumentSyntax parent when // nameof(nint)
                     (IsInsideNameof &&
