@@ -217,8 +217,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (AnalysisEntityFactory.TryCreate(target, out var targetAnalysisEntity))
             {
-                if (!HasCompletePointsToAnalysisResult &&
-                    targetAnalysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
+                if (!targetAnalysisEntity.ShouldBeTrackedForAnalysis(HasCompletePointsToAnalysisResult))
                 {
                     // We are not tracking points to values for fields and properties.
                     // So, it is not possible to accurately track value changes to target entity which is a member.
