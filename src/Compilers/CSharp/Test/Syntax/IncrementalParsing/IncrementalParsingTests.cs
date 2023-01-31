@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -469,6 +470,70 @@ class C { void c() { } }
                             SyntaxKind.IdentifierName,
                             SyntaxKind.IdentifierName,
                             SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestAttributeToCollectionLiteral1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        [A] Method();
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionCreationExpressionSyntax));
+
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf("]") + 1, length: 1);
+            var change = new TextChange(span, ".");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionCreationExpressionSyntax));
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void TestCollectionLiteralToAttribute1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        [A].Method();
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionCreationExpressionSyntax));
+
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf("."), length: 1);
+            var change = new TextChange(span, " ");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionCreationExpressionSyntax));
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
         #region "Regression"
