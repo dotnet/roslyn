@@ -7548,24 +7548,73 @@ class C
         [Fact]
         public void PrivateImplementationDetails_ComputeStringHash()
         {
-            var source =
-@"class C
+            var source = """
+class C
 {
     static int F(string s)
     {
-        switch (s)
+        return s switch
         {
-            case ""1"": return 1;
-            case ""2"": return 2;
-            case ""3"": return 3;
-            case ""4"": return 4;
-            case ""5"": return 5;
-            case ""6"": return 6;
-            case ""7"": return 7;
-            default: return 0;
-        }
+            "00" => 00,
+            "01" => 01,
+            "02" => 02,
+            "03" => 03,
+            "04" => 04,
+            "05" => 05,
+            "06" => 06,
+            "07" => 07,
+            "08" => 08,
+            "09" => 09,
+            "10" => 10,
+            "11" => 11,
+            "12" => 12,
+            "13" => 13,
+            "14" => 14,
+            "15" => 15,
+            "16" => 16,
+            "17" => 17,
+            "18" => 18,
+            "19" => 19,
+            "20" => 20,
+            "21" => 21,
+            "22" => 22,
+            "23" => 23,
+            "24" => 24,
+            "25" => 25,
+            "26" => 26,
+            "27" => 27,
+            "28" => 28,
+            "29" => 29,
+            "30" => 30,
+            "31" => 31,
+            "32" => 32,
+            "33" => 33,
+            "34" => 34,
+            "35" => 35,
+            "36" => 36,
+            "37" => 37,
+            "38" => 38,
+            "39" => 39,
+            "40" => 40,
+            "41" => 41,
+            "42" => 42,
+            "43" => 43,
+            "44" => 44,
+            "45" => 45,
+            "46" => 46,
+            "47" => 47,
+            "48" => 48,
+            "49" => 49,
+            "59" => 59,
+            "69" => 69,
+            "79" => 79,
+            "89" => 89,
+            "99" => 99,
+            _ => 0
+        };
     }
-}";
+}
+""";
             const string ComputeStringHashName = "ComputeStringHash";
             var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);

@@ -3,10 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if NETCOREAPP
+using System.Runtime.Loader;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
@@ -33,7 +39,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private int _assemblyDirectoryId;
 
+        internal string BaseDirectory => _baseDirectory;
+
+#if NETCOREAPP
         public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
+            : this(null, baseDirectory)
+        {
+        }
+
+        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string? baseDirectory = null)
+            : base(compilerLoadContext)
+#else
+        public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
+#endif
         {
             if (baseDirectory != null)
             {
@@ -95,10 +113,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override string GetPathToLoad(string fullPath)
+        protected override string PreparePathToLoad(string originalFullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
-            string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
+            string shadowCopyPath = CopyFileAndResources(originalFullPath, assemblyDirectory);
             return shadowCopyPath;
         }
 

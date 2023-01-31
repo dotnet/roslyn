@@ -3350,16 +3350,15 @@ namespace Microsoft.Cci
 
         private EmitContext GetEmitContextForAttribute(ICustomAttribute customAttribute)
         {
-            if (customAttribute is AttributeData attributeData &&
-                attributeData.ApplicationSyntaxReference?.GetSyntax(_cancellationToken) is { } syntaxNode)
+            if (customAttribute is AttributeData { ApplicationSyntaxReference: { } syntaxReference })
             {
                 return new EmitContext(
                     Context.Module,
                     Context.Diagnostics,
                     metadataOnly: Context.MetadataOnly,
                     includePrivateMembers: Context.IncludePrivateMembers,
-                    syntaxNode,
-                    Context.RebuildData);
+                    rebuildData: Context.RebuildData,
+                    syntaxReference: syntaxReference);
             }
             return Context;
         }

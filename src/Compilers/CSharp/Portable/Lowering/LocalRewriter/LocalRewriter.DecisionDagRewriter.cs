@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -749,22 +750,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we need to generate a helper method for computing
                     // string hash value in <PrivateImplementationDetails> class.
 
-                    if (input.Type.SpecialType == SpecialType.System_String)
+                    bool isStringInput = input.Type.SpecialType == SpecialType.System_String;
+                    bool isSpanInput = input.Type.IsSpanChar();
+                    bool isReadOnlySpanInput = input.Type.IsReadOnlySpanChar();
+                    LengthBasedStringSwitchData lengthBasedDispatchOpt = null;
+                    if (isStringInput || isSpanInput || isReadOnlySpanInput)
                     {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.String);
-                        // Report required missing member diagnostic
-                        _localRewriter.TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality, out _);
-                    }
-                    else if (input.Type.IsReadOnlySpanChar())
-                    {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.ReadOnlySpanChar);
-                    }
-                    else if (input.Type.IsSpanChar())
-                    {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.SpanChar);
+                        var stringPatternInput = isStringInput ? StringPatternInput.String : (isSpanInput ? StringPatternInput.SpanChar : StringPatternInput.ReadOnlySpanChar);
+
+                        if (!this._localRewriter._compilation.FeatureDisableLengthBasedSwitch &&
+                            LengthBasedStringSwitchData.Create(node.Cases) is var lengthBasedDispatch &&
+                            lengthBasedDispatch.ShouldGenerateLengthBasedSwitch(node.Cases.Length) &&
+                            hasLengthBasedDispatchRequiredMembers(stringPatternInput))
+                        {
+                            lengthBasedDispatchOpt = lengthBasedDispatch;
+                        }
+                        else
+                        {
+                            EnsureStringHashFunction(node.Cases.Length, node.Syntax, stringPatternInput);
+                        }
+
+                        if (isStringInput)
+                        {
+                            // Report required missing member diagnostic
+                            _localRewriter.TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality, out _);
+                        }
                     }
 
-                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel);
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel, lengthBasedDispatchOpt);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else if (input.Type.IsNativeIntegerType)
@@ -790,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(input.Type);
                     }
 
-                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel);
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel, lengthBasedStringSwitchDataOpt: null);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else
@@ -829,6 +842,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                             lowerFloatDispatch(firstIndex + half, count - half);
                         }
                     }
+                }
+
+                return;
+
+                bool hasLengthBasedDispatchRequiredMembers(StringPatternInput stringPatternInput)
+                {
+                    var compilation = _localRewriter._compilation;
+                    var lengthMember = stringPatternInput switch
+                    {
+                        StringPatternInput.String => compilation.GetSpecialTypeMember(SpecialMember.System_String__Length),
+                        StringPatternInput.SpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Length),
+                        StringPatternInput.ReadOnlySpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Length),
+                        _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                    };
+
+                    if ((object)lengthMember == null || lengthMember.HasUseSiteError)
+                    {
+                        return false;
+                    }
+
+                    var charsMember = stringPatternInput switch
+                    {
+                        StringPatternInput.String => compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars),
+                        StringPatternInput.SpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item),
+                        StringPatternInput.ReadOnlySpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item),
+                        _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                    };
+
+                    if ((object)charsMember == null || charsMember.HasUseSiteError)
+                    {
+                        return false;
+                    }
+
+                    return true;
                 }
             }
 
@@ -1081,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                     if (GenerateInstrumentation && !whenExpression.WasCompilerGenerated)
                     {
-                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
+                        conditionalGoto = _localRewriter.Instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
                     }
 
                     sectionBuilder.Add(conditionalGoto);
