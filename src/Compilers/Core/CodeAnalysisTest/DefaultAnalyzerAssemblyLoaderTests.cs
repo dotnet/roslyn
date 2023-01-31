@@ -172,16 +172,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
     /// Long term this is something that needs to be addressed. Tracked by https://github.com/dotnet/roslyn/issues/66532
     ///
     /// </remarks>
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public sealed class AnalyzerAssemblyLoaderTests : TestBase
     {
         public ITestOutputHelper TestOutputHelper { get; }
 
-        public AnalyzerAssemblyLoaderTests(ITestOutputHelper testOutputHelper)
+#if NETCOREAPP
+
+        public AssemblyLoadTestFixture TestFixture { get; }
+
+        public AnalyzerAssemblyLoaderTests(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture testFixture)
         {
             TestOutputHelper = testOutputHelper;
+            TestFixture = testFixture;
         }
-
-#if NETCOREAPP
 
         private void Run(bool shadowLoad, Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction, [CallerMemberName] string? memberName = null) =>
             Run(
@@ -199,10 +203,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var alc = new AssemblyLoadContext($"Test {memberName}", isCollectible: true);
             try
             {
-                using var fixture = new AssemblyLoadTestFixture();
-                prepLoadContextAction(alc, fixture);
+                prepLoadContextAction(alc, TestFixture);
                 var util = new InvokeUtil();
-                util.Exec(TestOutputHelper, alc, fixture, shadowLoad, testAction.Method.DeclaringType!.FullName!, testAction.Method.Name);
+                util.Exec(TestOutputHelper, alc, TestFixture, shadowLoad, testAction.Method.DeclaringType!.FullName!, testAction.Method.Name);
             }
             finally
             {
@@ -211,6 +214,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
 #else
+
+        // The AsesmblyLoadTestFixture collection can't be taken advantage of on .NET Framework because
+        // it can't be efficiently marhshaled through AppDomains. Have to ignore it here.
+        public AnalyzerAssemblyLoaderTests(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture _)
+        {
+            TestOutputHelper = testOutputHelper;
+        }
 
         private void Run(
             bool shadowLoad,
@@ -359,16 +369,19 @@ Delta: Gamma: Beta: Test B
         {
             Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                testFixture.Delta1.WriteAllBytes(testFixture.Delta2.ReadAllBytes());
-                var assembly = loader.LoadFromPath(testFixture.Delta1.Path);
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var delta1Copy = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                loader.AddDependencyLocation(delta1Copy.Path);
+                delta1Copy.WriteAllBytes(testFixture.Delta2.ReadAllBytes());
+                var assembly = loader.LoadFromPath(delta1Copy.Path);
 
                 var name = AssemblyName.GetAssemblyName(testFixture.Delta2.Path);
                 Assert.Equal(name.FullName, assembly.GetName().FullName);
 
                 VerifyDependencyAssemblies(
                     loader,
-                    testFixture.Delta1.Path);
+                    delta1Copy.Path);
             });
         }
 
@@ -1239,7 +1252,7 @@ Delta.2: Test D2
                 var analyzer = analyzerAssembly.CreateInstance("Class1")!;
                 var result = analyzer.GetType().GetMethod("GetFileAttributes")!.Invoke(analyzer, new[] { testFixture.AnalyzerWithNativeDependency.Path });
                 Assert.NotEqual(INVALID_FILE_ATTRIBUTES, result);
-                Assert.Equal(FileAttributes.Archive, (FileAttributes)result!);
+                Assert.Equal(FileAttributes.Archive | FileAttributes.ReadOnly, (FileAttributes)result!);
             });
         }
 

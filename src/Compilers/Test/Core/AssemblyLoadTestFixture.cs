@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
@@ -477,6 +478,13 @@ public class Analyzer : DiagnosticAnalyzer
 
             var tempFile = directory.CreateFile($"{assemblyName}.dll");
             tempFile.WriteAllBytes(analyzerDependencyCompilation.EmitToArray());
+
+            // Mark the file as read only to prevent mutations. The output of this type is frequently used across
+            // unit tests boundaries. Need a guardrail to make sure one test doesn't pollute the output of 
+            // another test.
+            var fileInfo = new FileInfo(tempFile.Path);
+            fileInfo.Attributes |= FileAttributes.ReadOnly;
+
             return tempFile;
         }
 
