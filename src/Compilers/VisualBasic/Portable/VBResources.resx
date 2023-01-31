@@ -5198,7 +5198,7 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
--generatedfilesout:&lt;dir&gt;            Place files generated during compilation in the
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
                                   specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
