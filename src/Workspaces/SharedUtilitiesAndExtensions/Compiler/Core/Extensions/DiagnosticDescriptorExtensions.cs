@@ -136,10 +136,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
+        /// <summary>
+        /// Gets the effective diagnostic severity for the diagnostic ID corresponding to the
+        /// given <paramref name="descriptor"/> by looking up the severity settings in the options.
+        /// If the provided options are specific to a particular tree, provide a non-null value
+        /// for <paramref name="providerAndTree"/> to look up tree specific severity options.
+        /// </summary>
         public static ReportDiagnostic GetEffectiveSeverity(
             this DiagnosticDescriptor descriptor,
             AnalyzerConfigOptions analyzerConfigOptions,
-            (SyntaxTreeOptionsProvider provider, SyntaxTree tree)? providerAndTree)
+            (SyntaxTreeOptionsProvider provider, SyntaxTree tree)? providerAndTree = null)
         {
             ReportDiagnostic severity;
             string? value;
