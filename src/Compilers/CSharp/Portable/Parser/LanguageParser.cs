@@ -11922,17 +11922,9 @@ done:;
                 return _syntaxFactory.SpreadElement(dotDotToken, this.ParseExpressionCore());
 
             // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
-            ExpressionSyntax expression;
-            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
-            {
-                var keyword = this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken);
-                var identifier = ConvertToIdentifier(keyword).WithDiagnosticsGreen(keyword.GetDiagnostics());
-                expression = _syntaxFactory.IdentifierName(identifier);
-            }
-            else
-            {
-                expression = this.ParseExpressionCore();
-            }
+            var expression = SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+                ? _syntaxFactory.IdentifierName(ConvertToIdentifier(this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken)))
+                : this.ParseExpressionCore();
 
             var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
             return colonToken != null
