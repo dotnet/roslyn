@@ -2012,7 +2012,7 @@ class C
 
             await TestExtractMethodAsync(code, expected);
         }
-        
+
         [Fact, WorkItem(39329, "https://github.com/dotnet/roslyn/issues/39329")]
         public Task SimpleUsingStatement()
         {
