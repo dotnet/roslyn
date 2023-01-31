@@ -10944,13 +10944,13 @@ done:;
         private bool CanStartConsequenceExpression()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
-            var nextToken = this.PeekToken(1);
+            var nextTokenKind = this.PeekToken(1).Kind;
 
             // ?. is always the start of of a consequence expression.
-            if (nextToken.Kind == SyntaxKind.DotToken)
+            if (nextTokenKind == SyntaxKind.DotToken)
                 return true;
 
-            if (nextToken.Kind == SyntaxKind.OpenBracketToken)
+            if (nextTokenKind == SyntaxKind.OpenBracketToken)
             {
                 // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
                 using var _ = GetDisposableResetPoint(resetOnDispose: true);
