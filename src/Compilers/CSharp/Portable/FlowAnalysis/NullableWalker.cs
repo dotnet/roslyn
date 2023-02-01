@@ -6233,6 +6233,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argumentNoConversion = argumentsNoConversions[i];
                         var argument = i < arguments.Length ? arguments[i] : argumentNoConversion;
 
+                        if (argument is not BoundConversion && argumentNoConversion is BoundLambda lambda)
+                        {
+                            Debug.Assert(node.HasErrors);
+                            Debug.Assert((object)argument == argumentNoConversion);
+                            // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
+                            // This lambda doesn't have a conversion, so we need to visit it here.
+                            VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
+                            continue;
+                        }
+
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                             GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
                         if (parameter is null)
@@ -6240,6 +6250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If this assert fails, we are missing necessary info to visit the
                             // conversion of a target typed construct.
                             Debug.Assert(!IsTargetTypedExpression(argumentNoConversion) || _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is true);
+
+                            // If this assert fails, it means we failed to visit a lambda for error recovery above.
+                            Debug.Assert(argumentNoConversion is not BoundLambda);
 
                             continue;
                         }
