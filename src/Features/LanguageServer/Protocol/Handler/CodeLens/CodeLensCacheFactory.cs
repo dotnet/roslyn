@@ -6,16 +6,16 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(CodeActionsCache)), Shared]
-internal class CodeActionsCacheFactory : ILspServiceFactory
+[ExportCSharpVisualBasicLspServiceFactory(typeof(CodeLensCache)), Shared]
+internal class CodeLensCacheFactory : ILspServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CodeActionsCacheFactory()
+    public CodeLensCacheFactory()
     {
     }
 
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new CodeActionsCache();
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new CodeLensCache();
 }
