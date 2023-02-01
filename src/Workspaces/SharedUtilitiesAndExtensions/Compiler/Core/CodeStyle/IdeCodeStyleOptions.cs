@@ -20,7 +20,7 @@ internal record class IdeCodeStyleOptions
         new(UnusedParametersPreference.AllMethods, NotificationOption2.Suggestion);
 
     private static readonly CodeStyleOption2<AccessibilityModifiersRequired> s_accessibilityModifiersRequiredDefault =
-        new(SyntaxFormattingOptions.CommonOptions.Default.AccessibilityModifiersRequired, NotificationOption2.Silent);
+        new(SyntaxFormattingOptions.CommonDefaults.AccessibilityModifiersRequired, NotificationOption2.Silent);
 
     private static readonly CodeStyleOption2<ParenthesesPreference> s_alwaysForClarityPreference =
         new(ParenthesesPreference.AlwaysForClarity, NotificationOption2.Silent);

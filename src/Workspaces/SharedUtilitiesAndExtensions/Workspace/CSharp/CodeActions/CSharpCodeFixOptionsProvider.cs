@@ -66,7 +66,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     public CodeStyleOption2<bool> PreferTopLevelStatements => GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, FallbackSyntaxFormattingOptions.PreferTopLevelStatements);
 
     internal SyntaxFormattingOptions GetFormattingOptions()
-        => _options.GetCSharpSyntaxFormattingOptions(FallbackSyntaxFormattingOptions);
+        => new CSharpSyntaxFormattingOptions(_options, FallbackSyntaxFormattingOptions);
 
     // AddImportPlacementOptions
 

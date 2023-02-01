@@ -75,11 +75,11 @@ internal readonly struct CodeFixOptionsProvider
         => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 
-    private SyntaxFormattingOptions.CommonOptions FallbackCommonSyntaxFormattingOptions
+    private SyntaxFormattingOptions FallbackCommonSyntaxFormattingOptions
 #if CODE_STYLE
-        => SyntaxFormattingOptions.CommonOptions.Default;
+        => SyntaxFormattingOptions.CommonDefaults;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.Common;
+        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 }
 
