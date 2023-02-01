@@ -141,23 +141,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim variable As ModifiedIdentifierSyntax = Nothing
-            Dim expression As ExpressionSyntax = Nothing
+            Dim expression As ExpressionSyntax
 
-            If usingStatement.Variables.Count > 0 AndAlso usingStatement.Variables(0).Names.Count > 0 Then
-                variable = usingStatement.Variables(0).Names(0)
+            If usingStatement.Variables.Count > 0 Then
+                expression = usingStatement.Variables(0).Initializer?.Value
             Else
                 expression = usingStatement.Expression
             End If
 
-            If variable Is Nothing AndAlso expression Is Nothing Then
+            If expression Is Nothing Then
                 Return Nothing
             End If
 
-            Dim type =
-                If(variable IsNot Nothing, TryCast(semanticModel.GetDeclaredSymbol(variable, cancellationToken), ILocalSymbol)?.Type,
-                If(expression IsNot Nothing, semanticModel.GetTypeInfo(expression, cancellationToken).Type, Nothing))
-
+            Dim type = semanticModel.GetTypeInfo(expression, cancellationToken).Type
             Return FindDisposeMethod(semanticModel.Compilation, type, isAsync:=False)
         End Function
     End Class

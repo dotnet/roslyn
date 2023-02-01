@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
             }
         }
 
+#nullable disable
+
         #region ISemanticFacts implementation
 
         public bool SupportsImplicitInterfaceImplementation => SemanticFacts.SupportsImplicitInterfaceImplementation;

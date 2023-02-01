@@ -122,27 +122,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
             var isAsync = false;
-            VariableDeclaratorSyntax? variable = null;
             ExpressionSyntax? expression = null;
 
             if (node is UsingStatementSyntax usingStatement)
             {
                 isAsync = usingStatement.AwaitKeyword != default;
-                variable = usingStatement is { Declaration.Variables: [var declarator] } ? declarator : null;
-                expression = usingStatement.Expression ?? null;
+                expression = usingStatement is { Declaration.Variables: [{ Initializer.Value: { } value }] } ? value : usingStatement.Expression;
             }
-            else if (node is LocalDeclarationStatementSyntax { Declaration.Variables: [var declarator] } localDeclaration)
+            else if (node is LocalDeclarationStatementSyntax { Declaration.Variables: [{ Initializer.Value: { } value }] } localDeclaration)
             {
                 isAsync = localDeclaration.AwaitKeyword != default;
-                variable = declarator;
+                expression = value;
             }
 
-            if (variable is null && expression is null)
+            if (expression is null)
                 return null;
 
-            var type =
-                variable != null ? (semanticModel.GetDeclaredSymbol(variable, cancellationToken) as ILocalSymbol)?.Type :
-                expression != null ? semanticModel.GetTypeInfo(expression, cancellationToken).Type : null;
+            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             return FindDisposeMethod(semanticModel.Compilation, type, isAsync);
         }
     }
