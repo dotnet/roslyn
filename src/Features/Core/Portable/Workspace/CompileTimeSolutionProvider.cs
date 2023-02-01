@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private static bool IsRazorDesignTimeDocument(DocumentState documentState)
-            => documentState.FilePath?.EndsWith(".razor.g.cs") == true || documentState.FilePath?.EndsWith(".cshtml.g.cs") == true);
+            => documentState.FilePath?.EndsWith(".razor.g.cs") == true || documentState.FilePath?.EndsWith(".cshtml.g.cs") == true;
 
         internal static async Task<Document?> TryGetCompileTimeDocumentAsync(
             Document designTimeDocument,
