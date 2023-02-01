@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
         {
             return this.Instrument ?
-                _instrumenter.InstrumentLockTargetCapture(original, lockTargetCapture) :
+                Instrumenter.InstrumentLockTargetCapture(original, lockTargetCapture) :
                 lockTargetCapture;
         }
     }

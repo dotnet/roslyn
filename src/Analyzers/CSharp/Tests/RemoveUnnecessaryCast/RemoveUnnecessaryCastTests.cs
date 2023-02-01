@@ -12621,5 +12621,325 @@ class C
 ";
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast1()
+        {
+            var code = @"
+using System;
+public struct S {
+    public int Field;
+    public void Increment() => Field++;
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+    
+    public void M() {
+        ((S)s).Increment(); // cast causes local copy of s
+        s.Print();
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+using System;
+
+public class C {
+    double s;
+    
+    public void M() {
+        ([|(double)|]s).CompareTo(0); // double is built in.  Methods will not mutate it.
+        Console.WriteLine(s);
+    }
+}
+",
+@"
+using System;
+
+public class C {
+    double s;
+    
+    public void M() {
+        s.CompareTo(0); // double is built in.  Methods will not mutate it.
+        Console.WriteLine(s);
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast3()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+public class S {
+    public int Field;
+    public void Increment() => Field++;
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+    
+    public void M() {
+        ([|(S)|]s).Increment(); // safe to remove since this is not a struct
+        s.Print();
+    }
+}
+", @"
+using System;
+public class S {
+    public int Field;
+    public void Increment() => Field++;
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+    
+    public void M() {
+        s.Increment(); // safe to remove since this is not a struct
+        s.Print();
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast4()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+public readonly struct S
+{
+    public readonly int Field;
+    public void Increment() { }
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+    
+    public void M() {
+        ([|(S)|]s).Increment(); // safe to remove since struct is readonly
+        s.Print();
+    }
+}
+", @"
+using System;
+public readonly struct S
+{
+    public readonly int Field;
+    public void Increment() { }
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+    
+    public void M() {
+        s.Increment(); // safe to remove since struct is readonly
+        s.Print();
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast5()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+public struct S
+{
+    public readonly int Field;
+    public void Increment() { }
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+
+    S GetS() => s;
+    
+    public void M() {
+        ([|(S)|]GetS()).Increment(); // safe to remove since not an lvalue.
+        s.Print();
+    }
+}
+", @"
+using System;
+public struct S
+{
+    public readonly int Field;
+    public void Increment() { }
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+
+    S GetS() => s;
+    
+    public void M() {
+        GetS().Increment(); // safe to remove since not an lvalue.
+        s.Print();
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast6()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+public struct S
+{
+    public readonly int Field;
+    public readonly void Increment() { }
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+
+    public void M() {
+        ([|(S)|]s).Increment(); // safe to remove since method is readonly
+        s.Print();
+    }
+}
+", @"
+using System;
+public struct S
+{
+    public readonly int Field;
+    public readonly void Increment() { }
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+
+    public void M() {
+        s.Increment(); // safe to remove since method is readonly
+        s.Print();
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast7()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+public struct S
+{
+    public readonly int Field;
+    public override string ToString() => """";
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+
+    public void M() {
+        ([|(S)|]s).ToString(); // safe to remove since override of object method
+        s.Print();
+    }
+}
+", @"
+using System;
+public struct S
+{
+    public readonly int Field;
+    public override string ToString() => """";
+    public void Print() => Console.WriteLine(Field);
+}
+public class C {
+    S s;
+
+    public void M() {
+        s.ToString(); // safe to remove since override of object method
+        s.Print();
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast8()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+public struct S {
+    public int Field;
+    public void Increment() => Field++;
+    public void Print() => Console.WriteLine(Field);
+    public int Prop => 0;
+}
+public class C {
+    S s;
+    
+    public void M() {
+        var v = ([|(S)|]s).Prop; // Safe because we assume non-methods don't mutate
+        s.Print();
+    }
+}
+", @"
+using System;
+public struct S {
+    public int Field;
+    public void Increment() => Field++;
+    public void Print() => Console.WriteLine(Field);
+    public int Prop => 0;
+}
+public class C {
+    S s;
+    
+    public void M() {
+        var v = s.Prop; // Safe because we assume non-methods don't mutate
+        s.Print();
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(61922, "https://github.com/dotnet/roslyn/issues/61922")]
+        public async Task IdentityStructCast9()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+public struct S {
+    public int Field;
+    public void Increment() => Field++;
+    public void Print() => Console.WriteLine(Field);
+    public int Prop => 0;
+}
+public class C {
+    S s;
+    
+    public void M() {
+        var v = [|(S)|]s; // Safe because we're not accessing a member
+        s.Print();
+    }
+}
+", @"
+using System;
+public struct S {
+    public int Field;
+    public void Increment() => Field++;
+    public void Print() => Console.WriteLine(Field);
+    public int Prop => 0;
+}
+public class C {
+    S s;
+    
+    public void M() {
+        var v = s; // Safe because we're not accessing a member
+        s.Print();
+    }
+}
+");
+        }
     }
 }

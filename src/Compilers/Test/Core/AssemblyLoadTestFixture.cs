@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly TempRoot _temp;
         private readonly TempDirectory _directory;
 
+        public TempDirectory TempDirectory => _directory;
+
         /// <summary>
         /// An assembly with no references, assembly version 1.
         /// </summary>

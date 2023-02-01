@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -48,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Enum InferenceLevel As Byte
             None = 0
             ' None is used to indicate uninitialized  but semantically it should not matter if there is a whidbey delegate
-            ' or no delegate in the overload resolution hence both have value 0 such that overload resolution 
+            ' or no delegate in the overload resolution hence both have value 0 such that overload resolution
             ' will not prefer a non inferred method over an inferred one.
             Whidbey = 0
             Orcas = 1
@@ -132,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _inferredFromLocation As SyntaxNodeOrToken
             Private _inferredTypeByAssumption As Boolean
 
-            ' TODO: Dev10 has two locations to track type inferred so far. 
+            ' TODO: Dev10 has two locations to track type inferred so far.
             '       One that can be changed with time and the other one that cannot be changed.
             '       This one, cannot be changed once set. We need to clean this up later.
             Private _candidateInferredType As TypeSymbol
@@ -202,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _inferredFromLocation = inferredFromLocation
                 _inferredTypeByAssumption = inferredTypeByAssumption
 
-                ' TODO: Dev10 has two locations to track type inferred so far. 
+                ' TODO: Dev10 has two locations to track type inferred so far.
                 '       One that can be changed with time and the other one that cannot be changed.
                 '       We need to clean this up.
                 If _candidateInferredType Is Nothing Then
@@ -260,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 If numberOfIncomingEdges > 0 AndAlso numberOfIncomingEdges = numberOfIncomingWithNothing Then
-                    '  !! Inference has failed: All incoming type hints, were based on 'Nothing' 
+                    '  !! Inference has failed: All incoming type hints, were based on 'Nothing'
                     Graph.MarkInferenceFailure()
                     Graph.ReportNotFailedInferenceDueToObject()
                 End If
@@ -310,11 +311,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If dominantTypeDataList.Count = 1 Then
                         ' //consider: scottwis
-                        ' //              This seems dangerous to me, that we 
+                        ' //              This seems dangerous to me, that we
                         ' //              remove error reasons here.
-                        ' //              Instead of clearing these, what we should be doing is 
+                        ' //              Instead of clearing these, what we should be doing is
                         ' //              asserting that they are not set.
-                        ' //              If for some reason they get set, but 
+                        ' //              If for some reason they get set, but
                         ' //              we enter this path, then we have a bug.
                         ' //              This code is just masking any such bugs.
                         errorReasons = errorReasons And (Not (InferenceErrorReasons.Ambiguous Or InferenceErrorReasons.NoBest))
@@ -329,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Graph.ReportAmbiguousInferenceError(dominantTypeDataList)
                         Else
                             ' //consider: scottwis
-                            ' //              This code appears to be operating under the assumption that if the error reason is not due to an 
+                            ' //              This code appears to be operating under the assumption that if the error reason is not due to an
                             ' //              ambiguity then it must be because there was no best match.
                             ' //              We should be asserting here to verify that assertion.
 
@@ -471,12 +472,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                               lambdaParameter.TypeSyntax,
                                                                               currentTypedNode.InferredTypeByAssumption)
 
-                                        ' 
+                                        '
                                         ' Port SP1 CL 2941063 to VS10
                                         ' Bug 153317
-                                        ' Report an error if Option Strict On or a warning if Option Strict Off 
+                                        ' Report an error if Option Strict On or a warning if Option Strict Off
                                         ' because we have no hints about the lambda parameter
-                                        ' and we are assuming that it is an object. 
+                                        ' and we are assuming that it is an object.
                                         ' e.g. "Sub f(Of T, U)(ByVal x As Func(Of T, U))" invoked with "f(function(z)z)"
                                         ' needs to put the squiggly on the first "z".
 
@@ -526,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' TODO: We are setting inference level before
                         '       even trying to infer something from the lambda. It is possible
-                        '       that we won't infer anything, should consider changing the 
+                        '       that we won't infer anything, should consider changing the
                         '       inference level after.
                         Graph.MarkInferenceLevel(InferenceLevel.Orcas)
                         inferenceOk = Graph.InferTypeArgumentsFromLambdaArgument(
@@ -720,11 +721,11 @@ HandleAsAGeneralExpression:
                                                 useSiteInfo)
 
                 ' Build a graph describing the flow of type inference data.
-                ' This creates edges from "regular" arguments to type parameters and from type parameters to lambda arguments. 
+                ' This creates edges from "regular" arguments to type parameters and from type parameters to lambda arguments.
                 ' In the rest of this function that graph is then processed (see below for more details).  Essentially, for each
                 ' "type parameter" node a list of "type hints" (possible candidates for type inference) is collected. The dominant
                 ' type algorithm is then performed over the list of hints associated with each node.
-                ' 
+                '
                 ' The process of populating the graph also seeds type hints for type parameters referenced by explicitly typed
                 ' lambda parameters. Also, hints sometimes have restrictions placed on them that limit what conversions the dominant type
                 ' algorithm can consider when it processes them. The restrictions are generally driven by the context in which type
@@ -746,7 +747,7 @@ HandleAsAGeneralExpression:
                     stronglyConnectedComponents.TopoSort(topoSortedGraph)
 
                     ' We now iterate over the topologically-sorted strongly connected components of the graph, and generate
-                    ' type hints as appropriate. 
+                    ' type hints as appropriate.
                     '
                     ' When we find a node for an argument (or an ArgumentNode as it's referred to in the code), we infer
                     ' types for all type parameters referenced by that argument and then propagate those types as hints
@@ -758,7 +759,7 @@ HandleAsAGeneralExpression:
                     ' When we encounter a "type parameter" node (or TypeParameterNode as it is called in the code), we run
                     ' the dominant type algorithm over all of it's hints and use the resulting type as the value for the
                     ' referenced type parameter.
-                    ' 
+                    '
                     ' If we find a strongly connected component with more than one node, it means we
                     ' have a cycle and cannot simply run the inference algorithm. When this happens,
                     ' we look through the nodes in the cycle for a type parameter node with at least
@@ -779,15 +780,15 @@ HandleAsAGeneralExpression:
                                 '               There are two implementations of InferTypeAndPropagateHints,
                                 '               one for "named nodes" (nodes corresponding to arguments) and another
                                 '               for "type nodes" (nodes corresponding to types).
-                                '               The implementation for "named nodes" always returns false, which means 
-                                '               "don't restart the algorithm". The implementation for "type nodes" only returns true 
-                                '               if a node has incoming edges that have not been visited previously. In order for that 
-                                '               to happen the node must be inside a strongly connected component with more than one node 
+                                '               The implementation for "named nodes" always returns false, which means
+                                '               "don't restart the algorithm". The implementation for "type nodes" only returns true
+                                '               if a node has incoming edges that have not been visited previously. In order for that
+                                '               to happen the node must be inside a strongly connected component with more than one node
                                 '               (i.e. it must be involved in a cycle). If it wasn't we would be visiting it in
                                 '               topological order, which means all incoming edges should have already been visited.
                                 '               That means that if we reach this code, there is probably a bug in the traversal process. We
                                 '               don't want to silently mask the bug. At a minimum we should either assert or generate a compiler error.
-                                '               
+                                '
                                 '               An argument could be made that it is good to have this because
                                 '               InferTypeAndPropagateHints is virtual, and should some new node type be
                                 '               added it's implementation may return true, and so this would follow that
@@ -842,7 +843,7 @@ HandleAsAGeneralExpression:
 
                 'The commented code below is from Dev10, but it looks like
                 'it doesn't do anything useful because topoSortedGraph contains
-                'StronglyConnectedComponents, which have NodeType=None. 
+                'StronglyConnectedComponents, which have NodeType=None.
                 '
                 'graph.m_VerifyingAssertions = True
                 'GraphNodeListIterator assertionIter(&topoSortedGraph);
@@ -940,7 +941,7 @@ HandleAsAGeneralExpression:
                             Debug.Assert(paramArrayArgument Is Nothing OrElse paramArrayArgument.Kind <> BoundKind.OmittedArgument)
 
                             '§11.8.2 Applicable Methods
-                            'If the conversion from the type of the argument expression to the paramarray type is narrowing, 
+                            'If the conversion from the type of the argument expression to the paramarray type is narrowing,
                             'then the method is only applicable in its expanded form.
                             '!!! However, there is an exception to that rule - narrowing conversion from semantical Nothing literal is Ok. !!!
 
@@ -1214,7 +1215,7 @@ HandleAsAGeneralExpression:
                         For i As Integer = 0 To Math.Min(delegateParameters.Length, lambdaParameters.Length) - 1 Step 1
                             If lambdaParameters(i).Type IsNot Nothing Then
                                 ' Prepopulate the hint from the lambda's parameter.
-                                ' !!! Unlike Dev10, we are using MatchArgumentToBaseOfGenericParameter because a value of generic 
+                                ' !!! Unlike Dev10, we are using MatchArgumentToBaseOfGenericParameter because a value of generic
                                 ' !!! parameter will be passed into the parameter of argument type.
                                 ' TODO: Consider using location for the type declaration.
                                 InferTypeArgumentsFromArgument(
@@ -1367,7 +1368,7 @@ HandleAsAGeneralExpression:
 
                 If argumentType Is Nothing OrElse argumentType.IsVoidType() Then
                     ' We should never be able to infer a value from something that doesn't provide a value, e.g:
-                    ' Goo(Of T) can't be passed Sub bar(), as in Goo(Bar())  
+                    ' Goo(Of T) can't be passed Sub bar(), as in Goo(Bar())
                     Return False
                 End If
 
@@ -1461,7 +1462,7 @@ HandleAsAGeneralExpression:
                                         '    "Sub f(Of T)(ByRef x as G(Of T))"  invoked with some   "dim arg as G(Of Hint)".
                                         ' What's needed for any candidate for T is that G(Of Hint) be convertible to
                                         ' G(Of Candidate), and vice versa for the copyback.
-                                        ' 
+                                        '
                                         ' But then what should we write down for the hints? The problem is that hints inhere
                                         ' to the generic parameter T, not to the function parameter G(Of T). So we opt for a
                                         ' safe approximation: we just require CLR identity between a candidate and the hint.
@@ -1475,7 +1476,7 @@ HandleAsAGeneralExpression:
                                         '    inf(Of Animal)(New G(Of Car), New Animal)
                                         ' Then the hints will be "T:{Car=, Animal+}" and they'll result in inference-failure,
                                         ' even though the explicitly-provided T=Animal ends up working.
-                                        ' 
+                                        '
                                         ' Well, it's the best we can do without some major re-architecting of the way
                                         ' hints and type-inference works. That's because all our hints inhere to the
                                         ' type parameter T; in an ideal world, the ByRef hint would inhere to the parameter.
@@ -1520,7 +1521,7 @@ HandleAsAGeneralExpression:
                                                                         _DigThroughToBasesAndImplements,
                                                                         paramInferenceRestrictions
                                                                   ) Then
-                                            ' TODO: Would it make sense to continue through other type arguments even if inference failed for 
+                                            ' TODO: Would it make sense to continue through other type arguments even if inference failed for
                                             '       the current one?
                                             Return False
                                         End If
@@ -1564,7 +1565,7 @@ HandleAsAGeneralExpression:
                         Dim argumentArray = DirectCast(argumentType, ArrayTypeSymbol)
                         Dim argumentIsAarrayLiteral = TypeOf argumentArray Is ArrayLiteralTypeSymbol
 
-                        ' We can ignore IsSZArray value for an inferred type of an array literal as long as its rank matches. 
+                        ' We can ignore IsSZArray value for an inferred type of an array literal as long as its rank matches.
                         If parameterArray.Rank = argumentArray.Rank AndAlso
                            (argumentIsAarrayLiteral OrElse parameterArray.IsSZArray = argumentArray.IsSZArray) Then
                             Return InferTypeArgumentsFromArgument(
@@ -1672,7 +1673,7 @@ HandleAsAGeneralExpression:
                         ' inf(f)                             // ParameterType might be e.g. D(Of T) for some function inf(Of T)(f as D(Of T))
                         '                                    // maybe defined as Delegate Function D(Of T)(x as T) as T.
                         ' We're looking to achieve the same functionality in pattern-matching these types as we already
-                        ' have for calling "inf(function(i as integer) i)" directly. 
+                        ' have for calling "inf(function(i as integer) i)" directly.
                         ' It allows any VB conversion from param-of-fixed-type to param-of-base-type (not just reference conversions).
                         ' But it does allow a zero-argument BaseSearchType to be used for a FixedType with more.
                         ' And it does allow a function BaseSearchType to be used for a sub FixedType.
@@ -1695,7 +1696,7 @@ HandleAsAGeneralExpression:
                             Return False
                         End If
 
-                        ' First we'll check that the argument types all match. 
+                        ' First we'll check that the argument types all match.
                         For i As Integer = 0 To argumentParams.Length - 1
                             If argumentParams(i).IsByRef <> parameterParams(i).IsByRef Then
                                 ' Require an exact match between ByRef/ByVal, since that's how type inference of lambda expressions works.
@@ -1739,7 +1740,7 @@ HandleAsAGeneralExpression:
 
                 ' MatchBaseOfGenericArgumentToParameter: used for covariant situations,
                 ' e.g. matching argument "List(Of _)" to parameter "ByVal x as IEnumerable(Of _)".
-                ' 
+                '
                 ' Otherwise, MatchArgumentToBaseOfGenericParameter, used for contravariant situations,
                 ' e.g. when matching argument "Action(Of IEnumerable(Of _))" to parameter "ByVal x as Action(Of List(Of _))".
 
@@ -2038,8 +2039,8 @@ HandleAsAGeneralExpression:
                     ' First, we need to build a partial type substitution using the type of
                     ' arguments as they stand right now, with some of them still being uninferred.
 
-                    ' TODO: Doesn't this make the inference algorithm order dependent? For example, if we were to 
-                    '       infer more stuff from other non-lambda arguments, we might have a better chance to have 
+                    ' TODO: Doesn't this make the inference algorithm order dependent? For example, if we were to
+                    '       infer more stuff from other non-lambda arguments, we might have a better chance to have
                     '       more type information for the lambda, allowing successful lambda interpretation.
                     '       Perhaps the graph doesn't allow us to get here until all "inputs" for lambda parameters
                     '       are inferred.
@@ -2093,12 +2094,12 @@ HandleAsAGeneralExpression:
 
                                 ' TODO: Why does it make sense to continue here? It looks like we can infer something from
                                 '       lambda's return type based on incomplete information. Also, this 'if' is redundant,
-                                '       there is nothing left to do in this loop anyway, and "continue" doesn't change anything. 
+                                '       there is nothing left to do in this loop anyway, and "continue" doesn't change anything.
                                 Continue For
                             End If
                         Else
                             ' report the type of the lambda parameter to the delegate parameter.
-                            ' !!! Unlike Dev10, we are using MatchArgumentToBaseOfGenericParameter because a value of generic 
+                            ' !!! Unlike Dev10, we are using MatchArgumentToBaseOfGenericParameter because a value of generic
                             ' !!! parameter will be passed into the parameter of argument type.
                             InferTypeArgumentsFromArgument(
                                 argument.Syntax,
@@ -2186,7 +2187,7 @@ HandleAsAGeneralExpression:
                                     End If
                                 End If
 
-                                ' But in the case of async/iterator lambdas, e.g. pass "Async Function() 1" to a parameter 
+                                ' But in the case of async/iterator lambdas, e.g. pass "Async Function() 1" to a parameter
                                 ' of type "Func(Of Task(Of T))" then we have to dig in further and match 1 to T...
                                 If (unboundLambda.Flags And (SourceMemberFlags.Async Or SourceMemberFlags.Iterator)) <> 0 AndAlso
                                         lambdaReturnType IsNot Nothing AndAlso lambdaReturnType.Kind = SymbolKind.NamedType AndAlso
