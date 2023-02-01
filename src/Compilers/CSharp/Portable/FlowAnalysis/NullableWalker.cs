@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int _lastConditionalAccessSlot = -1;
 
-        private BoundExpression? _visitingConversionOperand;
+        private BoundNode? _visitingConversionOperand;
 
 #if DEBUG
         private readonly HashSet<BoundLambda> _errorLambdas = new HashSet<BoundLambda>();
@@ -2130,8 +2130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Call instead of <see cref="VisitRvalueWithState"/>
-        /// if VisitConversion will be also called
+        /// Call instead of VisitRvalueWithState if VisitConversion will be also called
         /// with <paramref name="node"/> as the conversion's operand.
         /// </summary>
         private TypeWithState VisitRvalueInConversion(BoundExpression? node)
@@ -2141,6 +2140,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node);
             _visitingConversionOperand = previousConversionOperand;
             return ResultType;
+        }
+
+        /// <summary>
+        /// Call instead of Visit if VisitConversion will be also called
+        /// with <paramref name="node"/> as the conversion's operand.
+        /// </summary>
+        private BoundNode? VisitInConversion(BoundNode? node)
+        {
+            var previousConversionOperand = _visitingConversionOperand;
+            _visitingConversionOperand = node;
+            var result = Visit(node);
+            _visitingConversionOperand = previousConversionOperand;
+            return result;
         }
 
         private TypeWithAnnotations VisitLvalueWithAnnotations(BoundExpression node)
@@ -5589,7 +5601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression operandNoConversion;
                 (operandNoConversion, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
                 SnapshotWalkerThroughConversionGroup(operand, operandNoConversion);
-                Visit(operandNoConversion);
+                VisitInConversion(operandNoConversion);
                 return (operandNoConversion, conversion, ResultType);
             }
 
