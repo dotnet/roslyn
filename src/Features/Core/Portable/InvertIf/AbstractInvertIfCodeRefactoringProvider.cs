@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using static Microsoft.CodeAnalysis.SyntaxNodeExtensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -308,7 +309,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
                         generator.SyntaxGeneratorInternal,
                         GetCondition(ifNode),
                         semanticModel,
-                        cancellationToken)));
+                        cancellationToken),
+                    document.GetRequiredLanguageService<ISyntaxFactsService>()));
         }
 
         private static void AnalyzeSubsequentControlFlow(
@@ -426,7 +428,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
             TIfStatementSyntax ifNode,
             InvertIfStyle invertIfStyle,
             SyntaxNode? subsequentSingleExitPoint,
-            SyntaxNode negatedExpression)
+            SyntaxNode negatedExpression,
+            ISyntaxFacts syntaxFacts)
         {
             switch (invertIfStyle)
             {
@@ -472,9 +475,25 @@ namespace Microsoft.CodeAnalysis.InvertIf
                         var index = statements.IndexOf(ifNode);
 
                         var statementsBeforeIf = statements.Take(index);
-                        var statementsAfterIf = statements.Skip(index + 1);
+                        var statementsAfterIf = statements.Skip(index + 1).ToImmutableArray();
 
                         var ifBody = GetIfBody(ifNode);
+
+                        var newTrailing = UnwrapBlock(ifBody).ToArray();
+
+                        // Get leading and trailing space of the expressions to preserve for the user
+                        // ex:
+                        // if (true)
+                        // {
+                        //    return true;
+                        // }
+                        //              // <<< preserve this line
+                        // // preserve this comment
+                        // return false;
+                        var leadingTrivia = GetLeadingSpace(statementsAfterIf[0].GetLeadingTrivia()).Concat(GetTriviaAfterSpace(newTrailing[0].GetLeadingTrivia()));
+                        var trailingTrivia = GetTriviaUntilSpace(newTrailing[^1].GetTrailingTrivia()).Concat(GetTrailingSpace(statementsAfterIf[^1].GetTrailingTrivia()));
+                        newTrailing[0] = newTrailing[0].WithLeadingTrivia(leadingTrivia);
+                        newTrailing[^1] = newTrailing[^1].WithTrailingTrivia(trailingTrivia);
 
                         var updatedIf = UpdateIf(
                             text,
@@ -484,7 +503,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                         var updatedParent = WithStatements(
                             currentParent,
-                            statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifBody)));
+                            statementsBeforeIf.Concat(updatedIf).Concat(newTrailing));
 
                         return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
                     }
@@ -591,6 +610,29 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(invertIfStyle);
+            }
+
+            // 
+            // local functions
+            //
+            IEnumerable<SyntaxTrivia> GetTriviaAfterSpace(IEnumerable<SyntaxTrivia> syntaxTrivias)
+            {
+                return syntaxTrivias.SkipWhile(syntaxFacts.IsWhitespaceOrEndOfLineTrivia);
+            }
+
+            IEnumerable<SyntaxTrivia> GetTriviaUntilSpace(IEnumerable<SyntaxTrivia> syntaxTrivias)
+            {
+                return GetTriviaAfterSpace(syntaxTrivias.Reverse()).Reverse();
+            }
+
+            IEnumerable<SyntaxTrivia> GetTrailingSpace(IEnumerable<SyntaxTrivia> syntaxTrivias)
+            {
+                return GetLeadingSpace(syntaxTrivias.Reverse()).Reverse();
+            }
+
+            IEnumerable<SyntaxTrivia> GetLeadingSpace(IEnumerable<SyntaxTrivia> syntaxTrivias)
+            {
+                return syntaxTrivias.TakeWhile(syntaxFacts.IsWhitespaceOrEndOfLineTrivia);
             }
         }
     }
