@@ -9148,5 +9148,104 @@ abstract class Barry
     protected abstract void Goo(Action<object> action, object arg);
 }");
         }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        return v;
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        return v;
+    }
+
+    private int NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        if (v)
+        {
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        if (v)
+        {
+        }
+    }
+
+    private bool NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        var x = v;
+        return x;
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        var x = v;
+        return x;
+    }
+
+    private int NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }

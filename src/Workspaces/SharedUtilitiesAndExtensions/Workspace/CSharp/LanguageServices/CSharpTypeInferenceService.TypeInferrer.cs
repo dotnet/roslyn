@@ -2190,41 +2190,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var variableType = variableDeclarator.GetVariableType();
                 if (variableType == null)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
                 var symbol = SemanticModel.GetDeclaredSymbol(variableDeclarator);
                 if (symbol == null)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
                 var type = symbol.GetSymbolType();
                 var types = CreateResult(type).Where(IsUsableTypeFunc);
 
-                if (variableType.IsVar)
+                if (!variableType.IsVar ||
+                    variableDeclarator.Parent is not VariableDeclarationSyntax variableDeclaration)
                 {
-                    if (variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration)
+                    return types;
+                }
+
+                // using (var v = Goo())
+                if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
+                    return CreateResult(SpecialType.System_IDisposable);
+
+                // for (var v = Goo(); ..
+                if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
+                    return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+
+                // var v = expr.
+                // Attempt to see how 'v' is used later in the current scope to determine what to do.
+                var container = variableDeclaration.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax or SwitchSectionSyntax);
+                if (container != null)
+                {
+                    foreach (var descendant in container.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                     {
-                        if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
-                        {
-                            // using (var v = Goo())
-                            return CreateResult(SpecialType.System_IDisposable);
-                        }
+                        // only look after the variable we're declaring.
+                        if (descendant.SpanStart <= variableDeclaration.Span.End)
+                            continue;
 
-                        if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
-                        {
-                            // for (var v = Goo(); ..
-                            return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
-                        }
+                        if (descendant.Identifier.ValueText != variableDeclarator.Identifier.ValueText)
+                            continue;
 
-                        // Return the types here if they actually bound to a type called 'var'.
-                        return types.Where(t => t.InferredType.Name == "var");
+                        // Make sure it's actually a match for this variable.
+                        var descendantSymbol = SemanticModel.GetSymbolInfo(descendant, CancellationToken).GetAnySymbol();
+                        if (symbol.Equals(descendantSymbol))
+                        {
+                            // See if we can infer something interesting about this location.
+                            var inferredDescendantTypes = InferTypes(descendant, filterUnusable: true);
+                            if (inferredDescendantTypes is not [] and not [{ InferredType.SpecialType: SpecialType.System_Object }])
+                                return inferredDescendantTypes;
+                        }
                     }
                 }
 
-                return types;
+                // Return the types here if they actually bound to a type called 'var'.
+                return types.Where(t => t.InferredType.Name == "var");
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
