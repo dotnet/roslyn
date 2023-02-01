@@ -33,14 +33,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             set => _globalOptions.SetGlobalOption(s_removeRecommendationLimitOption, value);
         }
 
-        public const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
-
         private static readonly Option2<bool> s_showDebugInfoOption = new(
-            "InternalFeatureOnOffOptions", "ShowDebugInfo", defaultValue: false,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "ShowDebugInfo"));
+            "InternalFeatureOnOffOptions_ShowDebugInfo", defaultValue: false);
 
         private static readonly Option2<bool> s_removeRecommendationLimitOption = new(
-            "InternalFeatureOnOffOptions", "RemoveRecommendationLimit", defaultValue: false,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "RemoveRecommendationLimit"));
+            "InternalFeatureOnOffOptions_RemoveRecommendationLimit", defaultValue: false);
     }
 }

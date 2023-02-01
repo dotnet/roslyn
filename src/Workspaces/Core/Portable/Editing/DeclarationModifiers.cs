@@ -74,21 +74,22 @@ namespace Microsoft.CodeAnalysis.Editing
                 var property = symbol as IPropertySymbol;
                 var method = symbol as IMethodSymbol;
                 var type = symbol as INamedTypeSymbol;
+                var isConst = field?.IsConst == true;
 
                 return new DeclarationModifiers(
-                    isStatic: symbol.IsStatic,
+                    isStatic: symbol.IsStatic && !isConst,
                     isAbstract: symbol.IsAbstract,
                     isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true || type?.IsReadOnly == true || method?.IsReadOnly == true,
                     isVirtual: symbol.IsVirtual,
                     isOverride: symbol.IsOverride,
                     isSealed: symbol.IsSealed,
-                    isConst: field?.IsConst == true,
+                    isConst: isConst,
                     isUnsafe: symbol.RequiresUnsafeModifier(),
                     isVolatile: field?.IsVolatile == true,
                     isExtern: symbol.IsExtern,
                     isAsync: method?.IsAsync == true,
                     isRequired: symbol.IsRequired(),
-                    isFile: (symbol as INamedTypeSymbol)?.IsFileLocal == true);
+                    isFile: type?.IsFileLocal == true);
             }
 
             // Only named types, members of named types, and local functions have modifiers.

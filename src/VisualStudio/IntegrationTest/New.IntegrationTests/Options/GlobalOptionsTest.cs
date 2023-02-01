@@ -10,9 +10,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.Options;
+using Microsoft.VisualStudio.Settings;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
@@ -27,41 +32,65 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
     [IdeFact]
     public async Task ValidateAllOptions()
     {
-        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+        var globalOptions = (GlobalOptionService)await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+        var provider = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioOptionPersisterProvider>(HangMitigatingCancellationToken);
+        var vsSettingsPersister = (VisualStudioOptionPersister)await provider.GetOrCreatePersisterAsync(HangMitigatingCancellationToken);
 
         var optionsInfo = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(GlobalOptionsTest).Assembly.Location!));
         var allLanguages = new[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
         var noLanguages = new[] { (string?)null };
 
-        foreach (var (option, _, _, _) in optionsInfo.GlobalOptions.Values)
+        foreach (var (configName, optionInfo) in optionsInfo)
         {
+            var option = optionInfo.Option;
+
+            // skip public options:
+            if (option is IPublicOption)
+            {
+                continue;
+            }
+
+            if (!VisualStudioOptionStorage.Storages.TryGetValue(configName, out var storage))
+            {
+                continue;
+            }
+
+            // TODO: issue https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1585884
+            if (option == TaskListOptionsStorage.Descriptors)
+            {
+                continue;
+            }
+
             foreach (var language in option.IsPerLanguage ? allLanguages : noLanguages)
             {
                 var key = new OptionKey2(option, language);
                 var currentValue = globalOptions.GetOption<object?>(key);
 
                 // do not attempt to update feature flags
-                if (option.StorageLocations.Any(s => s is FeatureFlagStorageLocation))
+                if (storage is VisualStudioOptionStorage.FeatureFlagStorage)
                 {
                     Assert.True(currentValue is bool);
                     continue;
                 }
 
                 var differentValue = OptionsTestHelpers.GetDifferentValue(option.Type, currentValue);
-                globalOptions.SetGlobalOption(key, differentValue);
+
+                await vsSettingsPersister.PersistAsync(storage, key, differentValue);
+
+                // make sure we fetch the value from the storage:
+                globalOptions.ClearCachedValues();
 
                 object? updatedValue;
-
                 try
                 {
                     updatedValue = globalOptions.GetOption<object?>(key);
                 }
                 finally
                 {
-                    globalOptions.SetGlobalOption(key, currentValue);
+                    await vsSettingsPersister.PersistAsync(storage, key, currentValue);
                 }
 
-                Assert.Equal(differentValue, updatedValue);
+                AssertEx.AreEqual(differentValue, updatedValue, message: $"Option '{option.Definition.ConfigName}' failed to persist to VS settings.");
             }
         }
     }

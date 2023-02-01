@@ -14,12 +14,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Options
 {
-    /// <summary>
-    /// Serializes options marked with <see cref="LocalUserProfileStorageLocation"/> to the local hive-specific registry.
-    /// </summary>
-    internal sealed class LocalUserRegistryOptionPersister : IOptionPersister
+    internal sealed class LocalUserRegistryOptionPersister
     {
         /// <summary>
         /// An object to gate access to <see cref="_registryKey"/>.
@@ -49,33 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return new LocalUserRegistryOptionPersister(root.CreateSubKey(rootPath, RegistryKeyPermissionCheck.ReadWriteSubTree));
         }
 
-        private static bool TryGetKeyPathAndName(IOption option, [NotNullWhen(true)] out string? path, [NotNullWhen(true)] out string? key)
+        public bool TryFetch(OptionKey2 optionKey, string path, string key, out object? value)
         {
-            var serialization = option.StorageLocations.OfType<LocalUserProfileStorageLocation>().SingleOrDefault();
-
-            if (serialization == null)
-            {
-                path = null;
-                key = null;
-                return false;
-            }
-            else
-            {
-                // We'll just use the filesystem APIs to decompose this
-                path = Path.GetDirectoryName(serialization.KeyName);
-                key = Path.GetFileName(serialization.KeyName);
-                return true;
-            }
-        }
-
-        bool IOptionPersister.TryFetch(OptionKey2 optionKey, out object? value)
-        {
-            if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
-            {
-                value = null;
-                return false;
-            }
-
             lock (_gate)
             {
                 using var subKey = _registryKey.OpenSubKey(path);
@@ -133,6 +105,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 {
                     // Otherwise we can just store normally
                     value = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+
+                    if (optionKey.Option.Type.IsEnum)
+                    {
+                        try
+                        {
+                            value = Enum.ToObject(optionKey.Option.Type, value);
+                        }
+                        catch (ArgumentException)
+                        {
+                            // the value may be out of range for the base type of the enum
+                            value = null;
+                            return false;
+                        }
+                    }
+
                     return true;
                 }
             }
@@ -141,44 +128,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return false;
         }
 
-        bool IOptionPersister.TryPersist(OptionKey2 optionKey, object? value)
+        public void Persist(OptionKey2 optionKey, string path, string key, object? value)
         {
-            if (_registryKey == null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
-            {
-                return false;
-            }
+            Contract.ThrowIfNull(_registryKey);
 
             lock (_gate)
             {
                 using var subKey = _registryKey.CreateSubKey(path);
 
+                var optionType = optionKey.Option.Type;
+
                 // Options that are of type bool have to be serialized as integers
-                if (optionKey.Option.Type == typeof(bool))
+                if (optionType == typeof(bool))
                 {
                     Contract.ThrowIfNull(value);
                     subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
-                    return true;
+                    return;
                 }
 
-                if (optionKey.Option.Type == typeof(long))
+                if (optionType == typeof(long))
                 {
                     Contract.ThrowIfNull(value);
 
                     subKey.SetValue(key, value, RegistryValueKind.QWord);
-                    return true;
+                    return;
                 }
 
-                if (optionKey.Option.Type.IsEnum)
+                if (optionType.IsEnum)
                 {
                     Contract.ThrowIfNull(value);
 
                     // If the enum is larger than an int, store as a QWord
-                    if (Marshal.SizeOf(Enum.GetUnderlyingType(optionKey.Option.Type)) > Marshal.SizeOf(typeof(int)))
+                    if (Marshal.SizeOf(Enum.GetUnderlyingType(optionType)) > Marshal.SizeOf(typeof(int)))
                     {
                         subKey.SetValue(key, (long)value, RegistryValueKind.QWord);
                     }
@@ -187,11 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
                     }
 
-                    return true;
+                    return;
                 }
 
                 subKey.SetValue(key, value);
-                return true;
             }
         }
     }

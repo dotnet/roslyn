@@ -622,8 +622,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(syntax, targetType: null, type.GetDefaultValue(), type, hasErrors)
         {
         }
-
-        public override ConstantValue? ConstantValue => ConstantValueOpt;
     }
 
     internal partial class BoundTryStatement

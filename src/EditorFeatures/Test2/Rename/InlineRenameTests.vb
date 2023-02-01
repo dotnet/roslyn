@@ -2102,5 +2102,46 @@ class [|C|]
             End Using
         End Function
 
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(66208, "https://github.com/dotnet/roslyn/issues/66208")>
+        Public Async Function RenameWithGeneratedFile(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                partial class [|$$MyClass|]
+                                {
+                                    public void M1()
+                                    {
+                                    }
+                                }
+                            </Document>
+                            <DocumentFromSourceGenerator>
+                                partial class [|MyClass|]
+                                {
+                                    public void M2()
+                                    {
+                                    }
+                                }
+                            </DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+                Dim caretPosition = cursorDocument.CursorPosition.Value
+                Dim textBuffer = cursorDocument.GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Example")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
     End Class
 End Namespace

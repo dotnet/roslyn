@@ -23,31 +23,23 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly CodeActionOptionsStorage.Provider _provider;
 
         private static readonly Option2<bool> s_generateOverridesOption = new(
-            "GenerateOverridesOptions", "SelectAll", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.GenerateOverridesOptions.SelectAll"));
+            "GenerateOverridesOptions_SelectAll", defaultValue: true);
 
         private static readonly PerLanguageOption2<bool> s_generateOperators = new(
-            "GenerateEqualsAndGetHashCodeFromMembersOptions",
-            "GenerateOperators", defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation(
-                "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators"));
+            "GenerateEqualsAndGetHashCodeFromMembersOptions_GenerateOperators",
+            defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
-            "GenerateEqualsAndGetHashCodeFromMembersOptions",
-            "ImplementIEquatable", defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation(
-                "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable"));
+            "GenerateEqualsAndGetHashCodeFromMembersOptions_ImplementIEquatable",
+            defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_addNullChecks = new(
-            "GenerateConstructorFromMembersOptions",
-            "AddNullChecks", defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation(
-                $"TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
+            "GenerateConstructorFromMembersOptions_AddNullChecks",
+            defaultValue: false);
 
         internal static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
-            "GenerateConstructorFromMembersOptions",
-            "AddNullChecks", defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
+            "GenerateConstructorFromMembersOptions_AddNullChecks",
+            defaultValue: false);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

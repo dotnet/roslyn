@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -17,25 +17,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public TestOptionSet(ImmutableDictionary<OptionKey, object?> values)
         {
+            Debug.Assert(values.Values.All(IsInternalOptionValue));
             _values = values;
         }
 
-        private protected override object? GetOptionCore(OptionKey optionKey)
+        internal override object? GetInternalOptionValue(OptionKey optionKey)
             => _values.TryGetValue(optionKey, out var value) ? value : optionKey.Option.DefaultValue;
 
-        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
+        internal override OptionSet WithChangedOptionInternal(OptionKey optionKey, object? internalValue)
         {
-            return new TestOptionSet(_values.SetItem(optionAndLanguage, value));
-        }
-
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-        {
-            foreach (var (key, value) in _values)
-            {
-                var currentValue = optionSet.GetOption(key);
-                if (!object.Equals(currentValue, value))
-                    yield return key;
-            }
+            Debug.Assert(IsInternalOptionValue(internalValue));
+            return new TestOptionSet(_values.SetItem(optionKey, internalValue));
         }
     }
 }

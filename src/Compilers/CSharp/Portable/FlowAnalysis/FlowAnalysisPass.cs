@@ -10,6 +10,7 @@ using System.Linq;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,7 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!implicitlyInitializedFields.IsDefault)
                     {
                         Debug.Assert(!implicitlyInitializedFields.IsEmpty);
-                        Debug.Assert(!originalBodyNested);
+
+                        // It's not expected to have implicitly initialized fields when a constructor initializer is present, except in error scenarios.
+                        Debug.Assert(method is not SourceMemberMethodSymbol { SyntaxNode: ConstructorDeclarationSyntax { Initializer: not null } } || block.HasErrors);
+
                         block = PrependImplicitInitializations(block, method, implicitlyInitializedFields, compilationState, diagnostics);
                     }
                     if (needsImplicitReturn)

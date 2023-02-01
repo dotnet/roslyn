@@ -3213,9 +3213,12 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
+                // (9,9): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
                 //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference"));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference").WithLocation(9, 9),
+                // (9,13): warning CS0219: The variable 'tr' is assigned but its value is never used
+                //         var tr = new TypedReference();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr").WithLocation(9, 13));
         }
 
         [Fact]
@@ -3524,6 +3527,57 @@ public class C
                 // (9,21): error CS4015: 'MethodImplOptions.Synchronized' cannot be applied to an Async method.
                 //     async Task<int> F1()
                 Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "F1"));
+        }
+
+        [Fact, WorkItem(66530, "https://github.com/dotnet/roslyn/issues/66530")]
+        public void BadAsync_MethodImpl_Synchronized_Lambda()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public class C
+{
+    void M()
+    {
+        var a = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
+            {
+                await Task.Yield();
+                return 42;
+            };
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (9,81): error CS4015: 'MethodImplOptions.Synchronized' cannot be applied to an async method
+                //         var a = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
+                Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "=>").WithLocation(9, 81));
+        }
+
+        [Fact]
+        public void BadAsync_MethodImpl_Synchronized_LocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public class C
+{
+    void M()
+    {
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        async Task<int> local()
+        {
+            return await Task.Factory.StartNew(() => 1);
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (10,25): error CS4015: 'MethodImplOptions.Synchronized' cannot be applied to an async method
+                //         async Task<int> local()
+                Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "local").WithLocation(10, 25),
+                // (10,25): warning CS8321: The local function 'local' is declared but never used
+                //         async Task<int> local()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(10, 25));
         }
 
         [Fact]

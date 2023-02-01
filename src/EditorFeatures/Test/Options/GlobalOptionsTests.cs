@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
@@ -56,20 +57,23 @@ public class GlobalOptionsTests
             AccessedOptionKeys.Add(key);
         }
 
-        public T GetOption<T>(Option2<T> option)
+        bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
         {
-            OnOptionAccessed(new OptionKey2(option));
-            return (T)OptionsTestHelpers.GetDifferentValue(typeof(T), option.DefaultValue)!;
+            value = GetOption<T>(optionKey);
+            return true;
         }
+
+        public T GetOption<T>(Option2<T> option)
+            => GetOption<T>(new OptionKey2(option));
 
         public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
-        {
-            OnOptionAccessed(new OptionKey2(option, languageName));
-            return (T)OptionsTestHelpers.GetDifferentValue(typeof(T), option.DefaultValue)!;
-        }
+            => GetOption<T>(new OptionKey2(option, languageName));
 
         public T GetOption<T>(OptionKey2 optionKey)
-            => throw new NotImplementedException();
+        {
+            OnOptionAccessed(optionKey);
+            return (T)OptionsTestHelpers.GetDifferentValue(typeof(T), optionKey.Option.DefaultValue)!;
+        }
 
         #region Unused
 
@@ -98,12 +102,12 @@ public class GlobalOptionsTests
         #endregion
     }
 
-    private static void VerifyDataMembersHaveNonDefaultValues(object options, object defaultOptions, string language)
+    private static void VerifyDataMembersHaveNonDefaultValues(object options, object defaultOptions, string? language = null)
     {
         Assert.Equal(options.GetType(), defaultOptions.GetType());
         Recurse(options.GetType(), options, defaultOptions, language);
 
-        static void Recurse(Type type, object options, object defaultOptions, string language)
+        static void Recurse(Type type, object options, object defaultOptions, string? language)
         {
             foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -154,7 +158,7 @@ public class GlobalOptionsTests
     /// <summary>
     /// Properties for options not stored in global options.
     /// </summary>
-    private static bool IsStoredInGlobalOptions(PropertyInfo property, string language)
+    private static bool IsStoredInGlobalOptions(PropertyInfo property, string? language)
         => !(property.DeclaringType == typeof(AddImportPlacementOptions) && property.Name == nameof(AddImportPlacementOptions.AllowInHiddenRegions) ||
              property.DeclaringType == typeof(AddImportPlacementOptions) && property.Name == nameof(AddImportPlacementOptions.UsingDirectivePlacement) && language == LanguageNames.VisualBasic ||
              property.DeclaringType == typeof(DocumentFormattingOptions) && property.Name == nameof(DocumentFormattingOptions.FileHeaderTemplate) ||
@@ -164,8 +168,9 @@ public class GlobalOptionsTests
 
     /// <summary>
     /// Our mock <see cref="IGlobalOptionService"/> implementation returns a non-default value for each option it reads.
-    /// Option objects initialized from this service thus should have all their data properties initialized to non-default values.
-    /// We then enumerate these properties via reflection and compare each property value with the default instance of the respective options type.
+    /// Option objects initialized from this service thus should have all their data properties initialized to
+    /// non-default values. We then enumerate these properties via reflection and compare each property value with the
+    /// default instance of the respective options type.
     /// </summary>
     [Theory]
     [InlineData(LanguageNames.CSharp)]
@@ -188,5 +193,6 @@ public class GlobalOptionsTests
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMetadataAsSourceOptions(languageServices), MetadataAsSourceOptions.GetDefault(languageServices), language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSignatureHelpOptions(language), SignatureHelpOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSymbolSearchOptions(language), SymbolSearchOptions.Default, language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetWorkspaceConfigurationOptions(), WorkspaceConfigurationOptions.Default);
     }
 }

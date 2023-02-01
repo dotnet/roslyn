@@ -53,7 +53,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         {
             using var workspace = TestWorkspace.CreateCSharp("");
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
-            var optionStore = new OptionStore(workspace.Options);
+            var optionStore = new OptionStore(workspace.GlobalOptions);
             using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
             // Use the first item's preview.
             var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().First();
@@ -75,8 +75,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         public void TestOptionLoading()
         {
             using var workspace = TestWorkspace.CreateCSharp("");
-            var optionSet = workspace.Options.WithChangedOption(new OptionKey(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName), true);
-            var optionStore = new OptionStore(optionSet);
+            var optionStore = new OptionStore(workspace.GlobalOptions);
+            workspace.GlobalOptions.SetGlobalOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, true);
 
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
             using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
@@ -90,7 +90,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         {
             using var workspace = TestWorkspace.CreateCSharp("");
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
-            var optionStore = new OptionStore(workspace.Options);
+            var optionStore = new OptionStore(workspace.GlobalOptions);
             using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
             // Use the first item's preview.
             var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions2.SpacingAfterMethodDeclarationName).First();
