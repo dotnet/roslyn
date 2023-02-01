@@ -1635,7 +1635,7 @@ class C
     private readonly string t;
     private readonly int i;
 
-    public C(string s, int i)
+    public C(string s, string t, int i)
     {
         (this.s, this.t, this.i) = (s, t, i);
     }
@@ -1663,7 +1663,7 @@ class C
     private readonly int i;
 
     public C(string s, string t, int i) =>
-        (this.s, this.t, this.i) = (s, t, ii);
+        (this.s, this.t, this.i) = (s, t, i);
 }");
         }
 
@@ -1690,7 +1690,7 @@ class C
     private readonly string t;
     private readonly int i;
 
-    public C(string s, int i)
+    public C(string s, string t, int i)
     {
         if (s is null) throw new ArgumentNullException();
         (this.s, this.t, this.i) = (s, t, i);
@@ -1801,8 +1801,37 @@ class C
     private readonly int i;
     private readonly string t;
 
-    public C(int i, string s, string t) =>
+    public C(string s, int i, string t) =>
         (this.s, this.i, this.t) = (s, i, t);
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGeneratePropertyIfParameterFollowsExistingPropertyAssignment_TupleAssignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public string S { get; }
+    public string T { get; }
+
+    public C(string s, string t, [||]int i)
+    {
+        (S, T) = (s, t);
+    }
+}",
+@"
+class C
+{
+    public string S { get; }
+    public string T { get; }
+    public int I { get; }
+
+    public C(string s, string t, int i)
+    {
+        (S, T, I) = (s, t, i);
+    }
 }");
         }
 

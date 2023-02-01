@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
             // make this parameter into a field as well.  Otherwise, default to generating a property
-            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatement, includingTupleAssignment: true);
+            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatement);
             if (siblingFieldOrProperty is IFieldSymbol)
             {
                 allActions.Add(fieldAction);
@@ -658,6 +658,32 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         IsParameterReferenceOrCoalesceOfParameterReference(assignmentExpression, parameter))
                     {
                         return statement;
+                    }
+
+                    // look inside the form `(this.s, this.t) = (s, t)`
+                    if (statement is IExpressionStatementOperation
+                        {
+                            Operation: IDeconstructionAssignmentOperation
+                            {
+                                Target: ITupleOperation targetTuple,
+                                Value: IConversionOperation { Operand: ITupleOperation valueTuple },
+                            }
+                        })
+                    {
+                        if (targetTuple.Elements.Length == valueTuple.Elements.Length)
+                        {
+                            for (int i = 0, n = targetTuple.Elements.Length; i < n; i++)
+                            {
+                                var target = targetTuple.Elements[i];
+                                var value = valueTuple.Elements[i];
+
+                                if (IsFieldOrPropertyReference(target, containingType, out fieldOrProperty) &&
+                                    IsParameterReference(value, parameter))
+                                {
+                                    return statement;
+                                }
+                            }
+                        }
                     }
                 }
             }
