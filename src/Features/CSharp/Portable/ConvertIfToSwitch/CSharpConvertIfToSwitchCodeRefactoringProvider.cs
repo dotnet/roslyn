@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
         protected override SyntaxTriviaList GetLeadingTriviaToTransfer(SyntaxNode syntaxToRemove)
         {
-            if (syntaxToRemove is IfStatementSyntax { Parent: ElseClauseSyntax elseClause } &&
+            if (syntaxToRemove is (IfStatementSyntax or BlockSyntax) and { Parent: ElseClauseSyntax elseClause } &&
                 elseClause.ElseKeyword.LeadingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
             {
                 // users sometimes write:
