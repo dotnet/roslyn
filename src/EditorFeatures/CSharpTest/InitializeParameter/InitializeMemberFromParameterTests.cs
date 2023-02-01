@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -1612,6 +1610,199 @@ class C
         this.i = i;
         this.s = s;
     }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, string t, [||]int i)
+    {
+        (this.s, this.t) = (s, t);
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+    private readonly int i;
+
+    public C(string s, int i)
+    {
+        (this.s, this.t, this.i) = (s, t, i);
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, string t, [||]int i) =>
+        (this.s, this.t) = (s, t);
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+    private readonly int i;
+
+    public C(string s, string t, int i) =>
+        (this.s, this.t, this.i) = (s, t, ii);
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, string t, [||]int i)
+    {
+        if (s is null) throw new ArgumentNullException();
+        (this.s, this.t) = (s, t);
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+    private readonly int i;
+
+    public C(string s, int i)
+    {
+        if (s is null) throw new ArgumentNullException();
+        (this.s, this.t, this.i) = (s, t, i);
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C([||]int i, string s, string t)
+    {
+        (this.s, this.t) = (s, t);
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly string s;
+    private readonly string t;
+
+    public C(int i, string s, string t)
+    {
+        (this.i, this.s, this.t) = (i, s, t);
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C([||]int i, string s, string t) =>
+        (this.s, this.t) = (s, t);
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly string s;
+    private readonly string t;
+
+    public C(int i, string s, string t) =>
+        (this.i, this.s, this.t) = (i, s, t);
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, [||]int i, string t)
+    {
+        (this.s, this.t) = (s, t);
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly int i;
+    private readonly string t;
+
+    public C(string s, int i, string t)
+    {
+        (this.s, this.i, this.t) = (s, i, t);
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, [||]int i, string t) =>
+        (this.s, this.t) = (s, t);
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly int i;
+    private readonly string t;
+
+    public C(int i, string s, string t) =>
+        (this.s, this.i, this.t) = (s, i, t);
 }");
         }
 

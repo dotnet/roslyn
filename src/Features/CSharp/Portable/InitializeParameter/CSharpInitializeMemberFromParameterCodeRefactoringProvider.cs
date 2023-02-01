@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InitializeParameter;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
@@ -105,6 +104,86 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
             return result.WithTrailingTrivia(accessorDeclaration.Body?.GetTrailingTrivia() ?? accessorDeclaration.SemicolonToken.TrailingTrivia);
+        }
+
+        protected override bool TryUpdateTupleAssignment(
+            SyntaxNode constructorDeclaration,
+            IBlockOperation? blockStatement,
+            IParameterSymbol parameter,
+            ISymbol fieldOrProperty,
+            SyntaxEditor editor)
+        {
+            if (constructorDeclaration is not ConstructorDeclarationSyntax constructor)
+                return false;
+
+            foreach (var assignmentExpression in TryGetAssignmentExpressions(constructor))
+            {
+                if (assignmentExpression is not { Left: TupleExpressionSyntax tupleLeft, Right: TupleExpressionSyntax tupleRight })
+                    continue;
+
+                if (tupleLeft.Arguments.Count != tupleRight.Arguments.Count)
+                    continue;
+
+                var generator = editor.Generator;
+                foreach (var (sibling, before) in GetSiblingParameters(parameter))
+                {
+                    if (TryFindSiblingAssignment(tupleLeft, tupleRight, sibling, out var index))
+                    {
+                        // If we found assignment to a parameter before us, then add after that.
+                        var insertionPosition = before ? index + 1 : index;
+
+                        var left = (ArgumentSyntax)generator.Argument(generator.MemberAccessExpression(generator.ThisExpression(), generator.IdentifierName(fieldOrProperty.Name)));
+                        var right = (ArgumentSyntax)generator.Argument(generator.IdentifierName(parameter.Name));
+
+                        editor.ReplaceNode(
+                            tupleLeft,
+                            tupleLeft.WithArguments(tupleLeft.Arguments.Insert(insertionPosition, left)));
+                        editor.ReplaceNode(
+                            tupleRight,
+                            tupleRight.WithArguments(tupleRight.Arguments.Insert(insertionPosition, right)));
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TryFindSiblingAssignment(
+            TupleExpressionSyntax tupleLeft, TupleExpressionSyntax tupleRight, IParameterSymbol sibling, out int index)
+        {
+            for (int i = 0, n = tupleLeft.Arguments.Count; i < n; i++)
+            {
+                // rhs tuple has to directly reference the sibling parameter name.  lhs has to either be an identifier,
+                // or this.identifier.
+
+                if (tupleRight.Arguments[i] is { Expression: IdentifierNameSyntax { Identifier.ValueText: var rightIdentifier } } &&
+                    rightIdentifier == sibling.Name &&
+                    tupleLeft.Arguments[i] is { Expression: IdentifierNameSyntax or MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax, Name: IdentifierNameSyntax } })
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            index = -1;
+            return false;
+        }
+
+        private static IEnumerable<AssignmentExpressionSyntax> TryGetAssignmentExpressions(ConstructorDeclarationSyntax constructor)
+        {
+            if (constructor.ExpressionBody?.Expression is AssignmentExpressionSyntax assignment1)
+                yield return assignment1;
+
+            if (constructor.Body != null)
+            {
+                foreach (var statement in constructor.Body.Statements)
+                {
+                    if (statement is ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax assignment2 })
+                        yield return assignment2;
+                }
+            }
         }
     }
 }

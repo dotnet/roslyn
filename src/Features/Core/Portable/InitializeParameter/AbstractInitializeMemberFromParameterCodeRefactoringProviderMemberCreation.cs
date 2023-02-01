@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
         protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
         protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
+        protected abstract bool TryUpdateTupleAssignment(SyntaxNode constructorDeclaration, IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 
         protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
             // make this parameter into a field as well.  Otherwise, default to generating a property
-            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatement);
+            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatement, includingTupleAssignment: true);
             if (siblingFieldOrProperty is IFieldSymbol)
             {
                 allActions.Add(fieldAction);
@@ -263,7 +264,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 title));
         }
 
-        private static ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatement)
+        private static ISymbol? TryFindSiblingFieldOrProperty(
+            IParameterSymbol parameter, IBlockOperation? blockStatement)
         {
             foreach (var (siblingParam, _) in GetSiblingParameters(parameter))
             {
@@ -495,21 +497,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     });
             }
 
-            // Now that we've added any potential members, create an assignment between it
-            // and the parameter.
-            var initializationStatement = (TStatementSyntax)generator.ExpressionStatement(
-                generator.AssignmentStatement(
-                    generator.MemberAccessExpression(
-                        generator.ThisExpression(),
-                        generator.IdentifierName(fieldOrProperty.Name)),
-                    generator.IdentifierName(parameter.Name)));
-
-            // Attempt to place the initialization in a good location in the constructor
-            // We'll want to keep initialization statements in the same order as we see
-            // parameters for the constructor.
-            var statementToAddAfter = TryGetStatementToAddInitializationAfter(parameter, blockStatement);
-
-            InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
+            AddAssignment(constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
 
             // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
             var currentSolution = document.Project.Solution;
@@ -538,6 +526,36 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return currentSolution.WithDocumentSyntaxRoot(document.Id, editor.GetChangedRoot());
+        }
+
+        private void AddAssignment(
+            SyntaxNode constructorDeclaration,
+            IBlockOperation? blockStatement,
+            IParameterSymbol parameter,
+            ISymbol fieldOrProperty,
+            SyntaxEditor editor)
+        {
+            // First see if the user has `(_x, y) = (x, y);` and attempt to update that. 
+            if (TryUpdateTupleAssignment(constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor))
+                return;
+
+            var generator = editor.Generator;
+
+            // Now that we've added any potential members, create an assignment between it
+            // and the parameter.
+            var initializationStatement = (TStatementSyntax)generator.ExpressionStatement(
+                generator.AssignmentStatement(
+                    generator.MemberAccessExpression(
+                        generator.ThisExpression(),
+                        generator.IdentifierName(fieldOrProperty.Name)),
+                    generator.IdentifierName(parameter.Name)));
+
+            // Attempt to place the initialization in a good location in the constructor
+            // We'll want to keep initialization statements in the same order as we see
+            // parameters for the constructor.
+            var statementToAddAfter = TryGetStatementToAddInitializationAfter(parameter, blockStatement);
+
+            InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
         }
 
         private static CodeGenerationContext GetAddContext<TSymbol>(
@@ -575,7 +593,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return CodeGenerationContext.Default;
         }
 
-        private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
+        protected static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
         {
             using var _ = ArrayBuilder<(IParameterSymbol, bool before)>.GetInstance(out var siblings);
 
@@ -698,7 +716,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
                         !ContainsMemberAssignment(blockStatement, field))
                     {
-                        return (field, false);
+                        return (field, isThrowNotImplementedProperty: false);
                     }
 
                     // If it's a writable property that we could assign this parameter to, and it's
@@ -712,10 +730,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         // That way users can easily spit out those methods, but then convert them to be normal
                         // properties with ease.
                         if (IsThrowNotImplementedProperty(property))
-                            return (property, true);
+                            return (property, isThrowNotImplementedProperty: true);
 
                         if (property.IsWritableInConstructor())
-                            return (property, false);
+                            return (property, isThrowNotImplementedProperty: false);
                     }
                 }
             }

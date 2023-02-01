@@ -81,5 +81,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Private Overloads Shared Function RemoveThrowNotImplemented(accessorBlock As AccessorBlockSyntax) As AccessorBlockSyntax
             Return accessorBlock.WithStatements(Nothing)
         End Function
+
+        Protected Overrides Function TryUpdateTupleAssignment(constructorDeclaration As SyntaxNode, blockStatement As IBlockOperation, parameter As IParameterSymbol, fieldOrProperty As ISymbol, editor As SyntaxEditor) As Boolean
+            ' Not supported in VB
+            Return False
+        End Function
     End Class
 End Namespace
