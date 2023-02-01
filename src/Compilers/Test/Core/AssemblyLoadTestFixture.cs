@@ -483,7 +483,7 @@ public class Analyzer : DiagnosticAnalyzer
             // unit tests boundaries. Need a guardrail to make sure one test doesn't pollute the output of 
             // another test.
             var fileInfo = new FileInfo(tempFile.Path);
-            fileInfo.Attributes |= FileAttributes.ReadOnly;
+            fileInfo.IsReadOnly = true;
 
             return tempFile;
         }
