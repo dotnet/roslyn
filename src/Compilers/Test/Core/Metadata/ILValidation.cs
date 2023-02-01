@@ -7,8 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -17,14 +15,12 @@ using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
-using Xunit;
 
 namespace Roslyn.Test.Utilities
 {
@@ -420,7 +416,7 @@ namespace Roslyn.Test.Utilities
             var endLine = Convert.ToInt32(sequencePointXml.Attribute("endLine").Value) - 1;
             var endColumn = Convert.ToInt32(sequencePointXml.Attribute("endColumn").Value) - 1;
 
-            var lineSpan = new LinePositionSpan(new(startLine, startColumn), new(endLine, endColumn));
+            var lineSpan = new LinePositionSpan(new LinePosition(startLine, startColumn), new LinePosition(endLine, endColumn));
             var span = text.Lines.GetTextSpan(lineSpan);
             var subtext = text.GetSubText(span);
 
