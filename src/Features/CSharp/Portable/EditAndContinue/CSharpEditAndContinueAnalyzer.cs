@@ -3086,5 +3086,54 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         #endregion
+
+        protected override bool IsRudeEditDueToPrimaryConstructor(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                    break;
+
+                case SymbolKind.Parameter:
+                    {
+                        var container = symbol.ContainingSymbol;
+
+                        if (container is IMethodSymbol { IsImplicitlyDeclared: false, MethodKind: MethodKind.Constructor })
+                        {
+                            foreach (var syntaxReference in container.DeclaringSyntaxReferences)
+                            {
+                                if (syntaxReference.GetSyntax(cancellationToken) is
+                                    ClassDeclarationSyntax { ParameterList: not null } or
+                                    StructDeclarationSyntax { ParameterList: not null })
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    {
+                        var container = symbol.ContainingSymbol;
+
+                        if (container is { Kind: SymbolKind.NamedType, IsImplicitlyDeclared: false })
+                        {
+                            foreach (var syntaxReference in container.DeclaringSyntaxReferences)
+                            {
+                                if (syntaxReference.GetSyntax(cancellationToken) is
+                                    ClassDeclarationSyntax { ParameterList: not null } or
+                                    StructDeclarationSyntax { ParameterList: not null })
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            return false;
+        }
     }
 }
