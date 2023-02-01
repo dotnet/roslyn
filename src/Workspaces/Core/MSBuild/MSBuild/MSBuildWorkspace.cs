@@ -472,7 +472,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             try
             {
-                var dir = Path.GetDirectoryName(fullPath);
+                var dir = Path.GetDirectoryName(fullPath) ?? Path.GetPathRoot(fullPath);
+                Contract.ThrowIfNull(dir);
+
                 if (!Directory.Exists(dir))
                 {
                     Directory.CreateDirectory(dir);

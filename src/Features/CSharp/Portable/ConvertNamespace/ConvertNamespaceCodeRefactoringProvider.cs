@@ -99,8 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetCSharpCodeFixOptionsProviderAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
-            var namespaceDecl = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
-            if (!CanOfferRefactoring(namespaceDecl, root, options, out var info)
+            var namespaceDecl = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();            
+            if (namespaceDecl is null
+                || !CanOfferRefactoring(namespaceDecl, root, options, out var info)
                 || info.Value.equivalenceKey != equivalenceKey)
             {
                 return;

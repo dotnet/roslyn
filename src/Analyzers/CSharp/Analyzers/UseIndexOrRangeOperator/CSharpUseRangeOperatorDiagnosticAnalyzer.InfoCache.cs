@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 {
                     var substringMethod = stringType.GetMembers(nameof(string.Substring))
                                                     .OfType<IMethodSymbol>()
-                                                    .FirstOrDefault(m => IsTwoArgumentSliceLikeMethod(m));
+                                                    .First(m => IsTwoArgumentSliceLikeMethod(m));
 
                     _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
                 }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return true;
             }
 
-            private static IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
+            private static IMethodSymbol? GetSliceLikeMethod(INamedTypeSymbol namedType)
                 => namedType.GetMembers()
                             .OfType<IMethodSymbol>()
                             .Where(m => IsTwoArgumentSliceLikeMethod(m))

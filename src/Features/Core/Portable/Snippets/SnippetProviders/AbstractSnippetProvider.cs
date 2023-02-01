@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
 
             var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
-            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+            var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).First();
+            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).First();
 
             var annotatedReformattedDocument = documentWithIndentation.WithSyntaxRoot(reformattedRoot);
 
