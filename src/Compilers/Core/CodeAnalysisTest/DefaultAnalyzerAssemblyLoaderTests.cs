@@ -421,7 +421,7 @@ Delta: Gamma: Beta: Test B
             }
         }
 
-        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? copyCount, string[] assemblyPaths)
+        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? copyCount, params string[] assemblyPaths)
         {
             var data = assemblyPaths
                 .Select(x =>
