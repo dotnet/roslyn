@@ -12,16 +12,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
     internal abstract class Setting
     {
-        public IOptionWithGroup Option { get; }
         public OptionKey2 Key { get; }
         public OptionUpdater Updater { get; }
         public string Description { get; }
 
         public SettingLocation Location { get; private set; }
 
-        protected Setting(IOptionWithGroup option, OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location)
+        protected Setting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location)
         {
-            Option = option;
             Key = optionKey;
             Description = description;
             Updater = updater;
@@ -35,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public void SetValue(object value)
         {
             Location = Location with { LocationKind = LocationKind.EditorConfig };
-            Updater.QueueUpdate(Option, UpdateValue(value));
+            Updater.QueueUpdate(Key.Option, UpdateValue(value));
         }
 
-        public string Category => Option.Group.Description;
+        public string Category => Key.Option.Definition.Group.Description;
         public bool IsDefinedInEditorConfig => Location.LocationKind != LocationKind.VisualStudio;
 
         public static Setting<TValue> Create<TValue>(
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         {
             var optionKey = new OptionKey2(option);
             options.GetInitialLocationAndValue<TValue>(option, out var initialLocation, out var initialValue);
-            return new Setting<TValue>(option, optionKey, description, updater, initialLocation, initialValue);
+            return new Setting<TValue>(optionKey, description, updater, initialLocation, initialValue);
         }
 
         public static Setting<TValue> Create<TValue>(
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             // TODO: Support for other languages https://github.com/dotnet/roslyn/issues/65859
             var optionKey = new OptionKey2(option, LanguageNames.CSharp);
             options.GetInitialLocationAndValue<TValue>(option, out var initialLocation, out var initialValue);
-            return new Setting<TValue>(option, optionKey, description, updater, initialLocation, initialValue);
+            return new Setting<TValue>(optionKey, description, updater, initialLocation, initialValue);
         }
 
         public static EnumFlagsSetting<TValue> CreateEnumFlags<TValue>(
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             var optionKey = new OptionKey2(option);
             options.GetInitialLocationAndValue<TValue>(option, out var initialLocation, out var initialValue);
             valueStorage.Value = initialValue;
-            return new EnumFlagsSetting<TValue>(option, optionKey, description, updater, initialLocation, flag, valueStorage, conversions);
+            return new EnumFlagsSetting<TValue>(optionKey, description, updater, initialLocation, flag, valueStorage, conversions);
         }
     }
 }

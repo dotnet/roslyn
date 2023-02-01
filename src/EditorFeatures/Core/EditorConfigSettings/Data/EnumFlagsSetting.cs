@@ -22,7 +22,6 @@ internal sealed class EnumFlagsSetting<TOptionValue> : Setting
     private readonly StrongBox<TOptionValue> _valueStorage;
 
     public EnumFlagsSetting(
-        IOptionWithGroup option,
         OptionKey2 optionKey,
         string description,
         OptionUpdater updater,
@@ -30,7 +29,7 @@ internal sealed class EnumFlagsSetting<TOptionValue> : Setting
         int flag,
         StrongBox<TOptionValue> valueStorage,
         Conversions<TOptionValue, int> conversions)
-        : base(option, optionKey, description, updater, location)
+        : base(optionKey, description, updater, location)
     {
         _flag = flag;
         _conversions = conversions;

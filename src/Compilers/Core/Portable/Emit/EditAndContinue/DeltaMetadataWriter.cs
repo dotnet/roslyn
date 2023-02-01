@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -541,6 +542,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // First we find the deleted methods, and add them to our dictionary. This is used later when
             // processing events, properties, methods, and references.
+            ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>? deletedMethodDefinitions = null;
+
             var deletedMethods = _changes.GetDeletedMethods(typeDef);
             if (deletedMethods.Length > 0)
             {
@@ -551,7 +554,8 @@ namespace Microsoft.CodeAnalysis.Emit
                     deletedTypeMembers.Add(oldMethodDef, new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
                 }
 
-                _deletedTypeMembers.Add(typeDef, deletedTypeMembers.ToImmutableDictionary());
+                deletedMethodDefinitions = deletedTypeMembers.ToImmutableDictionary();
+                _deletedTypeMembers.Add(typeDef, deletedMethodDefinitions);
             }
 
             foreach (var eventDef in typeDef.GetEvents(this.Context))
@@ -565,17 +569,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.AddDefIfNecessary(_eventDefs, eventDef, eventChange);
             }
 
-            var deletedEvents = _changes.GetDeletedEvents(typeDef);
-            foreach (var eventDel in deletedEvents)
+            foreach (var eventDef in _changes.GetDeletedEvents(typeDef))
             {
-                var oldEventDef = (IEventDefinition)eventDel.GetCciAdapter();
+                RoslynDebug.AssertNotNull(deletedMethodDefinitions);
+
+                var oldEventDef = (IEventDefinition)eventDef.GetCciAdapter();
 
                 // Because deleted event information comes from the associated symbol of the deleted accessors, its safe
                 // to assume that everything will be in the dictionary. We wouldn't be here it if wasn't.
-                var deletedMembers = _deletedTypeMembers[typeDef];
-                var adder = deletedMembers[(IMethodDefinition)oldEventDef.Adder];
-                var remover = deletedMembers[(IMethodDefinition)oldEventDef.Remover];
-                var caller = oldEventDef.Caller is null ? null : deletedMembers[(IMethodDefinition)oldEventDef.Caller];
+                var adder = deletedMethodDefinitions[(IMethodDefinition)oldEventDef.Adder];
+                var remover = deletedMethodDefinitions[(IMethodDefinition)oldEventDef.Remover];
+                var caller = oldEventDef.Caller is null ? null : deletedMethodDefinitions[(IMethodDefinition)oldEventDef.Caller];
                 var newEventDef = new DeletedEventDefinition(oldEventDef, adder, remover, caller, typeDef, _typesUsedByDeletedMembers);
                 _eventDefs.AddUpdated(newEventDef);
             }
@@ -595,9 +599,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // Because we already processed the deleted methods above, this is a bit easier than
             // properties and events, and we just need to make sure we add the right indices
-            if (_deletedTypeMembers.ContainsKey(typeDef))
+            if (deletedMethodDefinitions is not null)
             {
-                foreach (var (_, newMethodDef) in _deletedTypeMembers[typeDef])
+                foreach (var (_, newMethodDef) in deletedMethodDefinitions)
                 {
                     _methodDefs.AddUpdated(newMethodDef);
                     CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
@@ -615,16 +619,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.AddDefIfNecessary(_propertyDefs, propertyDef, propertyChange);
             }
 
-            var deletedProperties = _changes.GetDeletedProperties(typeDef);
-            foreach (var propertyDef in deletedProperties)
+            foreach (var propertyDef in _changes.GetDeletedProperties(typeDef))
             {
+                RoslynDebug.AssertNotNull(deletedMethodDefinitions);
+
                 var oldPropertyDef = (IPropertyDefinition)propertyDef.GetCciAdapter();
 
                 // Because deleted property information comes from the associated symbol of the deleted accessors, its safe
                 // to assume that everything will be in the dictionary. We wouldn't be here it if wasn't.
-                var deletedMembers = _deletedTypeMembers[typeDef];
-                var getter = oldPropertyDef.Getter is null ? null : deletedMembers[(IMethodDefinition)oldPropertyDef.Getter];
-                var setter = oldPropertyDef.Setter is null ? null : deletedMembers[(IMethodDefinition)oldPropertyDef.Setter];
+                var getter = oldPropertyDef.Getter is null ? null : deletedMethodDefinitions[(IMethodDefinition)oldPropertyDef.Getter];
+                var setter = oldPropertyDef.Setter is null ? null : deletedMethodDefinitions[(IMethodDefinition)oldPropertyDef.Setter];
                 var newPropertyDef = new DeletedPropertyDefinition(oldPropertyDef, getter, setter, typeDef, _typesUsedByDeletedMembers);
                 _propertyDefs.AddUpdated(newPropertyDef);
             }
@@ -669,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Emit
             implementingMethods.Free();
         }
 
-        private bool DefinitionExistsInAnyPreviousGeneration(IDefinition item) => item switch
+        private bool DefinitionExistsInAnyPreviousGeneration(ITypeDefinitionMember item) => item switch
         {
             IMethodDefinition methodDef => TryGetExistingMethodDefIndex(methodDef, out _),
             IPropertyDefinition propertyDef => TryGetExistingPropertyDefIndex(propertyDef, out _),

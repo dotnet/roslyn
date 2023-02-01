@@ -363,15 +363,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
                 try
                 {
-                    foreach (var (optionKey, editorConfigLocation) in codeStyleOptions)
+                    foreach (var option in codeStyleOptions)
                     {
-                        if (!TryGetEditorConfigStringParts(editorConfigLocation.GetEditorConfigString(optionKey.Option.DefaultValue), out var parts))
-                        {
-                            // Did not find a match, bail out.
-                            return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
-                        }
-
-                        builder.Add((parts.optionName, parts.optionValue, optionKey.Option.IsPerLanguage));
+                        var optionValue = option.Definition.Serializer.Serialize(option.DefaultValue);
+                        builder.Add((option.Definition.ConfigName, optionValue, option.IsPerLanguage));
                     }
 
                     return builder.ToImmutable();
@@ -402,32 +397,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return false;
         }
 
-        internal static ImmutableArray<(OptionKey optionKey, IEditorConfigStorageLocation2 location)> GetCodeStyleOptionsForDiagnostic(
-            Diagnostic diagnostic,
-            Project project)
+        internal static ImmutableArray<IOption2> GetCodeStyleOptionsForDiagnostic(Diagnostic diagnostic, Project project)
         {
             if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
             {
-                using var _ = ArrayBuilder<(OptionKey, IEditorConfigStorageLocation2)>.GetInstance(out var builder);
-
-                foreach (var option in options.OrderBy(option => option.Name))
-                {
-                    var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
-                    if (editorConfigLocation != null && option.DefaultValue is ICodeStyleOption codeStyleOption)
-                    {
-                        var optionKey = new OptionKey(option, option.IsPerLanguage ? project.Language : null);
-                        builder.Add((optionKey, editorConfigLocation));
-                        continue;
-                    }
-
-                    // Did not find a match.
-                    return ImmutableArray<(OptionKey, IEditorConfigStorageLocation2)>.Empty;
-                }
-
-                return builder.ToImmutable();
+                return (from option in options
+                        where option.DefaultValue is ICodeStyleOption
+                        orderby option.Definition.ConfigName
+                        select option).ToImmutableArray();
             }
 
-            return ImmutableArray<(OptionKey, IEditorConfigStorageLocation2)>.Empty;
+            return ImmutableArray<IOption2>.Empty;
         }
 
         private SourceText? GetNewAnalyzerConfigDocumentText(SourceText originalText, AnalyzerConfigDocument editorConfigDocument)

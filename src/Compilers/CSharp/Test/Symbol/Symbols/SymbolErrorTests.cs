@@ -15360,19 +15360,19 @@ class AAttribute : Attribute { }
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,33): error CS1002: ; expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "["),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "[").WithLocation(4, 33),
                 // (4,34): error CS1001: Identifier expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2"),
-                // (4,34): error CS1001: Identifier expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(4, 34),
+                // (4,34): error CS1003: Syntax error, ',' expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(4, 34),
                 // (4,36): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 36),
                 // (3,30): error CS7092: A fixed buffer may only have one dimension.
                 //     public unsafe fixed int A[2,2];   // CS1003,CS1001
-                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[2,2]"));
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[2,2]").WithLocation(3, 30));
         }
 
         [Fact]

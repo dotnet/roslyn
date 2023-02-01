@@ -787,7 +787,7 @@ class C
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
             };
 
             using var session = CreateSession(code, globalOptions);
@@ -863,7 +863,7 @@ class Goo
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
             };
 
             using var session = CreateSession(code, globalOptions);
@@ -935,7 +935,7 @@ class Goo
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
             };
 
             using var session = CreateSession(code, globalOptions);
@@ -997,7 +997,7 @@ class Goo
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
             };
 
             using var session = CreateSession(code, globalOptions);
@@ -1059,7 +1059,7 @@ class Goo
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
             };
             using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
@@ -1384,7 +1384,7 @@ record R
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, bracesOnNewLine) }
             };
             using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
@@ -1428,7 +1428,7 @@ class C
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, bracesOnNewLine) }
             };
             using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
@@ -1472,7 +1472,7 @@ class C
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, bracesOnNewLine }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Accessors, bracesOnNewLine) }
             };
             using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
@@ -1516,7 +1516,7 @@ class C
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, bracesOnNewLine }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.AnonymousMethods, bracesOnNewLine) }
             };
             using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
@@ -1560,7 +1560,7 @@ class C
 }";
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, bracesOnNewLine }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.AnonymousTypes, bracesOnNewLine) }
             };
             using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
@@ -1605,7 +1605,7 @@ class C
 
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, bracesOnNewLine) }
             };
             using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
@@ -1656,7 +1656,7 @@ class C
 
             var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, bracesOnNewLine) }
             };
             using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
