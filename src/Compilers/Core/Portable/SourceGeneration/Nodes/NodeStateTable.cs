@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true, canBeCompacted: false);
 
         private readonly ImmutableArray<TableEntry> _states;
 
-        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
+        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps, bool canBeCompacted)
         {
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
 
@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis
             Steps = steps;
             IsCached = !states.IsEmpty && states.All(s => s.IsCached);
             HasTrackedSteps = hasTrackedSteps;
+            CanBeCompacted = canBeCompacted;
         }
 
         public int Count => _states.Length;
@@ -86,6 +87,8 @@ namespace Microsoft.CodeAnalysis
         public bool HasTrackedSteps { get; }
 
         public ImmutableArray<IncrementalGeneratorRunStep> Steps { get; }
+
+        public bool CanBeCompacted { get; }
 
         public int GetTotalEntryItemCount()
             => _states.Sum(static e => e.Count);
@@ -108,13 +111,19 @@ namespace Microsoft.CodeAnalysis
             if (IsCached)
                 return this;
 
-            var nonRemovedCount = _states.Count(static e => !e.IsRemoved);
+            var nonRemovedCount = CanBeCompacted ? _states.Count(static e => !e.IsRemoved) : _states.Length;
 
             var compacted = ArrayBuilder<TableEntry>.GetInstance(nonRemovedCount);
             foreach (var entry in _states)
             {
                 if (!entry.IsRemoved)
+                {
                     compacted.Add(entry.AsCached());
+                }
+                else if (!CanBeCompacted)
+                {
+                    compacted.Add(entry);
+                }
             }
 
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
@@ -122,7 +131,7 @@ namespace Microsoft.CodeAnalysis
 
             // Ensure we are completely full so that ToImmutable translates to a MoveToImmutable
             Debug.Assert(compacted.Count == nonRemovedCount);
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false, canBeCompacted: CanBeCompacted);
         }
 
         IStateTable IStateTable.AsCached() => AsCached();
@@ -133,8 +142,8 @@ namespace Microsoft.CodeAnalysis
             return (_states[^1].GetItem(0), HasTrackedSteps ? Steps[^1] : null);
         }
 
-        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null, int? tableCapacity = null)
-            => new(this, stepName, stepTrackingEnabled, equalityComparer, tableCapacity);
+        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null, int? tableCapacity = null, bool canBeCompacted = true)
+            => new Builder(this, stepName, stepTrackingEnabled, equalityComparer, tableCapacity, canBeCompacted: canBeCompacted);
 
         public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T> equalityComparer)
         {
@@ -158,6 +167,7 @@ namespace Microsoft.CodeAnalysis
             private readonly string? _name;
             private readonly IEqualityComparer<T> _equalityComparer;
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
+            private readonly bool _canBeCompacted;
 
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
@@ -171,7 +181,8 @@ namespace Microsoft.CodeAnalysis
                 string? name,
                 bool stepTrackingEnabled,
                 IEqualityComparer<T>? equalityComparer,
-                int? tableCapacity)
+                int? tableCapacity,
+                bool canBeCompacted)
             {
 #if DEBUG
                 _requestedTableCapacity = tableCapacity;
@@ -182,6 +193,7 @@ namespace Microsoft.CodeAnalysis
                 _previous = previous;
                 _name = name;
                 _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
+                _canBeCompacted = canBeCompacted;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
@@ -226,7 +238,10 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var previousEntries = _previous._states[_states.Count];
-                Debug.Assert(previousEntries.IsCached);
+                if (!previousEntries.IsCached)
+                {
+                    return false;
+                }
 
                 _states.Add(previousEntries);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
@@ -446,7 +461,8 @@ namespace Microsoft.CodeAnalysis
                 return new NodeStateTable<T>(
                     finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    hasTrackedSteps: TrackIncrementalSteps);
+                    hasTrackedSteps: TrackIncrementalSteps,
+                    canBeCompacted: _canBeCompacted);
             }
 
             private static (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
