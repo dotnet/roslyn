@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 internal static class CSharpVisualStudioOptionStorageReadFallbacks
 {
     [ExportVisualStudioStorageReadFallback("csharp_space_between_parentheses"), Shared]
-    internal sealed class SpaceBetweenFarentheses : IVisualStudioStorageReadFallback
+    internal sealed class SpaceBetweenParentheses : IVisualStudioStorageReadFallback
     {
         private static readonly ImmutableArray<(string key, int flag)> s_storages = ImmutableArray.Create(
             ("TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses", (int)SpacePlacementWithinParentheses.Expressions),
@@ -28,7 +28,7 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SpaceBetweenFarentheses()
+        public SpaceBetweenParentheses()
         {
         }
 
