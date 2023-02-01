@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
         protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
         protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
-        protected abstract bool TryUpdateTupleAssignment(SyntaxNode constructorDeclaration, IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
+        protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 
         protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             SyntaxEditor editor)
         {
             // First see if the user has `(_x, y) = (x, y);` and attempt to update that. 
-            if (TryUpdateTupleAssignment(constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor))
+            if (TryUpdateTupleAssignment(blockStatement, parameter, fieldOrProperty, editor))
                 return;
 
             var generator = editor.Generator;

@@ -107,7 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         }
 
         protected override bool TryUpdateTupleAssignment(
-            SyntaxNode constructorDeclaration,
             IBlockOperation? blockStatement,
             IParameterSymbol parameter,
             ISymbol fieldOrProperty,
