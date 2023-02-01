@@ -1828,5 +1828,117 @@ class Program
                 }
                 """);
         }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo1()
+        {
+            await TestInRegularAndScript1Async("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                #nullable enable
+                using System;
+                
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        if (o1 is not string s)
+                        {
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo2()
+        {
+            await TestInRegularAndScript1Async("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = "";
+                        }
+                    }
+                }
+                """,
+                """
+                #nullable enable
+                using System;
+                
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        if (o1 is not string s)
+                        {
+                            s = "";
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo3()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = o2 as string;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo4()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = null;
+                        }
+                    }
+                }
+                """);
+        }
     }
 }
