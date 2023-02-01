@@ -203,6 +203,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasic\VisualBasicCodeStyleOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasic\VisualBasicIdeCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IdeAnalyzerOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />

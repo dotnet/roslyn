@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
         Public Shared Function Create(options As IOptionsReader, fallbackOptions As CodeActionOptions) As VisualBasicSyntaxWrappingOptions
             Return New VisualBasicSyntaxWrappingOptions(
                 formattingOptions:=VisualBasicSyntaxFormattingOptions.Create(options, DirectCast(fallbackOptions.CleanupOptions.FormattingOptions, VisualBasicSyntaxFormattingOptions)),
-                operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.Common.OperatorPlacementWhenWrapping),
+                operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.OperatorPlacementWhenWrapping),
                 wrappingColumn:=fallbackOptions.WrappingColumn)
         End Function
     End Class

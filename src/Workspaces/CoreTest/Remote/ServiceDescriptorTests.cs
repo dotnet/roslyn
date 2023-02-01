@@ -248,77 +248,50 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 new CSharpSyntaxFormattingOptions()
                 {
-                    Common = SyntaxFormattingOptions.CommonOptions.Default with
-                    {
-                        AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
-                    },
+                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
                     Indentation = IndentationPlacement.SwitchSection
                 },
 
                 new CSharpSimplifierOptions()
                 {
-                    Common = SimplifierOptions.CommonOptions.Default with
-                    {
-                        QualifyFieldAccess = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
-                    },
+                    QualifyFieldAccess = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
                 },
 
                 new CSharpCodeGenerationOptions()
                 {
-                    Common = CodeGenerationOptions.CommonOptions.Default with
-                    {
-                        NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
-                    },
+                    NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
                     PreferExpressionBodiedIndexers = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.Error)
                 },
 
                 new CSharpSyntaxFormattingOptions()
                 {
-                    Common = SyntaxFormattingOptions.CommonOptions.Default with
-                    {
-                        AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
-                    },
+                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
                     NewLines = NewLinePlacement.BeforeFinally
                 },
 
                 new CSharpIdeCodeStyleOptions()
                 {
-                    Common = IdeCodeStyleOptions.CommonOptions.Default with
-                    {
-                        AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
-                    },
+                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
                     PreferConditionalDelegateCall = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
                 },
 
                 new VisualBasicSyntaxFormattingOptions()
                 {
-                    Common = SyntaxFormattingOptions.CommonOptions.Default with
-                    {
-                        AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
-                    }
+                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
                 },
 
                 new VisualBasicSimplifierOptions()
                 {
-                    Common = SimplifierOptions.CommonOptions.Default with
-                    {
-                        QualifyFieldAccess = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
-                    }
+                    QualifyFieldAccess = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
                 },
 
                 new VisualBasicCodeGenerationOptions()
                 {
-                    Common = CodeGenerationOptions.CommonOptions.Default with
-                    {
-                        NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
-                    }
+                    NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
                 },
 
                 new VisualBasicIdeCodeStyleOptions(
-                    new IdeCodeStyleOptions.CommonOptions()
-                    {
-                        AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
-                    },
+                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
                     PreferredModifierOrder: new CodeStyleOption2<string>("Public Private", NotificationOption2.Error))
             };
 

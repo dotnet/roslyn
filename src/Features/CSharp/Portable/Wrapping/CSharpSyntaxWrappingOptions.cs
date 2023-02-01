@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
 
             return new(
                 options.GetCSharpSyntaxFormattingOptions((CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions),
-                operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.Common.OperatorPlacementWhenWrapping),
+                operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, fallbackOptions.CodeStyleOptions.OperatorPlacementWhenWrapping),
                 wrappingColumn: fallbackOptions.WrappingColumn,
                 newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace, newLineBeforeOpenBraceDefault).HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers));
         }
