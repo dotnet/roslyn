@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is BoundValuePlaceholderBase placeholder
                 // CheckValEscapeOfObjectInitializer() does not use BoundObjectOrCollectionValuePlaceholder.
                 // CheckInterpolatedStringHandlerConversionEscape() does not use BoundInterpolatedStringHandlerPlaceholder.
-                && node is not (BoundObjectOrCollectionValuePlaceholder or BoundInterpolatedStringHandlerPlaceholder))
+                && node is not (BoundObjectOrCollectionValuePlaceholder)) // PROTOTYPE: Remove this.
             {
                 Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
             }
@@ -564,6 +564,69 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
+        {
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            if (node.InterpolationData is { } interpolationData)
+            {
+                GetInterpolatedStringReceiverPlaceholder(placeholders, interpolationData);
+            }
+
+            using var _ = new PlaceholderRegion(this, placeholders);
+            return base.VisitInterpolatedString(node);
+        }
+
+        public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            if (node.InterpolatedStringHandlerData is { } interpolationData)
+            {
+                visitBinaryInterpolation(node, interpolationData);
+                return null;
+            }
+
+            var stack = ArrayBuilder<BoundExpression>.GetInstance();
+            stack.Push(node.Right);
+
+            BoundExpression current = node.Left;
+            while (current is BoundBinaryOperator { InterpolatedStringHandlerData: null } expr)
+            {
+                stack.Push(expr.Right);
+                current = expr.Left;
+            }
+
+            visitExpression(current);
+            while (stack.Count > 0)
+            {
+                current = stack.Pop();
+                visitExpression(current);
+            }
+
+            stack.Free();
+            return null;
+
+            void visitExpression(BoundExpression node)
+            {
+                if (node is BoundBinaryOperator {  InterpolatedStringHandlerData: { } interpolationData } expr)
+                {
+                    visitBinaryInterpolation(expr, interpolationData);
+                }
+                else
+                {
+                    Visit(node);
+                }
+            }
+
+            void visitBinaryInterpolation(BoundBinaryOperator node, InterpolatedStringHandlerData interpolationData)
+            {
+                var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+                GetInterpolatedStringReceiverPlaceholder(placeholders, interpolationData);
+
+                using var _ = new PlaceholderRegion(this, placeholders);
+                Visit(node.Left);
+                Visit(node.Right);
+            }
+        }
+
         private PlaceholderRegion GetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments)
         {
             var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
@@ -601,14 +664,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private void GetInterpolatedStringReceiverPlaceholder(
+            ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders,
+            InterpolatedStringHandlerData interpolationData)
+        {
+            // PROTOTYPE: Can this be simplified to:
+            //placeholders.Add((interpolationData.ReceiverPlaceholder, _localScopeDepth));
+            uint valEscapeScope = GetValEscape(interpolationData.Construction, _localScopeDepth);
+            placeholders.Add((interpolationData.ReceiverPlaceholder, valEscapeScope));
+        }
+
         private void GetInterpolatedStringPlaceholders(
             ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders,
             in InterpolatedStringHandlerData interpolationData,
             BoundExpression? receiver,
             ImmutableArray<BoundExpression> arguments)
         {
-            placeholders.Add((interpolationData.ReceiverPlaceholder, _localScopeDepth));
-
             foreach (var placeholder in interpolationData.ArgumentPlaceholders)
             {
                 uint valEscapeScope;

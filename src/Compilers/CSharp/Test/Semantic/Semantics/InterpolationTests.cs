@@ -15078,6 +15078,76 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 28));
         }
 
+        [Fact]
+        public void RefEscape_18()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    private ref readonly int _i;
+                    public CustomHandler(int literalLength, int formattedCount, in int i = 0) { _i = ref i; }
+                    public void AppendFormatted(int i) { } 
+                }
+                class Program
+                {
+                    static CustomHandler F1()
+                    {
+                        return $"{1}";
+                    }
+                    static CustomHandler F2()
+                    {
+                        CustomHandler h2 = $"{2}";
+                        return h2;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return $"{1}";
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, @"$""{1}""").WithLocation(13, 16),
+                // (13,16): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return $"{1}";
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, in int)", "i").WithLocation(13, 16),
+                // (18,16): error CS8352: Cannot use variable 'h2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h2").WithArguments("h2").WithLocation(18, 16));
+        }
+
+        [WorkItem(63306, "https://github.com/dotnet/roslyn/issues/63306")]
+        [Fact]
+        public void RefEscape_19()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    private ref readonly int _i;
+                    public CustomHandler(int literalLength, int formattedCount) { }
+                    public void AppendFormatted(int x, [UnscopedRef] in int y = 0) { _i = ref y; } 
+                }
+                class Program
+                {
+                    static CustomHandler F1()
+                    {
+                        return $"{1}";
+                    }
+                    static CustomHandler F2()
+                    {
+                        CustomHandler h2 = $"{2}";
+                        return h2;
+                    }
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/63306: Should report an error that a reference to y will escape F1() and F2().
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]
