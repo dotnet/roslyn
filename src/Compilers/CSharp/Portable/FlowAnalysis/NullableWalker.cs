@@ -2155,6 +2155,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        /// <summary>
+        /// Call instead of VisitPossibleConditionalAccess if VisitConversion will be also called
+        /// with <paramref name="node"/> as the conversion's operand.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="stateWhenNotNull"></param>
+        /// <returns></returns>
+        private bool VisitPossibleConditionalAccessInConversion(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
+        {
+            var previousConversionOperand = _visitingConversionOperand;
+            _visitingConversionOperand = node;
+            var result = VisitPossibleConditionalAccess(node, out stateWhenNotNull);
+            _visitingConversionOperand = previousConversionOperand;
+            return result;
+        }
+
         private TypeWithAnnotations VisitLvalueWithAnnotations(BoundExpression node)
         {
             VisitLValue(node);
@@ -4469,7 +4485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For simplicity, we just special case it here.
             // For example, `a?.b(out x) == true` has a conditional access on the left of the operator,
             // but `expr == a?.b(out x) == true` has a conditional access on the right of the operator
-            if (VisitPossibleConditionalAccess(leftOperand, out var conditionalStateWhenNotNull)
+            if (VisitPossibleConditionalAccessInConversion(leftOperand, out var conditionalStateWhenNotNull)
                 && CanPropagateStateWhenNotNull(leftConversion)
                 && binary.OperatorKind.Operator() is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
             {
@@ -4775,7 +4791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftType = ResultType;
 
             var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
-            VisitRvalue(rightOperand);
+            VisitRvalueInConversion(rightOperand);
 
             var rightType = ResultType;
             ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftType, rightOperand, rightConversion, rightType, binary);
@@ -8992,6 +9008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
 #if DEBUG
+            // If you hit this assert, make sure to use VisitRvalueInConversion on the node instead of VisitRvalue.
             Debug.Assert(!_errorLambdas.Contains(node), $"Lambda visited already without conversion: {node.GetDebuggerDisplay()}");
 #endif
 
