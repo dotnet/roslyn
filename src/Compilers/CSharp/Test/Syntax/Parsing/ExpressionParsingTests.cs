@@ -5613,20 +5613,13 @@ select t";
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadRefElementAccess()
         {
             UsingExpression("new[] { ref[] }",
                 // (1,9): error CS1525: Invalid expression term 'ref'
                 // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9),
-                // (1,12): error CS1525: Invalid expression term '['
-                // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 12),
-                // (1,13): error CS0443: Syntax error; value expected
-                // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5639,24 +5632,10 @@ select t";
                     N(SyntaxKind.RefExpression);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ElementAccessExpression);
+                        N(SyntaxKind.CollectionCreationExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                M(SyntaxKind.Argument);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
                         }
                     }
                     N(SyntaxKind.CloseBraceToken);
@@ -5952,14 +5931,13 @@ select t";
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
-                // (1,9): error CS1003: Syntax error, ',' expected
+                // (1,9): error CS1041: Identifier expected; 'in' is a keyword
                 // new[] { in[] }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5969,20 +5947,24 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionCreationExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadOutElementAccess()
         {
             UsingExpression("new[] { out[] }",
-                    // (1,9): error CS1003: Syntax error, ',' expected
-                    // new[] { out[] }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(1, 9));
+                // (1,9): error CS1041: Identifier expected; 'out' is a keyword
+                // new[] { out[] }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5992,6 +5974,11 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionCreationExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }

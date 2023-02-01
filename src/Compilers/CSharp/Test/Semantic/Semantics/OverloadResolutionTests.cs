@@ -7576,23 +7576,12 @@ class Program
 ";
 
             var comp = CreateCompilation(source);
+
+            // PROTOTYPE: We should report diagnostic that this is an illegal assignment to an RVALUE.
             comp.VerifyDiagnostics(
-    // (8,28): error CS1513: } expected
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(8, 28),
-    // (8,36): error CS1002: ; expected
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 36),
-    // (8,37): error CS1597: Semicolon after method or accessor block is not valid
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(8, 37),
-    // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1),
-    // (2,1): info CS8019: Unnecessary using directive.
-    // using System.Collections.Generic;
-    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
-);
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1));
         }
 
         [Fact]

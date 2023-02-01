@@ -4580,21 +4580,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         stackLocalsOpt));
                     goto case BoundKind.ConditionalReceiver;
 
-                case BoundKind.ComplexReceiver:
-                    Debug.Assert(HasHome(
-                        ((BoundComplexReceiver)expression).ValueTypeReceiver,
-                        addressKind,
-                        containingSymbol,
-                        peVerifyCompatEnabled,
-                        stackLocalsOpt));
-                    Debug.Assert(HasHome(
-                        ((BoundComplexReceiver)expression).ReferenceTypeReceiver,
-                        addressKind,
-                        containingSymbol,
-                        peVerifyCompatEnabled,
-                        stackLocalsOpt));
-                    goto case BoundKind.ConditionalReceiver;
-
                 case BoundKind.ConditionalReceiver:
                     //ConditionalReceiver is a noop from Emit point of view. - it represents something that has already been pushed. 
                     //We should never need a temp for it. 
@@ -4621,9 +4606,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Special HasHome for fields. 
-        /// Fields have readable homes when they are not constants.
-        /// Fields have writeable homes unless they are readonly and used outside of the constructor.
+        /// Special HasHome for fields.
+        /// A field has a readable home unless the field is a constant.
+        /// A ref readonly field doesn't have a writable home.
+        /// Other fields have a writable home unless the field is a readonly value
+        /// and is used outside of a constructor or init method.
         /// </summary>
         private static bool FieldAccessHasHome(
             BoundFieldAccess fieldAccess,
@@ -4642,7 +4629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (field.RefKind is RefKind.Ref or RefKind.RefReadOnly)
+            if (field.RefKind is RefKind.Ref)
             {
                 return true;
             }
@@ -4664,6 +4651,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
+
+            if (field.RefKind == RefKind.RefReadOnly)
+            {
+                return false;
+            }
+
+            Debug.Assert(field.RefKind == RefKind.None);
 
             if (!field.IsReadOnly)
             {

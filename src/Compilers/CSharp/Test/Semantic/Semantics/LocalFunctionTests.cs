@@ -9038,23 +9038,15 @@ public class MyAttribute : System.Attribute
 }
 ";
             var comp = CreateCompilation(source);
+
+            // PROTOTYPE: Should report CS0103: The name 'parameter' does not exist in the current context
             comp.VerifyDiagnostics(
-                // (6,35): error CS1525: Invalid expression term '['
-                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(6, 35),
-                // (6,36): error CS0103: The name 'My' does not exist in the current context
-                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "My").WithArguments("My").WithLocation(6, 36),
-                // (6,46): error CS0103: The name 'parameter' does not exist in the current context
-                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 46),
                 // (6,59): error CS1002: ; expected
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(6, 59),
                 // (6,81): error CS1002: ; expected
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81));
         }
 
         [Theory, CombinatorialData]

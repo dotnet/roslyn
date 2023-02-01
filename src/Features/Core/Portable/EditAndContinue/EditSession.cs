@@ -958,7 +958,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     async ValueTask LogDocumentChangesAsync(int? generation, CancellationToken cancellationToken)
                     {
-                        if (log.FileLoggingEnabled)
+                        var fileLog = log.FileLog;
+                        if (fileLog != null)
                         {
                             foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
                             {
@@ -966,7 +967,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 {
                                     var oldDocument = await oldProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                                     var newDocument = await newProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                                    await log.WriteDocumentChangeAsync(oldDocument, newDocument, updateId, generation, cancellationToken).ConfigureAwait(false);
+                                    await fileLog.WriteDocumentChangeAsync(oldDocument, newDocument, updateId, generation, cancellationToken).ConfigureAwait(false);
                                 }
                             }
                         }
@@ -1050,9 +1051,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
                             emitBaselines.Add((newProject.Id, emitResult.Baseline));
 
-                            if (log.FileLoggingEnabled)
+                            var fileLog = log.FileLog;
+                            if (fileLog != null)
                             {
-                                await LogDeltaFilesAsync(log, delta, baselineGeneration, oldProject, newProject, cancellationToken).ConfigureAwait(false);
+                                await LogDeltaFilesAsync(fileLog, delta, baselineGeneration, oldProject, newProject, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -1103,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async ValueTask LogDeltaFilesAsync(TraceLog log, ModuleUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
+        private async ValueTask LogDeltaFilesAsync(TraceLog.FileLogger log, ModuleUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
         {
             var sessionId = DebuggingSession.Id;
 
@@ -1111,14 +1113,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var oldCompilationOutputs = DebuggingSession.GetCompilationOutputs(oldProject);
 
-                await log.WriteToFileAsync(
+                await log.WriteAsync(
                     async (stream, cancellationToken) => await oldCompilationOutputs.TryCopyAssemblyToAsync(stream, cancellationToken).ConfigureAwait(false),
                     sessionId,
                     newProject.Name,
                     PathUtilities.GetFileName(oldCompilationOutputs.AssemblyDisplayPath) ?? oldProject.Name + ".dll",
                     cancellationToken).ConfigureAwait(false);
 
-                await log.WriteToFileAsync(
+                await log.WriteAsync(
                     async (stream, cancellationToken) => await oldCompilationOutputs.TryCopyPdbToAsync(stream, cancellationToken).ConfigureAwait(false),
                     sessionId,
                     newProject.Name,
@@ -1127,9 +1129,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var generation = baselineGeneration + 1;
-            log.WriteToFile(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
-            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".meta");
-            log.WriteToFile(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
+            log.Write(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
+            log.Write(sessionId, delta.MetadataDelta, newProject.Name, generation + ".meta");
+            log.Write(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
         }
 
         // internal for testing

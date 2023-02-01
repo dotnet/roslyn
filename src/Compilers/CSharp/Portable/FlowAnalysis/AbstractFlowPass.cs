@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -2959,20 +2960,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
-        {
-            var savedState = this.State.Clone();
-
-            VisitRvalue(node.ValueTypeReceiver);
-            Join(ref this.State, ref savedState);
-
-            savedState = this.State.Clone();
-            VisitRvalue(node.ReferenceTypeReceiver);
-            Join(ref this.State, ref savedState);
-
-            return null;
-        }
-
-        public override BoundNode VisitComplexReceiver(BoundComplexReceiver node)
         {
             var savedState = this.State.Clone();
 

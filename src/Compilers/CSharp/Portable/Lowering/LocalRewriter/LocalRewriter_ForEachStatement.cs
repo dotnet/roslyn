@@ -1076,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.Instrument && node is BoundForEachStatement original)
             {
-                collectionVarDecl = _instrumenter.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl);
+                collectionVarDecl = Instrumenter.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl);
             }
         }
 
@@ -1087,11 +1087,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CommonForEachStatementSyntax forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
                 if (forEachSyntax is ForEachVariableStatementSyntax)
                 {
-                    iterationVarDecl = _instrumenter.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);
+                    iterationVarDecl = Instrumenter.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);
                 }
                 else
                 {
-                    iterationVarDecl = _instrumenter.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl);
+                    iterationVarDecl = Instrumenter.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl);
                 }
             }
         }
@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.Instrument && node is BoundForEachStatement original)
             {
-                result = _instrumenter.InstrumentForEachStatement(original, result);
+                result = Instrumenter.InstrumentForEachStatement(original, result);
             }
         }
     }

@@ -316,10 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitComplexConditionalReceiver((BoundComplexConditionalReceiver)expression, used);
                     break;
 
-                case BoundKind.ComplexReceiver:
-                    EmitComplexReceiver((BoundComplexReceiver)expression, used);
-                    break;
-
                 case BoundKind.PseudoVariable:
                     EmitPseudoVariableValue((BoundPseudoVariable)expression, used);
                     break;
@@ -573,13 +569,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        /// <summary>
+        /// We must use a temp when there is a chance that evaluation of the call arguments
+        /// could actually modify value of the reference type reciever. The call must use
+        /// the original (unmodified) receiver.
+        /// </summary>
         private sealed class IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private readonly BoundLoweredConditionalAccess _conditionalAccess;
             private bool? _result;
 
             private IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker(BoundLoweredConditionalAccess conditionalAccess)
-                : base()
             {
                 _conditionalAccess = conditionalAccess;
             }
@@ -1691,15 +1691,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    // calling a method defined in a base class.
+                    // calling a method defined in a base class or interface.
 
                     // When calling a method that is virtual in metadata on a struct receiver, 
                     // we use a constrained virtual call. If possible, it will skip boxing.
                     if (method.IsMetadataVirtual())
                     {
-                        // NB: all methods that a struct could inherit from bases are non-mutating
-                        //     treat receiver as ReadOnly
-                        tempOpt = EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                        tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
                         callKind = CallKind.ConstrainedCallVirt;
                     }
                     else
@@ -1815,21 +1813,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // reference to the stack. So, for a class we need to emit a reference to a temporary
                     // location, rather than to the original location
 
-                    // We will emit a runtime check for a class, but the check is really a JIT-time 
+                    // Struct values are never nulls.
+                    // We will emit a check for such case, but the check is really a JIT-time 
                     // constant since JIT will know if T is a struct or not.
 
-                    // if (!typeof(T).IsValueType)
+                    // if ((object)default(T) == null) 
                     // {
                     //     temp = receiverRef
                     //     receiverRef = ref temp
                     // }
 
-                    object whenValueTypeLabel = null;
+                    object whenNotNullLabel = null;
 
                     if (!receiverType.IsReferenceType)
                     {
-                        // if (!typeof(T).IsValueType)
-                        whenValueTypeLabel = TryEmitIsValueTypeBranch(receiverType, receiver.Syntax);
+                        // if ((object)default(T) == null) 
+                        EmitDefaultValue(receiverType, true, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                        whenNotNullLabel = new object();
+                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
                     }
 
                     //     temp = receiverRef
@@ -1839,89 +1841,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitLocalStore(tempOpt);
                     _builder.EmitLocalAddress(tempOpt);
 
-                    if (whenValueTypeLabel is not null)
+                    if (whenNotNullLabel is not null)
                     {
-                        _builder.MarkLabel(whenValueTypeLabel);
+                        _builder.MarkLabel(whenNotNullLabel);
                     }
                 }
 
                 return tempOpt;
             }
-        }
-
-        private object TryEmitIsValueTypeBranch(TypeSymbol type, SyntaxNode syntax)
-        {
-            if (Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Type__GetTypeFromHandle, _diagnostics, syntax: syntax, isOptional: false) is MethodSymbol getTypeFromHandle &&
-                Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Type__get_IsValueType, _diagnostics, syntax: syntax, isOptional: false) is MethodSymbol getIsValueType)
-            {
-                _builder.EmitOpCode(ILOpCode.Ldtoken);
-                EmitSymbolToken(type, syntax);
-                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); // argument off, return value on
-                EmitSymbolToken(getTypeFromHandle, syntax, null);
-                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); // instance off, return value on
-                EmitSymbolToken(getIsValueType, syntax, null);
-                var whenValueTypeLabel = new object();
-                _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
-
-                return whenValueTypeLabel;
-            }
-
-            return null;
-        }
-
-        private void EmitComplexReceiver(BoundComplexReceiver expression, bool used)
-        {
-            Debug.Assert(!used);
-            Debug.Assert(!expression.Type.IsReferenceType);
-            Debug.Assert(!expression.Type.IsValueType);
-
-            var receiverType = expression.Type;
-
-            // if (!typeof(T).IsValueType)
-            object whenValueTypeLabel = TryEmitIsValueTypeBranch(receiverType, expression.Syntax);
-
-            EmitExpression(expression.ReferenceTypeReceiver, used);
-            var doneLabel = new object();
-            _builder.EmitBranch(ILOpCode.Br, doneLabel);
-
-            if (whenValueTypeLabel is not null)
-            {
-                if (used)
-                {
-                    _builder.AdjustStack(-1);
-                }
-
-                _builder.MarkLabel(whenValueTypeLabel);
-                EmitExpression(expression.ValueTypeReceiver, used);
-            }
-
-            _builder.MarkLabel(doneLabel);
-        }
-
-        private void EmitComplexReceiverAddress(BoundComplexReceiver expression)
-        {
-            Debug.Assert(!expression.Type.IsReferenceType);
-            Debug.Assert(!expression.Type.IsValueType);
-
-            var receiverType = expression.Type;
-
-            // if (!typeof(T).IsValueType)
-            object whenValueTypeLabel = TryEmitIsValueTypeBranch(receiverType, expression.Syntax);
-
-            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, AddressKind.ReadOnly);
-            Debug.Assert(receiverTemp == null);
-            var doneLabel = new Object();
-            _builder.EmitBranch(ILOpCode.Br, doneLabel);
-
-            if (whenValueTypeLabel is not null)
-            {
-                _builder.AdjustStack(-1);
-                _builder.MarkLabel(whenValueTypeLabel);
-                // we will not write through this receiver, but it could be a target of mutating calls
-                EmitReceiverRef(expression.ValueTypeReceiver, AddressKind.Constrained);
-            }
-
-            _builder.MarkLabel(doneLabel);
         }
 
         internal static bool IsPossibleReferenceTypeReceiverOfConstrainedCall(BoundExpression receiver)
@@ -1946,7 +1873,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (receiver is
                     BoundLocal { LocalSymbol.IsKnownToReferToTempIfReferenceType: true } or
                     BoundComplexConditionalReceiver or
-                    BoundComplexReceiver or
                     BoundConditionalReceiver { Type: { IsReferenceType: false, IsValueType: false } })
             {
                 return true;
