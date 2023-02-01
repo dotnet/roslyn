@@ -122,40 +122,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
             var isAsync = false;
+            VariableDeclaratorSyntax? variable = null;
             ExpressionSyntax? expression = null;
 
             if (node is UsingStatementSyntax usingStatement)
             {
                 isAsync = usingStatement.AwaitKeyword != default;
-                expression = usingStatement is { Declaration.Variables: [{ Initializer: var initializer }] } ? initializer?.Value : usingStatement.Expression;
+                variable = usingStatement is { Declaration.Variables: [var declarator] } ? declarator : null;
+                expression = usingStatement.Expression ?? null;
             }
-            else if (node is LocalDeclarationStatementSyntax { Declaration.Variables: [{ Initializer: var initializer }] } localDeclaration)
+            else if (node is LocalDeclarationStatementSyntax { Declaration.Variables: [var declarator] } localDeclaration)
             {
                 isAsync = localDeclaration.AwaitKeyword != default;
-                expression = initializer?.Value;
+                variable = declarator;
             }
 
-            if (expression is null)
+            if (variable is null && expression is null)
                 return null;
 
-            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (type is null)
-                return null;
-
-            var methodToLookFor = isAsync
-                ? GetDisposeMethod(typeof(IAsyncDisposable).FullName, nameof(IAsyncDisposable.DisposeAsync))
-                : GetDisposeMethod(typeof(IDisposable).FullName, nameof(IDisposable.Dispose));
-            if (methodToLookFor is null)
-                return null;
-
-            var impl = type.FindImplementationForInterfaceMember(methodToLookFor);
-            return impl as IMethodSymbol;
-
-            IMethodSymbol? GetDisposeMethod(string typeName, string methodName)
-            {
-                var disposableType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(IAsyncDisposable).FullName);
-                return disposableType?.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Parameters.Length == 0 && m.Name == methodName);
-            }
+            var type =
+                variable != null ? (semanticModel.GetDeclaredSymbol(variable, cancellationToken) as ILocalSymbol)?.Type :
+                expression != null ? semanticModel.GetTypeInfo(expression, cancellationToken).Type : null;
+            return FindDisposeMethod(semanticModel.Compilation, type, isAsync);
         }
     }
 }

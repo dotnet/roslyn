@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination);
 
+#nullable enable
+
         IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     }
 }
