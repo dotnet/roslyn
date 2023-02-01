@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 
 namespace Roslyn.Utilities
 {
@@ -14,7 +15,11 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class PlatformInformation
     {
+#if NETCOREAPP
+        [SupportedOSPlatformGuard("windows")]
+#endif
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
+
         public static bool IsUnix => Path.DirectorySeparatorChar == '/';
         public static bool IsRunningOnMono
         {
