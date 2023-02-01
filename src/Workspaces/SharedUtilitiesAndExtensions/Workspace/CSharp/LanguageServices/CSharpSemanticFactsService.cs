@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -114,5 +116,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination)
             => semanticModel.ClassifyConversion((ExpressionSyntax)expression, destination).ToCommonConversion();
+
+#nullable enable
+
+        public IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var isAsync = false;
+            ExpressionSyntax? expression = null;
+
+            if (node is UsingStatementSyntax usingStatement)
+            {
+                isAsync = usingStatement.AwaitKeyword != default;
+                expression = usingStatement is { Declaration.Variables: [{ Initializer: var initializer }] } ? initializer?.Value : usingStatement.Expression;
+            }
+            else if (node is LocalDeclarationStatementSyntax { Declaration.Variables: [{ Initializer: var initializer }] } localDeclaration)
+            {
+                isAsync = localDeclaration.AwaitKeyword != default;
+                expression = initializer?.Value;
+            }
+
+            if (expression is null)
+                return null;
+
+            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            if (type is null)
+                return null;
+
+            var methodToLookFor = isAsync
+                ? GetDisposeMethod(typeof(IAsyncDisposable).FullName, nameof(IAsyncDisposable.DisposeAsync))
+                : GetDisposeMethod(typeof(IDisposable).FullName, nameof(IDisposable.Dispose));
+            if (methodToLookFor is null)
+                return null;
+
+            var impl = type.FindImplementationForInterfaceMember(methodToLookFor);
+            return impl as IMethodSymbol;
+
+            IMethodSymbol? GetDisposeMethod(string typeName, string methodName)
+            {
+                var disposableType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(IAsyncDisposable).FullName);
+                return disposableType?.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Parameters.Length == 0 && m.Name == methodName);
+            }
+        }
     }
 }
