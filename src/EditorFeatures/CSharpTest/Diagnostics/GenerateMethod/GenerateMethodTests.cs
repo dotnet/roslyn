@@ -9247,5 +9247,40 @@ class C
     }
 }");
         }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var (x, y) = [|NewExpr()|];
+        Goo(x, y);
+    }
+
+    void Goo(string x, int y) { }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var (x, y) = [|NewExpr()|];
+        Goo(x, y);
+    }
+
+    private (string x, int y) NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+
+    void Goo(string x, int y) { }
+}");
+        }
     }
 }

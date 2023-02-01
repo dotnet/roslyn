@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -2213,18 +2214,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
                     return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
 
+                var laterUsageInference = InferTypeBasedOnLaterUsage(symbol, variableDeclaration);
+                if (laterUsageInference is not [] and not [{ InferredType.SpecialType: SpecialType.System_Object }])
+                    return laterUsageInference;
+
+                // Return the types here if they actually bound to a type called 'var'.
+                return types.Where(t => t.InferredType.Name == "var");
+            }
+
+            private ImmutableArray<TypeInferenceInfo> InferTypeBasedOnLaterUsage(ISymbol symbol, SyntaxNode afterNode)
+            {
                 // var v = expr.
                 // Attempt to see how 'v' is used later in the current scope to determine what to do.
-                var container = variableDeclaration.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax or SwitchSectionSyntax);
+                var container = afterNode.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax or SwitchSectionSyntax);
                 if (container != null)
                 {
                     foreach (var descendant in container.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                     {
                         // only look after the variable we're declaring.
-                        if (descendant.SpanStart <= variableDeclaration.Span.End)
+                        if (descendant.SpanStart <= afterNode.Span.End)
                             continue;
 
-                        if (descendant.Identifier.ValueText != variableDeclarator.Identifier.ValueText)
+                        if (descendant.Identifier.ValueText != symbol.Name)
                             continue;
 
                         // Make sure it's actually a match for this variable.
@@ -2239,14 +2250,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // Return the types here if they actually bound to a type called 'var'.
-                return types.Where(t => t.InferredType.Name == "var");
+                return ImmutableArray<TypeInferenceInfo>.Empty;
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
             {
                 if (left is DeclarationExpressionSyntax declExpr)
                 {
+                    // var (x, y) = Expr();
+                    // Attempt to determine what x and y are based on their future usage.
+                    if (declExpr.Type.IsVar &&
+                        declExpr.Designation is ParenthesizedVariableDesignationSyntax parenthesizedVariableDesignation &&
+                        parenthesizedVariableDesignation.Variables.All(v => v is SingleVariableDesignationSyntax))
+                    {
+                        using var _1 = ArrayBuilder<ITypeSymbol>.GetInstance(out var tupleTypes);
+                        using var _2 = ArrayBuilder<string>.GetInstance(out var names);
+
+                        foreach (var variable in parenthesizedVariableDesignation.Variables.Cast<SingleVariableDesignationSyntax>())
+                        {
+                            var symbol = SemanticModel.GetRequiredDeclaredSymbol(variable, CancellationToken);
+                            var inferredFutureUsage = InferTypeBasedOnLaterUsage(symbol, afterNode: left.Parent);
+                            tupleTypes.Add(inferredFutureUsage.Length > 0 ? inferredFutureUsage[0].InferredType : Compilation.ObjectType);
+                            names.Add(variable.Identifier.ValueText);
+                        }
+
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
+                            Compilation.CreateTupleTypeSymbol(
+                                tupleTypes.ToImmutable(),
+                                names.ToImmutable())));
+                    }
+
                     return GetTypes(declExpr.Type);
                 }
                 else if (left is TupleExpressionSyntax tupleExpression)
