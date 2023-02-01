@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 /// Implements an ILogger that seamlessly switches from a fallback logger
 /// to LSP log messages as soon as the server initializes.
 /// </summary>
-internal sealed class AggregateLogger : ILogger
+internal sealed class LspLogMessageLogger : ILogger
 {
     private readonly string _categoryName;
     private readonly ILogger _fallbackLogger;
 
-    public AggregateLogger(string categoryName, ILoggerFactory fallbackLoggerFactory)
+    public LspLogMessageLogger(string categoryName, ILoggerFactory fallbackLoggerFactory)
     {
         _categoryName = categoryName;
         _fallbackLogger = fallbackLoggerFactory.CreateLogger(categoryName);

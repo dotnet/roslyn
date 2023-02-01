@@ -20,7 +20,7 @@ var minimumLogLevel = GetLogLevel(args);
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
     builder.SetMinimumLevel(minimumLogLevel);
-    builder.AddProvider(new AggregateLoggerProvider(fallbackLoggerFactory:
+    builder.AddProvider(new LspLogMessageLoggerProvider(fallbackLoggerFactory:
         // Add a console logger as a fallback for when the LSP server has not finished initializing.
         LoggerFactory.Create(builder =>
         {
@@ -58,6 +58,7 @@ static LogLevel GetLogLevel(string[] args)
     var logLevelIndex = Array.IndexOf(args, "--logLevel") + 1;
     if (logLevelIndex > 0)
     {
+        // Map VSCode log level to the LogLevel we can use with ILogger APIs.
         var level = args[logLevelIndex];
         return level switch
         {
