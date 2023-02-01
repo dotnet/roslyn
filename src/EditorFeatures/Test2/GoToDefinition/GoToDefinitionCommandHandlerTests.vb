@@ -18,9 +18,9 @@ Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
     Public Class GoToDefinitionCommandHandlerTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WpfFact>
         Public Async Function TestInLinkedFiles() As Task
             Dim definition =
 <Workspace>
@@ -79,7 +79,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WpfFact>
         Public Async Function TestAtEndOfFile() As Task
             Dim definition =
 <Workspace>
@@ -114,7 +114,7 @@ int y = x$$</Document>
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WpfTheory, WorkItem(43183, "https://github.com/dotnet/roslyn/issues/43183")>
         <CombinatorialData>
         Public Async Function TestWithSelection(reversedSelection As Boolean) As Task
             Dim definition =
