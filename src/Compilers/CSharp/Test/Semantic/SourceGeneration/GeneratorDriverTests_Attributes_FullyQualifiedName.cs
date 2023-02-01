@@ -9,7 +9,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
@@ -1231,6 +1234,62 @@ class YAttribute : System.Attribute { }
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         Assert.Equal(1, counter);
+    }
+
+    [Fact, WorkItem(66451, "https://github.com/dotnet/roslyn/issues/66451")]
+    public void MultipleInputs_RemoveFirst_ModifySecond()
+    {
+        var source0 = "public class GenerateAttribute : System.Attribute { }";
+        var comp0 = CreateCompilation(source0).VerifyDiagnostics().EmitToImageReference();
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var provider = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("GenerateAttribute");
+            ctx.RegisterSourceOutput(provider, static (spc, syntax) => spc.AddSource(
+                $"{syntax.Identifier.Text}.g",
+                $"partial class {syntax.Identifier.Text} {{ /* generated */ }}"));
+        }));
+
+        var parseOptions = TestOptions.RegularPreview;
+
+        var source1 = """
+            [Generate]
+            [System.Obsolete]
+            public partial class Class1 { }
+            """;
+        var source2 = """
+            [Generate]
+            [System.Obsolete]
+            public partial class Class2 { }
+            """;
+
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, new[] { comp0 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+        verify(ref driver, compilation);
+
+        replace(ref compilation, parseOptions, "Class1", """
+            //[Generate]
+            [System.Obsolete]
+            public partial class Class1 { }
+            """);
+        verify(ref driver, compilation);
+
+        replace(ref compilation, parseOptions, "Class2", source2);
+        verify(ref driver, compilation);
+
+        static void verify(ref GeneratorDriver driver, Compilation compilation)
+        {
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify();
+        }
+
+        static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string className, string source)
+        {
+            var tree = compilation.GetMember(className).DeclaringSyntaxReferences.Single().SyntaxTree;
+            compilation = compilation.ReplaceSyntaxTree(tree, CSharpSyntaxTree.ParseText(source, parseOptions));
+        }
     }
 
     #endregion
