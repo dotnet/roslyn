@@ -240,6 +240,7 @@ namespace Text.Analyzers
 
         private static void OnCompilationStart(CompilationStartAnalysisContext compilationStartContext)
         {
+
             var dictionaries = ReadDictionaries();
             var projectDictionary = CodeAnalysisDictionary.CreateFromDictionaries(dictionaries.Concat(s_mainDictionary));
 
@@ -357,6 +358,14 @@ namespace Text.Analyzers
                         foreach (var typeParameter in type.TypeParameters)
                         {
                             ReportDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent('T', typeParameter.Name), symbolContext.ReportDiagnostic);
+                        }
+
+                        break;
+                    case IParameterSymbol parameter:
+                        //check if the member this parameter is part of is an override/interface implementation
+                        if (parameter.ContainingSymbol.IsImplementationOfAnyImplicitInterfaceMember() || parameter.ContainingSymbol.IsImplementationOfAnyExplicitInterfaceMember())
+                        {
+                            return;
                         }
 
                         break;
