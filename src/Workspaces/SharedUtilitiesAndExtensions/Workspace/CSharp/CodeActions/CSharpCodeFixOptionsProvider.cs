@@ -58,7 +58,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     public CodeStyleOption2<bool> VarElsewhere => GetOption(CSharpCodeStyleOptions.VarElsewhere, FallbackSimplifierOptions.VarElsewhere);
 
     public SimplifierOptions GetSimplifierOptions()
-        => _options.GetCSharpSimplifierOptions(FallbackSimplifierOptions);
+        => new CSharpSimplifierOptions(_options, FallbackSimplifierOptions);
 
     // FormattingOptions
 

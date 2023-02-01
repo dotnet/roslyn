@@ -52,7 +52,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
     internal CSharpSimplifierOptions GetSimplifierOptions()
-        => _options.GetCSharpSimplifierOptions(FallbackSimplifierOptions);
+        => new CSharpSimplifierOptions(_options, FallbackSimplifierOptions);
 
     // SyntaxFormattingOptions
 

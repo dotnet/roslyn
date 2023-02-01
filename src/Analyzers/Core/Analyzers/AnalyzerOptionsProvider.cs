@@ -107,8 +107,8 @@ internal readonly struct AnalyzerOptionsProvider
     private IdeCodeStyleOptions FallbackCodeStyleOptions
         => _fallbackOptions.CodeStyleOptions ?? IdeCodeStyleOptions.CommonDefaults;
 
-    private SimplifierOptions.CommonOptions FallbackSimplifierOptions
-        => _fallbackOptions.CleanupOptions?.SimplifierOptions.Common ?? SimplifierOptions.CommonOptions.Default;
+    private SimplifierOptions FallbackSimplifierOptions
+        => _fallbackOptions.CleanupOptions?.SimplifierOptions ?? SimplifierOptions.CommonDefaults;
 
     internal IOptionsReader GetAnalyzerConfigOptions()
         => _options;
