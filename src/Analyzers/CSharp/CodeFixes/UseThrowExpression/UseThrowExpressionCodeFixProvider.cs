@@ -11,12 +11,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.UseThrowExpression
+namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp,
         Name = PredefinedCodeFixProviderNames.UseThrowExpression), Shared]
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 var ifStatement = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
                 var throwStatementExpression = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var assignmentValue = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
+                var assignmentExpressionStatement = root.FindNode(diagnostic.AdditionalLocations[3].SourceSpan);
 
                 // First, remote the if-statement entirely.
                 editor.RemoveNode(ifStatement);
@@ -60,6 +63,26 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 editor.ReplaceNode(assignmentValue,
                     generator.CoalesceExpression(assignmentValue,
                     generator.ThrowExpression(throwStatementExpression)));
+
+                // Move any trailing trivia after the `throw new Exception(); // comment`
+
+                if (throwStatementExpression.Parent is ThrowStatementSyntax throwStatement &&
+                    throwStatement.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                {
+                    if (assignmentExpressionStatement.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                    {
+                        // Assignment already has trailing trivia.  Move the comments above it instead.
+                        editor.ReplaceNode(
+                            assignmentExpressionStatement,
+                            (current, _) => current.WithLeadingTrivia(current.GetLeadingTrivia().Concat(throwStatement.GetTrailingTrivia())));
+                    }
+                    else
+                    {
+                        editor.ReplaceNode(
+                            assignmentExpressionStatement,
+                            (current, _) => current.WithTrailingTrivia(throwStatement.GetTrailingTrivia()));
+                    }
+                }
             }
 
             return Task.CompletedTask;
