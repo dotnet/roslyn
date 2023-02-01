@@ -244,23 +244,4 @@ namespace Microsoft.CodeAnalysis
             }
         }
     }
-
-    internal sealed class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
-    {
-#if NETCOREAPP
-
-        internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null)
-            : base(compilerLoadContext)
-        {
-        }
-
-#endif
-
-        /// <summary>
-        /// The default implementation is to simply load in place.
-        /// </summary>
-        /// <param name="fullPath"></param>
-        /// <returns></returns>
-        protected override string PreparePathToLoad(string fullPath) => fullPath;
-    }
 }
