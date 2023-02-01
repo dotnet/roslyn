@@ -3271,8 +3271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetMembers(name);
             }
 
-            ImmutableArray<Symbol> types = GetTypeMembers(name).Cast<NamedTypeSymbol, Symbol>();
-
             ImmutableArray<Symbol> nonTypeMembersToCheck;
             SynthesizedPrimaryConstructor? primaryConstructor;
 
@@ -3296,6 +3294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetMembers(name);
             }
 
+            ImmutableArray<Symbol> types = GetTypeMembers(name).Cast<NamedTypeSymbol, Symbol>();
             ArrayBuilder<Symbol>? memberBuilder = null;
 
             foreach (var member in nonTypeMembersToCheck)
