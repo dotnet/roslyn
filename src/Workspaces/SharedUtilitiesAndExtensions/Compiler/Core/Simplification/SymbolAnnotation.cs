@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Simplification
         public static SyntaxAnnotation Create(ISymbol symbol)
             => new(Kind, DocumentationCommentId.CreateReferenceId(symbol));
 
+        internal static SyntaxAnnotation Create(string referenceId)
+            => new(Kind, referenceId);
+
         public static ISymbol? GetSymbol(SyntaxAnnotation annotation, Compilation compilation)
             => GetSymbols(annotation, compilation).FirstOrDefault();
 

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Implemented by each SnippetProvider to determine if that particular position is a valid
         /// location for the snippet to be inserted.
         /// </summary>
-        protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
+        protected abstract bool IsValidSnippetLocation(SyntaxContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Generates the new snippet's TextChanges that are being inserted into the document.
@@ -61,22 +62,18 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Determines if the location is valid for a snippet,
         /// if so, then it creates a SnippetData.
         /// </summary>
-        public async Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken)
+        public SnippetData? GetSnippetData(SyntaxContext context, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
-            {
-                return null;
-            }
-
-            if (!await IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false))
+            if (!IsValidSnippetLocation(context, cancellationToken))
             {
                 return null;
             }
 
             return new SnippetData(Description, Identifier, AdditionalFilterTexts);
         }
+
+        public Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         /// <summary>
         /// Handles all the work to generate the Snippet.
