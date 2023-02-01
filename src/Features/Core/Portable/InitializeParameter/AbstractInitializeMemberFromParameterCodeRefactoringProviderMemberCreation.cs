@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -645,6 +646,31 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatement)
             => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement, out _);
 
+        protected static bool TryGetPartsOfTupleAssignmentOperation(
+            IOperation operation,
+            [NotNullWhen(true)] out ITupleOperation? targetTuple,
+            [NotNullWhen(true)] out ITupleOperation? valueTuple)
+        {
+            if (operation is IExpressionStatementOperation
+                {
+                    Operation: IDeconstructionAssignmentOperation
+                    {
+                        Target: ITupleOperation targetTupleTemp,
+                        Value: IConversionOperation { Operand: ITupleOperation valueTupleTemp },
+                    }
+                } &&
+                targetTupleTemp.Elements.Length == valueTupleTemp.Elements.Length)
+            {
+                targetTuple = targetTupleTemp;
+                valueTuple = valueTupleTemp;
+                return true;
+            }
+
+            targetTuple = null;
+            valueTuple = null;
+            return false;
+        }
+
         private static IOperation? TryFindFieldOrPropertyAssignmentStatement(
             IParameterSymbol parameter, IBlockOperation? blockStatement, out ISymbol? fieldOrProperty)
         {
@@ -661,27 +687,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
 
                     // look inside the form `(this.s, this.t) = (s, t)`
-                    if (statement is IExpressionStatementOperation
-                        {
-                            Operation: IDeconstructionAssignmentOperation
-                            {
-                                Target: ITupleOperation targetTuple,
-                                Value: IConversionOperation { Operand: ITupleOperation valueTuple },
-                            }
-                        })
+                    if (TryGetPartsOfTupleAssignmentOperation(statement, out var targetTuple, out var valueTuple))
                     {
-                        if (targetTuple.Elements.Length == valueTuple.Elements.Length)
+                        for (int i = 0, n = targetTuple.Elements.Length; i < n; i++)
                         {
-                            for (int i = 0, n = targetTuple.Elements.Length; i < n; i++)
-                            {
-                                var target = targetTuple.Elements[i];
-                                var value = valueTuple.Elements[i];
+                            var target = targetTuple.Elements[i];
+                            var value = valueTuple.Elements[i];
 
-                                if (IsFieldOrPropertyReference(target, containingType, out fieldOrProperty) &&
-                                    IsParameterReference(value, parameter))
-                                {
-                                    return statement;
-                                }
+                            if (IsFieldOrPropertyReference(target, containingType, out fieldOrProperty) &&
+                                IsParameterReference(value, parameter))
+                            {
+                                return statement;
                             }
                         }
                     }

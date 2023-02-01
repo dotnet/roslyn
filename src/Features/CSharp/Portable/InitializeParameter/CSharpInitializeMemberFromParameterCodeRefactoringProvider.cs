@@ -113,36 +113,34 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             ISymbol fieldOrProperty,
             SyntaxEditor editor)
         {
-            if (constructorDeclaration is not ConstructorDeclarationSyntax constructor)
+            if (blockStatement is null)
                 return false;
 
-            foreach (var assignmentExpression in TryGetAssignmentExpressions(constructor))
+            foreach (var (tupleLeft, tupleRight) in TryGetAssignmentExpressions(blockStatement))
             {
-                if (assignmentExpression is not { Left: TupleExpressionSyntax tupleLeft, Right: TupleExpressionSyntax tupleRight })
-                    continue;
-
-                if (tupleLeft.Arguments.Count != tupleRight.Arguments.Count)
-                    continue;
-
-                var generator = editor.Generator;
-                foreach (var (sibling, before) in GetSiblingParameters(parameter))
+                if (tupleLeft.Syntax is TupleExpressionSyntax tupleLeftSyntax &&
+                    tupleRight.Syntax is TupleExpressionSyntax tupleRightSyntax)
                 {
-                    if (TryFindSiblingAssignment(tupleLeft, tupleRight, sibling, out var index))
+                    var generator = editor.Generator;
+                    foreach (var (sibling, before) in GetSiblingParameters(parameter))
                     {
-                        // If we found assignment to a parameter before us, then add after that.
-                        var insertionPosition = before ? index + 1 : index;
+                        if (TryFindSiblingAssignment(tupleLeft, tupleRight, sibling, out var index))
+                        {
+                            // If we found assignment to a parameter before us, then add after that.
+                            var insertionPosition = before ? index + 1 : index;
 
-                        var left = (ArgumentSyntax)generator.Argument(generator.MemberAccessExpression(generator.ThisExpression(), generator.IdentifierName(fieldOrProperty.Name)));
-                        var right = (ArgumentSyntax)generator.Argument(generator.IdentifierName(parameter.Name));
+                            var left = (ArgumentSyntax)generator.Argument(generator.MemberAccessExpression(generator.ThisExpression(), generator.IdentifierName(fieldOrProperty.Name)));
+                            var right = (ArgumentSyntax)generator.Argument(generator.IdentifierName(parameter.Name));
 
-                        editor.ReplaceNode(
-                            tupleLeft,
-                            tupleLeft.WithArguments(tupleLeft.Arguments.Insert(insertionPosition, left)));
-                        editor.ReplaceNode(
-                            tupleRight,
-                            tupleRight.WithArguments(tupleRight.Arguments.Insert(insertionPosition, right)));
+                            editor.ReplaceNode(
+                                tupleLeftSyntax,
+                                tupleLeftSyntax.WithArguments(tupleLeftSyntax.Arguments.Insert(insertionPosition, left)));
+                            editor.ReplaceNode(
+                                tupleRightSyntax,
+                                tupleRightSyntax.WithArguments(tupleRightSyntax.Arguments.Insert(insertionPosition, right)));
 
-                        return true;
+                            return true;
+                        }
                     }
                 }
             }
@@ -151,16 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         }
 
         private static bool TryFindSiblingAssignment(
-            TupleExpressionSyntax tupleLeft, TupleExpressionSyntax tupleRight, IParameterSymbol sibling, out int index)
+            ITupleOperation tupleLeft, ITupleOperation tupleRight, IParameterSymbol sibling, out int index)
         {
-            for (int i = 0, n = tupleLeft.Arguments.Count; i < n; i++)
+            for (int i = 0, n = tupleLeft.Elements.Length; i < n; i++)
             {
-                // rhs tuple has to directly reference the sibling parameter name.  lhs has to either be an identifier,
-                // or this.identifier.
+                // rhs tuple has to directly reference the sibling parameter.  lhs has to be a reference to a field/prop in this type.
 
-                if (tupleRight.Arguments[i] is { Expression: IdentifierNameSyntax { Identifier.ValueText: var rightIdentifier } } &&
-                    rightIdentifier == sibling.Name &&
-                    tupleLeft.Arguments[i] is { Expression: IdentifierNameSyntax or MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax, Name: IdentifierNameSyntax } })
+                if (tupleRight.Elements[i] is IParameterReferenceOperation parameterReference && sibling.Equals(parameterReference.Parameter) &&
+                    IsFieldOrPropertyReference(tupleLeft.Elements[i], sibling.ContainingType, out _))
                 {
                     index = i;
                     return true;
@@ -171,18 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return false;
         }
 
-        private static IEnumerable<AssignmentExpressionSyntax> TryGetAssignmentExpressions(ConstructorDeclarationSyntax constructor)
+        private static IEnumerable<(ITupleOperation targetTuple, ITupleOperation valueTuple)> TryGetAssignmentExpressions(IBlockOperation blockOperation)
         {
-            if (constructor.ExpressionBody?.Expression is AssignmentExpressionSyntax assignment1)
-                yield return assignment1;
-
-            if (constructor.Body != null)
+            foreach (var operation in blockOperation.Operations)
             {
-                foreach (var statement in constructor.Body.Statements)
-                {
-                    if (statement is ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax assignment2 })
-                        yield return assignment2;
-                }
+                if (TryGetPartsOfTupleAssignmentOperation(operation, out var targetTuple, out var valueTuple))
+                    yield return (targetTuple, valueTuple);
             }
         }
     }
