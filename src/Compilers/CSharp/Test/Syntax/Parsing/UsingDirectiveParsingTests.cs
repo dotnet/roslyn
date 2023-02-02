@@ -15,7 +15,7 @@ public sealed class UsingDirectiveParsingTests : ParsingTests
 
     protected override SyntaxTree ParseTree(string text, CSharpParseOptions? options)
     {
-        return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Regular9);
+        return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.RegularPreview);
     }
 
     [Fact]
