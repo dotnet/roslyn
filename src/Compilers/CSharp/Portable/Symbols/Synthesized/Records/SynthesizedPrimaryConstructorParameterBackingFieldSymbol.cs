@@ -18,8 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedPrimaryConstructorParameterBackingFieldSymbol(
             ParameterSymbol parameterSymbol,
-            string name)
-            : base(name, isReadOnly: false, isStatic: false)
+            string name,
+            bool isReadOnly)
+            : base(name, isReadOnly, isStatic: false)
         {
             ParameterSymbol = parameterSymbol;
         }

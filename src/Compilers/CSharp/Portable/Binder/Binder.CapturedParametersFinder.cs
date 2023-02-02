@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We should define GeneratedNameKind entry (e..g P looks free to use) and add a helper to GeneratedNames that produces the name.
                     // I'd also just keep the name as short as possible to avoid unnecessary metadata bloat. Could be just <name>P.
                     string name = "<" + parameter.Name + ">PC__BackingField";
-
-                    // PROTOTYPE(PrimaryConstructors): Ever read-only?
-                    result.Add(parameter, new SynthesizedPrimaryConstructorParameterBackingFieldSymbol(parameter, name));
+                    result.Add(parameter, new SynthesizedPrimaryConstructorParameterBackingFieldSymbol(parameter, name, isReadOnly: containingType.IsReadOnly));
                 }
 
                 captured.Free();
