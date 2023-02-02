@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// <summary>
     /// Sorts immutable collections of <see cref="DocumentSymbolDataViewModel"/>s 
     /// </summary>
-    internal class DocumentSymbolDataViewModelSorter : MarkupExtension, IMultiValueConverter
+    internal sealed class DocumentSymbolDataViewModelSorter : MarkupExtension, IMultiValueConverter
     {
         public static DocumentSymbolDataViewModelSorter Instance { get; } = new();
 
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public override object ProvideValue(IServiceProvider serviceProvider)
             => Instance;
 
-        private class NameComparer : IComparer<DocumentSymbolDataViewModel>
+        private sealed class NameComparer : IComparer<DocumentSymbolDataViewModel>
         {
             public static NameComparer Instance { get; } = new();
 
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 => StringComparer.OrdinalIgnoreCase.Compare(x.Name, y.Name);
         }
 
-        private class LocationComparer : IComparer<DocumentSymbolDataViewModel>
+        private sealed class LocationComparer : IComparer<DocumentSymbolDataViewModel>
         {
             public static LocationComparer Instance { get; } = new();
 
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 => x.StartPosition - y.StartPosition;
         }
 
-        private class TypeComparer : IComparer<DocumentSymbolDataViewModel>
+        private sealed class TypeComparer : IComparer<DocumentSymbolDataViewModel>
         {
             public static TypeComparer Instance { get; } = new();
 

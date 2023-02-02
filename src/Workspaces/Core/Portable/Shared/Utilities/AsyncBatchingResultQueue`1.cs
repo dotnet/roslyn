@@ -21,7 +21,7 @@ namespace Roslyn.Utilities
             CancellationToken cancellationToken)
             : base(delay,
                    Convert(processBatchAsync),
-                    EqualityComparer<VoidResult>.Default,
+                   EqualityComparer<VoidResult>.Default,
                    asyncListener,
                    cancellationToken)
         {

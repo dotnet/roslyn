@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -318,6 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             foreach (var documentSymbolItem in documentSymbolItems)
             {
+                // Setting a Boolean property on this item is allowed to happen on any thread.
                 documentSymbolItem.IsSelected = false;
                 UnselectAll(documentSymbolItem.Children);
             }

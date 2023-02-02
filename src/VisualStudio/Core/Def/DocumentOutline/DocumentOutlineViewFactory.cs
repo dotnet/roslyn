@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
@@ -31,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             threadingContext.ThrowIfNotOnUIThread();
             var (textViewEventSource, textBuffer) = CreateEventSource(asyncListener, editorAdaptersFactoryService, codeWindow);
             var viewModel = new DocumentOutlineViewModel(languageServiceBroker, asyncListener, textViewEventSource, textBuffer, threadingContext);
-            return new DocumentOutlineView(viewModel, editorAdaptersFactoryService, codeWindow);
+            return new DocumentOutlineView(viewModel, editorAdaptersFactoryService, codeWindow, threadingContext);
         }
 
         private static (CompilationAvailableTaggerEventSource, ITextBuffer) CreateEventSource(
@@ -41,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             if (ErrorHandler.Failed(codeWindow.GetLastActiveView(out var textView)))
             {
-                FailFast.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
+                Debug.Fail("Unable to get the last active text view. IVsCodeWindow implementation we are given is invalid.");
             }
 
             var wpfTextView = editorAdaptersFactoryService.GetWpfTextView(textView);
@@ -53,8 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 asyncListener,
                 // Any time an edit happens, recompute as the document symbols may have changed.
                 TaggerEventSources.OnTextChanged(subjectBuffer),
-                // Switching what is the active context may change the document symbols.
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                // If the compilation options change we need to re-compute the document symbols
+                TaggerEventSources.OnParseOptionChanged(subjectBuffer),
                 // Many workspace changes may need us to change the document symbols (like options changing, or project renaming).
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
                 // Once we hook this buffer up to the workspace, then we can start computing the document symbols.

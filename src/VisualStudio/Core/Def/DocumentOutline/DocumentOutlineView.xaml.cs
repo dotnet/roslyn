@@ -9,8 +9,8 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Forms.VisualStyles;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal sealed partial class DocumentOutlineView : UserControl, IVsCodeWindowEvents, IDisposable
     {
         private readonly IVsCodeWindow _codeWindow;
+        private readonly IThreadingContext _threadingContext;
         private readonly DocumentOutlineViewModel _viewModel;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
@@ -43,9 +44,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public DocumentOutlineView(
             DocumentOutlineViewModel viewModel,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IVsCodeWindow codeWindow)
+            IVsCodeWindow codeWindow,
+            IThreadingContext threadingContext)
         {
             _codeWindow = codeWindow;
+            _threadingContext = threadingContext;
             _viewModel = viewModel;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             DataContext = _viewModel;
@@ -73,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private int StartTrackingView(IVsTextView textView)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
             if (wpfTextView is null)
                 return VSConstants.E_FAIL;
@@ -87,16 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandOrCollapse(SearchBox.Text, ExpansionOption.Expand);
+            => _viewModel.EnqueueExpandOrCollapse(ExpansionOption.Expand);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandOrCollapse(SearchBox.Text, ExpansionOption.Collapse);
-
-        private void SearchBox_TextChanged(object sender, EventArgs e)
-        {
-            var newText = SearchBox.Text ?? string.Empty;
-            _viewModel.EnqueueFilter(newText);
-        }
+            => _viewModel.EnqueueExpandOrCollapse(ExpansionOption.Collapse);
 
         private void SortByName(object sender, EventArgs e)
             => UpdateSort(SortOption.Name);
@@ -109,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private void UpdateSort(SortOption sortOption)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             // Log which sort option was used
             Logger.Log(sortOption switch
             {
@@ -137,6 +137,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void SymbolTree_MouseDown(object sender, EventArgs e)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             if (sender is StackPanel { DataContext: DocumentSymbolDataViewModel symbolModel })
             {
                 _isNavigating = true;
@@ -147,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(textView);
                     Assumes.NotNull(wpfTextView);
                     wpfTextView.TryMoveCaretToAndEnsureVisible(
-                        symbol.SelectionRangeSpan.TranslateTo(wpfTextView.TextSnapshot, SpanTrackingMode.EdgeNegative).Start);
+                        symbolModel.SelectionRangeSpan.TranslateTo(wpfTextView.TextSnapshot, SpanTrackingMode.EdgeNegative).Start);
                 }
                 finally
                 {
@@ -161,20 +163,26 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             // Do not respond to caret changing events if we are the ones moving the caret
             if (!e.NewPosition.Equals(e.OldPosition) && !_isNavigating)
             {
-                _viewModel.EnqueueSelectTreeNode(SearchBox.Text, e.NewPosition);
+                _viewModel.EnqueueSelectTreeNode(e.NewPosition);
             }
         }
 
         int IVsCodeWindowEvents.OnNewView(IVsTextView textView)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             return StartTrackingView(textView);
         }
 
         int IVsCodeWindowEvents.OnCloseView(IVsTextView textView)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             if (_trackedTextViews.TryGetValue(textView, out var view))
             {
                 // In the split window case, there's two views (each with its own caret position) but only one text buffer.
