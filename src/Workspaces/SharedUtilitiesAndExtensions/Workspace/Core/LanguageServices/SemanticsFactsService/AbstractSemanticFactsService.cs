@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 return null;
 
             var methodToLookFor = isAsync
-                ? GetDisposeMethod(typeof(IAsyncDisposable).FullName, nameof(IAsyncDisposable.DisposeAsync))
-                : GetDisposeMethod(typeof(IDisposable).FullName, nameof(IDisposable.Dispose));
+                ? GetDisposeMethod(typeof(IAsyncDisposable).FullName!, nameof(IAsyncDisposable.DisposeAsync))
+                : GetDisposeMethod(typeof(IDisposable).FullName!, nameof(IDisposable.Dispose));
             if (methodToLookFor is null)
                 return null;
 
