@@ -1609,82 +1609,19 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             EOF();
         }
 
-        [Fact]
-        public void TupleUnsupportedInUsingStatement_CSharp9()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.Preview)]
+        public void TupleUnsupportedInUsingStatement(LanguageVersion version)
         {
             var test = @"
 using VT2 = (int, int);
 ";
 
-            var tree = UsingTree(test, TestOptions.Regular9);
+            var tree = UsingTree(test, TestOptions.RegularPreview.WithLanguageVersion(version));
 
-            // No parse errors here.
+            // No parse errors here regardless of version.  Errors are just semantic.
             tree.GetDiagnostics().Verify();
-
-            CreateCompilation(test, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = (int, int);").WithLocation(2, 1),
-                // (2,13): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int, int)").WithArguments("using type alias").WithLocation(2, 13));
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.UsingDirective);
-                {
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.NameEquals);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "VT2");
-                        }
-                        N(SyntaxKind.EqualsToken);
-                    }
-                    N(SyntaxKind.TupleType);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void TupleSupportedInUsingStatement_Preview()
-        {
-            var test = @"
-using VT2 = (int, int);
-";
-
-            var tree = UsingTree(test, TestOptions.RegularPreview);
-
-            // No parse errors here.
-            tree.GetDiagnostics().Verify();
-
-            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = (int, int);").WithLocation(2, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
