@@ -229,6 +229,7 @@ function BuildSolution() {
     $bl = "/bl:" + $binaryLogPath
     if ($ci -and (Test-Path $binaryLogPath)) {
       Write-LogIssue -Type "error" -Message "Overwriting binary log file $($binaryLogPath)"
+      throw "Overwriting binary log files"
     }
   }
 
