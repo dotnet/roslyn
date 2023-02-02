@@ -59,11 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             break;
                         }
 
-                        // If we encountered a function but the selection isn't within the body, it's likely the user
-                        // is attempting to move the function (which is behavior that is supported). Stop looking up the 
-                        // tree and assume the encapsulating member is the right place to put the local function. This is to help
-                        // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
-                        break;
+                        if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
+                        {
+                            // If we encountered a function but the selection isn't within the body, it's likely the user
+                            // is attempting to move the function (which is behavior that is supported). Stop looking up the 
+                            // tree and assume the encapsulating member is the right place to put the local function. This is to help
+                            // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
+                            break;
+                        }
                     }
 
                     if (currentNode is LocalFunctionStatementSyntax localFunction)
@@ -74,11 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             break;
                         }
 
-                        // If we encountered a function but the selection isn't within the body, it's likely the user
-                        // is attempting to move the function (which is behavior that is supported). Stop looking up the 
-                        // tree and assume the encapsulating member is the right place to put the local function. This is to help
-                        // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
-                        break;
+                        if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
+                        {
+                            // If we encountered a function but the selection isn't within the body, it's likely the user
+                            // is attempting to move the function (which is behavior that is supported). Stop looking up the 
+                            // tree and assume the encapsulating member is the right place to put the local function. This is to help
+                            // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
+                            break;
+                        }
                     }
 
                     currentNode = currentNode.Parent;

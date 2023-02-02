@@ -5261,7 +5261,7 @@ public class Class
                     {
                     }
                 
-                    public C(int x, Func<int, int> modX)
+                    public C(int x, System.Func<int, int> modX)
                     {
                     }
                 }
@@ -5283,7 +5283,7 @@ public class Class
                     {
                     }
                 
-                    public C(int x, Func<int, int> modX)
+                    public C(int x, System.Func<int, int> modX)
                     {
                     }
                 }
