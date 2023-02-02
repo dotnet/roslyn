@@ -47,5 +47,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames);
 
         CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination);
+
+#nullable enable
+
+        IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     }
 }
