@@ -19,8 +19,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(MicrosoftCodeAnalysisLanguageServerProtocolVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol" Version="$(MicrosoftCodeAnalysisCSharpLanguageServerProtocolVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol" Version="$(MicrosoftCodeAnalysisVisualBasicLanguageServerProtocolVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Desktop" Version="$(MicrosoftCodeAnalysisWorkspacesDesktopVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(MicrosoftCodeAnalysisWorkspacesMSBuildVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
