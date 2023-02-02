@@ -77,11 +77,10 @@ namespace Microsoft.CodeAnalysis
                     _knownAssemblyPathsBySimpleName[simpleName] = paths.Add(fullPath);
                 }
 
-                // Ensure that there is no cached Assembly information about this location. Long 
-                // lived processes like VS and VBCSCompiler will see the same location added as
-                // a dependency many times. Each time have to assume there is new content on disk
-                // that needs to be considered.
-                _analyzerAssemblyInfoMap[fullPath] = null;
+                // This type assumses the file system is static for the duration of the
+                // it's instance. Repeated calls to this method, even if the underlying 
+                // file system contents, should reuse the results of the first call.
+                _ = _analyzerAssemblyInfoMap.TryAdd(fullPath, null);
             }
         }
 
