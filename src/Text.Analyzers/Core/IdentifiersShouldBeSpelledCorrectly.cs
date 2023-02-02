@@ -360,11 +360,15 @@ namespace Text.Analyzers
                         }
 
                         break;
+
                     case IParameterSymbol parameter:
                         //check if the member this parameter is part of is an override/interface implementation
                         if (parameter.ContainingSymbol.IsImplementationOfAnyImplicitInterfaceMember() || parameter.ContainingSymbol.IsImplementationOfAnyExplicitInterfaceMember() || parameter.ContainingSymbol.IsOverride)
                         {
-                            return;
+                            if (NameMatchesBase(parameter))
+                            {
+                                return;
+                            }
                         }
 
                         break;
@@ -407,6 +411,47 @@ namespace Text.Analyzers
             bool IsWordSpelledCorrectly(string word)
                 => !projectDictionary.UnrecognizedWords.Contains(word) && projectDictionary.RecognizedWords.Contains(word);
         }
+
+        /// <summary>
+        /// check if the parameter matches the name of the parameter in any base implementation
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        private static bool NameMatchesBase(IParameterSymbol parameter)
+        {
+            if (parameter.ContainingSymbol is IMethodSymbol methodSymbol)
+            {
+                ImmutableArray<IMethodSymbol> originalDefinitions = methodSymbol.GetOriginalDefinitions();
+
+                foreach (var methodDefinition in originalDefinitions)
+                {
+                    if (methodDefinition.Parameters.Length > parameter.Ordinal)
+                    {
+                        if (methodDefinition.Parameters[parameter.Ordinal].Name == parameter.Name)
+
+                            return true;
+                    }
+                }
+            }
+            else if (parameter.ContainingSymbol is IPropertySymbol propertySymbol)
+            {
+                ImmutableArray<IPropertySymbol> originalDefinitions = propertySymbol.GetOriginalDefinitions();
+
+                foreach (var propertyDefinition in originalDefinitions)
+                {
+                    if (propertyDefinition.Parameters.Length > parameter.Ordinal)
+                    {
+                        if (propertyDefinition.Parameters[parameter.Ordinal].Name == parameter.Name)
+
+                            return true;
+                    }
+                }
+            }
+
+            //name either does not match or there was an issue getting the base implementation
+            return false;
+        }
+
 
         private static CodeAnalysisDictionary GetMainDictionary()
         {
