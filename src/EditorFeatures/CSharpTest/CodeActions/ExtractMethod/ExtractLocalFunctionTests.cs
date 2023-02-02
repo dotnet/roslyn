@@ -653,12 +653,15 @@ static class C
 
     static void Main()
     {
-        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
-
-        static string GetX(string x)
+        Outer(y => Inner(x =>
         {
-            return x;
-        }
+            {|Rename:GetX|}(x).Ex();
+
+            static string GetX(string x)
+            {
+                return x;
+            }
+        }, y), (object)- -1);
     }
 }
 
@@ -751,12 +754,15 @@ static class C
 
     static void Main()
     {
-        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
-
-        static string GetX(string x)
+        Outer(y => Inner(x =>
         {
-            return x;
-        }
+            {|Rename:GetX|}(x).Ex<int>();
+
+            static string GetX(string x)
+            {
+                return x;
+            }
+        }, y), (object)- -1);
     }
 }
 
