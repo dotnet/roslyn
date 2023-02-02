@@ -362,7 +362,7 @@ namespace Text.Analyzers
                         break;
                     case IParameterSymbol parameter:
                         //check if the member this parameter is part of is an override/interface implementation
-                        if (parameter.ContainingSymbol.IsImplementationOfAnyImplicitInterfaceMember() || parameter.ContainingSymbol.IsImplementationOfAnyExplicitInterfaceMember())
+                        if (parameter.ContainingSymbol.IsImplementationOfAnyImplicitInterfaceMember() || parameter.ContainingSymbol.IsImplementationOfAnyExplicitInterfaceMember() || parameter.ContainingSymbol.IsOverride)
                         {
                             return;
                         }

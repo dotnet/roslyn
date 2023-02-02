@@ -483,7 +483,6 @@ namespace Text.Analyzers.UnitTests
                     .WithArguments("Program.Method2(long)", "x"));
         }
 
-
         [Fact]
         public async Task MemberParameterMisspelledExplicitInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
         {
@@ -520,6 +519,37 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(2)
                     .WithArguments("Program.Method2(long)", "enviroment", "enviromentId"));
+        }
+
+        [Fact]
+        public async Task MemberParameterMisspelledOverrideImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+        {
+            var source = @"
+        public abstract class Base
+        {
+            public abstract void Method(string {|#0:explaintain|});
+        }
+
+        public class Derived : Base
+        {
+            public override void Method(string explaintain)
+            {
+            }
+
+            public void Method2(long {|#1:enviromentId|})
+            {
+            }
+
+        }";
+
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
+                    .WithLocation(0)
+                    .WithArguments("Base.Method(string)", "explaintain", "explaintain"),
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
+                    .WithLocation(1)
+                    .WithArguments("Derived.Method2(long)", "enviroment", "enviromentId"));
         }
 
         [Fact]
