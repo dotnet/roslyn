@@ -219,47 +219,47 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
         <source>Use block body for accessors</source>
-        <target state="translated">Usa il corpo del blocco per le funzioni di accesso</target>
+        <target state="new">Use block body for accessors</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_constructors">
         <source>Use block body for constructors</source>
-        <target state="translated">Usa il corpo del blocco per i costruttori</target>
+        <target state="new">Use block body for constructors</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_conversion_operators">
         <source>Use block body for conversion operators</source>
-        <target state="translated">Usa il corpo del blocco per gli operatori di conversione</target>
+        <target state="new">Use block body for conversion operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
-        <target state="translated">Usa il corpo del blocco per gli indicizzatori</target>
+        <target state="new">Use block body for indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>
+        <target state="new">Use block body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
         <source>Use block body for local functions</source>
-        <target state="translated">Usa il corpo del blocco per le funzioni locali</target>
+        <target state="new">Use block body for local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_methods">
         <source>Use block body for methods</source>
-        <target state="translated">Usa il corpo del blocco per i metodi</target>
+        <target state="new">Use block body for methods</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_operators">
         <source>Use block body for operators</source>
-        <target state="translated">Usa il corpo del blocco per gli operatori</target>
+        <target state="new">Use block body for operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_properties">
         <source>Use block body for properties</source>
-        <target state="translated">Usa il corpo del blocco per le proprietà</target>
+        <target state="new">Use block body for properties</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type">
@@ -274,47 +274,47 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_accessors">
         <source>Use expression body for accessors</source>
-        <target state="translated">Usa il corpo dell'espressione per le funzioni di accesso</target>
+        <target state="new">Use expression body for accessors</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_constructors">
         <source>Use expression body for constructors</source>
-        <target state="translated">Usa il corpo dell'espressione per i costruttori</target>
+        <target state="new">Use expression body for constructors</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_conversion_operators">
         <source>Use expression body for conversion operators</source>
-        <target state="translated">Usa il corpo dell'espressione per gli operatori di conversione</target>
+        <target state="new">Use expression body for conversion operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
-        <target state="translated">Usa il corpo dell'espressione per gli indicizzatori</target>
+        <target state="new">Use expression body for indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
-        <target state="translated">Usa il corpo dell'espressione per le espressioni lambda</target>
+        <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
         <source>Use expression body for local functions</source>
-        <target state="translated">Usa corpo dell'espressione per funzioni locali</target>
+        <target state="new">Use expression body for local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_methods">
         <source>Use expression body for methods</source>
-        <target state="translated">Usa il corpo dell'espressione per i metodi</target>
+        <target state="new">Use expression body for methods</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_operators">
         <source>Use expression body for operators</source>
-        <target state="translated">Usa il corpo dell'espressione per gli operatori</target>
+        <target state="new">Use expression body for operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_properties">
         <source>Use expression body for properties</source>
-        <target state="translated">Usa il corpo dell'espressione per le proprietà</target>
+        <target state="new">Use expression body for properties</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_implicit_type">
