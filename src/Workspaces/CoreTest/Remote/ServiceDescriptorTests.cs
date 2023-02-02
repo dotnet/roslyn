@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 new CSharpSyntaxFormattingOptions()
                 {
-                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
+                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always,
                     Indentation = IndentationPlacement.SwitchSection
                 },
 
@@ -259,19 +259,19 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 new CSharpCodeGenerationOptions()
                 {
-                    NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
+                    NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference(),
                     PreferExpressionBodiedIndexers = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.Error)
                 },
 
                 new CSharpSyntaxFormattingOptions()
                 {
-                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
+                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always,
                     NewLines = NewLinePlacement.BeforeFinally
                 },
 
                 new CSharpIdeCodeStyleOptions()
                 {
-                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
+                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(true, NotificationOption2.Error),
                     PreferConditionalDelegateCall = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
                 },
 
@@ -290,9 +290,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
                 },
 
-                new VisualBasicIdeCodeStyleOptions(
-                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
-                    PreferredModifierOrder: new CodeStyleOption2<string>("Public Private", NotificationOption2.Error))
+                new VisualBasicIdeCodeStyleOptions()
+                {
+                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error),
+                    PreferredModifierOrder = new CodeStyleOption2<string>("Public Private", NotificationOption2.Error)
+                }
             };
 
             foreach (var original in options)
