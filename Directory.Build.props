@@ -26,6 +26,7 @@
     <!-- Local builds should embed PDBs so we never lose them when a subsequent build occurs. -->
     <DebugType Condition=" '$(CI)' != 'true' and '$(TF_BUILD)' != 'true' ">embedded</DebugType>
 
+    <!-- <PackageProjectUrl>https://github.com/ORG/REPO</PackageProjectUrl> -->
     <Company>Microsoft</Company>
     <Authors>Microsoft</Authors>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
@@ -51,8 +52,7 @@
 
   <Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <PropertyGroup>
-      <!-- TEMPLATE USER: replace the ORG/REPO (or entire link) below and uncomment. -->
-      <!-- <PackageReleaseNotes>https://github.com/ORG/REPO/releases/tag/v$(Version)</PackageReleaseNotes> -->
+      <PackageReleaseNotes Condition="'$(PackageProjectUrl)'!=''">$(PackageProjectUrl)/releases/tag/v$(Version)</PackageReleaseNotes>
     </PropertyGroup>
   </Target>
 
