@@ -7,6 +7,7 @@ steps:
   inputs:
     outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
     outputformat: text
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
 - task: MicroBuildSigningPlugin@3
   inputs:
