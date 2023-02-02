@@ -106,7 +106,7 @@ try {
         }
     }
 
-    $InstallNuGetPkgScriptPath = ".\azure-pipelines\Install-NuGetPackage.ps1"
+    $InstallNuGetPkgScriptPath = "$PSScriptRoot\azure-pipelines\Install-NuGetPackage.ps1"
     $nugetVerbosity = 'quiet'
     if ($Verbose) { $nugetVerbosity = 'normal' }
     $MicroBuildPackageSource = 'https://pkgs.dev.azure.com/devdiv/_packaging/MicroBuildToolset%40Local/nuget/v3/index.json'
