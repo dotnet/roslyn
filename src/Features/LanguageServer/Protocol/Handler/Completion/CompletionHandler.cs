@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // Cache the completion list so we can avoid recomputation in the resolve handler
-            var resultId = completionListCache.UpdateCache(request.TextDocument, completionList);
+            var resultId = completionListCache.UpdateCache(new CompletionListCache.CacheEntry(request.TextDocument, completionList));
 
             return (completionList, resultId);
         }

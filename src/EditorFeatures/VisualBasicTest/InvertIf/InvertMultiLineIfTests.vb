@@ -783,5 +783,100 @@ end class")
         End If
 ")
         End Function
+
+        <Fact>
+        <WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")>
+        Public Async Function PreserveSpace() As Task
+            Await TestInRegularAndScriptAsync(
+               "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+
+        [||]if l = ""hello""
+            return nothing
+        end if
+
+        return l
+
+    end sub
+end class", "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+
+        if l <> ""hello""
+            return l
+        end if
+
+        return nothing
+
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        <WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")>
+        Public Async Function PreserveSpace_WithComments() As Task
+            Await TestInRegularAndScriptAsync(
+               "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+
+        [||]if l = ""hello""
+            ' nothing 1
+            return nothing ' nothing 2
+            ' nothing 3
+        end if
+
+        ' l 1
+        return l ' l 2
+        ' l 3
+
+    end sub
+end class", "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+
+        if l <> ""hello""
+            ' l 1
+            return l ' l 2
+            ' nothing 3
+        end if
+
+        ' nothing 1
+        return nothing ' nothing 2
+        ' l 3
+
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        <WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")>
+        Public Async Function PreserveSpace_NoTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+               "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+        [||]if l = ""hello""
+            return nothing
+        end if
+        return l
+    end sub
+end class", "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+        if l <> ""hello""
+            return l
+        end if
+        return nothing
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

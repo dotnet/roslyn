@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -214,19 +215,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             Debug.Assert(method.ExplicitInterfaceImplementations.Any() || method.IsOverride);
 
-            using var _1 = PooledHashSet<string>.GetInstance(out var seenTypeParameters);
-            using var _2 = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var listOfClauses);
-            foreach (var parameter in method.Parameters)
-            {
-                if (parameter.Type is not ITypeParameterSymbol { NullableAnnotation: NullableAnnotation.Annotated } typeParameter)
-                {
-                    continue;
-                }
+            using var _ = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var listOfClauses);
 
-                if (!seenTypeParameters.Add(parameter.Type.Name))
-                {
+            var referencedTypeParameters = method.Parameters
+                .SelectMany(p => p.Type.GetReferencedTypeParameters())
+                .Concat(method.ReturnType.GetReferencedTypeParameters())
+                .Where(tp => tp.NullableAnnotation == NullableAnnotation.Annotated)
+                .ToImmutableHashSet();
+
+            foreach (var typeParameter in method.TypeParameters)
+            {
+                if (!referencedTypeParameters.Contains(typeParameter))
                     continue;
-                }
 
                 var constraint = typeParameter switch
                 {
@@ -236,8 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 };
 
                 listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
-                    name: parameter.Type.Name.ToIdentifierName(),
-                    constraints: SyntaxFactory.SingletonSeparatedList(constraint)));
+                    typeParameter.Name.ToIdentifierName(),
+                    SyntaxFactory.SingletonSeparatedList(constraint)));
             }
 
             return SyntaxFactory.List(listOfClauses);

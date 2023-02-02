@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public string GetName()
-            => NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ToString();
+            => NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ValueText;
 
         public IUnifiedArgumentSyntax WithName(string name)
         {

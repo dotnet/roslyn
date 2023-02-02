@@ -5,6 +5,8 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
 Imports Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
+Imports Microsoft.CodeAnalysis.Testing
+Imports Microsoft.CodeAnalysis.Testing.Verifiers
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers.VisualBasicMoveStaticMembersRefactoringProvider)
 
@@ -3018,6 +3020,24 @@ End Namespace"
             Await TestNoRefactoringAsync(initialMarkup)
         End Function
 
+#End Region
+
+#Region "Invalid Code Tests"
+        <Fact>
+        <WorkItem(66489, "https://github.com/dotnet/roslyn/issues/66489")>
+        Public Async Function TestCSharpCodeInVB() As Task
+            Dim initialMarkup = "
+                CompoundInstrumenter compound [||]"
+            Dim testRun = New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }
+
+            testRun.TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30188").WithSpan(2, 17, 2, 37))
+            testRun.TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30195").WithSpan(2, 38, 2, 46))
+            Await testRun.RunAsync()
+        End Function
 #End Region
 
         Private Class Test
