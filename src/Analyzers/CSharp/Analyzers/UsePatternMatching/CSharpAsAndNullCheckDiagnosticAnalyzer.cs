@@ -223,6 +223,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
             }
 
+            // If we have an annotated local (like `string? s = o as string`) we can't convert this to `o is string s`
+            // if there are any assignments to `s` that end up assigning a `string?`.  These will now give a nullable
+            // warning.
+            if (localSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
+            {
+                foreach (var descendentNode in enclosingBlock.DescendantNodes())
+                {
+                    var descendentNodeSpanStart = descendentNode.SpanStart;
+                    if (descendentNodeSpanStart <= localStatementStart)
+                        continue;
+
+                    if (descendentNode is IdentifierNameSyntax identifierName &&
+                        identifierName.Identifier.ValueText == localSymbol.Name &&
+                        localSymbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol))
+                    {
+                        if (identifierName.Parent is AssignmentExpressionSyntax assignmentExpression &&
+                            assignmentExpression.Left == identifierName)
+                        {
+                            var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right);
+                            if (rightType.Type is null or { NullableAnnotation: NullableAnnotation.Annotated })
+                                return;
+                        }
+                    }
+                }
+            }
+
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
                 declarator.GetLocation(),
