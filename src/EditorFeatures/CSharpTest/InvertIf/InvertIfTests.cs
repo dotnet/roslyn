@@ -1579,5 +1579,41 @@ class Program
                 }
                 """);
         }
+
+        [Fact, WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")]
+        public async Task PreserveSpacing_NoTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    string? M(string s)
+                    {
+                        var l = s.ToLowerCase();
+
+                        [||]if (l == "hello")
+                        {
+                            return null;
+                        }
+                        return l;
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    string? M(string s)
+                    {
+                        var l = s.ToLowerCase();
+
+                        if (l != "hello")
+                        {
+                            return l;
+                        }
+                        return null;
+                    }
+                }
+                """);
+        }
     }
 }

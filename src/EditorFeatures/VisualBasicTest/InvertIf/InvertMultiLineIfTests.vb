@@ -786,7 +786,7 @@ end class")
 
         <Fact>
         <WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")>
-        Public Async Function PreserveTrailingTrivia() As Task
+        Public Async Function PreserveSpace() As Task
             Await TestInRegularAndScriptAsync(
                "
 class C
@@ -817,7 +817,7 @@ end class")
 
         <Fact>
         <WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")>
-        Public Async Function PreserveTrailingTrivia_WithComments() As Task
+        Public Async Function PreserveSpace_WithComments() As Task
             Await TestInRegularAndScriptAsync(
                "
 class C
@@ -850,6 +850,31 @@ class C
         return nothing ' nothing 2
         ' l 3
 
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        <WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")>
+        Public Async Function PreserveSpace_NoTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+               "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+        [||]if l = ""hello""
+            return nothing
+        end if
+        return l
+    end sub
+end class", "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+        if l <> ""hello""
+            return l
+        end if
+        return nothing
     end sub
 end class")
         End Function

@@ -481,19 +481,22 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                         var newTrailing = UnwrapBlock(ifBody).ToArray();
 
-                        // Get leading and trailing space of the expressions to preserve for the user
-                        // ex:
-                        // if (true)
-                        // {
-                        //    return true;
-                        // }
-                        //              // <<< preserve this line
-                        // // preserve this comment
-                        // return false;
-                        var leadingTrivia = GetLeadingSpace(statementsAfterIf[0].GetLeadingTrivia()).Concat(GetTriviaAfterSpace(newTrailing[0].GetLeadingTrivia()));
-                        var trailingTrivia = GetTriviaUntilSpace(newTrailing[^1].GetTrailingTrivia()).Concat(GetTrailingSpace(statementsAfterIf[^1].GetTrailingTrivia()));
-                        newTrailing[0] = newTrailing[0].WithLeadingTrivia(leadingTrivia);
-                        newTrailing[^1] = newTrailing[^1].WithTrailingTrivia(trailingTrivia);
+                        if (newTrailing.Length > 0)
+                        {
+                            // Get leading and trailing space of the expressions to preserve for the user
+                            // ex:
+                            // if (true)
+                            // {
+                            //    return true;
+                            // }
+                            //              // <<< preserve this line
+                            // // preserve this comment
+                            // return false;
+                            var leadingTrivia = GetLeadingSpace(statementsAfterIf[0].GetLeadingTrivia()).Concat(GetTriviaAfterSpace(newTrailing[0].GetLeadingTrivia()));
+                            var trailingTrivia = GetTriviaUntilSpace(newTrailing[^1].GetTrailingTrivia()).Concat(GetTrailingSpace(statementsAfterIf[^1].GetTrailingTrivia()));
+                            newTrailing[0] = newTrailing[0].WithLeadingTrivia(leadingTrivia);
+                            newTrailing[^1] = newTrailing[^1].WithTrailingTrivia(trailingTrivia);
+                        }
 
                         var updatedIf = UpdateIf(
                             text,
