@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             if (foreachIdentifier.RawKind == 0)
             {
                 foreachIdentifier = semanticFacts.GenerateUniqueName(
-                    semanticModel, forStatement, containerOpt: null, baseName: "v", usedNames: Enumerable.Empty<string>(), cancellationToken);
+                    semanticModel, forStatement, container: null, baseName: "v", usedNames: Enumerable.Empty<string>(), cancellationToken);
                 foreachIdentifier = foreachIdentifier.WithAdditionalAnnotations(RenameAnnotation.Create());
             }
 
