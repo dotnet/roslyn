@@ -1614,7 +1614,7 @@ namespace N
             // (1,17): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
             // using x = string?;
             Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(1, 17),
-            // (1,17): error CS9107: Using alias cannot be a nullable reference type..
+            // (1,17): error CS9107: Using alias cannot be a nullable reference type.
             // using x = string?;
             Diagnostic(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, "?").WithLocation(1, 17));
 
