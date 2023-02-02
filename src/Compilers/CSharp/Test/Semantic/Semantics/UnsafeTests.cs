@@ -9715,6 +9715,43 @@ class C
         }
 
         [Fact]
+        public void TestUnsafeAlias2()
+        {
+            var csharp = @"
+using unsafe X = int*;
+namespace N
+{
+    using Y = X;
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,5): hidden CS8019: Unnecessary using directive.
+                //     using Y = X;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X;").WithLocation(5, 5),
+                // (5,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     using Y = X;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(5, 15));
+        }
+
+        [Fact]
+        public void TestUnsafeAlias3()
+        {
+            var csharp = @"
+using unsafe X = int*;
+namespace N
+{
+    using unsafe Y = X;
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,5): hidden CS8019: Unnecessary using directive.
+                //     using unsafe Y = X;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe Y = X;").WithLocation(5, 5));
+        }
+
+        [Fact]
         public void TestUnsafeAlias5()
         {
             var csharp = @"
