@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -111,18 +109,6 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
 
             try
             {
-                // If this is not the tagger for compiler-syntax, then suppress diagnostics until the project has fully
-                // loaded.  This prevents the user from seeing spurious diagnostics while the project is in the process
-                // of loading.  We do keep compiler-syntax as that's based purely on the parse tree, and doesn't need
-                // correct project info to get reasonable results.
-                if (_diagnosticKind != DiagnosticKind.CompilerSyntax)
-                {
-                    using var _ = PooledHashSet<Project>.GetInstance(out var seenProjects);
-                    var hasSuccessfullyLoaded = HasSuccessfullyLoaded(document.Project, seenProjects);
-                    if (!hasSuccessfullyLoaded)
-                        return;
-                }
-
                 var requestedSpan = documentSpanToTag.SnapshotSpan;
 
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
@@ -156,25 +142,6 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                 // occasions
                 return;
             }
-        }
-
-        private bool HasSuccessfullyLoaded(Project? project, HashSet<Project> seenProjects)
-        {
-            if (project != null && seenProjects.Add(project))
-            {
-                if (!project.State.HasAllInformation)
-                    return false;
-
-                // Ensure our dependencies have all information as well.  That's necessary so we can properly get
-                // compilations for them.
-                foreach (var reference in project.ProjectReferences)
-                {
-                    if (!HasSuccessfullyLoaded(project.Solution.GetProject(reference.ProjectId), seenProjects))
-                        return false;
-                }
-            }
-
-            return true;
         }
 
         private static bool IsSuppressed(NormalizedSnapshotSpanCollection? suppressedSpans, SnapshotSpan span)
