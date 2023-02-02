@@ -1587,31 +1587,15 @@ class Program
                 """
                 class C
                 {
-                    string? M(string s)
-                    {
-                        var l = s.ToLowerCase();
-
-                        [||]if (l == "hello")
-                        {
-                            return null;
-                        }
-                        return l;
-                    }
+                    string? M(bool b)
+                    {[||]if(b){return(true);}return(false);}
                 }
                 """,
                 """
                 class C
                 {
-                    string? M(string s)
-                    {
-                        var l = s.ToLowerCase();
-
-                        if (l != "hello")
-                        {
-                            return l;
-                        }
-                        return null;
-                    }
+                    string? M(bool b)
+                    { if (!b) { return (false); } return (true); }
                 }
                 """);
         }
