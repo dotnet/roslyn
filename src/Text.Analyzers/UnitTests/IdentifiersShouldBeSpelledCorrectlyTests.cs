@@ -446,6 +446,83 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
+        public async Task MemberParameterUnmeaningfulExplicitInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+        {
+            var source = @"
+        interface IProgram
+        {
+            void Method(string {|#0:a|});
+            
+            string this[int {|#1:i|}] { get; }
+        }
+
+        class Program : IProgram
+        {
+            void IProgram.Method(string a)
+            {
+            }
+
+            string IProgram.this[int i] => null;
+
+            public void Method2(long {|#2:x|})
+            {
+            }
+
+        }";
+
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("IProgram.Method(string)", "a"),
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(1)
+                    .WithArguments("IProgram.this[int]", "i"),
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(2)
+                    .WithArguments("Program.Method2(long)", "x"));
+        }
+
+
+        [Fact]
+        public async Task MemberParameterMisspelledExplicitInterfaceImplementation_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
+        {
+            var source = @"
+        interface IProgram
+        {
+            void Method(string {|#0:explaintain|});
+            
+            string this[int {|#1:indxe|}] { get; }
+        }
+
+        class Program : IProgram
+        {
+            void IProgram.Method(string explaintain)
+            {
+            }
+
+            string IProgram.this[int indxe] => null;
+
+            public void Method2(long {|#2:enviromentId|})
+            {
+            }
+
+        }";
+
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
+                    .WithLocation(0)
+                    .WithArguments("IProgram.Method(string)", "explaintain", "explaintain"),
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
+                    .WithLocation(1)
+                    .WithArguments("IProgram.this[int]", "indxe", "indxe"),
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
+                    .WithLocation(2)
+                    .WithArguments("Program.Method2(long)", "enviroment", "enviromentId"));
+        }
+
+        [Fact]
         public async Task DelegateParameterMisspelled_Verify_EmitsDiagnosticAsync()
         {
             var source = "delegate void MyDelegate(string {|#0:firstNaem|});";
