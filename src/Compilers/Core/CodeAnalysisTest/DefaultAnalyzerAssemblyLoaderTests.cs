@@ -398,7 +398,10 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, params (string simpleName, string version, string path)[] expected)
+        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, params (string simpleName, string version, string path)[] expected) =>
+            VerifyAssemblies(loader, assemblies, expectedCopyCount: null, expected);
+
+        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? expectedCopyCount, params (string simpleName, string version, string path)[] expected)
         {
             expected = expected
                 .Select(x => (x.simpleName, x.version, loader.GetRealLoadPath(x.path)))
@@ -414,10 +417,11 @@ Delta: Gamma: Beta: Test B
             if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)
             {
                 Assert.All(assemblies, x => x.Location.StartsWith(shadowLoader.BaseDirectory, StringComparison.Ordinal));
+                Assert.Equal(expectedCopyCount ?? expected.Length, shadowLoader.CopyCount);
             }
         }
 
-        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, params string[] assemblyPaths)
+        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? copyCount, params string[] assemblyPaths)
         {
             var data = assemblyPaths
                 .Select(x =>
@@ -426,13 +430,16 @@ Delta: Gamma: Beta: Test B
                     return (name.Name!, name.Version?.ToString() ?? "", x);
                 })
                 .ToArray();
-            VerifyAssemblies(loader, assemblies, data);
+            VerifyAssemblies(loader, assemblies, copyCount, data);
         }
 
         /// <summary>
         /// Verify the set of assemblies loaded as analyzer dependencies are the specified assembly paths
         /// </summary>
-        private static void VerifyDependencyAssemblies(DefaultAnalyzerAssemblyLoader loader, params string[] assemblyPaths)
+        private static void VerifyDependencyAssemblies(DefaultAnalyzerAssemblyLoader loader, params string[] assemblyPaths) =>
+            VerifyDependencyAssemblies(loader, copyCount: null, assemblyPaths);
+
+        private static void VerifyDependencyAssemblies(DefaultAnalyzerAssemblyLoader loader, int? copyCount, params string[] assemblyPaths)
         {
             IEnumerable<Assembly> loadedAssemblies;
 
@@ -477,7 +484,7 @@ Delta: Gamma: Beta: Test B
             }
 
 #endif
-            VerifyAssemblies(loader, loadedAssemblies, assemblyPaths);
+            VerifyAssemblies(loader, loadedAssemblies, copyCount, assemblyPaths);
         }
 
         [Theory]
@@ -682,6 +689,7 @@ Delta: Gamma: Beta: Test B
                 Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon.Path);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                var actual = sb.ToString();
 
 #if NETCOREAPP
                 var alcs = loader.GetDirectoryLoadContextsSnapshot();
@@ -690,6 +698,7 @@ Delta: Gamma: Beta: Test B
                 VerifyAssemblies(
                     loader,
                     alcs[0].Assemblies,
+                    expectedCopyCount: 4,
                     ("Delta", "1.0.0.0", testFixture.Delta1.Path),
                     ("Gamma", "0.0.0.0", testFixture.Gamma.Path)
                 );
@@ -697,27 +706,23 @@ Delta: Gamma: Beta: Test B
                 VerifyAssemblies(
                     loader,
                     alcs[1].Assemblies,
+                    expectedCopyCount: 4,
                     ("Delta", "2.0.0.0", testFixture.Delta2.Path),
                     ("Epsilon", "0.0.0.0", testFixture.Epsilon.Path));
-#endif
 
-                var actual = sb.ToString();
-                if (ExecutionConditionUtil.IsCoreClr)
-                {
-                    Assert.Equal(
+                Assert.Equal(
     @"Delta: Gamma: Test G
 Delta.2: Epsilon: Test E
 ",
-                        actual);
-                }
-                else
-                {
-                    Assert.Equal(
+                    actual);
+#else
+                Assert.Equal(
     @"Delta: Gamma: Test G
 Delta: Epsilon: Test E
 ",
-                        actual);
-                }
+                    actual);
+
+#endif
             });
         }
 
@@ -746,8 +751,12 @@ Delta: Epsilon: Test E
                     //
                     // Similarly in the shadow copy scenarios the assemblies are not side by side so the 
                     // load is controllable.
+                    //
+                    // There is an extra copy count here as both deltas are read from disk in order to 
+                    // get AssemblyName so the code can determine which is the best match. 
                     VerifyDependencyAssemblies(
                         loader,
+                        copyCount: 3,
                         testFixture.Delta3.Path,
                         testFixture.Epsilon.Path);
                     Assert.Equal(
@@ -922,11 +931,14 @@ Delta: Epsilon: Test E
                 StringBuilder sb = new StringBuilder();
 
                 var tempDir = temp.CreateDirectory();
-                var epsilonFile = tempDir.CreateFile("Epsilon.dll").CopyContentFrom(testFixture.Epsilon.Path);
-                var delta1File = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                var tempDir1 = tempDir.CreateDirectory("a");
+                var tempDir2 = tempDir.CreateDirectory("b");
+                var epsilonFile = tempDir1.CreateFile("Epsilon.dll").CopyContentFrom(testFixture.Epsilon.Path);
+                var delta1File = tempDir1.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                var delta2File = tempDir2.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta2.Path);
 
                 loader.AddDependencyLocation(delta1File.Path);
-                loader.AddDependencyLocation(testFixture.Delta2.Path);
+                loader.AddDependencyLocation(delta2File.Path);
                 loader.AddDependencyLocation(epsilonFile.Path);
 
                 Assembly epsilon = loader.LoadFromPath(epsilonFile.Path);
@@ -941,7 +953,8 @@ Delta: Epsilon: Test E
                     // Epsilon wants Delta2, but since Delta1 is in the same directory, we prefer Delta1 over Delta2.
                     VerifyDependencyAssemblies(
                         loader,
-                        testFixture.Delta2.Path,
+                        copyCount: 3,
+                        delta2File.Path,
                         epsilonFile.Path);
 
                     var actual = sb.ToString();
@@ -1297,6 +1310,62 @@ Delta.2: Test D2
                 var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_RepeatedLoads1(bool shadowLoad)
+        {
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                var path = testFixture.Delta1.Path;
+                loader.AddDependencyLocation(path);
+                var expected = loader.LoadFromPath(path);
+
+                for (var i = 0; i < 5; i++)
+                {
+                    loader.AddDependencyLocation(path);
+                    var actual = loader.LoadFromPath(path);
+                    Assert.Same(expected, actual);
+                }
+
+                VerifyDependencyAssemblies(loader, path);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_RepeatedLoads2(bool shadowLoad)
+        {
+            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var tempFile = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                var path = tempFile.Path;
+                loader.AddDependencyLocation(path);
+                var expected = loader.LoadFromPath(path);
+
+                for (var i = 0; i < 5; i++)
+                {
+                    if (loader is ShadowCopyAnalyzerAssemblyLoader)
+                    {
+                        File.WriteAllBytes(path, new byte[] { 42 });
+                    }
+                    loader.AddDependencyLocation(path);
+                    var actual = loader.LoadFromPath(path);
+                    Assert.Same(expected, actual);
+                }
+
+                if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)
+                {
+                    // Ensure that despite the on disk changes only one shadow copy occurred
+                    Assert.Equal(1, shadowLoader.CopyCount);
+                    tempFile.CopyContentFrom(testFixture.Delta1.Path);
+                }
+
+                VerifyDependencyAssemblies(loader, path);
             });
         }
 

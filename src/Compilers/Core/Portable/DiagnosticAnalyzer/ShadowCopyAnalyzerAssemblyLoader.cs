@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis
 
         internal string BaseDirectory => _baseDirectory;
 
+        internal int CopyCount => _assemblyDirectoryId;
+
 #if NETCOREAPP
         public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
             : this(null, baseDirectory)
