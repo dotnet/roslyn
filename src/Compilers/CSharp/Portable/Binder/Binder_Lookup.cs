@@ -1304,6 +1304,10 @@ symIsHidden:;
             {
                 return ImmutableArray<Symbol>.Empty;
             }
+            else if (nsOrType is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null } sourceMemberContainerTypeSymbol)
+            {
+                return sourceMemberContainerTypeSymbol.GetCandidateMembersForLookup(name);
+            }
             else
             {
                 return nsOrType.GetMembers(name);

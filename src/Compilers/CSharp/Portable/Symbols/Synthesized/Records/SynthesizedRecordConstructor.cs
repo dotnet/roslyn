@@ -47,13 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetSyntax().PrimaryConstructorBaseTypeIfClass;
         }
 
+        public new SourceMemberContainerTypeSymbol ContainingType => (SourceMemberContainerTypeSymbol)base.ContainingType;
+
         protected override bool AllowRefOrOut => !(ContainingType is { IsRecord: true } or { IsRecordStruct: true });
 
         internal override bool IsExpressionBodied => false;
 
         internal override bool IsNullableAnalysisEnabled()
         {
-            return ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
+            return ContainingType.IsNullableEnabledForConstructorsAndInitializers(IsStatic);
         }
 
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)

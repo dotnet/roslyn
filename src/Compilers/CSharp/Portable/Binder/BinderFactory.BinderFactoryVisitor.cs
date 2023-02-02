@@ -542,19 +542,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private Symbol GetMemberSymbol(string memberName, TextSpan memberSpan, NamedTypeSymbol container, SymbolKind kind)
             {
-                // return container.GetMembers(methodSyntax.Identifier.ValueText).OfType<SourceMethodSymbol>().Single(m => m.Locations.Any(l => l.SourceTree == tree && methodSyntax.Span.Contains(l.SourceSpan)));
-                foreach (Symbol sym in container.GetMembers(memberName))
+                Debug.Assert(kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event);
+
+                if (container is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null } sourceMemberContainerTypeSymbol)
                 {
+                    foreach (Symbol sym in sourceMemberContainerTypeSymbol.GetMembersToMatchAgainstDeclarationSpan())
+                    {
+                        if (sym.IsAccessor())
+                        {
+                            continue;
+                        }
+
+                        if (sym.Name == memberName && checkSymbol(sym, memberSpan, kind, out Symbol result))
+                        {
+                            return result;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (Symbol sym in container.GetMembers(memberName))
+                    {
+                        if (checkSymbol(sym, memberSpan, kind, out Symbol result))
+                        {
+                            return result;
+                        }
+                    }
+                }
+
+                return null;
+
+                bool checkSymbol(Symbol sym, TextSpan memberSpan, SymbolKind kind, out Symbol result)
+                {
+                    result = sym;
+
                     if (sym.Kind != kind)
                     {
-                        continue;
+                        return false;
                     }
 
                     if (sym.Kind == SymbolKind.Method)
                     {
                         if (InSpan(sym.Locations[0], this.syntaxTree, memberSpan))
                         {
-                            return sym;
+                            return true;
                         }
 
                         // If this is a partial method, the method represents the defining part,
@@ -565,17 +596,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (InSpan(implementation.Locations[0], this.syntaxTree, memberSpan))
                             {
-                                return implementation;
+                                result = implementation;
+                                return true;
                             }
                         }
                     }
                     else if (InSpan(sym.Locations, this.syntaxTree, memberSpan))
                     {
-                        return sym;
+                        return true;
                     }
-                }
 
-                return null;
+                    return false;
+                }
             }
 
             /// <summary>

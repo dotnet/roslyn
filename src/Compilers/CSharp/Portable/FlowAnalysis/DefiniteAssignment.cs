@@ -186,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _trackStaticMembers = trackStaticMembers;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         internal DefiniteAssignmentPass(
@@ -204,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         /// <summary>
@@ -225,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         private static SourceAssemblySymbol? GetSourceAssembly(
@@ -333,17 +336,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.regionPlace = RegionPlace.Before;
             EnterParameters(methodParameters);               // with parameters assigned
 
-            if (_symbol is (not SynthesizedPrimaryConstructor) and { ContainingSymbol: SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } })
+            switch (_symbol)
             {
-                // All primary constructor parameters are definitely assigned outside of the primary constructor
-                foreach (var parameter in primaryConstructor.Parameters)
-                {
-                    int slot = GetOrCreateSlot(parameter);
-                    if (slot > 0)
+                case MethodSymbol { IsStatic: false, ContainingSymbol: SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } } and
+                     (not SynthesizedPrimaryConstructor):
                     {
-                        SetSlotState(slot, true);
+                        var save = CurrentSymbol;
+                        CurrentSymbol = primaryConstructor;
+
+                        // All primary constructor parameters are definitely assigned outside of the primary constructor
+                        foreach (var parameter in primaryConstructor.Parameters)
+                        {
+                            NoteWrite(parameter, value: null, read: true);
+                        }
+
+                        CurrentSymbol = save;
                     }
-                }
+                    break;
+
+                case (FieldSymbol or PropertySymbol) and { IsStatic: false, ContainingSymbol: SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } }:
+                    EnterParameters(primaryConstructor.Parameters);               // with parameters assigned
+                    break;
             }
 
             if ((object)methodThisParameter != null)
@@ -1680,7 +1693,64 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState TopState()
         {
-            return new LocalState(BitVector.Empty);
+            var topState = new LocalState(BitVector.Empty);
+
+            Symbol current = CurrentSymbol;
+
+            while (current?.Kind is SymbolKind.Method or SymbolKind.Field or SymbolKind.Property)
+            {
+                if ((object)current != CurrentSymbol && current is MethodSymbol method)
+                {
+                    // Enclosing method parameters are definitely assigned
+                    foreach (var parameter in method.Parameters)
+                    {
+                        int slot = GetOrCreateSlot(parameter);
+                        if (slot > 0)
+                        {
+                            SetSlotAssigned(slot, ref topState);
+                        }
+                    }
+
+                    if (method.TryGetThisParameter(out ParameterSymbol thisParameter) && thisParameter is not null)
+                    {
+                        int slot = GetOrCreateSlot(thisParameter);
+                        if (slot > 0)
+                        {
+                            SetSlotAssigned(slot, ref topState);
+                        }
+                    }
+                }
+
+                Symbol containing = current.ContainingSymbol;
+
+                if (!current.IsStatic &&
+                    containing is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } &&
+                    (object)current != primaryConstructor)
+                {
+                    // All primary constructor parameters are definitely assigned outside of the primary constructor
+                    foreach (var parameter in primaryConstructor.Parameters)
+                    {
+                        int slot = GetOrCreateSlot(parameter);
+                        if (slot > 0)
+                        {
+                            if (current is not MethodSymbol && parameter.RefKind == RefKind.Out)
+                            {
+                                SetSlotUnassigned(slot, ref topState);
+                            }
+                            else
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+
+                current = containing;
+            }
+
+            return topState;
         }
 
         protected override LocalState ReachableBottomState()

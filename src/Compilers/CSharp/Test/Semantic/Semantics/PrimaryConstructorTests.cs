@@ -7689,7 +7689,7 @@ class Program
                 );
 
             verifier.VerifyTypeIL("C1", @"
-.class private auto ansi beforefieldinit C1
+    .class private auto ansi beforefieldinit C1
 	extends Base
 {
 	// Nested Types
@@ -7886,7 +7886,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void C1::'<remove_E1>g__local|11_0'()
+		IL_0001: call instance void C1::'<remove_E1>g__local|12_0'()
 		IL_0006: ret
 	} // end of method C1::remove_E1
 	.method private hidebysig specialname 
@@ -7974,12 +7974,12 @@ class Program
 		// Code size 13 (0xd)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: ldftn instance void C1::'<M2>b__15_0'()
+		IL_0001: ldftn instance void C1::'<M2>b__16_0'()
 		IL_0007: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
 		IL_000c: ret
 	} // end of method C1::M2
 	.method private hidebysig 
-		instance void '<remove_E1>g__local|11_0' () cil managed 
+		instance void '<remove_E1>g__local|12_0' () cil managed 
 	{
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
@@ -7994,9 +7994,9 @@ class Program
 		IL_0008: sub
 		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
 		IL_000e: ret
-	} // end of method C1::'<remove_E1>g__local|11_0'
+	} // end of method C1::'<remove_E1>g__local|12_0'
 	.method private hidebysig 
-		instance void '<M2>b__15_0' () cil managed 
+		instance void '<M2>b__16_0' () cil managed 
 	{
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
@@ -8011,7 +8011,7 @@ class Program
 		IL_0008: add
 		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
 		IL_000e: ret
-	} // end of method C1::'<M2>b__15_0'
+	} // end of method C1::'<M2>b__16_0'
 	// Events
 	.event [mscorlib]System.Action E1
 	{
@@ -12786,6 +12786,37 @@ class C1(out int x) : Base(x = 1);
         }
 
         [Fact]
+        public void DefiniteAssignment_07()
+        {
+            var text1 = @"
+partial class C1(out int x, out int y)
+{
+    int f1 = y;
+    int xx = x = 1;
+}
+";
+
+            var text2 = @"
+partial class C1
+{
+    int f2 = x;
+    int yy = y = 1;
+}
+";
+            CreateCompilation(new[] { text1, text2 }).VerifyEmitDiagnostics(
+                // (4,14): error CS0269: Use of unassigned out parameter 'y'
+                //     int f1 = y;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "y").WithArguments("y").WithLocation(4, 14)
+                );
+
+            CreateCompilation(new[] { text2, text1 }).VerifyEmitDiagnostics(
+                // (4,14): error CS0269: Use of unassigned out parameter 'x'
+                //     int f2 = x;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x").WithArguments("x").WithLocation(4, 14)
+                );
+        }
+
+        [Fact]
         public void ParameterCapturing_096_NullableAnalysis_LocalFunction()
         {
             var source =
@@ -12859,7 +12890,625 @@ class C(string? x)
         }
 
         [Fact]
-        public void CycleDueToIndexerNameAttribute()
+        public void ParameterCapturing_098_Lock()
+        {
+            var source = @"
+class C1 (string p1)
+{
+    public void M1()
+    {
+        lock (p1)
+        {
+            System.Console.Write(p1);
+            p1 = null;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(""123"");
+        c1.M1();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics(
+                // (9,13): warning CS0728: Possibly incorrect assignment to local 'p1' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+                //             p1 = null;
+                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "p1").WithArguments("p1").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_099_Using()
+        {
+            var source = @"
+class C1 (System.IDisposable p1)
+{
+    public void M1()
+    {
+        using (p1)
+        {
+            p1 = null;
+        }
+    }
+}
+
+class MyDisposable : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write(""disposed"");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(new MyDisposable());
+        c1.M1();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"disposed").VerifyDiagnostics(
+                // (8,13): warning CS0728: Possibly incorrect assignment to local 'p1' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+                //             p1 = null;
+                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "p1").WithArguments("p1").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_099_MultiplePathsToNode_SwitchDispatch_02()
+        {
+            var source = @"
+using System;
+
+class Program(string x, int y)
+{
+    static void Main()
+    {
+        Console.Write(new Program("""", 0).M0()); // 0
+        Console.Write(new Program("""", 1).M0()); // 1
+        Console.Write(new Program("""", 2).M0()); // 2
+        Console.Write(new Program("""", 3).M0()); // 3
+        Console.Write(new Program(""a"", 2).M0()); // 2
+        Console.Write(new Program(""a"", 10).M0()); // 3
+    }
+
+    int M0()
+    {
+        return (x, y) switch
+        {
+            ("""", 0) => M1(0),
+            ("""", 1) => M1(1),
+            (_, 2) => M1(2),
+            _ => M1(3)
+        };
+    }
+
+    static int M1(int z)
+    {
+        Console.Write(' ');
+        return z;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: " 0 1 2 3 2 3", options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M0", @"{
+  // Code size      104 (0x68)
+  .maxstack  2
+  .locals init (int V_0,
+                string V_1,
+                int V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""string Program.<x>PC__BackingField""
+  IL_0007:  stloc.1
+  IL_0008:  ldarg.0
+  IL_0009:  ldfld      ""int Program.<y>PC__BackingField""
+  IL_000e:  stloc.2
+  IL_000f:  ldc.i4.1
+  IL_0010:  brtrue.s   IL_0013
+  IL_0012:  nop
+  IL_0013:  ldloc.1
+  IL_0014:  ldstr      """"
+  IL_0019:  call       ""bool string.op_Equality(string, string)""
+  IL_001e:  brfalse.s  IL_0034
+  IL_0020:  ldloc.2
+  IL_0021:  switch    (
+        IL_003a,
+        IL_0043,
+        IL_004c)
+  IL_0032:  br.s       IL_0055
+  IL_0034:  ldloc.2
+  IL_0035:  ldc.i4.2
+  IL_0036:  beq.s      IL_004c
+  IL_0038:  br.s       IL_0055
+  IL_003a:  ldc.i4.0
+  IL_003b:  call       ""int Program.M1(int)""
+  IL_0040:  stloc.0
+  IL_0041:  br.s       IL_005e
+  IL_0043:  ldc.i4.1
+  IL_0044:  call       ""int Program.M1(int)""
+  IL_0049:  stloc.0
+  IL_004a:  br.s       IL_005e
+  IL_004c:  ldc.i4.2
+  IL_004d:  call       ""int Program.M1(int)""
+  IL_0052:  stloc.0
+  IL_0053:  br.s       IL_005e
+  IL_0055:  ldc.i4.3
+  IL_0056:  call       ""int Program.M1(int)""
+  IL_005b:  stloc.0
+  IL_005c:  br.s       IL_005e
+  IL_005e:  ldc.i4.1
+  IL_005f:  brtrue.s   IL_0062
+  IL_0061:  nop
+  IL_0062:  ldloc.0
+  IL_0063:  stloc.3
+  IL_0064:  br.s       IL_0066
+  IL_0066:  ldloc.3
+  IL_0067:  ret
+}");
+        }
+
+        [Fact]
+        public void ParameterCapturing_100_DefiniteAssignment()
+        {
+            var text = @"
+class C1(ref int x, ref S s, ref string y)
+{
+    void M1()
+    {
+        _ = x + s.f + y.Length;
+    }
+
+    void M2()
+    {
+        _ = s.f + y.Length + x;
+    }
+
+    void M3()
+    {
+        _ = y.Length + x + s.f;
+    }
+
+    void M4()
+    {
+        _ = x;
+    }
+
+    void M5()
+    {
+        _ = s.f;
+    }
+
+    void M6()
+    {
+        _ = y.Length;
+    }
+}
+
+struct S
+{
+    public int f;    
+    public S(int x) => f = x; 
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_101_DefiniteAssignment()
+        {
+            var text = @"
+class C1(in int x, in S s, in string y)
+{
+    void M1()
+    {
+        _ = x + s.f + y.Length;
+    }
+
+    void M2()
+    {
+        _ = s.f + y.Length + x;
+    }
+
+    void M3()
+    {
+        _ = y.Length + x + s.f;
+    }
+
+    void M4()
+    {
+        _ = x;
+    }
+
+    void M5()
+    {
+        _ = s.f;
+    }
+
+    void M6()
+    {
+        _ = y.Length;
+    }
+}
+
+struct S
+{
+    public int f;    
+    public S(int x) => f = x; 
+}
+";
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x + s.f + y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f + y.Length + x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length + x + s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = s.f;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         _ = y.Length;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_102_NullableAnalysis_this_Assignment()
+        {
+            var source =
+@"
+#nullable enable
+
+struct C(string? x)
+{
+    public string? y;
+
+    void M1()
+    {
+#line 1000
+        x = """";
+        x.ToString();
+        y = """";
+        y.ToString();
+
+        var save1 = this;
+        this = default;
+
+#line 2000
+        x.ToString();
+        y.ToString();
+        this = save1;
+
+#line 3000
+        x.ToString();
+        y.ToString();
+    }
+
+    void M2()
+    {
+        var save2 = this;
+
+#line 4000
+        x = """";
+        x.ToString();
+        y = """";
+        y.ToString();
+
+        this = save2;
+
+#line 5000
+        x.ToString();
+        y.ToString();
+    }
+}";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Should we warn when default value is assigned to 'this' with captured primary constructor parameters?
+            comp.VerifyDiagnostics(
+                // (2000,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(2000, 9),
+                // (2001,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(2001, 9),
+                // (5000,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5000, 9),
+                // (5001,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(5001, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_103_Deconstruction()
+        {
+            var source = @"
+class C1 (int p1, int p2)
+{
+    public void M1()
+    {
+        (p1, p2) = (p2, p1);
+    }
+
+    public int P1 => p1;
+    public int P2 => p2;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(1, 2);
+        c1.M1();
+        System.Console.Write((c1.P1, c1.P2));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"(2, 1)").VerifyDiagnostics();
+
+            verifier.VerifyIL("C1.M1",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C1.<p2>PC__BackingField""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""int C1.<p1>PC__BackingField""
+  IL_000d:  stloc.1
+  IL_000e:  ldarg.0
+  IL_000f:  ldloc.0
+  IL_0010:  stfld      ""int C1.<p1>PC__BackingField""
+  IL_0015:  ldarg.0
+  IL_0016:  ldloc.1
+  IL_0017:  stfld      ""int C1.<p2>PC__BackingField""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ParameterCapturing_104_Cycle()
+        {
+            var source =
+@"
+struct S1(S1 x)
+{
+    S1 P => x;
+}";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Do not refer to the backing field in the error message.
+            comp.VerifyEmitDiagnostics(
+                // (2,14): error CS0523: Struct member 'S1.<x>PC__BackingField' of type 'S1' causes a cycle in the struct layout
+                // struct S1(S1 x)
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1.<x>PC__BackingField", "S1").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_105_Cycle()
+        {
+            var source =
+@"
+struct S1(S2 x)
+{
+    S2 P => x;
+}
+
+struct S2(S1 x)
+{
+    S1 P => x;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,14): error CS0523: Struct member 'S1.<x>PC__BackingField' of type 'S2' causes a cycle in the struct layout
+                // struct S1(S2 x)
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1.<x>PC__BackingField", "S2").WithLocation(2, 14),
+                // (7,14): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1' causes a cycle in the struct layout
+                // struct S2(S1 x)
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1").WithLocation(7, 14)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_106_Cycle()
+        {
+            var source =
+@"
+struct S1<T>(S1<S1<int>> x)
+{
+    S1<S1<int>> P => x;
+}";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,26): error CS0523: Struct member 'S1<T>.<x>PC__BackingField' of type 'S1<S1<int>>' causes a cycle in the struct layout
+                // struct S1<T>(S1<S1<int>> x)
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1<T>.<x>PC__BackingField", "S1<S1<int>>").WithLocation(2, 26)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_107_Cycle()
+        {
+            var source1 =
+@"
+struct S1<T>(T x)
+{
+    T P => x;
+}
+";
+            var source2 =
+@"
+struct S2(S1<S2> x)
+{
+    S1<S2> P => x;
+}
+";
+            var comp = CreateCompilation(source1 + source2);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1<S2>' causes a cycle in the struct layout
+                // struct S2(S1<S2> x)
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1<S2>").WithLocation(7, 18)
+                );
+
+            comp = CreateCompilation(source2 + source1);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,18): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1<S2>' causes a cycle in the struct layout
+                // struct S2(S1<S2> x)
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1<S2>").WithLocation(2, 18)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_108_Cycle()
+        {
+            var source =
+@"
+class C(C x)
+{
+    C P => x;
+}";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_109_Cycle()
+        {
+            var source =
+@"
+unsafe struct S1(S1* x)
+{
+    S1 P => *x;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_110_Cycle()
+        {
+            var source =
+@"
+unsafe struct S1(S2* x)
+{
+    S2 P => *x;
+}
+
+unsafe struct S2(S1* x)
+{
+    S1 P => *x;
+}
+
+unsafe struct S3(S4* x)
+{
+    S4 P => *x;
+}
+
+struct S4(S3 x)
+{
+    S3 P => x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            System.Threading.Tasks.Parallel.For(0, 100, (int i) => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
 class C1 (int p1)
@@ -12881,6 +13530,58 @@ class C1 (int p1)
                 );
 
             Assert.Equal("p1", comp.GetTypeByMetadataName("C1").Indexers.Single().MetadataName);
+        }
+
+        [Fact]
+        public void CycleDueToIndexerNameAttribute_02()
+        {
+            var source = @"
+class C1 (int p1)
+{
+    [System.Runtime.CompilerServices.IndexerNameAttribute(nameof(p1))]
+    int this[int x]
+    {
+        get => x;
+        set {}
+    }
+
+    void M(int x)
+    {
+        x = 1;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // class C1 (int p1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                );
+
+            Assert.Equal("p1", comp.GetTypeByMetadataName("C1").Indexers.Single().MetadataName);
+        }
+
+        [Fact]
+        public void CycleDueToIndexerNameAttribute_03()
+        {
+            var source = @"
+class C1 (int p1)
+{
+    [System.Runtime.CompilerServices.IndexerNameAttribute(nameof(p1))]
+    int this[int x]
+    {
+        get => p1;
+        set {}
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics();
+
+            Assert.Equal("p1", comp.GetTypeByMetadataName("C1").Indexers.Single().MetadataName);
+            Assert.Single(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
         [Fact]
@@ -13034,6 +13735,7 @@ p1
             if (flags == TestFlags.BadReference)
             {
                 // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor scenario explicitly?
+                //                                 Note, this wording is fine for scenarios in field initializes and in base type (cases 02** and 100*).
                 comp.VerifyEmitDiagnostics(
                     // (2000,1): error CS1628: Cannot use ref, out, or in parameter 'p1' inside an anonymous method, lambda expression, query expression, or local function
                     // p1
@@ -13090,6 +13792,42 @@ class Base
                 // (9,22): warning CS8907: Parameter 'p2' is unread. Did you forget to use it to initialize the property with that name?
                 // class C2(int p1, int p2, int p3, int p4) : Base(static () => nameof(p4).Length) 
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p2").WithArguments("p2").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_TypeShadows()
+        {
+            var src = @"
+class C(int X)
+{
+    void M()
+    {
+        X.ToString();
+        X.M();
+    }
+
+    class X
+    {
+        public void M(){}
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+
+            comp.VerifyEmitDiagnostics(
+                // (2,13): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // class C(int X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 13),
+                // (6,9): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+                //         X.ToString();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "X.ToString").WithArguments("object.ToString()").WithLocation(6, 9),
+                // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.X.M()'
+                //         X.M();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "X.M").WithArguments("C.X.M()").WithLocation(7, 9)
                 );
         }
     }
