@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
-            var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
+            var alphaDll = directory.CopyFile(_testFixture.Alpha).Path;
+            var results = AssemblyUtilities.FindAssemblySet(alphaDll);
 
-            AssertEx.SetEqual(new[] { alphaDll.Path }, results);
+            AssertEx.SetEqual(new[] { alphaDll }, results);
         }
 
         [Fact]
@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
-            var betaDll = directory.CopyFile(_testFixture.Beta.Path);
-            var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
+            var alphaDll = directory.CopyFile(_testFixture.Alpha).Path;
+            var betaDll = directory.CopyFile(_testFixture.Beta).Path;
+            var results = AssemblyUtilities.FindAssemblySet(alphaDll);
 
-            AssertEx.SetEqual(new[] { alphaDll.Path }, results);
+            AssertEx.SetEqual(new[] { alphaDll }, results);
         }
 
         [Fact]
@@ -56,33 +56,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
-            var gammaDll = directory.CopyFile(_testFixture.Gamma.Path);
+            var alphaDll = directory.CopyFile(_testFixture.Alpha).Path;
+            var gammaDll = directory.CopyFile(_testFixture.Gamma).Path;
 
-            var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
+            var results = AssemblyUtilities.FindAssemblySet(alphaDll);
 
-            AssertEx.SetEqual(new[] { alphaDll.Path, gammaDll.Path }, results, StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { alphaDll, gammaDll}, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
         public void FindAssemblySet_TransitiveDependencies()
         {
-            var results = AssemblyUtilities.FindAssemblySet(_testFixture.Alpha.Path);
+            var results = AssemblyUtilities.FindAssemblySet(_testFixture.Alpha);
 
             AssertEx.SetEqual(new[]
             {
-                _testFixture.Alpha.Path,
-                _testFixture.Gamma.Path,
-                _testFixture.Delta1.Path
+                _testFixture.Alpha,
+                _testFixture.Gamma,
+                _testFixture.Delta1
             }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
         public void ReadMVid()
         {
-            var assembly = Assembly.Load(File.ReadAllBytes(_testFixture.Alpha.Path));
+            var assembly = Assembly.Load(File.ReadAllBytes(_testFixture.Alpha));
 
-            var result = AssemblyUtilities.ReadMvid(_testFixture.Alpha.Path);
+            var result = AssemblyUtilities.ReadMvid(_testFixture.Alpha);
 
             Assert.Equal(expected: assembly.ManifestModule.ModuleVersionId, actual: result);
         }
@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
 
-            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
             Assert.Empty(results);
         }
@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
-            var satelliteFile = directory.CreateFile("FakeAssembly.resources.dll");
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFile = directory.CreateFile("FakeAssembly.resources.dll").Path;
 
-            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
             Assert.Empty(results);
         }
@@ -117,12 +117,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
-            var satelliteFile = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll");
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFile = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll").Path;
 
-            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-            AssertEx.SetEqual(new[] { satelliteFile.Path }, results, StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { satelliteFile }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -130,12 +130,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
-            var satelliteFile = directory.CreateDirectory("de").CreateDirectory("FakeAssembly.resources").CreateFile("FakeAssembly.resources.dll");
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFile = directory.CreateDirectory("de").CreateDirectory("FakeAssembly.resources").CreateFile("FakeAssembly.resources.dll").Path;
 
-            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-            AssertEx.SetEqual(new[] { satelliteFile.Path }, results, StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { satelliteFile }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
-            var satelliteFileDE = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll");
-            var satelliteFileFR = directory.CreateDirectory("fr").CreateFile("FakeAssembly.resources.dll");
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFileDE = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll").Path;
+            var satelliteFileFR = directory.CreateDirectory("fr").CreateFile("FakeAssembly.resources.dll").Path;
 
-            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-            AssertEx.SetEqual(new[] { satelliteFileDE.Path, satelliteFileFR.Path }, results, StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { satelliteFileDE, satelliteFileFR }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -157,10 +157,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
-            var satelliteFile = directory.CreateDirectory("de").CreateDirectory("OtherAssembly.resources").CreateFile("FakeAssembly.resources.dll");
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFile = directory.CreateDirectory("de").CreateDirectory("OtherAssembly.resources").CreateFile("FakeAssembly.resources.dll").Path;
 
-            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
             Assert.Equal(expected: 0, actual: results.Length);
         }
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IdentifyMissingDependencies_OnlyNetstandardMissing()
         {
-            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha.Path, new[] { _testFixture.Alpha.Path, _testFixture.Gamma.Path, _testFixture.Delta1.Path });
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha, new[] { _testFixture.Alpha, _testFixture.Gamma, _testFixture.Delta1 });
 
             Assert.Equal(expected: 1, actual: results.Length);
             Assert.Equal(expected: "netstandard", actual: results[0].Name);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IdentifyMissingDependencies_MultipleMissing()
         {
-            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha.Path, new[] { _testFixture.Alpha.Path }).Select(identity => identity.Name);
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha, new[] { _testFixture.Alpha}).Select(identity => identity.Name);
 
             AssertEx.SetEqual(new[] { "netstandard", "Gamma" }, results);
         }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void GetAssemblyIdentity()
         {
-            var result = AssemblyUtilities.GetAssemblyIdentity(_testFixture.Alpha.Path);
+            var result = AssemblyUtilities.GetAssemblyIdentity(_testFixture.Alpha);
             Assert.Equal(expected: "Alpha", actual: result.Name);
         }
     }
