@@ -94,7 +94,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     // CodeGenerationOptions
 
     internal CSharpCodeGenerationOptions GetCodeGenerationOptions()
-        => _options.GetCSharpCodeGenerationOptions(FallbackCodeGenerationOptions);
+        => new(_options, FallbackCodeGenerationOptions);
 
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
     public CodeStyleOption2<bool> PreferReadOnlyStruct => GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, FallbackCodeStyleOptions.PreferReadOnlyStruct);
