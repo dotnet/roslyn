@@ -372,14 +372,14 @@ class C
         {
             goto label2;
             return {|Rename:NewMethod|}(x);
+
+            static int NewMethod(int x)
+            {
+                return x * x;
+            }
         };
     label2:
         return;
-
-        static int NewMethod(int x)
-        {
-            return x * x;
-        }
     }
 }", CodeActionIndex);
         }
