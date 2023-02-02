@@ -3324,5 +3324,61 @@ class C { }
             Assert.False(gen1Called); // Generator 1 did not re-run
             Assert.True(gen2Called);
         }
+
+        [Fact, WorkItem(66451, "https://github.com/dotnet/roslyn/issues/66451")]
+        public void Transform_MultipleInputs_RemoveFirst_ModifySecond()
+        {
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var provider = ctx.SyntaxProvider
+                    .CreateSyntaxProvider(
+                        static (node, _) => node is ClassDeclarationSyntax c,
+                        static (gsc, _) => gsc.Node)
+                    .Select(static (node, _) => (ClassDeclarationSyntax)node)
+                    .Where(static (node) => node.Identifier.ValueText.Contains("Generate"))
+                    .WithTrackingName("MyTransformNode");
+                ctx.RegisterSourceOutput(provider, static (spc, syntax) =>
+                {
+                    spc.AddSource(
+                        $"{syntax.Identifier.Text}.g",
+                        $"partial class {syntax.Identifier.Text} {{ /* generated */ }}");
+                });
+            }));
+
+            var parseOptions = TestOptions.RegularPreview;
+
+            var source1 = """
+                public partial class GenerateClass1 { }
+                """;
+            var source2 = """
+                public partial class GenerateClass2 { }
+                """;
+
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            verify(ref driver, compilation);
+
+            replace(ref compilation, parseOptions, "GenerateClass1", """
+                public partial class Class1 { }
+                """);
+            verify(ref driver, compilation);
+
+            replace(ref compilation, parseOptions, "GenerateClass2", source2);
+            verify(ref driver, compilation);
+
+            static void verify(ref GeneratorDriver driver, Compilation compilation)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+                outputCompilation.VerifyDiagnostics();
+                generatorDiagnostics.Verify();
+            }
+
+            static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string className, string source)
+            {
+                var tree = compilation.GetMember(className).DeclaringSyntaxReferences.Single().SyntaxTree;
+                compilation = compilation.ReplaceSyntaxTree(tree, CSharpSyntaxTree.ParseText(source, parseOptions));
+            }
+        }
     }
 }
