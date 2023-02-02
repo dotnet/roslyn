@@ -1309,5 +1309,34 @@ class Program
     string? Name { get => name; set => name = value; }
 }");
         }
+
+        [Fact, WorkItem(29021, "https://github.com/dotnet/roslyn/issues/29021")]
+        public async Task ConstructorInitializerIndentation()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal class EvaluationCommandLineHandler
+{
+    public EvaluationCommandLineHandler(UnconfiguredProject project)
+        : base(project)
+    {
+    }
+
+    public Dictionary<string, IImmutableDictionary<string, string>> [||]Files
+    {
+        get;
+    }
+}",
+@"internal class EvaluationCommandLineHandler
+{
+    private readonly Dictionary<string, IImmutableDictionary<string, string>> files;
+
+    public EvaluationCommandLineHandler(UnconfiguredProject project)
+        : base(project)
+    {
+    }
+
+    public Dictionary<string, IImmutableDictionary<string, string>> Files => files;
+}");
+        }
     }
 }

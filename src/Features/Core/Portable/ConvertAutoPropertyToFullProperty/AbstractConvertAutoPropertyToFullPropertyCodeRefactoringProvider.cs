@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -90,7 +89,9 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         {
             Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
-            var generator = SyntaxGenerator.GetGenerator(document);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+            var generator = editor.Generator;
+
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
             var services = document.Project.Solution.Services;
 
@@ -110,7 +111,6 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
             // add backing field, plus initializer if it exists 
@@ -123,12 +123,12 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;
             foreach (var td in typeDeclaration)
             {
-                var block = GetTypeBlock(await td.GetSyntaxAsync(cancellationToken).ConfigureAwait(false));
-                if (property.Ancestors().Contains(block))
+                var typeBlock = GetTypeBlock(await td.GetSyntaxAsync(cancellationToken).ConfigureAwait(false));
+                if (property.Ancestors().Contains(typeBlock))
                 {
-                    editor.ReplaceNode(block, (currentTypeDecl, _)
-                        => codeGenerator.AddField(currentTypeDecl, newField, info, cancellationToken)
-                        .WithAdditionalAnnotations(Formatter.Annotation));
+                    editor.ReplaceNode(
+                        typeBlock,
+                        (currentTypeDeclaration, _) => codeGenerator.AddField(currentTypeDeclaration, newField, info, cancellationToken));
                 }
             }
 
