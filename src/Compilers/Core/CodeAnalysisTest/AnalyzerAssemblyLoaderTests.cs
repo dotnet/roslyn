@@ -1254,7 +1254,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_RepeatedLoads1(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var path = testFixture.Delta1.Path;
                 loader.AddDependencyLocation(path);
@@ -1275,7 +1275,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_RepeatedLoads2(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
