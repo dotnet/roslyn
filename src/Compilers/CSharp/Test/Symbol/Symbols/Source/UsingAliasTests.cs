@@ -26,7 +26,7 @@ partial class A : System.Object {}
 partial class A : Object {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -36,10 +36,10 @@ partial class A : Object {}
             var a3 = root.Members[2] as TypeDeclarationSyntax;
             var a4 = root.Members[3] as TypeDeclarationSyntax;
 
-            var base1 = a1.BaseList.Types[0].Type as TypeSyntax;
-            var base2 = a2.BaseList.Types[0].Type as TypeSyntax;
-            var base3 = a3.BaseList.Types[0].Type as TypeSyntax;
-            var base4 = a4.BaseList.Types[0].Type as TypeSyntax;
+            var base1 = a1.BaseList.Types[0].Type;
+            var base2 = a2.BaseList.Types[0].Type;
+            var base3 = a3.BaseList.Types[0].Type;
+            var base4 = a4.BaseList.Types[0].Type;
 
             var model = comp.GetSemanticModel(tree);
 
@@ -83,7 +83,7 @@ partial class A : System.Object {}
 partial class A : Object {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -524,8 +524,7 @@ class Program
             Assert.Equal(SymbolKind.Alias, model.GetAliasInfo(exprSyntaxToBind).Kind);
         }
 
-        [WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
-        [Fact]
+        [Fact, WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
         public void LocalDeclaration_Array()
         {
             var text = @"
@@ -542,10 +541,10 @@ class Program
             var model = comp.GetSemanticModel(syntaxTree);
             IdentifierNameSyntax exprSyntaxToBind = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(syntaxTree));
             Assert.Equal(SymbolKind.Alias, model.GetAliasInfo(exprSyntaxToBind).Kind);
+            Assert.Equal("System.Int32[]", model.GetAliasInfo(exprSyntaxToBind).Target.ToTestDisplayString());
         }
 
-        [WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
-        [Fact]
+        [Fact, WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
         public void LocalDeclaration_Tuple()
         {
             var text = @"
@@ -562,6 +561,7 @@ class Program
             var model = comp.GetSemanticModel(syntaxTree);
             IdentifierNameSyntax exprSyntaxToBind = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(syntaxTree));
             Assert.Equal(SymbolKind.Alias, model.GetAliasInfo(exprSyntaxToBind).Kind);
+            Assert.Equal("(System.Int32, System.Int32)", model.GetAliasInfo(exprSyntaxToBind).Target.ToTestDisplayString());
         }
 
         [WorkItem(576809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576809")]
