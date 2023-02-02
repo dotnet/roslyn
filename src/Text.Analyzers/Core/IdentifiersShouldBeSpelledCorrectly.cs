@@ -452,7 +452,6 @@ namespace Text.Analyzers
             return false;
         }
 
-
         private static CodeAnalysisDictionary GetMainDictionary()
         {
             // The "main" dictionary, Dictionary.dic, was created in WSL Ubuntu with the following commands:
