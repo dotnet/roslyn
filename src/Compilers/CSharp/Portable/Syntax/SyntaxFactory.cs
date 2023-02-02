@@ -2661,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 staticKeyword,
                 unsafeKeyword: default,
                 alias,
-                name,
+                type: name,
                 semicolonToken);
         }
 
