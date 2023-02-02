@@ -26,7 +26,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly object _gate = new object();
         private readonly Dictionary<DiagnosticAnalyzer, TimeSpan>? _analyzerExecutionTimeOpt;
-        private readonly HashSet<DiagnosticAnalyzer> _completedAnalyzers;
+        private readonly HashSet<DiagnosticAnalyzer> _completedAnalyzersForCompilation;
+        private readonly Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>> _completedSyntaxAnalyzersByTree;
+        private readonly Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>> _completedSemanticAnalyzersByTree;
+        private readonly Dictionary<AdditionalText, HashSet<DiagnosticAnalyzer>> _completedSyntaxAnalyzersByAdditionalFile;
         private readonly Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts> _analyzerActionCounts;
         private readonly ImmutableDictionary<string, OneOrMany<AdditionalText>> _pathToAdditionalTextMap;
 
@@ -38,7 +41,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalText> additionalFiles)
         {
             _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;
-            _completedAnalyzers = new HashSet<DiagnosticAnalyzer>();
+            _completedAnalyzersForCompilation = new HashSet<DiagnosticAnalyzer>();
+            _completedSyntaxAnalyzersByTree = new Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>>();
+            _completedSemanticAnalyzersByTree = new Dictionary<SyntaxTree, HashSet<DiagnosticAnalyzer>>();
+            _completedSyntaxAnalyzersByAdditionalFile = new Dictionary<AdditionalText, HashSet<DiagnosticAnalyzer>>();
             _analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
             _pathToAdditionalTextMap = CreatePathToAdditionalTextMap(additionalFiles);
         }
@@ -95,14 +101,51 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> GetPendingAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private HashSet<DiagnosticAnalyzer>? GetCompletedAnalyzersForFile_NoLock(SourceOrAdditionalFile filterFile, bool syntax)
+        {
+            if (filterFile.SourceTree is { } tree)
+            {
+                var completedAnalyzersByTree = syntax ? _completedSyntaxAnalyzersByTree : _completedSemanticAnalyzersByTree;
+                if (completedAnalyzersByTree.TryGetValue(tree, out var completedAnalyzersForTree))
+                {
+                    return completedAnalyzersForTree;
+                }
+            }
+            else if (_completedSyntaxAnalyzersByAdditionalFile.TryGetValue(filterFile.AdditionalFile!, out var completedAnalyzersForFile))
+            {
+                return completedAnalyzersForFile;
+            }
+
+            return null;
+        }
+
+        private void AddCompletedAnalyzerForFile_NoLock(SourceOrAdditionalFile filterFile, bool syntax, DiagnosticAnalyzer analyzer)
+        {
+            var completedAnalyzers = new HashSet<DiagnosticAnalyzer> { analyzer };
+            if (filterFile.SourceTree is { } tree)
+            {
+                var completedAnalyzersByTree = syntax ? _completedSyntaxAnalyzersByTree : _completedSemanticAnalyzersByTree;
+                completedAnalyzersByTree.Add(tree, completedAnalyzers);
+            }
+            else
+            {
+                _completedSyntaxAnalyzersByAdditionalFile.Add(filterFile.AdditionalFile!, completedAnalyzers);
+            }
+        }
+
+        internal ImmutableArray<DiagnosticAnalyzer> GetPendingAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, (SourceOrAdditionalFile file, bool syntax)? filterScope = null)
         {
             lock (_gate)
             {
+                var completedAnalyzersForFile = filterScope.HasValue
+                    ? GetCompletedAnalyzersForFile_NoLock(filterScope.Value.file, filterScope.Value.syntax)
+                    : null;
+
                 ArrayBuilder<DiagnosticAnalyzer>? builder = null;
                 foreach (var analyzer in analyzers)
                 {
-                    if (!_completedAnalyzers.Contains(analyzer))
+                    if (!_completedAnalyzersForCompilation.Contains(analyzer) &&
+                        (completedAnalyzersForFile == null || !completedAnalyzersForFile.Contains(analyzer)))
                     {
                         builder = builder ?? ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
                         builder.Add(analyzer);
@@ -113,10 +156,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts, bool fullAnalysisResultForAnalyzersInScope)
+        internal void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts)
         {
-            Debug.Assert(!fullAnalysisResultForAnalyzersInScope || analysisScope.FilterFileOpt == null, "Full analysis result cannot come from partial (tree) analysis.");
-
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 // Dequeue reported analyzer diagnostics from the driver and store them in our maps.
@@ -126,27 +167,85 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 lock (_gate)
                 {
-                    if (_completedAnalyzers.Contains(analyzer))
+                    if (_completedAnalyzersForCompilation.Contains(analyzer))
                     {
                         // Already stored full analysis result for this analyzer.
                         continue;
                     }
 
-                    if (syntaxDiagnostics.Length > 0 || semanticDiagnostics.Length > 0 || compilationDiagnostics.Length > 0 || fullAnalysisResultForAnalyzersInScope)
+                    bool fullSyntaxDiagnosticsForTree = false;
+                    bool fullSyntaxDiagnosticsForAdditionalFile = false;
+                    bool fullSemanticDiagnosticsForTree = false;
+                    bool fullCompilationDiagnostics = false;
+                    if (analysisScope.FilterFileOpt.HasValue)
                     {
-                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSyntaxDiagnosticsOpt);
-                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getAdditionalTextKey, ref _localAdditionalFileDiagnosticsOpt);
-                        UpdateNonLocalDiagnostics_NoLock(analyzer, compilationDiagnostics, fullAnalysisResultForAnalyzersInScope);
+                        var completedAnalyzersForFile = GetCompletedAnalyzersForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis);
+                        if (completedAnalyzersForFile?.Contains(analyzer) == true)
+                        {
+                            // Already stored analysis result for this analyzer for the analyzed file.
+                            continue;
+                        }
+                        else if (!analysisScope.FilterSpanOpt.HasValue)
+                        {
+                            // We have complete analysis result for this file.
+                            // Mark this file as completely analyzed for this analyzer.
+                            if (completedAnalyzersForFile != null)
+                            {
+                                completedAnalyzersForFile.Add(analyzer);
+                            }
+                            else
+                            {
+                                AddCompletedAnalyzerForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis, analyzer);
+                            }
 
-                        // NOTE: We need to dedupe compiler analyzer semantic diagnostics as we might run the compiler analyzer multiple times for different spans in the tree.
-                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSemanticDiagnosticsOpt,
-                            dedupeDiagnostics: analyzer is CompilerDiagnosticAnalyzer);
+                            if (analysisScope.IsSyntacticSingleFileAnalysis)
+                            {
+                                if (analysisScope.FilterFileOpt.Value.SourceTree != null)
+                                {
+                                    fullSyntaxDiagnosticsForTree = true;
+                                }
+                                else
+                                {
+                                    fullSyntaxDiagnosticsForAdditionalFile = true;
+                                }
+                            }
+                            else
+                            {
+                                fullSemanticDiagnosticsForTree = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(!analysisScope.FilterSpanOpt.HasValue);
+
+                        _completedAnalyzersForCompilation.Add(analyzer);
+                        fullCompilationDiagnostics = true;
+                        fullSyntaxDiagnosticsForTree = true;
+                        fullSyntaxDiagnosticsForAdditionalFile = true;
+                        fullSemanticDiagnosticsForTree = true;
+                    }
+
+                    if (!syntaxDiagnostics.IsEmpty)
+                    {
+                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullSyntaxDiagnosticsForTree, getSourceTree, ref _localSyntaxDiagnosticsOpt);
+                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullSyntaxDiagnosticsForAdditionalFile, getAdditionalTextKey, ref _localAdditionalFileDiagnosticsOpt);
+                    }
+
+                    if (!semanticDiagnostics.IsEmpty)
+                    {
+                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, fullSemanticDiagnosticsForTree, getSourceTree, ref _localSemanticDiagnosticsOpt);
+                    }
+
+                    if (!compilationDiagnostics.IsEmpty)
+                    {
+                        UpdateNonLocalDiagnostics_NoLock(analyzer, compilationDiagnostics, fullCompilationDiagnostics);
                     }
 
                     if (_analyzerExecutionTimeOpt != null)
                     {
                         var timeSpan = driver.ResetAnalyzerExecutionTime(analyzer);
-                        _analyzerExecutionTimeOpt[analyzer] = fullAnalysisResultForAnalyzersInScope ?
+                        _analyzerExecutionTimeOpt[analyzer] = fullCompilationDiagnostics ?
                             timeSpan :
                             _analyzerExecutionTimeOpt[analyzer] + timeSpan;
                     }
@@ -154,11 +253,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (!_analyzerActionCounts.ContainsKey(analyzer))
                     {
                         _analyzerActionCounts.Add(analyzer, getAnalyzerActionCounts(analyzer));
-                    }
-
-                    if (fullAnalysisResultForAnalyzersInScope)
-                    {
-                        _completedAnalyzers.Add(analyzer);
                     }
                 }
             }
@@ -192,8 +286,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic> diagnostics,
             bool overwrite,
             Func<Diagnostic, TKey?> getKeyFunc,
-            ref Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics,
-            bool dedupeDiagnostics = false)
+            ref Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics)
             where TKey : class
         {
             if (diagnostics.IsEmpty)
@@ -225,14 +318,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     allDiagnostics[analyzer] = analyzerDiagnostics;
                 }
 
-                // De-dupe diagnostic to add, if needed.
                 IEnumerable<Diagnostic> diagsToAdd = diagsByKey;
                 if (overwrite)
                 {
                     analyzerDiagnostics.Clear();
                 }
-                else if (dedupeDiagnostics)
+                else
                 {
+                    // Always de-dupe diagnostic to add
                     diagsToAdd = diagsByKey.Where(d => !analyzerDiagnostics.Contains(d));
                 }
 
