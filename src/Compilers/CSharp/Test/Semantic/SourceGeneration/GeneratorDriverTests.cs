@@ -3335,7 +3335,7 @@ class C { }
                         static (node, _) => node is ClassDeclarationSyntax c,
                         static (gsc, _) => gsc.Node)
                     .Select(static (node, _) => (ClassDeclarationSyntax)node)
-                    .Where(static (node) => node.Identifier.ValueText.Contains("Generate"))
+                    .Where(static (node) => node.Modifiers.Any(SyntaxKind.PartialKeyword))
                     .WithTrackingName("MyTransformNode");
                 ctx.RegisterSourceOutput(provider, static (spc, syntax) =>
                 {
@@ -3348,10 +3348,10 @@ class C { }
             var parseOptions = TestOptions.RegularPreview;
 
             var source1 = """
-                public partial class GenerateClass1 { }
+                public partial class Class1 { }
                 """;
             var source2 = """
-                public partial class GenerateClass2 { }
+                public partial class Class2 { }
                 """;
 
             Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -3359,12 +3359,17 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             verify(ref driver, compilation);
 
-            replace(ref compilation, parseOptions, "GenerateClass1", """
-                public partial class Class1 { }
+            // Remove Class1 from the final provider via a TransformNode
+            // (by removing the partial keyword).
+            replace(ref compilation, parseOptions, "Class1", """
+                public class Class1 { }
                 """);
             verify(ref driver, compilation);
 
-            replace(ref compilation, parseOptions, "GenerateClass2", source2);
+            // Modify Class2 (make it internal).
+            replace(ref compilation, parseOptions, "Class2", """
+                internal partial class Class2 { }
+                """);
             verify(ref driver, compilation);
 
             static void verify(ref GeneratorDriver driver, Compilation compilation)

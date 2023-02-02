@@ -1268,6 +1268,8 @@ class YAttribute : System.Attribute { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
         verify(ref driver, compilation);
 
+        // Remove Class1 from the final provider via a TransformNode
+        // (by removing the Generate attribute).
         replace(ref compilation, parseOptions, "Class1", """
             //[Generate]
             [System.Obsolete]
@@ -1275,7 +1277,12 @@ class YAttribute : System.Attribute { }
             """);
         verify(ref driver, compilation);
 
-        replace(ref compilation, parseOptions, "Class2", source2);
+        // Modify Class2 (make it internal).
+        replace(ref compilation, parseOptions, "Class2", """
+            [Generate]
+            [System.Obsolete]
+            internal partial class Class2 { }
+            """);
         verify(ref driver, compilation);
 
         static void verify(ref GeneratorDriver driver, Compilation compilation)
