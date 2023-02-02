@@ -31,7 +31,7 @@ internal record class SyntaxFormattingOptions
     {
     }
 
-    private protected SyntaxFormattingOptions(IOptionsReader options, string language, SyntaxFormattingOptions fallbackOptions)
+    private protected SyntaxFormattingOptions(IOptionsReader options, SyntaxFormattingOptions fallbackOptions, string language)
     {
         LineFormatting = options.GetLineFormattingOptions(language, fallbackOptions.LineFormatting);
         SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.SeparateImportDirectiveGroups);

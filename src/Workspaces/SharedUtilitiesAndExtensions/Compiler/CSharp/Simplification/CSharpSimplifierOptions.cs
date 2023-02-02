@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        public CSharpSimplifierOptions(IOptionsReader options, CSharpSimplifierOptions fallbackOptions)
-            : base(options, LanguageNames.CSharp, fallbackOptions)
+        public CSharpSimplifierOptions(IOptionsReader options, CSharpSimplifierOptions? fallbackOptions)
+            : base(options, fallbackOptions ??= Default, LanguageNames.CSharp)
         {
             VarForBuiltInTypes = options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes, fallbackOptions.VarForBuiltInTypes);
             VarWhenTypeIsApparent = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, fallbackOptions.VarWhenTypeIsApparent);

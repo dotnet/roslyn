@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         End Property
 
         Public Function GetIdeCodeStyleOptions(options As IOptionsReader, fallbackOptions As IdeCodeStyleOptions) As IdeCodeStyleOptions Implements ICodeStyleService.GetIdeCodeStyleOptions
-            Return New VisualBasicIdeCodeStyleOptions(options, If(DirectCast(fallbackOptions, VisualBasicIdeCodeStyleOptions), VisualBasicIdeCodeStyleOptions.Default))
+            Return New VisualBasicIdeCodeStyleOptions(options, DirectCast(fallbackOptions, VisualBasicIdeCodeStyleOptions))
         End Function
     End Class
 End Namespace

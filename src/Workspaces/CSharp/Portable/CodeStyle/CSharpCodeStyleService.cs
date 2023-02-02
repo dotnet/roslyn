@@ -23,5 +23,5 @@ internal sealed class CSharpCodeStyleService : ICodeStyleService
         => CSharpIdeCodeStyleOptions.Default;
 
     public IdeCodeStyleOptions GetIdeCodeStyleOptions(IOptionsReader options, IdeCodeStyleOptions? fallbackOptions)
-        => new CSharpIdeCodeStyleOptions(options, (CSharpIdeCodeStyleOptions?)fallbackOptions ?? CSharpIdeCodeStyleOptions.Default);
+        => new CSharpIdeCodeStyleOptions(options, (CSharpIdeCodeStyleOptions?)fallbackOptions);
 }

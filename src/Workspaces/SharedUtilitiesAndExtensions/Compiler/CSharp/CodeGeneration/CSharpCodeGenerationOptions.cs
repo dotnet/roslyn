@@ -51,8 +51,8 @@ internal sealed record class CSharpCodeGenerationOptions : CodeGenerationOptions
     {
     }
 
-    internal CSharpCodeGenerationOptions(IOptionsReader options, CSharpCodeGenerationOptions fallbackOptions)
-        : base(options, LanguageNames.CSharp, fallbackOptions)
+    internal CSharpCodeGenerationOptions(IOptionsReader options, CSharpCodeGenerationOptions? fallbackOptions)
+        : base(options, fallbackOptions ??= Default, LanguageNames.CSharp)
     {
         PreferExpressionBodiedMethods = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, fallbackOptions.PreferExpressionBodiedMethods);
         PreferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, fallbackOptions.PreferExpressionBodiedAccessors);

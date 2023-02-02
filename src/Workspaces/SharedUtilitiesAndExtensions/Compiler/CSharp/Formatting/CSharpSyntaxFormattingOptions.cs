@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        public CSharpSyntaxFormattingOptions(IOptionsReader options, CSharpSyntaxFormattingOptions fallbackOptions)
-            : base(options, LanguageNames.CSharp, fallbackOptions)
+        public CSharpSyntaxFormattingOptions(IOptionsReader options, CSharpSyntaxFormattingOptions? fallbackOptions)
+            : base(options, fallbackOptions ??= Default, LanguageNames.CSharp)
         {
             Spacing =
                 (options.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, fallbackOptions.Spacing.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration)) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |

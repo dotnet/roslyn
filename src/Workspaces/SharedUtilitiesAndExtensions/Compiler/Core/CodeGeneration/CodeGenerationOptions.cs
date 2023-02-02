@@ -35,7 +35,7 @@ internal record CodeGenerationOptions
     {
     }
 
-    private protected CodeGenerationOptions(IOptionsReader options, string language, CodeGenerationOptions fallbackOptions)
+    private protected CodeGenerationOptions(IOptionsReader options, CodeGenerationOptions fallbackOptions, string language)
     {
         NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle);
     }

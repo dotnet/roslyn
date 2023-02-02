@@ -81,8 +81,8 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
     {
     }
 
-    internal CSharpIdeCodeStyleOptions(IOptionsReader options, CSharpIdeCodeStyleOptions fallbackOptions)
-        : base(options, LanguageNames.CSharp, fallbackOptions)
+    internal CSharpIdeCodeStyleOptions(IOptionsReader options, CSharpIdeCodeStyleOptions? fallbackOptions)
+        : base(options, fallbackOptions ??= Default, LanguageNames.CSharp)
     {
         ImplicitObjectCreationWhenTypeIsApparent = options.GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, fallbackOptions.ImplicitObjectCreationWhenTypeIsApparent);
         PreferNullCheckOverTypeCheck = options.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, fallbackOptions.PreferNullCheckOverTypeCheck);

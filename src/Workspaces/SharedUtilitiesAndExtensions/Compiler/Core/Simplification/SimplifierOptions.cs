@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
         }
 
-        private protected SimplifierOptions(IOptionsReader options, string language, SimplifierOptions fallbackOptions)
+        private protected SimplifierOptions(IOptionsReader options, SimplifierOptions fallbackOptions, string language)
         {
             QualifyFieldAccess = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, language, fallbackOptions.QualifyFieldAccess);
             QualifyPropertyAccess = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, language, fallbackOptions.QualifyPropertyAccess);

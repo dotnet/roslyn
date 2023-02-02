@@ -36,8 +36,8 @@ internal sealed record class VisualBasicIdeCodeStyleOptions : IdeCodeStyleOption
     {
     }
 
-    internal VisualBasicIdeCodeStyleOptions(IOptionsReader options, VisualBasicIdeCodeStyleOptions fallbackOptions)
-        : base(options, LanguageNames.VisualBasic, fallbackOptions)
+    internal VisualBasicIdeCodeStyleOptions(IOptionsReader options, VisualBasicIdeCodeStyleOptions? fallbackOptions)
+        : base(options, fallbackOptions ??= Default, LanguageNames.VisualBasic)
     {
         PreferredModifierOrder = options.GetOption(VisualBasicCodeStyleOptions.PreferredModifierOrder, fallbackOptions.PreferredModifierOrder);
         PreferIsNotExpression = options.GetOption(VisualBasicCodeStyleOptions.PreferIsNotExpression, fallbackOptions.PreferIsNotExpression);

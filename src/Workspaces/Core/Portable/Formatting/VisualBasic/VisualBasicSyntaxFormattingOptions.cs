@@ -19,8 +19,8 @@ internal sealed record class VisualBasicSyntaxFormattingOptions : SyntaxFormatti
     {
     }
 
-    internal VisualBasicSyntaxFormattingOptions(IOptionsReader options, VisualBasicSyntaxFormattingOptions fallbackOptions)
-        : base(options, LanguageNames.VisualBasic, fallbackOptions)
+    internal VisualBasicSyntaxFormattingOptions(IOptionsReader options, VisualBasicSyntaxFormattingOptions? fallbackOptions)
+        : base(options, fallbackOptions ??= Default, LanguageNames.VisualBasic)
     {
     }
 }

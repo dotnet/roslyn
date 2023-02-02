@@ -68,7 +68,7 @@ internal record class IdeCodeStyleOptions
     {
     }
 
-    private protected IdeCodeStyleOptions(IOptionsReader options, string language, IdeCodeStyleOptions fallbackOptions)
+    private protected IdeCodeStyleOptions(IOptionsReader options, IdeCodeStyleOptions fallbackOptions, string language)
     {
         PreferObjectInitializer = options.GetOption(CodeStyleOptions2.PreferObjectInitializer, language, fallbackOptions.PreferObjectInitializer);
         PreferCollectionInitializer = options.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language, fallbackOptions.PreferCollectionInitializer);

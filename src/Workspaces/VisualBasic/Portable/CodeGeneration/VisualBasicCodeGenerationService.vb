@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Property
 
         Public Overrides Function GetCodeGenerationOptions(options As IOptionsReader, fallbackOptions As CodeGenerationOptions) As CodeGenerationOptions
-            Return New VisualBasicCodeGenerationOptions(options, If(DirectCast(fallbackOptions, VisualBasicCodeGenerationOptions), VisualBasicCodeGenerationOptions.Default))
+            Return New VisualBasicCodeGenerationOptions(options, DirectCast(fallbackOptions, VisualBasicCodeGenerationOptions))
         End Function
 
         Public Overrides Function GetInfo(context As CodeGenerationContext, options As CodeGenerationOptions, parseOptions As ParseOptions) As VisualBasicCodeGenerationContextInfo

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => CSharpCodeGenerationOptions.Default;
 
         public override CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions)
-            => new CSharpCodeGenerationOptions(options, (CSharpCodeGenerationOptions?)fallbackOptions ?? CSharpCodeGenerationOptions.Default);
+            => new CSharpCodeGenerationOptions(options, (CSharpCodeGenerationOptions?)fallbackOptions);
 
         public override CSharpCodeGenerationContextInfo GetInfo(CodeGenerationContext context, CodeGenerationOptions options, ParseOptions parseOptions)
             => new(context, (CSharpCodeGenerationOptions)options, this, ((CSharpParseOptions)parseOptions).LanguageVersion);
