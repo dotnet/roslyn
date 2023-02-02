@@ -240,7 +240,6 @@ namespace Text.Analyzers
 
         private static void OnCompilationStart(CompilationStartAnalysisContext compilationStartContext)
         {
-
             var dictionaries = ReadDictionaries();
             var projectDictionary = CodeAnalysisDictionary.CreateFromDictionaries(dictionaries.Concat(s_mainDictionary));
 
