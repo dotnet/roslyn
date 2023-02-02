@@ -4,7 +4,7 @@ CLaSP was created to ease the creation and maintenance of [Language Server](http
 
 ## A note on support
 
-Currently, CLaSP is not recommended or supported for use outside of specific teams/projects. We hope to make it more broadly available in the future.
+Currently CLaSP is not recommended or supported for use outside of specific teams/projects. We hope to make it more broadly available in the future.
 
 ## Getting Started with CLaSP
 
