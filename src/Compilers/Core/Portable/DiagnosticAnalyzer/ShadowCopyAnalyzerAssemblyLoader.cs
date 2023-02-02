@@ -16,7 +16,7 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class ShadowCopyAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
+    internal sealed class ShadowCopyAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         /// <summary>
         /// The base directory for shadow copies. Each instance of
