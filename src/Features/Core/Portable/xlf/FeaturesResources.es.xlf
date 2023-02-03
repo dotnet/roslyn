@@ -350,6 +350,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Las clases base contienen miembros no implementados que son inaccesibles.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="new">C# and Visual Basic References</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">No se pueden aplicar los cambios. Error inesperado: "{0}"</target>
@@ -2700,6 +2705,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">El símbolo no tiene implementaciones.</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Timeout_SourceLink">
         <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
         <target state="translated">Se agotó el tiempo de espera al intentar descargar el código fuente de SourceLink. Es posible que las solicitudes siguientes se realicen correctamente.</target>
@@ -3130,9 +3140,19 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">"{0}" puede ser NULL aquí.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_reference_unquoted">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
         <target state="translated">Referencias de “{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references_unquoted">
+        <source>{0} references</source>
+        <target state="new">{0} references</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">

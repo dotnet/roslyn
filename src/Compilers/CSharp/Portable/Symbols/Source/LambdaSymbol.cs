@@ -134,11 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
-        {
-            get { return default(System.Reflection.MethodImplAttributes); }
-        }
-
         public override bool ReturnsVoid
         {
             get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.IsVoidType(); }

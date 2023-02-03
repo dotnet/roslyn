@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -112,6 +113,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        /// <remarks>
+        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
     }
 
@@ -144,10 +148,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        /// <remarks>
+        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText);
 
         /// <summary>
-        /// Adds a <see cref="Diagnostic"/> to the users compilation 
+        /// Adds a <see cref="Diagnostic"/> to the users compilation
         /// </summary>
         /// <param name="diagnostic">The diagnostic that should be added to the compilation</param>
         /// <remarks>

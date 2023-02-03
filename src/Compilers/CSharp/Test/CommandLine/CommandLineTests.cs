@@ -7191,6 +7191,29 @@ public class C
         }
 
         [Fact]
+        public void CreateCompilationWithDisableLengthBasedSwitch()
+        {
+            string source = """
+public class C
+{
+}
+""";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "a.cs", "/features:disable-length-based-switch" });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+            Assert.True(((CSharpCompilation)comp).FeatureDisableLengthBasedSwitch);
+
+            cmd = CreateCSharpCompiler(null, dir.Path, new[] { "a.cs" });
+            comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+            Assert.False(((CSharpCompilation)comp).FeatureDisableLengthBasedSwitch);
+        }
+
+        [Fact]
         public void CreateCompilation_MainAndTargetIncompatibilities()
         {
             string source = @"
@@ -13355,8 +13378,22 @@ class C
             Directory.Delete(dir.Path, true);
         }
 
-        [Fact]
-        public void SourceGenerators_WriteGeneratedSources()
+        [Theory]
+        [InlineData("generatedSource.cs", "", "generatedSource.cs")]
+        [InlineData("..", "", "...cs")]
+        [InlineData(".", "", "..cs")]
+        [InlineData("abc/", "abc", ".cs")]
+        [InlineData("abc\\", "abc", ".cs")]
+        [InlineData("abc/ ", "abc", " .cs")]
+        [InlineData("a/b/c", "a/b", "c.cs")]
+        [InlineData("a/b\\c", "a/b", "c.cs")]
+        [InlineData("a\\b\\c", "a/b", "c.cs")]
+        [InlineData(" abc ", "", " abc .cs")]
+        [InlineData(" abc/generated.cs", " abc", "generated.cs")]
+        [InlineData(" abc\\generated.cs", " abc", "generated.cs")]
+        [InlineData(" a/ b/ generated.cs", " a/ b", " generated.cs")]
+        [InlineData(" a\\ b\\ generated.cs", " a/ b", " generated.cs")]
+        public void SourceGenerators_WriteGeneratedSources(string hintName, string expectedDir, string expectedFileName)
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText(@"
@@ -13366,12 +13403,15 @@ class C
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
-            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+            var generator = new SingleFileTestGenerator(generatedSource, hintName);
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+            ValidateWrittenSources(new()
+            {
+                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { expectedFileName, generatedSource } } }
+            });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -13435,6 +13475,44 @@ class C
             {
                 { Path.Combine(generatedDir.Path, generator1Prefix), new() { { source1Name, source1 } } },
                 { Path.Combine(generatedDir.Path, generator2Prefix), new() { { source2Name, source2 } } }
+            });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Theory]
+        [InlineData("subdir")]
+        [InlineData("a/b/c")]
+        [InlineData("a\\b\\c", "a/b/c")]
+        [InlineData(" subdir")]
+        [InlineData(" a/ b/ c")]
+        [InlineData(" a\\ b/ c", " a/ b/ c")]
+        [InlineData("abc/")]
+        public void SourceGenerators_WriteGeneratedSources_WithDirectories(string subdir, string expectedDir = null)
+        {
+            expectedDir ??= subdir;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+                class C
+                {
+                }
+                """);
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generatedFileName = "generatedSource.cs";
+            var generatedPath = Path.Combine(subdir, generatedFileName);
+            var generator = new SingleFileTestGenerator(generatedSource, generatedPath);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateWrittenSources(new()
+            {
+                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { generatedFileName, generatedSource } } }
             });
 
             // Clean up temp files
