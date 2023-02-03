@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
 using System.Reflection;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -42,7 +42,6 @@ internal sealed class ExportProviderBuilder
         // You can create as many of these as you want, but typically an app needs just one.
         var exportProvider = exportProviderFactory.CreateExportProvider();
 
-        // Obtain our first exported value
         return exportProvider;
     }
 

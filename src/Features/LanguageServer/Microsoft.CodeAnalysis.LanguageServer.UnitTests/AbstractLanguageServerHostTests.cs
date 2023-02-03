@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public abstract class AbstractLanguageServerHostTests
 {
-    protected readonly ILogger TestOutputLogger;
+    protected ILogger TestOutputLogger { get; }
 
     protected AbstractLanguageServerHostTests(ITestOutputHelper testOutputHelper)
     {
@@ -47,8 +47,7 @@ public abstract class AbstractLanguageServerHostTests
         private TestLspServer(ExportProvider exportProvider, ILogger logger)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            var hostServices = MefV1HostServices.Create(exportProvider.AsExportProvider());
-            _languageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, hostServices, logger);
+            _languageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger);
 
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, new JsonMessageFormatter()))
             {
@@ -59,12 +58,14 @@ public abstract class AbstractLanguageServerHostTests
 
             // This task completes when the server shuts down.  We store it so that we can wait for completion
             // when we dispose of the test server.
-            _languageServerHostCompletionTask = _languageServerHost.StartAsync();
+            _languageServerHost.Start();
+
+            _languageServerHostCompletionTask = _languageServerHost.WaitForExitAsync();
         }
 
-        public async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, CancellationToken cancellationToken) where RequestType : class
+        public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {
-            var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, request, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var result = await _clientRpc.InvokeWithParameterObjectAsync<TResponseType>(methodName, request, cancellationToken: cancellationToken).ConfigureAwait(false);
             return result;
         }
 

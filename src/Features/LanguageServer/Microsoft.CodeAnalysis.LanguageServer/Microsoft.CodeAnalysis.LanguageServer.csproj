@@ -17,6 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(MicrosoftCodeAnalysisLanguageServerProtocolVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Desktop" Version="$(MicrosoftCodeAnalysisWorkspacesDesktopVersion)" />
