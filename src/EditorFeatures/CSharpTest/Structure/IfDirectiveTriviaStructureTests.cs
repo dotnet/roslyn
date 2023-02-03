@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         public async Task TestEnabledIfDisabledElifDisabledElse()
         {
             const string code = @"
-#if true
-{|span:$$class C
+#$$if true
+{|span:class C
 {
 }|}
 #elif false
@@ -44,12 +44,12 @@ class E
         public async Task TestDisabledIfEnabledElifDisabledElse()
         {
             const string code = @"
-#if false
+#$$if false
 class C
 {
 }
 #elif true
-{|span:$$class D
+{|span:class D
 {
 }|}
 #else
@@ -67,7 +67,7 @@ class E
         public async Task TestDisabledIfDisabledElifEnabledElse()
         {
             const string code = @"
-#if false
+#$$if false
 class C
 {
 }
@@ -76,7 +76,7 @@ class D
 {
 }
 #else
-{|span:$$class E
+{|span:class E
 {
 }|}
 #endif
@@ -90,7 +90,7 @@ class D
         public async Task TestEmptyEnabledRegion()
         {
             const string code = @"
-#if true$$
+#$$if true
 #elif false
 class D
 {

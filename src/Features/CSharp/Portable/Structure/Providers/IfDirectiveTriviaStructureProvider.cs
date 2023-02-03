@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxTree = previousToken.SyntaxTree;
-            Contract.ThrowIfNull(syntaxTree);
-
             var allRelatedDirectives = node.GetRelatedDirectives();
             SourceText? text = null;
 
@@ -37,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     continue;
 
                 var nextDirective = allRelatedDirectives[i + 1];
-                text ??= syntaxTree.GetText(cancellationToken);
+                text ??= node.SyntaxTree.GetText(cancellationToken);
 
                 var startLineNumber = text.Lines.GetLineFromPosition(directive.SpanStart).LineNumber + 1;
                 var endLineNumber = text.Lines.GetLineFromPosition(nextDirective.SpanStart).LineNumber - 1;
