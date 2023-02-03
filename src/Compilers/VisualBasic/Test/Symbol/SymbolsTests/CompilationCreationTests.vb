@@ -2230,5 +2230,15 @@ End Class
                 Next
             Next
         End Sub
+
+        <Fact>
+        Public Sub RuntimeCapabilitiesNotSupported()
+            Dim compilation1 = VisualBasicCompilation.Create("Compilation1")
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+        End Sub
     End Class
 End Namespace
