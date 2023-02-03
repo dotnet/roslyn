@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
-        protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
+        protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, Project project)
         {
             // All workspace diagnostics are potential duplicates given that they can be overridden by the diagnostics
             // produced by document diagnostics.
-            return ConvertTags(diagnosticData, potentialDuplicate: true);
+            return ConvertTags(diagnosticData, project, potentialDuplicate: true);
         }
 
         protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(

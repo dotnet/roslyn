@@ -41,9 +41,9 @@ internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagno
 
     public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
+    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, Project project)
     {
-        return ConvertTags(diagnosticData, potentialDuplicate: false);
+        return ConvertTags(diagnosticData, project, potentialDuplicate: false);
     }
 
     protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)

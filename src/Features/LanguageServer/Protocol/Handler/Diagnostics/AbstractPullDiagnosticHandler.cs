@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Generate the right diagnostic tags for a particular diagnostic.
         /// </summary>
-        protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
+        protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, Project project);
 
         protected abstract string? GetDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
 
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-                    Tags = ConvertTags(diagnosticData),
+                    Tags = ConvertTags(diagnosticData, project),
                     DiagnosticRank = ConvertRank(diagnosticData),
                 };
 
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// If you make change in this method, please also update the corresponding file in
         /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
         /// </summary>
-        protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
+        protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, Project project, bool potentialDuplicate)
         {
             using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 
@@ -460,6 +460,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 result.Add(VSDiagnosticTags.HiddenInEditor);
                 result.Add(VSDiagnosticTags.HiddenInErrorList);
                 result.Add(VSDiagnosticTags.SuppressEditorToolTip);
+            }
+            else if (project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
+            {
+                // Interactive window diagnostics should never show up in the error list.
+                result.Add(VSDiagnosticTags.HiddenInErrorList);
             }
             else
             {

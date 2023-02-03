@@ -37,9 +37,9 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
     protected override string? GetDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
         => null;
 
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
+    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, Project project)
     {
-        return ConvertTags(diagnosticData, potentialDuplicate: false);
+        return ConvertTags(diagnosticData, project, potentialDuplicate: false);
     }
 
     protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
