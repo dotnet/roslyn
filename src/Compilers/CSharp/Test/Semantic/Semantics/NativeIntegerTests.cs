@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -69,6 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+
             comp.VerifyDiagnostics(
                 // (3,5): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
@@ -82,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
         }
 
@@ -171,22 +175,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 }";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
             comp = CreateEmptyCompilation(sourceA, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 

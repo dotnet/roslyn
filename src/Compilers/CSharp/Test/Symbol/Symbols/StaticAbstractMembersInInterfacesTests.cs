@@ -5301,6 +5301,8 @@ interface I1
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -5335,6 +5337,8 @@ interface I1
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -5375,6 +5379,8 @@ interface I1
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -5388,6 +5394,8 @@ interface I1
 
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation2.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
         }
 
         [Fact]
@@ -5412,6 +5420,8 @@ interface I1
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -5425,6 +5435,8 @@ interface I1
 
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation2.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
         }
 
         [Theory]
