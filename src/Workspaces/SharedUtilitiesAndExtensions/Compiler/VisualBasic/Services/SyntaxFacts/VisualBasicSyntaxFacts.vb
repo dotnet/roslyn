@@ -1756,7 +1756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return TypeOf node Is ObjectMemberInitializerSyntax
         End Function
 
-        Public Function IsObjecCollectionInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectCollectionInitializer
+        Public Function IsObjectCollectionInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectCollectionInitializer
             Return TypeOf node Is ObjectCollectionInitializerSyntax
         End Function
 
