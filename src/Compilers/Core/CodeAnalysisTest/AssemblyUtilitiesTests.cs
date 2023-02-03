@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var results = AssemblyUtilities.FindAssemblySet(alphaDll);
 
-            AssertEx.SetEqual(new[] { alphaDll, gammaDll}, results, StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { alphaDll, gammaDll }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IdentifyMissingDependencies_MultipleMissing()
         {
-            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha, new[] { _testFixture.Alpha}).Select(identity => identity.Name);
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha, new[] { _testFixture.Alpha }).Select(identity => identity.Name);
 
             AssertEx.SetEqual(new[] { "netstandard", "Gamma" }, results);
         }
