@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public abstract class AbstractCSharpAutoPropertyCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
+        protected abstract string GetDefaultPropertyText(string propertyName);
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MissingInNamespace()
         {
@@ -136,8 +138,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """);
         }
-
-        protected abstract string GetDefaultPropertyText(string propertyName);
 
         private Task VerifyPropertyAbsenceAsync(string markup) => VerifyItemIsAbsentAsync(markup, ItemToCommit);
 
