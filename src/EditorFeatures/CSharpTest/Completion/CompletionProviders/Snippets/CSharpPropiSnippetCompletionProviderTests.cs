@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpPropSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
+    public class CSharpPropiSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
     {
-        protected override string ItemToCommit => "prop";
+        protected override string ItemToCommit => "propi";
 
         protected override string GetDefaultPropertyText(string propertyName)
-            => $"public int {propertyName} {{ get; set; }}";
+            => $"public int {propertyName} {{ get; init; }}";
 
         public override async Task InsertSnippetInInterface()
         {

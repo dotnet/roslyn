@@ -6,21 +6,22 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpPropSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
+    public class CSharpPropgSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
     {
-        protected override string ItemToCommit => "prop";
+        protected override string ItemToCommit => "propg";
 
         protected override string GetDefaultPropertyText(string propertyName)
-            => $"public int {propertyName} {{ get; set; }}";
+            => $"public int {propertyName} {{ get; private set; }}";
 
         public override async Task InsertSnippetInInterface()
         {
-            await VerifyDefaultPropertyAsync("""
+            // Ensure we don't generate redundant `set` accessor when executed in interface
+            await VerifyPropertyAsync("""
                 interface MyInterface
                 {
                     $$
                 }
-                """);
+                """, "public int MyProperty { get; }");
         }
     }
 }

@@ -11,12 +11,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
-    internal abstract class AbstractPropSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractPropertySnippetProvider : AbstractSnippetProvider
     {
-        public override string Identifier => "prop";
-
-        public override string Description => FeaturesResources.property_;
-
         /// <summary>
         /// Generates the property syntax.
         /// Requires language specificity for the TypeSyntax as well as the
