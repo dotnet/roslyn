@@ -788,13 +788,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var usingToken = this.EatToken(SyntaxKind.UsingKeyword);
             var staticToken = this.TryEatToken(SyntaxKind.StaticKeyword);
+            var unsafeToken = this.TryEatToken(SyntaxKind.UnsafeKeyword);
 
             var alias = this.IsNamedAssignment() ? ParseNameEquals() : null;
 
-            NameSyntax name;
+            TypeSyntax type;
             SyntaxToken semicolon;
 
-            if (IsPossibleNamespaceMemberDeclaration())
+            var isAliasToFunctionPointer = alias != null && this.CurrentToken.Kind == SyntaxKind.DelegateKeyword;
+            if (!isAliasToFunctionPointer && IsPossibleNamespaceMemberDeclaration())
             {
                 //We're worried about the case where someone already has a correct program
                 //and they've gone back to add a using directive, but have not finished the
@@ -812,23 +814,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //NB: there's no way this could be true for a set of tokens that form a valid 
                 //using directive, so there's no danger in checking the error case first.
 
-                name = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
+                type = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
             else
             {
-                name = this.ParseQualifiedName();
-                if (name.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
-                {
-                    //if we can see a semicolon ahead, then the current token was
-                    //probably supposed to be an identifier
-                    name = AddTrailingSkippedSyntax(name, this.EatToken());
-                }
+                // In the case where we don't have an alias, only parse out a name for this using-directive.  This is
+                // worse for error recovery, but it means all code that consumes a using-directive can keep on assuming
+                // it has a name when there is no alias.  Only code that specifically has to process aliases then has to
+                // deal with getting arbitrary types back.
+                type = alias == null ? this.ParseQualifiedName() : this.ParseType();
+
+                // If we can see a semicolon ahead, then the current token was probably supposed to be an identifier
+                if (type.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
+                    type = AddTrailingSkippedSyntax(type, this.EatToken());
 
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
-            return _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, alias, name, semicolon);
+            return _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, unsafeToken, alias, type, semicolon);
         }
 
         private bool IsPossibleGlobalAttributeDeclaration()

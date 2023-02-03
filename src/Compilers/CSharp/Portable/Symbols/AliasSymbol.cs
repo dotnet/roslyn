@@ -322,11 +322,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // symbol. If it is an extern alias then find the target in the list of metadata references.
                 var newDiagnostics = BindingDiagnosticBag.GetInstance();
 
-                NamespaceOrTypeSymbol symbol = this.IsExtern ?
-                    ResolveExternAliasTarget(newDiagnostics) :
-                    ResolveAliasTarget(((UsingDirectiveSyntax)_directive.GetSyntax()).Name, newDiagnostics, basesBeingResolved);
+                NamespaceOrTypeSymbol symbol = this.IsExtern
+                    ? ResolveExternAliasTarget(newDiagnostics)
+                    : ResolveAliasTarget((UsingDirectiveSyntax)_directive.GetSyntax(), newDiagnostics, basesBeingResolved);
 
-                if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
+                if (Interlocked.CompareExchange(ref _aliasTarget, symbol, null) is null)
                 {
                     // Note: It's important that we don't call newDiagnosticsToReadOnlyAndFree here. That call
                     // can force the prompt evaluation of lazy initialized diagnostics.  That in turn can 
@@ -372,10 +372,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return target;
         }
 
-        private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
+        private NamespaceOrTypeSymbol ResolveAliasTarget(
+            UsingDirectiveSyntax usingDirective,
+            BindingDiagnosticBag diagnostics,
+            ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var declarationBinder = ContainingSymbol.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
-            return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
+            if (usingDirective.UnsafeKeyword != default)
+            {
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
+            }
+            else if (usingDirective.Type is not NameSyntax)
+            {
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.Type);
+            }
+
+            var syntax = usingDirective.Type;
+            var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
+            if (usingDirective.UnsafeKeyword != default)
+            {
+                this.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+                flags |= BinderFlags.UnsafeRegion;
+            }
+
+            var declarationBinder = ContainingSymbol.DeclaringCompilation
+                .GetBinderFactory(syntax.SyntaxTree)
+                .GetBinder(syntax)
+                .WithAdditionalFlags(flags);
+
+            var annotatedNamespaceOrType = declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved);
+
+            // `using X = RefType?;` is not legal.
+            if (usingDirective.Type is NullableTypeSyntax nullableType &&
+                annotatedNamespaceOrType.TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated &&
+                annotatedNamespaceOrType.TypeWithAnnotations.Type?.IsReferenceType is true)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, nullableType.QuestionToken.GetLocation());
+            }
+
+            var namespaceOrType = annotatedNamespaceOrType.NamespaceOrTypeSymbol;
+            if (namespaceOrType is TypeSymbol { IsNativeIntegerWrapperType: true } &&
+                (usingDirective.Type.IsNint || usingDirective.Type.IsNuint))
+            {
+                // using X = nint;
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.Type);
+            }
+
+            return namespaceOrType;
         }
 
         internal override bool RequiresCompletion

@@ -113,11 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var assemblyRef = TryGetAssemblyScope(ns, moduleBuilder, diagnostics);
                         usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns.GetCciAdapter(), assemblyRef, alias));
                     }
-                    else if (!target.ContainingAssembly.IsLinked)
+                    else if (target is TypeSymbol { ContainingAssembly.IsLinked: false } typeSymbol)
                     {
                         // We skip alias imports of embedded types to avoid breaking existing code that
                         // imports types that can't be embedded but doesn't use them anywhere else in the code.
-                        var typeRef = GetTypeReference((TypeSymbol)target, syntax, moduleBuilder, diagnostics);
+                        var typeRef = GetTypeReference(typeSymbol, syntax, moduleBuilder, diagnostics);
                         usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateType(typeRef, alias));
                     }
                 }
