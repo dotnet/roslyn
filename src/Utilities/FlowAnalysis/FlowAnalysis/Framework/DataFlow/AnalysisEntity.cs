@@ -154,17 +154,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        internal bool IsChildOrInstanceMemberNeedingCompletePointsToAnalysis()
+        internal bool ShouldBeTrackedForPointsToAnalysis(PointsToAnalysisKind pointsToAnalysisKind)
+            => ShouldBeTrackedForAnalysis(pointsToAnalysisKind == PointsToAnalysisKind.Complete);
+
+        internal bool ShouldBeTrackedForAnalysis(bool hasCompletePointsToAnalysisResult)
         {
             if (!IsChildOrInstanceMember)
             {
-                return false;
+                // We can always perform analysis for entities which are not child or instance members.
+                return true;
             }
 
-            // PERF: This is the core performance optimization for partial PointsToAnalysisKind.
-            // We avoid tracking PointsToValues for all entities that are child or instance members,
+            // If we have complete points to analysis result, and this child or instance member has a
+            // known instance location, we can perform analysis for this entity.
+            if (hasCompletePointsToAnalysisResult && !HasUnknownInstanceLocation)
+            {
+                return true;
+            }
+
+            // PERF: This is the core performance optimization when we have partial points to analysis result.
+            // We avoid tracking analysis values for all entities that are child or instance members,
             // except when they are fields or members of a value type (for example, tuple elements or struct members).
-            return Parent == null || !Parent.Type.HasValueCopySemantics();
+            return Parent != null && Parent.Type.HasValueCopySemantics();
         }
 
         public bool HasConstantValue => Symbol switch

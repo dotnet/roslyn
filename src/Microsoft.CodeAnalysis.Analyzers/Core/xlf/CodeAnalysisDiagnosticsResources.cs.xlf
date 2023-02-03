@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="AddCompilationEndCustomTagDescription">
         <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
-        <target state="new">'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</target>
+        <target state="translated">Popisovač DiagnosticDescriptor přiřazený k poli se používá k hlášení diagnostiky ukončení kompilace, ale konstruktor DiagnosticDescriptor použitý k jeho inicializaci nepředává požadovanou vlastní značku CompilationEnd. Podrobnosti najdete v dokumentaci k WellKnownDiagnosticTags.CompilationEnd.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagMessage">
         <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
-        <target state="new">Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</target>
+        <target state="translated">Přidat vlastní značku CompilationEnd do popisovače diagnostiky, který se používá k inicializaci pole {0}, protože slouží k nahlášení diagnostiky ukončení kompilace</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagTitle">
         <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
-        <target state="new">Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</target>
+        <target state="translated">Přidat vlastní značku CompilationEnd do popisovače diagnostiky ukončení kompilace</target>
         <note />
       </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -587,7 +587,7 @@
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
         <source>Do not ignore values returned by methods on immutable objects</source>
-        <target state="new">Do not ignore values returned by methods on immutable objects</target>
+        <target state="translated">Neignorovat hodnoty vrácené metodami u neměnných objektů</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">

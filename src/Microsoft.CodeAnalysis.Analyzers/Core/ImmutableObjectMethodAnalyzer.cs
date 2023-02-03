@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public static void AnalyzeInvocationForIgnoredReturnValue(OperationAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
         {
             var invocation = (IInvocationOperation)context.Operation;
-            if (invocation.Parent is not IExpressionStatementOperation)
+            // Returns void happens for the internal AddDebugSourceDocumentsForChecksumDirectives in the compiler itself.
+            if (invocation.Parent is not IExpressionStatementOperation || invocation.TargetMethod.ReturnsVoid)
             {
                 return;
             }
@@ -88,10 +89,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 return;
             }
 
-            INamedTypeSymbol? type = invocation.GetReceiverType(context.Compilation, beforeConversion: false, context.CancellationToken);
-
             // If we're not in one of the known immutable types, quit
-            if (type is not null && type.GetBaseTypesAndThis().Any(immutableTypeSymbols.Contains))
+            if (invocation.GetReceiverType(context.Compilation, beforeConversion: false, context.CancellationToken) is INamedTypeSymbol type
+                && type.GetBaseTypesAndThis().Any(immutableTypeSymbols.Contains))
             {
                 context.ReportDiagnostic(invocation.CreateDiagnostic(DoNotIgnoreReturnValueDiagnosticRule, type.Name, methodName));
             }

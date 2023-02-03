@@ -67,3 +67,14 @@ RS1033 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAna
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1034 | MicrosoftCodeAnalysisPerformance | Warning | PreferIsKindAnalyzer
+
+## Release 3.3.4
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+RS1014 | MicrosoftCodeAnalysisCorrectness | Warning | ImmutableObjectMethodAnalyzer
+RS1035 | MicrosoftCodeAnalysisCorrectness | Error | SymbolIsBannedInAnalyzersAnalyzer
+RS1036 | MicrosoftCodeAnalysisCorrectness | Warning | SymbolIsBannedInAnalyzersAnalyzer
+RS1037 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer

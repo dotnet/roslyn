@@ -164,7 +164,7 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
     foreach (string file in fileList)
     {
         var fileWithPath = Path.IsPathRooted(file) ? file : Path.Combine(projectDir, file);
-        result.AppendLine(FileElement(fileWithPath, "build"));
+        result.AppendLine(FileElement(fileWithPath, "buildTransitive"));
     }
 
     if (readmePackageLocation.Length > 0)
@@ -235,15 +235,15 @@ if (editorconfigsDir.Length > 0 && Directory.Exists(editorconfigsDir))
 
 if (globalAnalyzerConfigsDir.Length > 0 && Directory.Exists(globalAnalyzerConfigsDir))
 {
-    foreach (string editorconfig in Directory.EnumerateFiles(globalAnalyzerConfigsDir))
+    foreach (string globalconfig in Directory.EnumerateFiles(globalAnalyzerConfigsDir))
     {
-        if (Path.GetExtension(editorconfig) == ".editorconfig")
+        if (Path.GetExtension(globalconfig) == ".globalconfig")
         {
-            result.AppendLine(FileElement(Path.Combine(globalAnalyzerConfigsDir, editorconfig), $"build\\config"));
+            result.AppendLine(FileElement(Path.Combine(globalAnalyzerConfigsDir, globalconfig), $"buildTransitive\\config"));
         }
         else
         {
-            throw new InvalidDataException($"Encountered a file with unexpected extension: {editorconfig}");
+            throw new InvalidDataException($"Encountered a file with unexpected extension: {globalconfig}");
         }
     }
 }

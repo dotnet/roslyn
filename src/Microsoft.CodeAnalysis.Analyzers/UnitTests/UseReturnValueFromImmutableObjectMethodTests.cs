@@ -169,6 +169,41 @@ End Namespace";
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
+        [Fact]
+        public async Task CSharp_ReturnsVoid()
+        {
+            var source = @"
+namespace Microsoft.CodeAnalysis
+{
+    public class Compilation
+    {
+        internal void AddSomething()
+        {
+        }
+
+        internal void M() => AddSomething();
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact]
+        public async Task VisualBasic_ReturnsVoid()
+        {
+            var source = @"
+Namespace Microsoft.CodeAnalysis
+    Public Class Compilation
+        Friend Sub AddSomething()
+        End Sub
+
+        Friend Sub M()
+            AddSomething()
+        End Sub
+    End Class
+End Namespace";
+            await VerifyVB.VerifyCodeFixAsync(source, source);
+        }
+
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int markupKey, string objectName, string methodName) =>
             VerifyCS.Diagnostic().WithLocation(markupKey).WithArguments(objectName, methodName);
 
