@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.CompilerServices
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
@@ -3967,5 +3968,109 @@ End Class
 </Workspace>
             Await TestAPI(input, host)
         End Function
+
+#Region "Collection Initializers"
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(22449, "https://github.com/dotnet/roslyn/issues/22449")>
+        Public Async Function CollectionInitializer1_CSharp(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System.Collections.Generic;
+
+internal static class C
+{
+    private static void {|Definition:$$Add|}(this Dictionary<int, int> dictionary, int value) =>
+        dictionary.Add(value, value * 2);
+
+    public static Dictionary<int, int> GetMapping() =>
+        new Dictionary<int, int> { [|1|], [|2|], [|3|] };
+
+    public static Dictionary<int, int> GetMapping2()
+    {
+        var dictionary = new Dictionary<int, int>();
+        dictionary.[|Add|](1);
+        dictionary.[|Add|](2);
+        dictionary.[|Add|](3);
+        return dictionary;
+    }
+}
+
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(22449, "https://github.com/dotnet/roslyn/issues/22449")>
+        Public Async Function CollectionInitializer2_CSharp(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System.Collections.Generic;
+
+internal class X
+{
+    public Dictionary<int, int> Y { get; }
+}
+
+internal static class C
+{
+    private static void {|Definition:$$Add|}(this Dictionary<int, int> dictionary, int value) =>
+        dictionary.Add(value, value * 2);
+
+    public static Dictionary<int, int> GetMapping2()
+    {
+        new X
+        {
+            Y = { [|1|], [|2|], [|3|] }
+        };
+    }
+}
+
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(22449, "https://github.com/dotnet/roslyn/issues/22449")>
+        Public Async Function CollectionInitializer1_VisualBasic(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+imports System.Collections.Generic
+imports System.Runtime.CompilerServices
+
+Friend Module M
+    <Extension>
+    Public Sub Add(dict As Dictionary(Of Integer, Integer), value As Integer)
+        dict.Add(value, value * 2)
+    End Sub
+End Module
+
+class C
+    public shared function GetMapping() as Dictionary(Of Integer, Integer)
+        return new Dictionary(Of Integer, Integer) From {
+            [|1|],
+            [|2|],
+            [|3|]
+        }
+    end function
+end class
+
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+#End Region
     End Class
 End Namespace
