@@ -77,16 +77,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """);
         }
 
+        // This case might produce non-default results for different snippets (e.g. no `set` accessor in 'propg' snippet),
+        // so it is tested separately for all of them
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public virtual async Task InsertSnippetInInterface()
-        {
-            await VerifyDefaultPropertyAsync("""
-                interface MyInterface
-                {
-                    $$
-                }
-                """);
-        }
+        public abstract Task InsertSnippetInInterface();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertSnippetNaming()
@@ -148,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markup, ItemToCommit, expectedCode);
         }
 
-        private Task VerifyDefaultPropertyAsync(string markup, string propertyName = "MyProperty")
+        protected Task VerifyDefaultPropertyAsync(string markup, string propertyName = "MyProperty")
             => VerifyPropertyAsync(markup, GetDefaultPropertyText(propertyName));
     }
 }
