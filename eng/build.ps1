@@ -35,7 +35,6 @@ param (
   [string]$bootstrapConfiguration = "Release",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
-  [switch]$buildServerLog,
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
@@ -81,7 +80,6 @@ function Print-Usage() {
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
   Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
-  Write-Host "  -buildServerLog           Create Roslyn build server log"
   Write-Host ""
   Write-Host "Actions:"
   Write-Host "  -restore                  Restore packages (short: -r)"
@@ -174,9 +172,6 @@ function Process-Arguments() {
 
   if ($ci) {
     $script:binaryLog = $true
-    if ($bootstrap) {
-      $script:buildServerLog = $true
-    }
   }
 
   if ($binaryLog -and ($binaryLogName -eq "")) {
@@ -231,10 +226,10 @@ function BuildSolution() {
       Write-LogIssue -Type "error" -Message "Overwriting binary log file $($binaryLogPath)"
       throw "Overwriting binary log files"
     }
-  }
 
-  if ($buildServerLog) {
     ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
+    ${env:MSBUILDDEBUGCOMM} = 1
+    ${env:MSBUILDDEBUGPATH} = Join-Path $LogDir "MSbuild.Comm.log"
   }
 
   $projects = Join-Path $RepoRoot $solution
@@ -294,6 +289,8 @@ function BuildSolution() {
   }
   finally {
     ${env:ROSLYNCOMMANDLINELOGFILE} = $null
+    ${env:MSBUILDDEBUGCOMM} = 0
+    ${env:MSBUILDDEBUGPATH} = $null
   }
 }
 
