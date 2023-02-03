@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -41,10 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         {
             var testDocument = workspace.DocumentWithCursor;
             var position = testDocument.CursorPosition.GetValueOrDefault();
-            var documentId = workspace.GetDocumentId(testDocument);
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var documentId = testDocument.Id;
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
             var service = QuickInfoService.GetService(document);
+            Contract.ThrowIfNull(service);
 
             await TestWithOptionsAsync(document, service, position, expectedResults);
 
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
             else
             {
-                Assert.NotNull(info);
+                AssertEx.NotNull(info);
 
                 foreach (var expected in expectedResults)
                 {
@@ -94,11 +96,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 </Workspace>", SecurityElement.Escape(markup));
 
             using var workspace = TestWorkspace.Create(xmlString);
-            var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
-            var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var sourceDocument = workspace.Documents.Single(d => d.Name == "SourceDocument");
+            var position = sourceDocument.CursorPosition!.Value;
+            var documentId = sourceDocument.Id;
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
             var service = QuickInfoService.GetService(document);
+            Contract.ThrowIfNull(service);
 
             var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
             else
             {
-                Assert.NotNull(info);
+                AssertEx.NotNull(info);
 
                 foreach (var expected in expectedResults)
                 {
@@ -244,11 +248,13 @@ using System.Linq;
         private static async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoItem>[] expectedResults)
         {
             using var workspace = TestWorkspace.Create(xmlString);
-            var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
-            var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var sourceDocument = workspace.Documents.First(d => d.Name == "SourceDocument");
+            var position = sourceDocument.CursorPosition!.Value;
+            var documentId = sourceDocument.Id;
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
             var service = QuickInfoService.GetService(document);
+            Contract.ThrowIfNull(service);
 
             var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
@@ -258,7 +264,7 @@ using System.Linq;
             }
             else
             {
-                Assert.NotNull(info);
+                AssertEx.NotNull(info);
 
                 foreach (var expected in expectedResults)
                 {
