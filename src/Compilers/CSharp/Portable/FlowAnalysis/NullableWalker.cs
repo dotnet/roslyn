@@ -398,6 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode? _visitingConversionOperand;
 
 #if DEBUG
+        /// <summary>
+        /// Holds visited lambdas without conversion. Used to verify that we don't accidentaly visit the same lambda twice.
+        /// </summary>
         private readonly HashSet<BoundLambda> _errorLambdas = new HashSet<BoundLambda>();
 #endif
 
@@ -8990,6 +8993,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLambda(BoundLambda node)
         {
+            // Lambda bodies are usually visited in VisitConversion (we need to know the target delegate type),
+            // but in errorneous code, the lambda-to-delegate conversion might be missing, then we visit the lambda here.
+            // Whenever the visitor needs to visit a conversion operand, it must call one of the Visit*InConversion overloads
+            // which set _visitingConversionOperand, so if the operand is a lambda, we skip its analysis.
             if (_visitingConversionOperand != node)
             {
                 VisitLambda(node, delegateTypeOpt: null);
@@ -8998,7 +9005,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            // Note: actual lambda analysis happens after this call (primarily in VisitConversion).
             // Here we just indicate that a lambda expression produces a non-null value.
             SetNotNullResult(node);
             return null;
