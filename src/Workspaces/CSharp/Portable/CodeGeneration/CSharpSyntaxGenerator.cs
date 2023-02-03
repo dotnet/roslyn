@@ -238,6 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (!hasBody)
                 modifiers -= DeclarationModifiers.Async;
 
+            name = StripExplicitInterfaceName(name);
+
             return SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
                 modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
@@ -250,6 +252,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasBody ? CreateBlock(statements) : null,
                 expressionBody: null,
                 semicolonToken: !hasBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
+        }
+
+        private static string StripExplicitInterfaceName(string name)
+        {
+            // Only keep what's after the dot (if this is an explicit impl).  The explicit impl part will be added by
+            // the caller.
+            return name.LastIndexOf('.') is var index && index >= 0 ? name[(index + 1)..] : name;
         }
 
         public override SyntaxNode OperatorDeclaration(OperatorKind kind, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
@@ -336,6 +345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 CreateBlock(statements));
         }
 
+        private protected override SyntaxNode DestructorDeclaration(IMethodSymbol destructorMethod)
+            => SyntaxFactory.DestructorDeclaration(destructorMethod.ContainingType.Name).WithBody(SyntaxFactory.Block());
+
         public override SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
@@ -370,6 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             accessors.AddIfNotNull((AccessorDeclarationSyntax?)setAccessor);
 
             var actualModifiers = modifiers - (DeclarationModifiers.ReadOnly | DeclarationModifiers.WriteOnly);
+
+            name = StripExplicitInterfaceName(name);
 
             return SyntaxFactory.PropertyDeclaration(
                 attributeLists: default,
@@ -1776,16 +1790,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => WithAccessibility(declaration switch
             {
                 MethodDeclarationSyntax method
-                    => WithoutContraints(method.ReplaceNodes(method.ParameterList.Parameters, (_, p) => RemoveDefaultValue(p, removeDefaults))
-                                               .WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations))),
-                PropertyDeclarationSyntax member
-                    => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
-                EventDeclarationSyntax member
+                    => WithoutConstraints(
+                        method.ReplaceNodes(method.ParameterList.Parameters, (_, p) => RemoveDefaultValue(p, removeDefaults))
+                              .WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations))),
+                BasePropertyDeclarationSyntax member
                     => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
                 _ => declaration,
             }, Accessibility.NotApplicable);
 
-        private static MethodDeclarationSyntax WithoutContraints(MethodDeclarationSyntax method)
+        private static MethodDeclarationSyntax WithoutConstraints(MethodDeclarationSyntax method)
         {
             if (method.ConstraintClauses.Count == 0)
                 return method;
@@ -1821,6 +1834,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 DelegateDeclarationSyntax @delegate => @delegate.WithConstraintClauses(WithTypeConstraints(@delegate.ConstraintClauses, typeParameterName, kinds, types)),
                 _ => declaration,
             };
+
+        private protected override SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName)
+        {
+            var method = (MethodDeclarationSyntax)declaration;
+            return method.AddConstraintClauses(SyntaxFactory.TypeParameterConstraintClause(
+                typeParameterName).AddConstraints(SyntaxFactory.DefaultConstraint()));
+        }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> WithTypeConstraints(
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types)

@@ -19,6 +19,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [CollectionDefinition(Name)]
+    public class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
+    {
+        public const string Name = nameof(AssemblyLoadTestFixtureCollection);
+        private AssemblyLoadTestFixtureCollection() { }
+    }
+
     [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public class AnalyzerFileReferenceTests : TestBase
     {
