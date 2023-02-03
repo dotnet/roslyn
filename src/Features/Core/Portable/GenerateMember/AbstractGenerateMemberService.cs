@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         };
 
         protected static bool ValidateTypeToGenerateIn(
-            [NotNullWhen(true)] INamedTypeSymbol typeToGenerateIn,
+            [NotNullWhen(true)] INamedTypeSymbol? typeToGenerateIn,
             bool isStatic,
             ISet<TypeKind> typeKinds)
         {
@@ -58,17 +56,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             INamedTypeSymbol containingType,
             TExpressionSyntax simpleNameOrMemberAccessExpression,
             CancellationToken cancellationToken,
-            out INamedTypeSymbol typeToGenerateIn,
+            [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn,
             out bool isStatic,
             out bool isColorColorCase)
         {
             TryDetermineTypeToGenerateInWorker(
                 document, containingType, simpleNameOrMemberAccessExpression, cancellationToken, out typeToGenerateIn, out isStatic, out isColorColorCase);
 
-            if (typeToGenerateIn != null)
-            {
-                typeToGenerateIn = typeToGenerateIn.OriginalDefinition;
-            }
+            typeToGenerateIn = typeToGenerateIn?.OriginalDefinition;
 
             return typeToGenerateIn != null;
         }
@@ -78,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             INamedTypeSymbol containingType,
             TExpressionSyntax expression,
             CancellationToken cancellationToken,
-            out INamedTypeSymbol typeToGenerateIn,
+            out INamedTypeSymbol? typeToGenerateIn,
             out bool isStatic,
             out bool isColorColorCase)
         {
@@ -86,7 +81,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             isStatic = false;
             isColorColorCase = false;
 
-            var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = semanticDocument.SemanticModel;
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
             {
@@ -164,7 +159,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 if (propertyPatternClause != null)
                 {
                     // something like: { [|X|]: int i } or like: Blah { [|X|]: int i }
-                    var inferenceService = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
+                    var inferenceService = semanticDocument.Document.GetRequiredLanguageService<ITypeInferenceService>();
                     typeToGenerateIn = inferenceService.InferType(semanticModel, propertyPatternClause, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
 
                     isStatic = false;
@@ -180,7 +175,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         private static void DetermineTypeToGenerateInWorker(
             SemanticModel semanticModel,
             SyntaxNode expression,
-            out INamedTypeSymbol typeToGenerateIn,
+            out INamedTypeSymbol? typeToGenerateIn,
             out bool isStatic,
             out bool isColorColorCase,
             CancellationToken cancellationToken)
@@ -193,7 +188,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 : typeInfo.Type as INamedTypeSymbol;
 
             isStatic = semanticInfo.Symbol is INamedTypeSymbol;
-            isColorColorCase = typeInfo.Type != null && semanticInfo.Symbol.Name == typeInfo.Type.Name;
+            isColorColorCase = typeInfo.Type != null && semanticInfo.Symbol != null && semanticInfo.Symbol.Name == typeInfo.Type.Name;
         }
     }
 }
