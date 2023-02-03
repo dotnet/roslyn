@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -30,29 +31,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         };
 
         protected static bool ValidateTypeToGenerateIn(
-            INamedTypeSymbol typeToGenerateIn,
+            [NotNullWhen(true)] INamedTypeSymbol typeToGenerateIn,
             bool isStatic,
             ISet<TypeKind> typeKinds)
         {
             if (typeToGenerateIn == null)
-            {
                 return false;
-            }
 
             if (typeToGenerateIn.IsAnonymousType)
-            {
                 return false;
-            }
 
             if (!typeKinds.Contains(typeToGenerateIn.TypeKind))
-            {
                 return false;
-            }
 
             if (typeToGenerateIn.TypeKind == TypeKind.Interface && isStatic)
-            {
                 return false;
-            }
 
             // TODO(cyrusn): Make sure that there is a totally visible part somewhere (i.e.
             // venus) that we can generate into.
@@ -66,10 +59,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             TExpressionSyntax simpleNameOrMemberAccessExpression,
             CancellationToken cancellationToken,
             out INamedTypeSymbol typeToGenerateIn,
-            out bool isStatic)
+            out bool isStatic,
+            out bool isColorColorCase)
         {
             TryDetermineTypeToGenerateInWorker(
-                document, containingType, simpleNameOrMemberAccessExpression, cancellationToken, out typeToGenerateIn, out isStatic);
+                document, containingType, simpleNameOrMemberAccessExpression, cancellationToken, out typeToGenerateIn, out isStatic, out isColorColorCase);
 
             if (typeToGenerateIn != null)
             {
@@ -85,10 +79,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             TExpressionSyntax expression,
             CancellationToken cancellationToken,
             out INamedTypeSymbol typeToGenerateIn,
-            out bool isStatic)
+            out bool isStatic,
+            out bool isColorColorCase)
         {
             typeToGenerateIn = null;
             isStatic = false;
+            isColorColorCase = false;
 
             var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = semanticDocument.SemanticModel;
@@ -102,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 if (beforeDotExpression != null)
                 {
                     DetermineTypeToGenerateInWorker(
-                        semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, cancellationToken);
+                        semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, out isColorColorCase, cancellationToken);
                 }
 
                 return;
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 if (beforeDotExpression != null)
                 {
                     DetermineTypeToGenerateInWorker(
-                        semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, cancellationToken);
+                        semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, out isColorColorCase, cancellationToken);
                     if (typeToGenerateIn.IsNullable(out var underlyingType) &&
                         underlyingType is INamedTypeSymbol underlyingNamedType)
                     {
@@ -186,6 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             SyntaxNode expression,
             out INamedTypeSymbol typeToGenerateIn,
             out bool isStatic,
+            out bool isColorColorCase,
             CancellationToken cancellationToken)
         {
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
@@ -196,6 +193,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 : typeInfo.Type as INamedTypeSymbol;
 
             isStatic = semanticInfo.Symbol is INamedTypeSymbol;
+            isColorColorCase = typeInfo.Type != null && semanticInfo.Symbol.Name == typeInfo.Type.Name;
         }
     }
 }
