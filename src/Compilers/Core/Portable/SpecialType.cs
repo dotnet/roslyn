@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
 {
-
     /// <summary>
     /// Specifies the Ids of special runtime types.
     /// </summary>
