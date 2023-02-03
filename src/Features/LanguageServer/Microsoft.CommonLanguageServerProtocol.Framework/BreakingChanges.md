@@ -7,17 +7,30 @@ We'll try to stick to SemVer, so breaking changes should result in an increase o
 ```text
 \CLaSP.vsix
   \5.x.x
-      \Microsoft.CommonLanguageServerProtocol.Framework.dll (version 5.something)
+    \Microsoft.CommonLanguageServerProtocol.Framework.dll (version 5.something)
   \6.x.x
-      \Microsoft.CommonLanguageServerProtocol.Framework.dll (version 6.something)
+    \Microsoft.CommonLanguageServerProtocol.Framework.dll (version 6.something)
 ```
+
+During this time we'll have Binding redirects for any 5.x.x and below to the shipped 5.x.x version, and 6.0.0 and higher will redirect to 6.x.x.
+
+Once we have migrated all partners to the new version (or after warning and some time has passed) we will remove the old version from the VSIX (and it's accompanying redirect) leaving the shape as something like
+
+```text
+\CLaSP.vsix
+  \6.x.x
+    \Microsoft.CommonLanguageServerProtocol.Framework.dll (version 6.something)
+```
+
+This is the model used by the `Microsoft.VisualStudio.LanguageServer.Protocol` package and they say they've had great success with this method.
 
 ## Which changes will result in what update types
 
 |Change Type|Ryan's guess of Version update type|Agreed Version update type|
 |---|---|---|
-|Addition to Interface|Major|?|
-|Addition of Class/Interface|Minor|?|
+|Addition/Removal of Class/Interface/etc|Minor|?|
+|Addition/Removal of Member to Interface/Abstract|Major|?|
 |New dependency|Major|?|
-|Change of signature|Major|?|
-|Changing implementation|Patch (unless it has big effect on output)|?|
+|Dependency version change|Major|?|
+|Change of Method signature|Major|?|
+|Implementation changed|Patch (unless it has big effect on output)|?|
