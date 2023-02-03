@@ -7,10 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
+    /// <summary>
+    /// Adds structure guides for the portions of a #if directive that are active.  The inactive sections already have
+    /// structure guides added through <see cref="DisabledTextTriviaStructureProvider"/>.
+    /// </summary>
     internal sealed class IfDirectiveTriviaStructureProvider : AbstractSyntaxNodeStructureProvider<IfDirectiveTriviaSyntax>
     {
         protected override void CollectBlockSpans(
