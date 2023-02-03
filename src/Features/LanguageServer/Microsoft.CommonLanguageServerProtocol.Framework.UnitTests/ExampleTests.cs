@@ -19,6 +19,26 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 public partial class ExampleTests
 {
     [Fact]
+    public async Task InitializeServer_WithMultipleHandlerRegistration_Succeeds()
+    {
+        // Arrange
+        var logger = GetLogger();
+        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+
+        // Act
+        // Verifying that this does not throw.
+        var _ = await server.InitializeServerAsync();
+
+        // Assert
+        var handlerProvider = server.GetTestAccessor().GetQueueAccessor()!.Value.GetHandlerProvider();
+        var methods = handlerProvider.GetRegisteredMethods();
+
+        Assert.Contains(methods, m => m.MethodName == Methods.TextDocumentDidOpenName);
+        Assert.Contains(methods, m => m.MethodName == Methods.TextDocumentDidCloseName);
+        Assert.Contains(methods, m => m.MethodName == Methods.TextDocumentDidChangeName);
+    }
+
+    [Fact]
     public async Task InitializeServer_SerializesCorrectly()
     {
         var logger = GetLogger();
