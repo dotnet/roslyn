@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -22,12 +22,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A singleton object that performs only one type of instrumentation - addition of debugging sequence points. 
         /// </summary>
-        public static readonly DebugInfoInjector Singleton = new DebugInfoInjector(Instrumenter.NoOp);
+        private static readonly DebugInfoInjector s_singleton = new DebugInfoInjector(NoOp);
 
-        public DebugInfoInjector(Instrumenter previous)
+        private DebugInfoInjector(Instrumenter previous)
             : base(previous)
         {
         }
+
+        public static DebugInfoInjector Create(Instrumenter previous)
+            => (previous == NoOp) ? s_singleton : new DebugInfoInjector(previous);
+
+        protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
+            => Create(previous);
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
         {
@@ -75,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewritten.Kind == BoundKind.Block)
             {
                 var block = (BoundBlock)rewritten;
-                return block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
+                return block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
             }
 
             return InstrumentFieldOrPropertyInitializer(rewritten, syntax);

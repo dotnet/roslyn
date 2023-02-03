@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public readonly IToolTipService ToolTipService;
         public readonly ClassificationTypeMap TypeMap;
         public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter;
-        public readonly IGlobalOptionService GlobalOptions;
+        public readonly EditorOptionsService EditorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             IToolTipService toolTipService,
             ClassificationTypeMap typeMap,
             Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             ClassificationFormatMapService = classificationFormatMapService;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             ToolTipService = toolTipService;
             StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
             TypeMap = typeMap;
-            GlobalOptions = globalOptions;
+            EditorOptionsService = editorOptionsService;
 
             AsynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         }

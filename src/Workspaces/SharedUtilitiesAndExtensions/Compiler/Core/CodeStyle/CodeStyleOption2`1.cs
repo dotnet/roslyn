@@ -20,8 +20,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption WithNotification(NotificationOption2 notification);
         ICodeStyleOption AsCodeStyleOption<TCodeStyleOption>();
 #if !CODE_STYLE
+        ICodeStyleOption AsInternalCodeStyleOption();
         ICodeStyleOption AsPublicCodeStyleOption();
 #endif
+    }
+
+    internal interface ICodeStyleOption2 : ICodeStyleOption
+    {
+        /// <summary>
+        /// Creates a new <see cref="ICodeStyleOption2"/> from a specified <paramref name="element"/>.
+        /// </summary>
+        /// <exception cref="Exception">
+        /// The type of the serialized data does not match the type of <see cref="ICodeStyleOption.Value"/> or the format of the serialized data is invalid.
+        /// </exception>
+        ICodeStyleOption2 FromXElement(XElement element);
     }
 
     /// <summary>
@@ -39,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// then those values will write back as false/true.
     /// </summary>
     [DataContract]
-    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption2, IEquatable<CodeStyleOption2<T>?>
     {
         public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
@@ -67,13 +79,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
+#pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
 #if CODE_STYLE
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
 #else
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
             => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
+        ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => this;
 #endif
+#pragma warning restore
 
         private int EnumValueAsInt32 => (int)(object)Value!;
 
@@ -126,6 +141,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var intVal = EnumValueAsInt32;
             return intVal is 0 or 1;
         }
+
+        ICodeStyleOption2 ICodeStyleOption2.FromXElement(XElement element)
+            => FromXElement(element);
 
         public static CodeStyleOption2<T> FromXElement(XElement element)
         {

@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
             else
             {
-                var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await invocationDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var expression = syntaxFacts.GetExpressionOfArgument(argument);
                 var semanticFacts = invocationDocument.GetRequiredLanguageService<ISemanticFactsService>();
                 argumentName = semanticFacts.GenerateNameForExpression(
