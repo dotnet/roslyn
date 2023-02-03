@@ -31,8 +31,9 @@
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\SQLite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.Core.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.Core.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.Desktop.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.Desktop.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.Core.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.Core.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.Desktop.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.Desktop.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\ShadowCopyAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\ShadowCopyAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\SourceHashAlgorithms.cs" Link="Text\SourceHashAlgorithms.cs" />
   </ItemGroup>

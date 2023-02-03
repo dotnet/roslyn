@@ -97,6 +97,31 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     baseName, usedNames, this.SyntaxFacts.IsCaseSensitive));
         }
 
+#nullable enable
+
+        protected static IMethodSymbol? FindDisposeMethod(Compilation compilation, ITypeSymbol? type, bool isAsync)
+        {
+            if (type is null)
+                return null;
+
+            var methodToLookFor = isAsync
+                ? GetDisposeMethod(typeof(IAsyncDisposable).FullName!, nameof(IAsyncDisposable.DisposeAsync))
+                : GetDisposeMethod(typeof(IDisposable).FullName!, nameof(IDisposable.Dispose));
+            if (methodToLookFor is null)
+                return null;
+
+            var impl = type.FindImplementationForInterfaceMember(methodToLookFor) ?? methodToLookFor;
+            return impl as IMethodSymbol;
+
+            IMethodSymbol? GetDisposeMethod(string typeName, string methodName)
+            {
+                var disposableType = compilation.GetBestTypeByMetadataName(typeName);
+                return disposableType?.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Parameters.Length == 0 && m.Name == methodName);
+            }
+        }
+
+#nullable disable
+
         #region ISemanticFacts implementation
 
         public bool SupportsImplicitInterfaceImplementation => SemanticFacts.SupportsImplicitInterfaceImplementation;

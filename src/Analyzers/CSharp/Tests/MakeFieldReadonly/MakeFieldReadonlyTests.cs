@@ -1892,5 +1892,23 @@ public class MyClass
     }
 }");
         }
+
+        [Fact, WorkItem(38468, "https://github.com/dotnet/roslyn/issues/38468")]
+        public async Task PreserveLeadingTrivia1()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    int x;
+
+    int [|y|];
+}",
+@"public class C
+{
+    int x;
+
+    readonly int y;
+}");
+        }
     }
 }
