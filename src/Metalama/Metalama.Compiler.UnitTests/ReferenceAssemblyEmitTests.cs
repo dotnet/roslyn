@@ -13,7 +13,7 @@ namespace Metalama.Compiler.UnitTests
 {
     public class ReferenceAssemblyEmitTests : CSharpTestBase
     {
-        private static INamedTypeSymbol EmitAndGetClassC(CompilationUnitSyntax compilationUnit)
+        private static CSharpCompilation Emit(CompilationUnitSyntax compilationUnit)
         {
             CSharpCompilation comp = CreateCompilation(SyntaxFactory.SyntaxTree(compilationUnit));
 
@@ -24,10 +24,8 @@ namespace Metalama.Compiler.UnitTests
 
             var metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference();
 
-            var compWithMetadata = CreateEmptyCompilation("", references: new[] { MscorlibRef, metadataRef },
+            return CreateEmptyCompilation("", references: new[] { MscorlibRef, metadataRef },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-            return compWithMetadata.GetMember<INamedTypeSymbol>("C");
         }
 
         [Fact]
@@ -43,10 +41,15 @@ namespace Metalama.Compiler.UnitTests
             var field1 = compilationUnit.DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             compilationUnit = compilationUnit.ReplaceNode(field1, field1.WithIncludeInReferenceAssemblyAnnotation());
 
-            var c = EmitAndGetClassC(compilationUnit);
+            var compilation = Emit(compilationUnit);
+            var c = compilation.GetMember<INamedTypeSymbol>("C");
 
-            Assert.Equal("System.Int32 C.field1", c.GetMember<IFieldSymbol>("field1").ToTestDisplayString());
+            var field1Symbol = c.GetMember<IFieldSymbol>("field1");
+            Assert.Equal("System.Int32 C.field1", field1Symbol.ToTestDisplayString());
             Assert.Null(c.GetMember<IFieldSymbol>("field2"));
+
+            Assert.Same(field1Symbol, DocumentationCommentId.GetFirstSymbolForDeclarationId("F:C.field1", compilation));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("F:C.field2", compilation));
         }
 
         [Fact]
@@ -63,10 +66,15 @@ namespace Metalama.Compiler.UnitTests
             var m1 = compilationUnit.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
             compilationUnit = compilationUnit.ReplaceNode(m1, m1.WithIncludeInReferenceAssemblyAnnotation());
 
-            var c = EmitAndGetClassC(compilationUnit);
+            var compilation = Emit(compilationUnit);
+            var c = compilation.GetMember<INamedTypeSymbol>("C");
 
-            Assert.Equal("void C.M1()", c.GetMember<IMethodSymbol>("M1").ToTestDisplayString());
+            var m1Symbol = c.GetMember<IMethodSymbol>("M1");
+            Assert.Equal("void C.M1()", m1Symbol.ToTestDisplayString());
             Assert.Null(c.GetMember<IFieldSymbol>("M2"));
+
+            Assert.Same(m1Symbol, DocumentationCommentId.GetFirstSymbolForDeclarationId("M:C.M1", compilation));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:C.M2", compilation));
         }
 
         [Fact]
@@ -82,11 +90,15 @@ namespace Metalama.Compiler.UnitTests
             var getAccessor = compilationUnit.DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
             compilationUnit = compilationUnit.ReplaceNode(getAccessor, getAccessor.WithIncludeInReferenceAssemblyAnnotation());
 
-            var c = EmitAndGetClassC(compilationUnit);
+            var compilation = Emit(compilationUnit);
+            var c = compilation.GetMember<INamedTypeSymbol>("C");
 
-            Assert.Equal("System.Int32 C.Property { get; }", c.GetMember<IPropertySymbol>("Property").ToTestDisplayString());
+            var propertySymbol = c.GetMember<IPropertySymbol>("Property");
+            Assert.Equal("System.Int32 C.Property { get; }", propertySymbol.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Property.get", c.GetMember<IMethodSymbol>("get_Property").ToTestDisplayString());
             Assert.Null(c.GetMember<IFieldSymbol>("set_Property"));
+
+            Assert.Same(propertySymbol, DocumentationCommentId.GetFirstSymbolForDeclarationId("P:C.Property", compilation));
         }
 
         [Fact]
@@ -103,10 +115,15 @@ namespace Metalama.Compiler.UnitTests
             var event1 = compilationUnit.DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             compilationUnit = compilationUnit.ReplaceNode(event1, event1.WithIncludeInReferenceAssemblyAnnotation());
 
-            var c = EmitAndGetClassC(compilationUnit);
+            var compilation = Emit(compilationUnit);
+            var c = compilation.GetMember<INamedTypeSymbol>("C");
 
-            Assert.Equal("MyEventHandler C.Event1", c.GetMember<IFieldSymbol>("Event1").ToTestDisplayString());
-            Assert.Null(c.GetMember<IFieldSymbol>("Event2"));
+            var event1Symbol = c.GetMembers("Event1").OfType<IEventSymbol>().Single();
+            Assert.Equal("event MyEventHandler C.Event1", event1Symbol.ToTestDisplayString());
+            Assert.Null(c.GetMember("Event2"));
+
+            Assert.Same(event1Symbol, DocumentationCommentId.GetFirstSymbolForDeclarationId("E:C.Event1", compilation));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("E:C.Event2", compilation));
         }
 
         [Fact]
@@ -121,18 +138,23 @@ namespace Metalama.Compiler.UnitTests
                 }
                 """);
 
-            var event1Accessors = compilationUnit.DescendantNodes().OfType<AccessorDeclarationSyntax>().Take(2);
-            compilationUnit = compilationUnit.ReplaceNodes(event1Accessors, (a, _) => a.WithIncludeInReferenceAssemblyAnnotation());
+            var event1 = compilationUnit.DescendantNodes().OfType<EventDeclarationSyntax>().First();
+            compilationUnit = compilationUnit.ReplaceNode(event1, event1.WithIncludeInReferenceAssemblyAnnotation());
 
-            var c = EmitAndGetClassC(compilationUnit);
+            var compilation = Emit(compilationUnit);
+            var c = compilation.GetMember<INamedTypeSymbol>("C");
 
-            Assert.Equal("event MyEventHandler C.Event1", c.GetMember<IEventSymbol>("Event1").ToTestDisplayString());
+            var event1Symbol = c.GetMember<IEventSymbol>("Event1");
+            Assert.Equal("event MyEventHandler C.Event1", event1Symbol.ToTestDisplayString());
             // ToTestDisplayString() is not reliable for event accessors
             Assert.NotNull(c.GetMember<IMethodSymbol>("add_Event1"));
             Assert.NotNull(c.GetMember<IMethodSymbol>("remove_Event1"));
             Assert.Null(c.GetMember<IEventSymbol>("Event2"));
             Assert.Null(c.GetMember<IMethodSymbol>("add_Event2"));
             Assert.Null(c.GetMember<IMethodSymbol>("remove_Event2"));
+
+            Assert.Same(event1Symbol, DocumentationCommentId.GetFirstSymbolForDeclarationId("E:C.Event1", compilation));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("E:C.Event2", compilation));
         }
     }
 }

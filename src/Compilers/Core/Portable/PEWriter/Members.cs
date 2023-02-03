@@ -1040,7 +1040,15 @@ namespace Microsoft.Cci
 
             if (member.GetInternalSymbol() is { } symbol)
             {
-                foreach (var syntaxReference in symbol.GetISymbol().DeclaringSyntaxReferences)
+                var iSymbol = symbol.GetISymbol();
+
+                // event accessors get their annotation from the event, especially since field-like events don't have accessors in source and so don't have DeclaringSyntaxReferences
+                if (iSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol eventSymbol })
+                {
+                    iSymbol = eventSymbol;
+                }
+
+                foreach (var syntaxReference in iSymbol.DeclaringSyntaxReferences)
                 {
                     if (syntaxReference.GetSyntax().HasAnnotation(MetalamaCompilerAnnotations.IncludeInReferenceAssemblyAnnotation))
                     {
