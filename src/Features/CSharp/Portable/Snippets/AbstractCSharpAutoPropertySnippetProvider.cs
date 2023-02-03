@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
-    internal abstract class CSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider
+    internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider
     {
         protected virtual AccessorDeclarationSyntax? GenerateGetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
             => (AccessorDeclarationSyntax)generator.GetAccessorDeclaration();

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpPropgSnippetProvider : CSharpAutoPropertySnippetProvider
+    internal class CSharpPropgSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
