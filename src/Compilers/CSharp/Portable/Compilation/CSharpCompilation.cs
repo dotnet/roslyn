@@ -4518,6 +4518,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private protected override bool SupportsRuntimeCapabilityCore(RuntimeCapability capability)
+        {
+            var assembly = this.Assembly;
+            return capability switch
+            {
+                RuntimeCapability.ByRefFields => assembly.RuntimeSupportsByRefFields,
+                RuntimeCapability.CovariantReturnsOfClasses => assembly.RuntimeSupportsCovariantReturnsOfClasses,
+                RuntimeCapability.DefaultImplementationsOfInterfaces => assembly.RuntimeSupportsDefaultInterfaceImplementation,
+                RuntimeCapability.NumericIntPtr => assembly.RuntimeSupportsNumericIntPtr,
+                RuntimeCapability.UnmanagedSignatureCallingConvention => assembly.RuntimeSupportsUnmanagedSignatureCallingConvention,
+                RuntimeCapability.VirtualStaticsInInterfaces => assembly.RuntimeSupportsStaticAbstractMembersInInterfaces,
+                _ => false,
+            };
+        }
+
         private abstract class AbstractSymbolSearcher
         {
             private readonly PooledDictionary<Declaration, NamespaceOrTypeSymbol> _cache;

@@ -3746,5 +3746,13 @@ namespace Microsoft.CodeAnalysis
 
             return foundVersion;
         }
+
+        /// <summary>
+        /// Determines whether the runtime this <see cref="Compilation"/> is targeting supports a particular capability.
+        /// </summary>
+        public bool SupportsRuntimeCapability(RuntimeCapability capability)
+            => SupportsRuntimeCapabilityCore(capability);
+
+        private protected abstract bool SupportsRuntimeCapabilityCore(RuntimeCapability capability);
     }
 }
