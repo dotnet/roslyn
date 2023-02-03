@@ -104,5 +104,61 @@ class E
 
             await VerifyBlockSpansAsync(code);
         }
+
+        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        public async Task TestMissingEndif1()
+        {
+            const string code = @"
+#$$if true
+class C
+{
+}
+";
+
+            await VerifyBlockSpansAsync(code);
+        }
+
+        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        public async Task TestMissingEndif2()
+        {
+            const string code = @"
+#$$if true
+{|span:class C
+{
+}|}
+#elif false
+class D
+{
+}
+#else
+class E
+{
+}
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, WorkItem(10426, "https://github.com/dotnet/roslyn/issues/10426")]
+        public async Task TestMissingEndif3()
+        {
+            const string code = @"
+#$$if false
+class C
+{
+}
+#elif false
+class D
+{
+}
+#else
+class E
+{
+}
+";
+
+            await VerifyBlockSpansAsync(code);
+        }
     }
 }
