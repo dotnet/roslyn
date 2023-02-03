@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public abstract class CSharpAutoPropertyCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+    public abstract class AbstractCSharpAutoPropertyCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MissingInNamespace()

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpPropgSnippetCompletionProviderTests : CSharpAutoPropertyCompletionProviderTests
+    public class CSharpPropgSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
     {
         protected override string ItemToCommit => "propg";
 

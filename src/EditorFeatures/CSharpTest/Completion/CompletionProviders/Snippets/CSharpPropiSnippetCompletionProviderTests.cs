@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpPropiSnippetCompletionProviderTests : CSharpAutoPropertyCompletionProviderTests
+    public class CSharpPropiSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
     {
         protected override string ItemToCommit => "propi";
 
