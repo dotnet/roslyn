@@ -65,6 +65,8 @@ internal class HandlerProvider : IHandlerProvider
     {
         var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
+        var methodHash = new HashSet<string>();
+
         if (lspServices.SupportsGetRegisteredServices())
         {
             var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => IsTypeRequestHandler(type));
@@ -79,7 +81,7 @@ internal class HandlerProvider : IHandlerProvider
                     // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
                     // and then lookup the correct handler for the specified method.
 
-                    CheckForDuplicates(method, handlerType, requestHandlerDictionary);
+                    CheckForDuplicates(method, methodHash);
 
                     requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() =>
                         {
@@ -104,8 +106,9 @@ internal class HandlerProvider : IHandlerProvider
             foreach (var requestResponseType in requestResponseTypes)
             {
                 var method = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
-                CheckForDuplicates(method, handlerType, requestHandlerDictionary);
+                CheckForDuplicates(method, methodHash);
 
+                methodHash.Add(method);
                 requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() => handler));
             }
         }
@@ -114,12 +117,11 @@ internal class HandlerProvider : IHandlerProvider
 
         return requestHandlerDictionary.ToImmutable();
 
-        static void CheckForDuplicates(string methodName, Type handlerType, ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>.Builder handlerDict)
+        static void CheckForDuplicates(string methodName, HashSet<string> existingMethods)
         {
-            var dupHandlers = handlerDict.Where(kvp => string.Equals(kvp.Key.MethodName, methodName, StringComparison.InvariantCulture));
-            if (dupHandlers.Any())
+            if (!existingMethods.Add(methodName))
             {
-                throw new InvalidOperationException($"Method {methodName} was implemented by both {handlerType} and {dupHandlers.First().Key}");
+                throw new InvalidOperationException($"Method {methodName} was implemented more than once.");
             }
         }
 
@@ -193,7 +195,7 @@ internal class HandlerProvider : IHandlerProvider
         static void VerifyHandlers(IEnumerable<RequestHandlerMetadata> requestHandlerKeys)
         {
             var missingMethods = requestHandlerKeys.Where(meta => RequiredMethods.All(method => method == meta.MethodName));
-            if (missingMethods.Count() > 0)
+            if (missingMethods.Any())
             {
                 throw new InvalidOperationException($"Language Server is missing required methods {string.Join(",", missingMethods)}");
             }
@@ -209,9 +211,9 @@ internal class HandlerProvider : IHandlerProvider
     /// </summary>
     private static IEnumerable<HandlerTypes> ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
     {
-        var requestHandlerGenericTypes = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestHandler<,,>));
-        var parameterlessNotificationHandlerGenericTypes = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INotificationHandler<>));
-        var notificationHandlerGenericTypes = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INotificationHandler<,>));
+        var requestHandlerGenericTypes = GetGenericTypes(handlerType, typeof(IRequestHandler<,,>));
+        var parameterlessNotificationHandlerGenericTypes = GetGenericTypes(handlerType, typeof(INotificationHandler<>));
+        var notificationHandlerGenericTypes = GetGenericTypes(handlerType, typeof(INotificationHandler<,>));
 
         var handlerList = new List<HandlerTypes>();
 
@@ -257,5 +259,10 @@ internal class HandlerProvider : IHandlerProvider
         }
 
         return handlerList;
+
+        static IEnumerable<Type> GetGenericTypes(Type concreteHandlerType, Type methodHandlerType)
+        {
+            return concreteHandlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == methodHandlerType);
+        }
     }
 }
