@@ -227,6 +227,9 @@ function BuildSolution() {
       throw "Overwriting binary log files"
     }
 
+  }
+
+  if ($ci) {
     ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
     ${env:MSBUILDDEBUGCOMM} = 1
     ${env:MSBUILDDEBUGPATH} = Join-Path $LogDir "MSbuild.Comm.log"
@@ -293,7 +296,6 @@ function BuildSolution() {
     ${env:MSBUILDDEBUGPATH} = $null
   }
 }
-
 
 # Get the branch that produced the IBC data this build is going to consume.
 # IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.
