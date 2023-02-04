@@ -116,7 +116,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
 
-            Assert.True(comp1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces)()
+            Assert.True(comp1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
         End Sub
 
         <Fact>

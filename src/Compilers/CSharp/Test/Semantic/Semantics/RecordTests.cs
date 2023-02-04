@@ -25694,7 +25694,7 @@ record B
 }
 ", targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
-            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
 
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
