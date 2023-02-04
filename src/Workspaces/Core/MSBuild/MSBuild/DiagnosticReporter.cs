@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             foreach (var logItem in log)
             {
-                Report(DiagnosticReportingMode.Log, GetMSBuildFailedMessage(logItem.ProjectFilePath, logItem.ToString()));
+                Report(new WorkspaceDiagnostic(logItem.Kind, GetMSBuildFailedMessage(logItem.ProjectFilePath, logItem.ToString())));
             }
         }
 

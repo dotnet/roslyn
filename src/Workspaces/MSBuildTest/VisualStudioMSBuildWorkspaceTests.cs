@@ -3022,8 +3022,19 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var proj = await workspace.OpenProjectAsync(projectFilePath);
 
-            var diagnostic = Assert.Single(workspace.Diagnostics);
-            Assert.StartsWith("Msbuild failed", diagnostic.Message);
+            Assert.Collection(workspace.Diagnostics,
+                d =>
+                {
+                    Assert.StartsWith("Msbuild failed", d.Message);
+                    Assert.Contains("This is a warning", d.Message);
+                    Assert.Equal(WorkspaceDiagnosticKind.Warning, d.Kind);
+                },
+                d =>
+                {
+                    Assert.StartsWith("Msbuild failed", d.Message);
+                    Assert.Contains("This is an error", d.Message);
+                    Assert.Equal(WorkspaceDiagnosticKind.Failure, d.Kind);
+                });
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
