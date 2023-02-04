@@ -22,11 +22,18 @@ public class VisualStudioOptionStorageTests
         var storages = VisualStudioOptionStorage.Storages;
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
 
+
         // Options with per-language values shouldn't be defined in language-specific assembly since then they wouldn't be applicable to the other language.
 
         var perLanguageOptionsDefinedInIncorrectAssembly =
             from info in infos
-            where info.Value.Option.IsPerLanguage && info.Value.ContainingAssemblyLanguage is "CSharp" or "VisualBasic"
+            let anyInCSharpNamespace = info.Value.Accessors.Any(a => a.namespaceName.Contains("CSharp"))
+            let anyInVisualBasicNamespace = info.Value.Accessors.Any(a => a.namespaceName.Contains("VisualBasic"))
+            let allInCSharpNamespace = info.Value.Accessors.All(a => a.namespaceName.Contains("CSharp"))
+            let allInVisualBasicNamespace = info.Value.Accessors.All(a => a.namespaceName.Contains("VisualBasic"))
+            where anyInCSharpNamespace != allInCSharpNamespace
+            where anyInVisualBasicNamespace != allInVisualBasicNamespace
+            where info.Value.Option.IsPerLanguage && !anyInCSharpNamespace && !anyInVisualBasicNamespace
             select info.Key;
 
         Assert.Empty(perLanguageOptionsDefinedInIncorrectAssembly);
@@ -37,8 +44,8 @@ public class VisualStudioOptionStorageTests
             from info in infos
             where info.Value.Option is not IPublicOption // public options do not need to follow the naming pattern
             where info.Value.Option.Definition.IsEditorConfigOption // TODO: remove condition once all options have config name https://github.com/dotnet/roslyn/issues/65787
-            where info.Key.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "CSharp" ||
-                  info.Key.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal) != info.Value.ContainingAssemblyLanguage is "VisualBasic"
+            where info.Key.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal) != info.Value.Accessors.Any(a => a.namespaceName.Contains("CSharp")) ||
+                  info.Key.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal) != info.Value.Accessors.Any(a => a.namespaceName.Contains("VisualBasic"))
             select info.Key;
 
         Assert.Empty(languageSpecificOptionsHaveIncorrectPrefix);
