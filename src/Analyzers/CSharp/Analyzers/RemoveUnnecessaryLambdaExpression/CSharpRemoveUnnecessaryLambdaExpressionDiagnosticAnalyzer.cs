@@ -170,6 +170,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                     return;
             }
 
+            // If invoked method is conditional, converting lambda to method group produces compiler error
+            if (invokedMethod.GetAttributes().Any(a => Equals(a.AttributeClass, compilation.ConditionalAttribute())))
+                return;
+
             // Semantically, this looks good to go.  Now, do an actual speculative replacement to ensure that the
             // non-invoked method reference refers to the same method symbol, and that it converts to the same type that
             // the lambda was.
