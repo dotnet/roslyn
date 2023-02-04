@@ -22,7 +22,6 @@ public class VisualStudioOptionStorageTests
         var storages = VisualStudioOptionStorage.Storages;
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
 
-
         // Options with per-language values shouldn't be defined in language-specific namespace since then they wouldn't be applicable to the other language.
 
         var perLanguageOptionsDefinedInIncorrectAssembly =
