@@ -5435,7 +5435,7 @@ interface I1
 
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
-            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
             Assert.False(compilation2.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
         }
 
