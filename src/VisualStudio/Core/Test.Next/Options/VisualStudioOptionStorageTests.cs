@@ -23,7 +23,7 @@ public class VisualStudioOptionStorageTests
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
 
 
-        // Options with per-language values shouldn't be defined in language-specific assembly since then they wouldn't be applicable to the other language.
+        // Options with per-language values shouldn't be defined in language-specific namespace since then they wouldn't be applicable to the other language.
 
         var perLanguageOptionsDefinedInIncorrectAssembly =
             from info in infos
@@ -38,7 +38,7 @@ public class VisualStudioOptionStorageTests
 
         Assert.Empty(perLanguageOptionsDefinedInIncorrectAssembly);
 
-        // language specific options have correct name prefix and are defined in language specific assemblies:
+        // language specific options have correct name prefix and are defined in language specific namespaces:
 
         var languageSpecificOptionsHaveIncorrectPrefix =
             from info in infos
