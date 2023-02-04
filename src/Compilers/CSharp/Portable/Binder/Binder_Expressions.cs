@@ -6272,7 +6272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? addMethodInvocation = null;
             if (collectionInitializerAddMethodBinder is { })
             {
-                addElementPlaceholder = new BoundValuePlaceholder(syntax.Expression, enumeratorInfo.ElementType);
+                addElementPlaceholder = new BoundValuePlaceholder(syntax.Expression, targetType);
                 addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
                     syntax.Expression,
                     implicitReceiver,

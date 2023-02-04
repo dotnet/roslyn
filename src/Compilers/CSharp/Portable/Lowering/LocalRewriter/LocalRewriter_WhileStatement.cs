@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.Instrument && !loop.WasCompilerGenerated)
             {
-                // PROTOTYPE: Test with spread operator.
                 switch (loop.Kind)
                 {
                     case BoundKind.WhileStatement:
@@ -78,6 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.ForEachStatement:
                         ifConditionGotoStart = Instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
+                        break;
+
+                    case BoundKind.CollectionLiteralSpreadElement:
+                        // PROTOTYPE: Test.
                         break;
 
                     default:

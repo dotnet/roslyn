@@ -613,48 +613,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(source, expectedOutput: "(4, 1, 3, 4, 2)");
             verifier.VerifyIL("Program.Create1", """
                 {
-                  // Code size       90 (0x5a)
+                  // Code size       73 (0x49)
                   .maxstack  2
                   .locals init (System.Collections.Generic.List<object> V_0,
-                                System.Collections.Generic.List<int>.Enumerator V_1,
-                                int V_2)
+                                int[] V_1,
+                                int V_2,
+                                object V_3)
                   IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloc.0
                   IL_0007:  ldc.i4.1
                   IL_0008:  box        "int"
                   IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_0012:  call       "System.Collections.Generic.List<int> Program.Create2()"
-                  IL_0017:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
-                  IL_001c:  stloc.1
-                  .try
-                  {
-                    IL_001d:  br.s       IL_0033
-                    IL_001f:  ldloca.s   V_1
-                    IL_0021:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
-                    IL_0026:  stloc.2
-                    IL_0027:  ldloc.0
-                    IL_0028:  ldloc.2
-                    IL_0029:  box        "int"
-                    IL_002e:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                    IL_0033:  ldloca.s   V_1
-                    IL_0035:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
-                    IL_003a:  brtrue.s   IL_001f
-                    IL_003c:  leave.s    IL_004c
-                  }
-                  finally
-                  {
-                    IL_003e:  ldloca.s   V_1
-                    IL_0040:  constrained. "System.Collections.Generic.List<int>.Enumerator"
-                    IL_0046:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_004b:  endfinally
-                  }
-                  IL_004c:  ldloc.0
-                  IL_004d:  ldc.i4.2
-                  IL_004e:  box        "int"
-                  IL_0053:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_0058:  ldloc.0
-                  IL_0059:  ret
+                  IL_0012:  call       "int[] Program.Create2()"
+                  IL_0017:  stloc.1
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  stloc.2
+                  IL_001a:  br.s       IL_0030
+                  IL_001c:  ldloc.1
+                  IL_001d:  ldloc.2
+                  IL_001e:  ldelem.i4
+                  IL_001f:  box        "int"
+                  IL_0024:  stloc.3
+                  IL_0025:  ldloc.0
+                  IL_0026:  ldloc.3
+                  IL_0027:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_002c:  ldloc.2
+                  IL_002d:  ldc.i4.1
+                  IL_002e:  add
+                  IL_002f:  stloc.2
+                  IL_0030:  ldloc.2
+                  IL_0031:  ldloc.1
+                  IL_0032:  ldlen
+                  IL_0033:  conv.i4
+                  IL_0034:  blt.s      IL_001c
+                  IL_0036:  ldloc.0
+                  IL_0037:  ldc.i4.2
+                  IL_0038:  box        "int"
+                  IL_003d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0042:  ldloc.0
+                  IL_0043:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_0048:  ret
                 }
                 """);
         }
@@ -678,48 +677,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(source, expectedOutput: "(4, 1, 3, 4, 2)");
             verifier.VerifyIL("Program.Create1", """
                 {
-                  // Code size       90 (0x5a)
+                  // Code size       58 (0x3a)
                   .maxstack  2
-                  .locals init (System.Collections.Generic.List<object> V_0,
-                                System.Collections.Generic.List<int>.Enumerator V_1,
-                                int V_2)
-                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  .locals init (System.Collections.Generic.List<int> V_0,
+                                int[] V_1,
+                                int V_2,
+                                int V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloc.0
                   IL_0007:  ldc.i4.1
-                  IL_0008:  box        "int"
-                  IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_0012:  call       "System.Collections.Generic.List<int> Program.Create2()"
-                  IL_0017:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
-                  IL_001c:  stloc.1
-                  .try
-                  {
-                    IL_001d:  br.s       IL_0033
-                    IL_001f:  ldloca.s   V_1
-                    IL_0021:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
-                    IL_0026:  stloc.2
-                    IL_0027:  ldloc.0
-                    IL_0028:  ldloc.2
-                    IL_0029:  box        "int"
-                    IL_002e:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                    IL_0033:  ldloca.s   V_1
-                    IL_0035:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
-                    IL_003a:  brtrue.s   IL_001f
-                    IL_003c:  leave.s    IL_004c
-                  }
-                  finally
-                  {
-                    IL_003e:  ldloca.s   V_1
-                    IL_0040:  constrained. "System.Collections.Generic.List<int>.Enumerator"
-                    IL_0046:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_004b:  endfinally
-                  }
-                  IL_004c:  ldloc.0
-                  IL_004d:  ldc.i4.2
-                  IL_004e:  box        "int"
-                  IL_0053:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_0058:  ldloc.0
-                  IL_0059:  ret
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_000d:  call       "int[] Program.Create2()"
+                  IL_0012:  stloc.1
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  stloc.2
+                  IL_0015:  br.s       IL_0026
+                  IL_0017:  ldloc.1
+                  IL_0018:  ldloc.2
+                  IL_0019:  ldelem.i4
+                  IL_001a:  stloc.3
+                  IL_001b:  ldloc.0
+                  IL_001c:  ldloc.3
+                  IL_001d:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0022:  ldloc.2
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  add
+                  IL_0025:  stloc.2
+                  IL_0026:  ldloc.2
+                  IL_0027:  ldloc.1
+                  IL_0028:  ldlen
+                  IL_0029:  conv.i4
+                  IL_002a:  blt.s      IL_0017
+                  IL_002c:  ldloc.0
+                  IL_002d:  ldc.i4.2
+                  IL_002e:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0033:  ldloc.0
+                  IL_0034:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                  IL_0039:  ret
                 }
                 """);
         }
@@ -775,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .maxstack  2
                   .locals init (System.Collections.Generic.List<object> V_0,
                                 System.Collections.Generic.IEnumerator<int> V_1,
-                                int V_2)
+                                object V_2)
                   IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloc.0
@@ -790,10 +785,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_001d:  br.s       IL_0032
                     IL_001f:  ldloc.1
                     IL_0020:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
-                    IL_0025:  stloc.2
-                    IL_0026:  ldloc.0
-                    IL_0027:  ldloc.2
-                    IL_0028:  box        "int"
+                    IL_0025:  box        "int"
+                    IL_002a:  stloc.2
+                    IL_002b:  ldloc.0
+                    IL_002c:  ldloc.2
                     IL_002d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
                     IL_0032:  ldloc.1
                     IL_0033:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
@@ -843,12 +838,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: "(4, 1, 3, 4, 2)");
             verifier.VerifyIL("Program.Create1", """
                 {
-                  // Code size       96 (0x60)
+                  // Code size       73 (0x49)
                   .maxstack  2
                   .locals init (System.Collections.Generic.List<object> V_0,
-                                System.Collections.IEnumerator V_1,
-                                object V_2,
-                                System.IDisposable V_3)
+                                object[] V_1,
+                                int V_2,
+                                object V_3)
                   IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloc.0
@@ -856,51 +851,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0008:  box        "int"
                   IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
                   IL_0012:  call       "object[] Program.Create2()"
-                  IL_0017:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
-                  IL_001c:  stloc.1
-                  .try
-                  {
-                    IL_001d:  br.s       IL_002d
-                    IL_001f:  ldloc.1
-                    IL_0020:  callvirt   "object System.Collections.IEnumerator.Current.get"
-                    IL_0025:  stloc.2
-                    IL_0026:  ldloc.0
-                    IL_0027:  ldloc.2
-                    IL_0028:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                    IL_002d:  ldloc.1
-                    IL_002e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0033:  brtrue.s   IL_001f
-                    IL_0035:  leave.s    IL_0048
-                  }
-                  finally
-                  {
-                    IL_0037:  ldloc.1
-                    IL_0038:  isinst     "System.IDisposable"
-                    IL_003d:  stloc.3
-                    IL_003e:  ldloc.3
-                    IL_003f:  brfalse.s  IL_0047
-                    IL_0041:  ldloc.3
-                    IL_0042:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0047:  endfinally
-                  }
-                  IL_0048:  ldloc.0
-                  IL_0049:  ldc.i4.2
-                  IL_004a:  box        "int"
-                  IL_004f:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_0054:  ldloc.0
-                  IL_0055:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
-                  IL_005a:  newobj     "System.Span<object>..ctor(object[])"
-                  IL_005f:  ret
+                  IL_0017:  stloc.1
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  stloc.2
+                  IL_001a:  br.s       IL_002b
+                  IL_001c:  ldloc.1
+                  IL_001d:  ldloc.2
+                  IL_001e:  ldelem.ref
+                  IL_001f:  stloc.3
+                  IL_0020:  ldloc.0
+                  IL_0021:  ldloc.3
+                  IL_0022:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0027:  ldloc.2
+                  IL_0028:  ldc.i4.1
+                  IL_0029:  add
+                  IL_002a:  stloc.2
+                  IL_002b:  ldloc.2
+                  IL_002c:  ldloc.1
+                  IL_002d:  ldlen
+                  IL_002e:  conv.i4
+                  IL_002f:  blt.s      IL_001c
+                  IL_0031:  ldloc.0
+                  IL_0032:  ldc.i4.2
+                  IL_0033:  box        "int"
+                  IL_0038:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_003d:  ldloc.0
+                  IL_003e:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_0043:  newobj     "System.Span<object>..ctor(object[])"
+                  IL_0048:  ret
                 }
                 """);
             // PROTOTYPE: Test the same with ReadOnlySpan<int>.
         }
 
         // PROTOTYPE: Test spread elements that implement IEnumerable or IEnumerable pattern but not IEnumerable<T>.
-        // PROTOTYPE: Test spread elements that are dynamic type - test with non-dictionary and dictionary targets.
+        // PROTOTYPE: Test single and multi-dimensional arrays: see LocalRewriter.RewriteSingleDimensionalArrayForEachStatement(), RewriteMultiDimensionalArrayForEachStatement()
+        // PROTOTYPE: Test string spread elements: see LocalRewriter.RewriteForEachStatementAsFor()
+        // PROTOTYPE: Test span spread elements: see LocalRewriter.RewriteForEachStatementAsFor()
+        // PROTOTYPE: Test dynamic spread elements - test with non-dictionary and dictionary targets.
+        // PROTOTYPE: Test spread element where Current returns a ref.
         // PROTOTYPE: Review ForEachLoopBinder.BindForEachPartsWorker() and add appropriate tests for the various scenarios
         // including error reporting, conversions, pattern-based, extensions, Dispose(), etc.
-        // PROTOTYPE: Test collection types that have special handlingn in LocalRewriter.VisitForEachStatement: single- and multi-dimension arrays, string, Span<T>, ReadOnlySpan<T>.
+
+        // PROTOTYPE: BindForEachPartsWorker() reports many different errors (for instance, checking for Obsolete Current, MoveNext, etc.;
+        // calling CheckRestrictedTypeInAsyncMethod). Test many of these same cases for evaluating a spread element.
 
         [Fact]
         public void NotConstructibleType_Empty()
@@ -989,6 +983,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0017:  ldc.i4.2
                   IL_0018:  call       "void S2<int>.Add(int)"
                   IL_001d:  ret
+                }
+                """);
+        }
+
+        // PROTOTYPE: Test [.. await F()] where F() returns an IAyncEnumerable.
+        [Fact]
+        public void Async()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        List<int> c = await Create();
+                        Console.WriteLine((c.Count, c[0], c[1]));
+                    }
+                    static async Task<List<int>> Create()
+                    {
+                        return [await F(1), await F(2)];
+                    }
+                    static async Task<int> F(int i)
+                    {
+                        Task.Yield();
+                        return i;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(2, 1, 2)");
+            verifier.VerifyIL("Program.Create", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  2
+                  .locals init (Program.<Create>d__1 V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>>.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>> Program.<Create>d__1.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldc.i4.m1
+                  IL_000f:  stfld      "int Program.<Create>d__1.<>1__state"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>> Program.<Create>d__1.<>t__builder"
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>>.Start<Program.<Create>d__1>(ref Program.<Create>d__1)"
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>> Program.<Create>d__1.<>t__builder"
+                  IL_0029:  call       "System.Threading.Tasks.Task<System.Collections.Generic.List<int>> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Collections.Generic.List<int>>.Task.get"
+                  IL_002e:  ret
                 }
                 """);
         }

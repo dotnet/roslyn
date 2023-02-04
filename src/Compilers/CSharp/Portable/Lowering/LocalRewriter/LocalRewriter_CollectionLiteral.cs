@@ -222,26 +222,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(enumeratorInfo is { });
             Debug.Assert(addElementPlaceholder is { });
 
-            var syntax = initializer.Syntax;
-            var iterationVariable = _factory.SynthesizedLocal(enumeratorInfo.ElementType, syntax);
+            var syntax = (CSharpSyntaxNode)initializer.Syntax;
+            var iterationVariable = _factory.SynthesizedLocal(addElementPlaceholder.Type, syntax);
+
+            var convertedExpression = (BoundConversion)initializer.Expression;
 
             AddPlaceholderReplacement(addElementPlaceholder, _factory.Local(iterationVariable));
             var rewrittenAdd = VisitExpression(initializer.AddMethodInvocation);
             var rewrittenBody = _factory.ExpressionStatement(rewrittenAdd!);
             RemovePlaceholderReplacement(addElementPlaceholder);
 
-            var statement = RewriteForEachEnumerator(
-                initializer,
-                (BoundConversion)initializer.Expression,
-                enumeratorInfo,
-                initializer.ElementPlaceholder,
-                initializer.ElementConversion,
-                iterationVariables: ImmutableArray.Create(iterationVariable),
-                deconstruction: null,
-                awaitableInfo: null,
-                breakLabel: new GeneratedLabelSymbol("break"), // PROTOTYPE: Is this needed?
-                continueLabel: new GeneratedLabelSymbol("continue"), // PROTOTYPE: Is this needed?
-                rewrittenBody: rewrittenBody);
+            BoundStatement statement;
+            if (convertedExpression.Operand.Type is ArrayTypeSymbol arrayType)
+            {
+                if (arrayType.IsSZArray)
+                {
+                    statement = RewriteSingleDimensionalArrayForEachEnumerator(
+                        initializer,
+                        convertedExpression.Operand,
+                        initializer.ElementPlaceholder,
+                        initializer.ElementConversion,
+                        iterationVariables: ImmutableArray.Create(iterationVariable),
+                        deconstruction: null,
+                        breakLabel: new GeneratedLabelSymbol("break"), // PROTOTYPE: Is this needed?
+                        continueLabel: new GeneratedLabelSymbol("continue"), // PROTOTYPE: Is this needed?
+                        rewrittenBody);
+                }
+                else
+                {
+                    // PROTOTYPE: ...
+                    throw ExceptionUtilities.UnexpectedValue(arrayType);
+                }
+            }
+            else
+            {
+                statement = RewriteForEachEnumerator(
+                    initializer,
+                    convertedExpression,
+                    enumeratorInfo,
+                    initializer.ElementPlaceholder,
+                    initializer.ElementConversion,
+                    iterationVariables: ImmutableArray.Create(iterationVariable),
+                    deconstruction: null,
+                    awaitableInfo: null,
+                    breakLabel: new GeneratedLabelSymbol("break"), // PROTOTYPE: Is this needed?
+                    continueLabel: new GeneratedLabelSymbol("continue"), // PROTOTYPE: Is this needed?
+                    rewrittenBody: rewrittenBody);
+            }
 
             _needsSpilling = true;
             return _factory.SpillSequence(

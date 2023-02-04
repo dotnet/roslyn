@@ -102,8 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// }
         /// ]]>
         /// </summary>
-        private BoundStatement RewriteEnumeratorForEachStatement(
-            BoundForEachStatement node)
+        private BoundStatement RewriteEnumeratorForEachStatement(BoundForEachStatement node)
         {
             ForEachEnumeratorInfo? enumeratorInfo = node.EnumeratorInfoOpt;
             Debug.Assert(enumeratorInfo != null);
@@ -722,20 +721,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundStatement RewriteSingleDimensionalArrayForEachStatement(BoundForEachStatement node)
         {
-            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
-
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out _);
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
 
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
+
+            return RewriteSingleDimensionalArrayForEachEnumerator(
+                node,
+                collectionExpression,
+                node.ElementPlaceholder,
+                node.ElementConversion,
+                node.IterationVariables,
+                node.DeconstructionOpt,
+                node.BreakLabel,
+                node.ContinueLabel,
+                rewrittenBody);
+        }
+
+        private BoundStatement RewriteSingleDimensionalArrayForEachEnumerator(
+            BoundNode node,
+            BoundExpression collectionExpression,
+            BoundValuePlaceholder? elementPlaceholder,
+            BoundExpression? elementConversion,
+            ImmutableArray<LocalSymbol> iterationVariables,
+            BoundForEachDeconstructStep? deconstruction,
+            GeneratedLabelSymbol breakLabel,
+            GeneratedLabelSymbol continueLabel,
+            BoundStatement rewrittenBody)
+        {
+            var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
+
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;
+            BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
             Debug.Assert(arrayType is { IsSZArray: true });
 
             TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-
-            BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
-            BoundStatement? rewrittenBody = VisitStatement(node.Body);
-            Debug.Assert(rewrittenBody is { });
 
             // A[] a
             LocalSymbol arrayVar = _factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
@@ -760,8 +782,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // (V)a[p]
             BoundExpression iterationVarInitValue = ApplyConversionIfNotIdentity(
-                node.ElementConversion,
-                node.ElementPlaceholder,
+                elementConversion,
+                elementPlaceholder,
                 new BoundArrayAccess(
                     syntax: forEachSyntax,
                     expression: boundArrayVar,
@@ -769,8 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: arrayType.ElementType));
 
             // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
-            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
-            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(forEachSyntax, node.DeconstructionOpt, iterationVariables, iterationVarInitValue);
+            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(forEachSyntax, deconstruction, iterationVariables, iterationVarInitValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVariableDecl);
 
@@ -816,8 +837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenCondition: exitCondition,
                 rewrittenIncrement: positionIncrement,
                 rewrittenBody: loopBody,
-                breakLabel: node.BreakLabel,
-                continueLabel: node.ContinueLabel,
+                breakLabel: breakLabel,
+                continueLabel: continueLabel,
                 hasErrors: node.HasErrors);
 
             InstrumentForEachStatement(node, ref result);
