@@ -784,7 +784,7 @@ public class C
                 Assert.Equal("System.String!", model.GetTypeInfo(discardOut).Type.ToTestDisplayString(includeNonNullable: true));
             }
 
-            // out var _
+            // out var _, out T _
             foreach (var discardDecl in GetDiscardDesignations(tree))
             {
                 Assert.Null(model.GetDeclaredSymbol(discardDecl));
