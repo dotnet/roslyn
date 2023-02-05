@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (FallBackOnDiscard(identifier, diagnostics))
                     {
-                        expression = new BoundDiscardExpression(node, NullableAnnotation.Oblivious, false, type: null);
+                        expression = new BoundDiscardExpression(node, NullableAnnotation.Oblivious, isInferred: false, type: null);
                     }
                 }
 
@@ -2825,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var declType = BindVariableTypeWithAnnotations(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
                         Debug.Assert(isVar != declType.HasType);
 
-                        return new BoundDiscardExpression(declarationExpression, declType.NullableAnnotation, declType.Type is not null, declType.Type) ;
+                        return new BoundDiscardExpression(declarationExpression, declType.NullableAnnotation, declType.Type is not null, declType.Type);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);

@@ -13,7 +13,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -5071,7 +5070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResultType(node, resultType);
             return null;
         }
-        
+
         public override BoundNode? VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
             Debug.Assert(!IsConditionalState);
@@ -6720,7 +6719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variables.SetType(local.LocalSymbol, varType);
                             lValueType = varType;
                         }
-                        else if (argument is BoundDiscardExpression discard && !discard.IsTypeDefinedExplicitly)
+                        else if (argument is BoundDiscardExpression discard && !discard.IsInferred)
                         {
                             SetAnalyzedNullability(discard, new VisitResult(parameterWithState, parameterWithState.ToTypeWithAnnotations(compilation)), isLvalue: true);
                         }
@@ -10996,7 +10995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            var result = TypeWithAnnotations.Create(node.Type, node.IsTypeDefinedExplicitly ? node.NullableAnnotation : NullableAnnotation.Annotated);
+            var result = TypeWithAnnotations.Create(node.Type, node.IsInferred ? node.NullableAnnotation : NullableAnnotation.Annotated);
             var rValueType = TypeWithState.ForType(node.Type);
             SetResult(node, rValueType, result);
             return null;
