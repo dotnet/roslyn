@@ -58,7 +58,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     public CodeStyleOption2<bool> VarElsewhere => GetOption(CSharpCodeStyleOptions.VarElsewhere, FallbackSimplifierOptions.VarElsewhere);
 
     public SimplifierOptions GetSimplifierOptions()
-        => _options.GetCSharpSimplifierOptions(FallbackSimplifierOptions);
+        => new CSharpSimplifierOptions(_options, FallbackSimplifierOptions);
 
     // FormattingOptions
 
@@ -66,7 +66,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     public CodeStyleOption2<bool> PreferTopLevelStatements => GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, FallbackSyntaxFormattingOptions.PreferTopLevelStatements);
 
     internal SyntaxFormattingOptions GetFormattingOptions()
-        => _options.GetCSharpSyntaxFormattingOptions(FallbackSyntaxFormattingOptions);
+        => new CSharpSyntaxFormattingOptions(_options, FallbackSyntaxFormattingOptions);
 
     // AddImportPlacementOptions
 
@@ -75,7 +75,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     // CodeStyleOptions
 
     public CodeStyleOption2<string> PreferredModifierOrder => GetOption(CSharpCodeStyleOptions.PreferredModifierOrder, FallbackCodeStyleOptions.PreferredModifierOrder);
-    public CodeStyleOption2<AccessibilityModifiersRequired> AccessibilityModifiersRequired => GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCodeStyleOptions.Common.AccessibilityModifiersRequired);
+    public CodeStyleOption2<AccessibilityModifiersRequired> AccessibilityModifiersRequired => GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCodeStyleOptions.AccessibilityModifiersRequired);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetOption(option, defaultValue);

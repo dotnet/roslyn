@@ -87,16 +87,12 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
+
             Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Services);
             var generator = editor.Generator;
-
-            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var services = document.Project.Solution.Services;
-
-            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var info = (TCodeGenerationContextInfo)options.GetInfo(CodeGenerationContext.Default, document.Project);
+            var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
@@ -128,7 +124,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 {
                     editor.ReplaceNode(
                         typeBlock,
-                        (currentTypeDeclaration, _) => codeGenerator.AddField(currentTypeDeclaration, newField, info, cancellationToken));
+                        (currentTypeDeclaration, _) => info.Service.AddField(currentTypeDeclaration, newField, info, cancellationToken));
                 }
             }
 
