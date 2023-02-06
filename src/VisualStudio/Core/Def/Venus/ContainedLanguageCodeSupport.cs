@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var options = targetDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
 
-            var info = options.GenerationOptions.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), targetDocument.Project);
+            var info = codeGenerationService.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), options.GenerationOptions, destinationType.SyntaxTree.Options);
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, info, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 

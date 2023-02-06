@@ -3562,6 +3562,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">多个泛型重载</target>
         <note />
       </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
         <target state="translated">If 语句</target>
