@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            // Require a break between a lambda return type and its open paren. Current token might be:
+            // Require a separator between a lambda return type and its open paren. Current token might be:
             // 1. Simple type (predefined or identifier): int () => ... The parent of token is Predefined/Identifier type syntax, which parent is lambda
             // 2. Close paren of a tuple: (int, int) () => ... The parent of token is tuple type syntax, which parent is lambda
             // 3. Close `>` of generic name: Task<int> () => ... The parent of token is type argument list, its parent is generic name syntax, and its parent is finally lambda
