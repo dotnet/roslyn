@@ -101,7 +101,7 @@ Base()
 
         [Theory]
         [CombinatorialData]
-        public void LanguageVersion_03([CombinatorialValues("class ", "struct")] string keyword)
+        public void LanguageVersion_03([CombinatorialValues("class", "struct", "interface", "enum")] string keyword)
         {
             var src1 = @"
 " + keyword + @" Point
@@ -117,7 +117,24 @@ Base()
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+
+            var members = comp.GetTypeByMetadataName("Point").GetMembers();
+
+            switch (keyword)
+            {
+                case "class":
+                case "struct":
+                case "enum":
+                    Assert.Equal(MethodKind.Constructor, members.Cast<MethodSymbol>().Single().MethodKind);
+                    break;
+                case "interface":
+                    Assert.Empty(members);
+                    break;
+                default:
+                    Assert.True(false);
+                    break;
+            }
         }
 
         [Fact]
@@ -300,6 +317,40 @@ interface Base{}
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void LanguageVersion_08([CombinatorialValues("class ", "struct", "interface", "enum")] string keyword)
+        {
+            var src1 = @"
+" + keyword + @" Point
+{}";
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void LanguageVersion_09([CombinatorialValues("class", "struct", "interface", "enum")] string keyword)
+        {
+            var src1 = @"
+" + keyword + @" Point
+{};";
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]

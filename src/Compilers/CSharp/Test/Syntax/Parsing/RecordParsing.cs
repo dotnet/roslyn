@@ -303,14 +303,7 @@ class C
         public void RecordParsing06()
         {
             var tree = ParseTree("interface P;", options: null);
-            tree.GetDiagnostics().Verify(
-                // (1,12): error CS1514: { expected	
-                // interface P;	
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 12),
-                // (1,12): error CS1513: } expected	
-                // interface P;	
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 12)
-            );
+            tree.GetDiagnostics().Verify();
 
             UsingNode((CSharpSyntaxNode)tree.GetRoot());
 
@@ -320,8 +313,6 @@ class C
                 {
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "P");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2370,17 +2361,7 @@ class C(int X, int Y)
         public void Base_03()
         {
             var text = "interface C : B;";
-            UsingTree(text,
-                // (1,16): error CS1003: Syntax error, ',' expected
-                // interface C : B;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 16),
-                // (1,17): error CS1514: { expected
-                // interface C : B;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 17),
-                // (1,17): error CS1513: } expected
-                // interface C : B;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 17)
-                );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2399,8 +2380,7 @@ class C(int X, int Y)
                             }
                         }
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2499,17 +2479,7 @@ class C(int X, int Y)
         public void Base_05()
         {
             var text = "interface C : B(X, Y);";
-            UsingTree(text,
-                // (1,22): error CS1003: Syntax error, ',' expected
-                // interface C : B(X, Y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 22),
-                // (1,23): error CS1514: { expected
-                // interface C : B(X, Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 23),
-                // (1,23): error CS1513: } expected
-                // interface C : B(X, Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 23)
-                );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2548,8 +2518,7 @@ class C(int X, int Y)
                             }
                         }
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

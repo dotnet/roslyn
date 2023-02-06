@@ -9216,14 +9216,7 @@ interface C";
             var text = @"
 interface C
 ;";
-            UsingTree(text,
-                // (2,12): error CS1514: { expected
-                // interface C
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 12),
-                // (2,12): error CS1513: } expected
-                // interface C
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 12)
-                );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -9231,8 +9224,6 @@ interface C
                 {
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -9246,17 +9237,7 @@ interface C
             var text = @"
 interface C : I1
 ;";
-            UsingTree(text,
-                // (2,17): error CS1003: Syntax error, ',' expected
-                // interface C : I1
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 17),
-                // (3,2): error CS1514: { expected
-                // ;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 2),
-                // (3,2): error CS1513: } expected
-                // ;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 2)
-                );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -9275,8 +9256,7 @@ interface C : I1
                             }
                         }
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -9289,17 +9269,7 @@ interface C : I1
             var text = @"
 interface C : I1, I2
 ;";
-            UsingTree(text,
-                // (2,21): error CS1003: Syntax error, ',' expected
-                // interface C : I1, I2
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 21),
-                // (3,2): error CS1514: { expected
-                // ;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 2),
-                // (3,2): error CS1513: } expected
-                // ;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 2)
-                );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -9326,8 +9296,7 @@ interface C : I1, I2
                             }
                         }
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -9340,17 +9309,7 @@ interface C : I1, I2
             var text = @"
 interface C where T1 : U1
 ;";
-            UsingTree(text,
-                // (2,26): error CS1003: Syntax error, ',' expected
-                // interface C where T1 : U1
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 26),
-                // (3,2): error CS1514: { expected
-                // ;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 2),
-                // (3,2): error CS1513: } expected
-                // ;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 2)
-                );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -9374,8 +9333,7 @@ interface C where T1 : U1
                             }
                         }
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -9388,17 +9346,7 @@ interface C where T1 : U1
             var text = @"
 interface C where T1 : U1 where T2 : U2
 ;";
-            UsingTree(text,
-                // (2,40): error CS1003: Syntax error, ',' expected
-                // interface C where T1 : U1 where T2 : U2
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 40),
-                // (3,2): error CS1514: { expected
-                // ;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 2),
-                // (3,2): error CS1513: } expected
-                // ;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 2)
-                );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -9438,8 +9386,7 @@ interface C where T1 : U1 where T2 : U2
                             }
                         }
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -9516,18 +9463,21 @@ C<T>";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonBody_01(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineDataAttribute(SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void Class_SemicolonBody_01(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C;";
+" + SyntaxFacts.GetText(keywordKind) + @" C;";
             UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -9537,18 +9487,20 @@ C<T>";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonBody_02(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBody_02(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C<T>;";
+" + SyntaxFacts.GetText(keywordKind) + @" C<T>;";
             UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.TypeParameterList);
                     {
@@ -9567,11 +9519,13 @@ C<T>";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonBody_03(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBody_03(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @"
+" + SyntaxFacts.GetText(keywordKind) + @"
 C<>;";
             UsingTree(text,
                 // (3,3): error CS1001: Identifier expected
@@ -9581,9 +9535,9 @@ C<>;";
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.TypeParameterList);
                     {
@@ -9602,11 +9556,14 @@ C<>;";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonAfterSemicolonBody(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineDataAttribute(SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void Class_SemicolonAfterSemicolonBody(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C;
+" + SyntaxFacts.GetText(keywordKind) + @" C;
 ;";
             UsingTree(text,
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
@@ -9616,9 +9573,9 @@ C<>;";
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -9635,18 +9592,21 @@ C<>;";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonBodyAfterBase_01(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineDataAttribute(SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void Class_SemicolonBodyAfterBase_01(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C : Base;";
+" + SyntaxFacts.GetText(keywordKind) + @" C : Base;";
             UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.BaseList);
                     {
@@ -9667,18 +9627,20 @@ C<>;";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonBodyAfterBase_02(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBodyAfterBase_02(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C : Base, I1;";
+" + SyntaxFacts.GetText(keywordKind) + @" C : Base, I1;";
             UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.BaseList);
                     {
@@ -9707,18 +9669,20 @@ C<>;";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonBodyAfterConstraint_01(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBodyAfterConstraint_01(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C where T1 : U1 ;";
+" + SyntaxFacts.GetText(keywordKind) + @" C where T1 : U1 ;";
             UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.TypeParameterConstraintClause);
                     {
@@ -9744,18 +9708,20 @@ C<>;";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonBodyAfterConstraint_02(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBodyAfterConstraint_02(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C where T1 : U1 where T2 : U2 ;";
+" + SyntaxFacts.GetText(keywordKind) + @" C where T1 : U1 where T2 : U2 ;";
             UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.TypeParameterConstraintClause);
                     {
@@ -9797,18 +9763,20 @@ C<>;";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonBodyAfterConstraint_03(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        public void Class_SemicolonBodyAfterConstraint_03(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C<T1> where T1 : U1 ;";
+" + SyntaxFacts.GetText(keywordKind) + @" C<T1> where T1 : U1 ;";
             UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.TypeParameterList);
                     {
@@ -9843,18 +9811,21 @@ C<>;";
         }
 
         [Theory]
-        [CombinatorialData]
-        public void Class_SemicolonAfterBlock(bool @struct)
+        [InlineDataAttribute(SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineDataAttribute(SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineDataAttribute(SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineDataAttribute(SyntaxKind.EnumDeclaration, SyntaxKind.EnumKeyword)]
+        public void Class_SemicolonAfterBlock(SyntaxKind declKind, SyntaxKind keywordKind)
         {
             var text = @"
-" + (@struct ? "struct" : "class") + @" C { };";
+" + SyntaxFacts.GetText(keywordKind) + @" C { };";
             UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(@struct ? SyntaxKind.StructDeclaration : SyntaxKind.ClassDeclaration);
+                N(declKind);
                 {
-                    N(@struct ? SyntaxKind.StructKeyword : SyntaxKind.ClassKeyword);
+                    N(keywordKind);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
