@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;

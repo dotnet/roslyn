@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
     {
         public abstract string Command { get; }
 
-        public abstract bool MutatesSolutionState { get; }
+        public abstract RequestConcurrency Concurrency { get; }
         public abstract bool RequiresLSPSolution { get; }
 
         public abstract TextDocumentIdentifier GetTextDocumentIdentifier(ExecuteCommandParams request);

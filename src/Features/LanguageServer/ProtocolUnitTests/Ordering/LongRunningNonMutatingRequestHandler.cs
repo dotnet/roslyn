@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit.Sdk;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
 
         public bool RequiresLSPSolution => true;
 

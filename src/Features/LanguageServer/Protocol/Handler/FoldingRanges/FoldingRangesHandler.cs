@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly IGlobalOptionService _globalOptions;
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]

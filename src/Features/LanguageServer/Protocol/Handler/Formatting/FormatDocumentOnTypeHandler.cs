@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly IGlobalOptionService _globalOptions;
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]

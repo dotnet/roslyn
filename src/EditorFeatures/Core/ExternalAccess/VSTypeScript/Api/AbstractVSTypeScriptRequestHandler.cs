@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// </summary>
 internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : ILspServiceRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler, ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier?>
 {
-    bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
+    RequestConcurrency IMethodHandler.Concurrency => Concurrency;
 
     bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
 
@@ -50,7 +50,7 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
         return HandleRequestAsync(request, new TypeScriptRequestContext(context.Solution, context.Document), cancellationToken);
     }
 
-    protected abstract bool MutatesSolutionState { get; }
+    protected abstract RequestConcurrency Concurrency { get; }
 
     protected abstract bool RequiresLSPSolution { get; }
 

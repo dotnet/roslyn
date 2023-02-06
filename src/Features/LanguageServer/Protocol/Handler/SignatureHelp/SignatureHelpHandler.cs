@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Commands;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public override string Command => StringConstants.CreateEventHandlerCommand;
 
-        public override bool MutatesSolutionState => false;
+        public override RequestConcurrency Concurrency => RequestConcurrency.Parallel;
 
         public override bool RequiresLSPSolution => true;
 

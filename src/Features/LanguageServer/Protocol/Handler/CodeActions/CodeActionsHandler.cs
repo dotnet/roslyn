@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]

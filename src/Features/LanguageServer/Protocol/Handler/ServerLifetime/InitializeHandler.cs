@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
@@ -20,7 +21,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
     {
     }
 
-    public bool MutatesSolutionState => true;
+    public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
     public bool RequiresLSPSolution => false;
 
     public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)

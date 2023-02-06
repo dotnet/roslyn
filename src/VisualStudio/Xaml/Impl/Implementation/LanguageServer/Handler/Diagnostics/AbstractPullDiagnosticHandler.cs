@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 using Roslyn.Utilities;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     {
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         /// <summary>

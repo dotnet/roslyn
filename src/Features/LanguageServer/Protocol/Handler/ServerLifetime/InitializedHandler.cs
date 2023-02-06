@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -18,7 +19,7 @@ internal class InitializedHandler : ILspServiceNotificationHandler<InitializedPa
     {
     }
 
-    public bool MutatesSolutionState => true;
+    public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
 
     public bool RequiresLSPSolution => false;
 

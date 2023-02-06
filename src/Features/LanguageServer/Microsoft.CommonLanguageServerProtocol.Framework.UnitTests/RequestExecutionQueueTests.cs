@@ -88,7 +88,7 @@ public class RequestExecutionQueueTests
 
     public class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
     {
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
 
         public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
         {

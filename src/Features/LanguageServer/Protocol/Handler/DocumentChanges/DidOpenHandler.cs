@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public bool MutatesSolutionState => true;
+        public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
         public bool RequiresLSPSolution => false;
 
         public Uri GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument.Uri;

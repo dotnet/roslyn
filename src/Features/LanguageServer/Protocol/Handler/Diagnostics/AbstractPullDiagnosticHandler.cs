@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         private readonly ConcurrentDictionary<string, VersionedPullCache<(int, VersionStamp?), (int, Checksum)>> _categoryToVersionedCache = new();
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(

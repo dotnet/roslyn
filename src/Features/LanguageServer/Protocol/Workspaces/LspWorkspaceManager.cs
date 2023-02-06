@@ -92,7 +92,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Called by the <see cref="DidOpenHandler"/> when a document is opened in LSP.
     /// 
-    /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
+    /// <see cref="DidOpenHandler.Concurrency"/> is RequiresCompletionBeforeFurtherQueueing which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     public void StartTracking(Uri uri, SourceText documentText)
     {
@@ -107,7 +107,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Called by the <see cref="DidCloseHandler"/> when a document is closed in LSP.
     /// 
-    /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
+    /// <see cref="DidCloseHandler.Concurrency"/> is RequiresCompletionBeforeFurtherQueueing which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     public void StopTracking(Uri uri)
     {
@@ -125,7 +125,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Called by the <see cref="DidChangeHandler"/> when a document's text is updated in LSP.
     /// 
-    /// <see cref="DidChangeHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
+    /// <see cref="DidChangeHandler.Concurrency"/> is RequiresCompletionBeforeFurtherQueueing which means this runs serially in the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
     public void UpdateTrackedDocument(Uri uri, SourceText newSourceText)
     {

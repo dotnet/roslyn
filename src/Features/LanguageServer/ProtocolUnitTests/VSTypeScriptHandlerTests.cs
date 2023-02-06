@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
@@ -142,7 +143,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
         internal const string MethodName = "testMethod";
 
-        protected override bool MutatesSolutionState => false;
+        protected override RequestConcurrency Concurrency => RequestConcurrency.Parallel;
 
         protected override bool RequiresLSPSolution => true;
 

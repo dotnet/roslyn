@@ -33,14 +33,14 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
 
     public ILspServices LspServices { get; }
 
-    public bool MutatesServerState { get; }
+    public RequestConcurrency Concurrency { get; }
 
     public string MethodName { get; }
 
     public IMethodHandler MethodHandler { get; }
 
     private QueueItem(
-        bool mutatesSolutionState,
+        RequestConcurrency concurrency,
         string methodName,
         IMethodHandler methodHandler,
         TRequest request,
@@ -58,12 +58,12 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         LspServices = lspServices;
         MethodHandler = methodHandler;
 
-        MutatesServerState = mutatesSolutionState;
+        Concurrency = concurrency;
         MethodName = methodName;
     }
 
     public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(
-        bool mutatesSolutionState,
+        RequestConcurrency concurrency,
         string methodName,
         IMethodHandler methodHandler,
         TRequest request,
@@ -73,7 +73,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         CancellationToken cancellationToken)
     {
         var queueItem = new QueueItem<TRequest, TResponse, TRequestContext>(
-            mutatesSolutionState,
+            concurrency,
             methodName,
             methodHandler,
             request,

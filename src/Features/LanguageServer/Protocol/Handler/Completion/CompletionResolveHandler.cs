@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CompletionListCache _completionListCache;
         private readonly IGlobalOptionService _globalOptions;
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache)

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(Methods.WorkspaceExecuteCommandName)]
 internal class ExecuteWorkspaceCommandHandler : ILspServiceRequestHandler<ExecuteCommandParams, object?>
 {
-    public bool MutatesSolutionState => false;
+    public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
 
     public bool RequiresLSPSolution => true;
 

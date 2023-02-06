@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions.XmlSnippetParser;
@@ -45,7 +46,7 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
     private readonly XmlSnippetParser _xmlSnippetParser;
     private readonly IGlobalOptionService _globalOptions;
 
-    public bool MutatesSolutionState => false;
+    public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
 
     public bool RequiresLSPSolution => true;
 

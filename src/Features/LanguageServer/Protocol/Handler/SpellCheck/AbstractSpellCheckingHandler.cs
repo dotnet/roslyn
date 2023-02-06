@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         /// </summary>
         private readonly VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)?> _versionedCache;
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         protected AbstractSpellCheckHandler()

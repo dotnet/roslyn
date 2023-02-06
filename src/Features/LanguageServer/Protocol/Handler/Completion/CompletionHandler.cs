@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]

@@ -69,7 +69,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         }
 
         return RequestContext.CreateAsync(
-            queueItem.MutatesServerState,
+            mutatesSolutionState: (queueItem.Concurrency & RequestConcurrency.RequiresCompletionBeforeFurtherQueueing) == RequestConcurrency.RequiresCompletionBeforeFurtherQueueing,
             requiresLSPSolution,
             textDocumentIdentifier,
             serverInfoProvider.ServerKind,

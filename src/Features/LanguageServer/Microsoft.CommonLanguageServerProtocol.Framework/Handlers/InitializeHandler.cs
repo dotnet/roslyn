@@ -18,7 +18,7 @@ public class InitializeHandler<TRequest, TResponse, TRequestContext>
         _capabilitiesManager = capabilitiesManager;
     }
 
-    public bool MutatesSolutionState => true;
+    public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
 
     public bool RequiresLSPSolution => false;
 

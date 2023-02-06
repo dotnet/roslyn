@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public bool MutatesSolutionState => true;
+        public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
         public bool RequiresLSPSolution => false;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)

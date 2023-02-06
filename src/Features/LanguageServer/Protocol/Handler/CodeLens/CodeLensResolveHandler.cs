@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -28,7 +29,7 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
         _codeLensCache = codeLensCache;
     }
 
-    public bool MutatesSolutionState => false;
+    public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
 
     public bool RequiresLSPSolution => true;
 

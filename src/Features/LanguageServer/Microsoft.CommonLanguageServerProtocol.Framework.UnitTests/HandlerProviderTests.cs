@@ -97,7 +97,7 @@ public partial class HandlerProviderTests
     [LanguageServerEndpoint(_method)]
     internal class TestMethodHandler : IRequestHandler<int, string, TestRequestContext>
     {
-        public bool MutatesSolutionState => true;
+        public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
 
         public static string Method = _method;
 
@@ -113,7 +113,7 @@ public partial class HandlerProviderTests
 
     private class TestMethodHandlerWithoutAttribute : INotificationHandler<TestRequestContext>
     {
-        public bool MutatesSolutionState => true;
+        public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
 
         public Task HandleNotificationAsync(TestRequestContext requestContext, CancellationToken cancellationToken)
         {

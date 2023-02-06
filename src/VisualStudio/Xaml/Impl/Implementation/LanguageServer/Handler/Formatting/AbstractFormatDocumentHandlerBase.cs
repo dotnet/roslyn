@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : ILspServiceRequestHandler<RequestType, ResponseType>
     {
-        public bool MutatesSolutionState => false;
+        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
         public bool RequiresLSPSolution => true;
 
         public abstract TextDocumentIdentifier GetTextDocumentIdentifier(RequestType request);
