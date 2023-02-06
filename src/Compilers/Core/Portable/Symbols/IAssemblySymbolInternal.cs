@@ -16,5 +16,11 @@ namespace Microsoft.CodeAnalysis.Symbols
         AssemblyIdentity Identity { get; }
 
         IAssemblySymbolInternal CorLibrary { get; }
+
+        INamedTypeSymbolInternal GetSpecialType(SpecialType specialType);
+        ISymbolInternal GetSpecialTypeMember(SpecialMember feature);
+
+        bool IsStaticClass(INamedTypeSymbolInternal namedType);
+        bool SupportsRuntimeCapability(RuntimeCapability capability);
     }
 }

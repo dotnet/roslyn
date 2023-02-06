@@ -411,62 +411,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
+        bool IAssemblySymbolInternal.IsStaticClass(INamedTypeSymbolInternal namedType)
+            => namedType is { TypeKind: TypeKind.Class, IsStatic: true };
+
+        public bool SupportsRuntimeCapability(RuntimeCapability capability)
+            => RuntimeCapabilityHelpers.RuntimeSupportsCapability(this, capability);
+
         /// <summary>
         /// Figure out if the target runtime supports default interface implementation.
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation
-        {
-            get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
-        }
+            => SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces);
 
         /// <summary>
         /// Figure out if the target runtime supports static abstract members in interfaces.
         /// </summary>
         internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
-        {
-            get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces);
-        }
+            => SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces);
 
         /// <summary>
         /// Whether the target runtime supports numeric IntPtr types.
         /// </summary>
         internal bool RuntimeSupportsNumericIntPtr
-        {
-            get
-            {
-                // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
-                // Tracked by https://github.com/dotnet/roslyn/issues/61262
-                return CorLibrary is not null &&
-                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr);
-            }
-        }
+            => SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr);
 
-        protected bool RuntimeSupportsFeature(SpecialMember feature)
-        {
-            Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
-            return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
-                   GetSpecialTypeMember(feature) is object;
-        }
+        //protected bool RuntimeSupportsFeature(SpecialMember feature)
+        //{
+        //    Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
+        //    return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
+        //           GetSpecialTypeMember(feature) is object;
+        //}
 
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
-            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
+            => SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention);
 
         internal bool RuntimeSupportsByRefFields
-            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields);
+            => SupportsRuntimeCapability(RuntimeCapability.ByRefFields);
 
         /// <summary>
         /// True if the target runtime support covariant returns of methods declared in classes.
         /// </summary>
         internal bool RuntimeSupportsCovariantReturnsOfClasses
-        {
-            get
-            {
-                // check for the runtime feature indicator and the required attribute.
-                return
-                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) &&
-                    GetSpecialType(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute) is { TypeKind: TypeKind.Class };
-            }
-        }
+            => SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses);
 
         /// <summary>
         /// Return an array of assemblies involved in canonical type resolution of
@@ -539,6 +525,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return CorLibrary.GetDeclaredSpecialType(type);
         }
+
+        INamedTypeSymbolInternal IAssemblySymbolInternal.GetSpecialType(SpecialType specialType)
+            => GetSpecialType(specialType);
 
         internal static TypeSymbol DynamicType
         {
@@ -1002,6 +991,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return CorLibrary.GetDeclaredSpecialTypeMember(member);
         }
+
+        ISymbolInternal IAssemblySymbolInternal.GetSpecialTypeMember(SpecialMember feature)
+            => GetSpecialTypeMember(feature);
 
         internal abstract ImmutableArray<byte> PublicKey { get; }
 

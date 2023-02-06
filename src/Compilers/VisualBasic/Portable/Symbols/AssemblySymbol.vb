@@ -341,16 +341,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property RuntimeSupportsDefaultInterfaceImplementation As Boolean
             Get
-                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
+                Return SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces)
             End Get
         End Property
 
-        Private Function RuntimeSupportsFeature(feature As SpecialMember) As Boolean
-            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringTypeId = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+        Private Function IsStaticClass(namedTypeInternal As INamedTypeSymbolInternal) As Boolean Implements IAssemblySymbolInternal.IsStaticClass
+            Dim namedType = DirectCast(namedTypeInternal, NamedTypeSymbol)
+            Return namedType.IsClassType() AndAlso namedType.IsMetadataAbstract AndAlso namedType.IsMetadataSealed
+        End Function
 
-            Dim runtimeFeature = GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
-            Return runtimeFeature.IsClassType() AndAlso runtimeFeature.IsMetadataAbstract AndAlso runtimeFeature.IsMetadataSealed AndAlso
-                   GetSpecialTypeMember(feature) IsNot Nothing
+        Private Function SupportsRuntimeCapability(capability As RuntimeCapability) As Boolean Implements IAssemblySymbolInternal.SupportsRuntimeCapability
+            Return RuntimeCapabilityHelpers.RuntimeSupportsCapability(Me, capability)
         End Function
 
         ''' <summary>
@@ -411,6 +412,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Return CorLibrary.GetDeclaredSpecialType(type)
+        End Function
+
+        Private Function IAssemblySymbolInternal_GetSpecialType(specialType As SpecialType) As INamedTypeSymbolInternal Implements IAssemblySymbolInternal.GetSpecialType
+            Return GetSpecialType(specialType)
         End Function
 
         ''' <summary>

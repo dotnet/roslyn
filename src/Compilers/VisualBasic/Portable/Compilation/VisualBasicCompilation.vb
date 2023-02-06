@@ -3140,16 +3140,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Protected Overrides Function SupportsRuntimeCapabilityCore(capability As RuntimeCapability) As Boolean
-            Dim assembly = Me.Assembly
+        'Private Protected Overrides Function SupportsRuntimeCapabilityCore(capability As RuntimeCapability) As Boolean
+        '    Dim assembly = Me.Assembly
 
-            Select Case capability
-                Case RuntimeCapability.DefaultImplementationsOfInterfaces
-                    Return assembly.RuntimeSupportsDefaultInterfaceImplementation
-            End Select
+        '    Select Case capability
+        '        Case RuntimeCapability.DefaultImplementationsOfInterfaces
+        '            Return assembly.RuntimeSupportsDefaultInterfaceImplementation
+        '    End Select
 
-            Return False
-        End Function
+        '    Return False
+        'End Function
 
 #End Region
 
