@@ -3408,6 +3408,8 @@ namespace Microsoft.CodeAnalysis
                         changes,
                         cancellationToken);
 
+                    moduleBeingBuilt.TestData?.SetMetadataWriter(writer);
+
                     writer.WriteMetadataAndIL(
                         nativePdbWriter,
                         metadataStream,

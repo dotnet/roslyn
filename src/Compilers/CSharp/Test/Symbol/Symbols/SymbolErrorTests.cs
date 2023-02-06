@@ -17411,12 +17411,12 @@ namespace SA
 
             var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
-                // (11,16): warning CS0435: The namespace 'CSFields' in '' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
+                // (11,16): warning CS0435: The namespace 'CSFields' in '0.cs' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
                 //         void M(CSFields.FFF p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("0.cs", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
                 // (10,9): warning CS0435: The namespace 'CSFields' in '' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
                 //         CSFields.FFF var = null;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("0.cs", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
                 // (10,22): warning CS0414: The field 'SA.Test.var' is assigned but its value is never used
                 //         CSFields.FFF var = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "var").WithArguments("SA.Test.var")
@@ -17449,12 +17449,12 @@ namespace SA
             // Roslyn gives CS1542 or CS0104
             var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
-                // (8,16): warning CS0436: The type 'Class1' in '' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                // (8,16): warning CS0436: The type 'Class1' in '0.cs' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(Class1 p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
-                // (7,9): warning CS0436: The type 'Class1' in '' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("0.cs", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
+                // (7,9): warning CS0436: The type 'Class1' in '0.cs' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         Class1 cls;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("0.cs", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
                 // (7,16): warning CS0169: The field 'SA.Test.cls' is never used
                 //         Class1 cls;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "cls").WithArguments("SA.Test.cls"));
@@ -17692,12 +17692,12 @@ namespace SA
             // Roslyn CS1542
             var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
-                // (11,16): warning CS0437: The type 'AppCS' in '' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                // (11,16): warning CS0437: The type 'AppCS' in '0.cs' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(AppCS.App p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("0.cs", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
                 // (10,9): warning CS0437: The type 'AppCS' in '' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         AppCS.App app = null;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("0.cs", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
                 // (10,19): warning CS0414: The field 'SA.Test.app' is assigned but its value is never used
                 //         AppCS.App app = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "app").WithArguments("SA.Test.app"));
