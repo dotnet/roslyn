@@ -30,103 +30,6 @@ using Roslyn.Test.Utilities.Desktop;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-#if NETCOREAPP
-
-    public sealed class InvokeUtil
-    {
-        public void Exec(Action<string> testOutputHelper, AssemblyLoadContext alc, bool shadowLoad, string typeName, string methodName)
-        {
-            // Ensure that the test did not load any of the test fixture assemblies into 
-            // the default load context. That should never happen. Assemblies should either 
-            // load into the compiler or directory load context.
-            //
-            // Not only is this bad behavior it also pollutes future test results.
-            var count = AssemblyLoadContext.Default.Assemblies.Count();
-            using var fixture = new AssemblyLoadTestFixture();
-            using var tempRoot = new TempRoot();
-            var loader = shadowLoad
-                ? new ShadowCopyAnalyzerAssemblyLoader(alc, tempRoot.CreateDirectory().Path)
-                : new DefaultAnalyzerAssemblyLoader(alc);
-            try
-            {
-                DefaultAnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
-            }
-            finally
-            {
-                testOutputHelper($"Test fixture root: {fixture.TempDirectory.Path}");
-
-                foreach (var context in loader.GetDirectoryLoadContextsSnapshot())
-                {
-                    testOutputHelper($"Directory context: {context.Directory}");
-                    foreach (var assembly in context.Assemblies)
-                    {
-                        testOutputHelper($"\t{assembly.FullName}");
-                    }
-                }
-
-                if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)
-                {
-                    testOutputHelper($"Shadow loader: {shadowLoader.BaseDirectory}");
-                }
-
-                testOutputHelper($"Loader path maps");
-                foreach (var pair in loader.GetPathMapSnapshot())
-                {
-                    testOutputHelper($"\t{pair.OriginalAssemblyPath} -> {pair.RealAssemblyPath}");
-                }
-
-                Assert.Equal(count, AssemblyLoadContext.Default.Assemblies.Count());
-            }
-        }
-    }
-
-#else
-
-    public sealed class InvokeUtil : MarshalByRefObject
-    {
-        public void Exec(ITestOutputHelper testOutputHelper, bool shadowLoad, string typeName, string methodName)
-        {
-            using var fixture = new AssemblyLoadTestFixture();
-            using var tempRoot = new TempRoot();
-            var loader = shadowLoad
-                ? new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path)
-                : new DefaultAnalyzerAssemblyLoader();
-
-            try
-            {
-                DefaultAnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
-            }
-            catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
-            {
-                var inner = ex.InnerException;
-                throw new Exception(inner.Message + inner.StackTrace);
-            }
-            finally
-            {
-                testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory.Path}");
-
-                testOutputHelper.WriteLine($"Loaded Assemblies");
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName))
-                {
-                    testOutputHelper.WriteLine($"\t{assembly.FullName} -> {assembly.Location}");
-                }
-
-                if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)
-                {
-                    testOutputHelper.WriteLine($"Shadow loader: {shadowLoader.BaseDirectory}");
-                }
-
-                testOutputHelper.WriteLine($"Loader path maps");
-                foreach (var pair in loader.GetPathMapSnapshot())
-                {
-                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.RealAssemblyPath}");
-                }
-            }
-        }
-    }
-
-#endif
-
     /// <summary>
     /// Contains the bulk of our analyzer / generator loading tests.
     /// </summary>
@@ -169,32 +72,54 @@ namespace Microsoft.CodeAnalysis.UnitTests
     /// Long term this is something that needs to be addressed. Tracked by https://github.com/dotnet/roslyn/issues/66532
     ///
     /// </remarks>
-    public sealed class DefaultAnalyzerAssemblyLoaderTests : TestBase
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
+    public sealed class AnalyzerAssemblyLoaderTests : TestBase
     {
         public ITestOutputHelper TestOutputHelper { get; }
 
-        public DefaultAnalyzerAssemblyLoaderTests(ITestOutputHelper testOutputHelper)
+        public AssemblyLoadTestFixture TestFixture { get; }
+
+        public AnalyzerAssemblyLoaderTests(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture testFixture)
         {
             TestOutputHelper = testOutputHelper;
+            TestFixture = testFixture;
         }
 
-        private void Run(bool shadowLoad, Action<DefaultAnalyzerAssemblyLoader, AssemblyLoadTestFixture> action, [CallerMemberName] string? memberName = null)
-        {
-            // NOTE: this is a dirty fix because test on Linux are failed because of timeout.
-            // Linked issues: https://github.com/dotnet/roslyn/issues/66626 and https://github.com/dotnet/roslyn/issues/66621
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return;
-            }
 #if NETCOREAPP
-            var alc = AssemblyLoadContextUtils.Create($"Test {memberName}");
-            var assembly = alc.LoadFromAssemblyName(typeof(InvokeUtil).Assembly.GetName());
-            var util = assembly.CreateInstance(typeof(InvokeUtil).FullName)!;
-            var method = util.GetType().GetMethod("Exec", BindingFlags.Public | BindingFlags.Instance)!;
-            var outputHelper = (string msg) => TestOutputHelper.WriteLine(msg);
-            method.Invoke(util, new object[] { outputHelper, alc, shadowLoad, action.Method.DeclaringType!.FullName!, action.Method.Name });
+
+        private void Run(bool shadowLoad, Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction, [CallerMemberName] string? memberName = null) =>
+            Run(
+                shadowLoad,
+                static (_, _) => { },
+                testAction,
+                memberName);
+
+        private void Run(
+            bool shadowLoad,
+            Action<AssemblyLoadContext, AssemblyLoadTestFixture> prepLoadContextAction,
+            Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
+            [CallerMemberName] string? memberName = null)
+        {
+            var alc = new AssemblyLoadContext($"Test {memberName}", isCollectible: true);
+            try
+            {
+                prepLoadContextAction(alc, TestFixture);
+                var util = new InvokeUtil();
+                util.Exec(TestOutputHelper, alc, TestFixture, shadowLoad, testAction.Method.DeclaringType!.FullName!, testAction.Method.Name);
+            }
+            finally
+            {
+                alc.Unload();
+            }
+        }
 
 #else
+
+        private void Run(
+            bool shadowLoad,
+            Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
+            [CallerMemberName] string? memberName = null)
+        {
             AppDomain? appDomain = null;
             try
             {
@@ -202,23 +127,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var testOutputHelper = new AppDomainTestOutputHelper(TestOutputHelper);
                 var type = typeof(InvokeUtil);
                 var util = (InvokeUtil)appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
-                util.Exec(testOutputHelper, shadowLoad, action.Method.DeclaringType.FullName, action.Method.Name);
+                util.Exec(testOutputHelper, TestFixture, shadowLoad, testAction.Method.DeclaringType.FullName, testAction.Method.Name);
             }
             finally
             {
                 AppDomain.Unload(appDomain);
             }
-#endif
         }
+
+#endif
 
         /// <summary>
         /// This is called from our newly created AppDomain or AssemblyLoadContext and needs to get 
         /// us back to the actual test code to execute. The intent is to invoke the lambda / static
         /// local func where the code exists.
         /// </summary>
-        internal static void InvokeTestCode(DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture fixture, string typeName, string methodName)
+        internal static void InvokeTestCode(AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture fixture, string typeName, string methodName)
         {
-            var type = typeof(DefaultAnalyzerAssemblyLoaderTests).Assembly.GetType(typeName, throwOnError: false)!;
+            var type = typeof(AnalyzerAssemblyLoaderTests).Assembly.GetType(typeName, throwOnError: false)!;
             var member = type.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)!;
 
             // A static lambda will still be an instance method so we need to create the closure
@@ -235,15 +161,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void LoadWithDependency(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var analyzerDependencyFile = testFixture.AnalyzerDependency;
                 var analyzerMainFile = testFixture.AnalyzerWithDependency;
-                loader.AddDependencyLocation(analyzerDependencyFile.Path);
+                loader.AddDependencyLocation(analyzerDependencyFile);
 
-                var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile.Path, loader);
+                var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile, loader);
                 analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
-                var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile.Path, loader);
+                var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile, loader);
                 analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
 
                 var analyzers = analyzerMainReference.GetAnalyzersForAllLanguages();
@@ -260,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void AddDependencyLocationThrowsOnNull(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null!));
                 Assert.Throws<ArgumentException>("fullPath", () => loader.AddDependencyLocation("a"));
@@ -271,7 +197,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void ThrowsForMissingFile(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dll");
                 Assert.ThrowsAny<Exception>(() => loader.LoadFromPath(path));
@@ -282,10 +208,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void BasicLoad(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
-                loader.AddDependencyLocation(testFixture.Alpha.Path);
-                Assembly alpha = loader.LoadFromPath(testFixture.Alpha.Path);
+                loader.AddDependencyLocation(testFixture.Alpha);
+                Assembly alpha = loader.LoadFromPath(testFixture.Alpha);
 
                 Assert.NotNull(alpha);
             });
@@ -295,21 +221,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void AssemblyLoading_Multiple(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Alpha.Path);
-                loader.AddDependencyLocation(testFixture.Beta.Path);
-                loader.AddDependencyLocation(testFixture.Gamma.Path);
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
+                loader.AddDependencyLocation(testFixture.Alpha);
+                loader.AddDependencyLocation(testFixture.Beta);
+                loader.AddDependencyLocation(testFixture.Gamma);
+                loader.AddDependencyLocation(testFixture.Delta1);
 
-                Assembly alpha = loader.LoadFromPath(testFixture.Alpha.Path);
+                Assembly alpha = loader.LoadFromPath(testFixture.Alpha);
 
                 var a = alpha.CreateInstance("Alpha.A")!;
                 a.GetType().GetMethod("Write")!.Invoke(a, new object[] { sb, "Test A" });
 
-                Assembly beta = loader.LoadFromPath(testFixture.Beta.Path);
+                Assembly beta = loader.LoadFromPath(testFixture.Beta);
 
                 var b = beta.CreateInstance("Beta.B")!;
                 b.GetType().GetMethod("Write")!.Invoke(b, new object[] { sb, "Test B" });
@@ -334,18 +260,21 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_OverwriteBeforeLoad(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                testFixture.Delta1.WriteAllBytes(testFixture.Delta2.ReadAllBytes());
-                var assembly = loader.LoadFromPath(testFixture.Delta1.Path);
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var delta1Copy = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+                loader.AddDependencyLocation(delta1Copy);
+                File.Copy(testFixture.Delta2, delta1Copy, overwrite: true);
+                var assembly = loader.LoadFromPath(delta1Copy);
 
-                var name = AssemblyName.GetAssemblyName(testFixture.Delta2.Path);
+                var name = AssemblyName.GetAssemblyName(testFixture.Delta2);
                 Assert.Equal(name.FullName, assembly.GetName().FullName);
 
                 VerifyDependencyAssemblies(
                     loader,
-                    testFixture.Delta1.Path);
+                    delta1Copy);
             });
         }
 
@@ -353,11 +282,11 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_AssemblyLocationNotAdded(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
-                loader.AddDependencyLocation(testFixture.Gamma.Path);
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                Assert.Throws<InvalidOperationException>(() => loader.LoadFromPath(testFixture.Beta.Path));
+                loader.AddDependencyLocation(testFixture.Gamma);
+                loader.AddDependencyLocation(testFixture.Delta1);
+                Assert.Throws<InvalidOperationException>(() => loader.LoadFromPath(testFixture.Beta));
             });
         }
 
@@ -365,13 +294,13 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_DependencyLocationNotAdded(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Gamma.Path);
-                loader.AddDependencyLocation(testFixture.Beta.Path);
-                Assembly beta = loader.LoadFromPath(testFixture.Beta.Path);
+                loader.AddDependencyLocation(testFixture.Gamma);
+                loader.AddDependencyLocation(testFixture.Beta);
+                Assembly beta = loader.LoadFromPath(testFixture.Beta);
 
                 var b = beta.CreateInstance("Beta.B")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
@@ -398,10 +327,10 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, params (string simpleName, string version, string path)[] expected) =>
+        private static void VerifyAssemblies(AnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, params (string simpleName, string version, string path)[] expected) =>
             VerifyAssemblies(loader, assemblies, expectedCopyCount: null, expected);
 
-        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? expectedCopyCount, params (string simpleName, string version, string path)[] expected)
+        private static void VerifyAssemblies(AnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? expectedCopyCount, params (string simpleName, string version, string path)[] expected)
         {
             expected = expected
                 .Select(x => (x.simpleName, x.version, loader.GetRealLoadPath(x.path)))
@@ -421,7 +350,7 @@ Delta: Gamma: Beta: Test B
             }
         }
 
-        private static void VerifyAssemblies(DefaultAnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? copyCount, params string[] assemblyPaths)
+        private static void VerifyAssemblies(AnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? copyCount, params string[] assemblyPaths)
         {
             var data = assemblyPaths
                 .Select(x =>
@@ -436,10 +365,10 @@ Delta: Gamma: Beta: Test B
         /// <summary>
         /// Verify the set of assemblies loaded as analyzer dependencies are the specified assembly paths
         /// </summary>
-        private static void VerifyDependencyAssemblies(DefaultAnalyzerAssemblyLoader loader, params string[] assemblyPaths) =>
+        private static void VerifyDependencyAssemblies(AnalyzerAssemblyLoader loader, params string[] assemblyPaths) =>
             VerifyDependencyAssemblies(loader, copyCount: null, assemblyPaths);
 
-        private static void VerifyDependencyAssemblies(DefaultAnalyzerAssemblyLoader loader, int? copyCount, params string[] assemblyPaths)
+        private static void VerifyDependencyAssemblies(AnalyzerAssemblyLoader loader, int? copyCount, params string[] assemblyPaths)
         {
             IEnumerable<Assembly> loadedAssemblies;
 
@@ -457,7 +386,7 @@ Delta: Gamma: Beta: Test B
                 .GetAssemblies()
                 .Where(x => isInLoadFromContext(loader, x));
 
-            static bool isInLoadFromContext(DefaultAnalyzerAssemblyLoader loader, Assembly assembly)
+            static bool isInLoadFromContext(AnalyzerAssemblyLoader loader, Assembly assembly)
             {
                 var undidHook = false;
                 try
@@ -491,15 +420,15 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_Simple(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                loader.AddDependencyLocation(testFixture.Gamma.Path);
+                loader.AddDependencyLocation(testFixture.Delta1);
+                loader.AddDependencyLocation(testFixture.Gamma);
 
-                Assembly gamma = loader.LoadFromPath(testFixture.Gamma.Path);
+                Assembly gamma = loader.LoadFromPath(testFixture.Gamma);
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
                 writeMethod.Invoke(b, new object[] { sb, "Test G" });
@@ -510,8 +439,8 @@ Delta: Gamma: Beta: Test B
 
                 VerifyDependencyAssemblies(
                     loader,
-                    testFixture.Delta1.Path,
-                    testFixture.Gamma.Path);
+                    testFixture.Delta1,
+                    testFixture.Gamma);
             });
         }
 
@@ -519,18 +448,18 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
                 StringBuilder sb = new StringBuilder();
 
-                var deltaFile = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
-                var gammaFile = tempDir.CreateDirectory("b").CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma.Path);
+                var deltaFile = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+                var gammaFile = tempDir.CreateDirectory("b").CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma).Path;
 
-                loader.AddDependencyLocation(deltaFile.Path);
-                loader.AddDependencyLocation(gammaFile.Path);
-                Assembly gamma = loader.LoadFromPath(gammaFile.Path);
+                loader.AddDependencyLocation(deltaFile);
+                loader.AddDependencyLocation(gammaFile);
+                Assembly gamma = loader.LoadFromPath(gammaFile);
 
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
@@ -542,8 +471,8 @@ Delta: Gamma: Beta: Test B
 
                 VerifyDependencyAssemblies(
                     loader,
-                    deltaFile.Path,
-                    gammaFile.Path);
+                    deltaFile,
+                    gammaFile);
             });
         }
 
@@ -555,7 +484,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory2(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -563,15 +492,15 @@ Delta: Gamma: Beta: Test B
                 // It's important that we create these directories in a deterministic order so that 
                 // our test has reliably output. Part of our resolution code will search the registered
                 // paths in a sorted order.
-                var deltaFile1 = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                var deltaFile1 = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
                 var tempSubDir = tempDir.CreateDirectory("b");
-                var gammaFile = tempSubDir.CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma.Path);
-                var deltaFile2 = tempSubDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                var gammaFile = tempSubDir.CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma).Path;
+                var deltaFile2 = tempSubDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
 
-                loader.AddDependencyLocation(deltaFile1.Path);
-                loader.AddDependencyLocation(deltaFile2.Path);
-                loader.AddDependencyLocation(gammaFile.Path);
-                Assembly gamma = loader.LoadFromPath(gammaFile.Path);
+                loader.AddDependencyLocation(deltaFile1);
+                loader.AddDependencyLocation(deltaFile2);
+                loader.AddDependencyLocation(gammaFile);
+                Assembly gamma = loader.LoadFromPath(gammaFile);
 
                 StringBuilder sb = new StringBuilder();
                 var b = gamma.CreateInstance("Gamma.G")!;
@@ -587,15 +516,15 @@ Delta: Gamma: Beta: Test B
                     // See limitation 3
                     VerifyDependencyAssemblies(
                         loader,
-                        deltaFile1.Path,
-                        gammaFile.Path);
+                        deltaFile1,
+                        gammaFile);
                 }
                 else
                 {
                     VerifyDependencyAssemblies(
                         loader,
-                        deltaFile2.Path,
-                        gammaFile.Path);
+                        deltaFile2,
+                        gammaFile);
 
                 }
             });
@@ -610,18 +539,18 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory3(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
                 StringBuilder sb = new StringBuilder();
 
-                var deltaFile = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
-                var gammaFile = tempDir.CreateDirectory("b").CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma.Path);
+                var deltaFile = tempDir.CreateDirectory("a").CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+                var gammaFile = tempDir.CreateDirectory("b").CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma).Path;
 
-                loader.AddDependencyLocation(deltaFile.Path);
-                loader.AddDependencyLocation(gammaFile.Path);
-                Assembly gamma = loader.LoadFromPath(gammaFile.Path);
+                loader.AddDependencyLocation(deltaFile);
+                loader.AddDependencyLocation(gammaFile);
+                Assembly gamma = loader.LoadFromPath(gammaFile);
 
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
@@ -633,8 +562,8 @@ Delta: Gamma: Beta: Test B
 
                 VerifyDependencyAssemblies(
                     loader,
-                    deltaFile.Path,
-                    gammaFile.Path);
+                    deltaFile,
+                    gammaFile);
             });
         }
 
@@ -643,18 +572,18 @@ Delta: Gamma: Beta: Test B
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void AssemblyLoading_DependencyInDifferentDirectory4(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var analyzerDependencyFile = testFixture.AnalyzerDependency;
                 var analyzerMainFile = testFixture.AnalyzerWithDependency;
 
-                var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile.Path, loader);
+                var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile, loader);
                 analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
-                var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile.Path, loader);
+                var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile, loader);
                 analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
 
-                Assert.True(loader.IsAnalyzerDependencyPath(analyzerMainFile.Path));
-                Assert.True(loader.IsAnalyzerDependencyPath(analyzerDependencyFile.Path));
+                Assert.True(loader.IsAnalyzerDependencyPath(analyzerMainFile));
+                Assert.True(loader.IsAnalyzerDependencyPath(analyzerDependencyFile));
 
                 var analyzers = analyzerMainReference.GetAnalyzersForAllLanguages();
                 Assert.Equal(1, analyzers.Length);
@@ -664,8 +593,8 @@ Delta: Gamma: Beta: Test B
 
                 VerifyDependencyAssemblies(
                     loader,
-                    testFixture.AnalyzerWithDependency.Path,
-                    testFixture.AnalyzerDependency.Path);
+                    testFixture.AnalyzerWithDependency,
+                    testFixture.AnalyzerDependency);
             });
         }
 
@@ -673,20 +602,20 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Gamma.Path);
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                loader.AddDependencyLocation(testFixture.Epsilon.Path);
-                loader.AddDependencyLocation(testFixture.Delta2.Path);
+                loader.AddDependencyLocation(testFixture.Gamma);
+                loader.AddDependencyLocation(testFixture.Delta1);
+                loader.AddDependencyLocation(testFixture.Epsilon);
+                loader.AddDependencyLocation(testFixture.Delta2);
 
-                Assembly gamma = loader.LoadFromPath(testFixture.Gamma.Path);
+                Assembly gamma = loader.LoadFromPath(testFixture.Gamma);
                 var g = gamma.CreateInstance("Gamma.G")!;
                 g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
 
-                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon.Path);
+                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
                 var actual = sb.ToString();
@@ -699,16 +628,16 @@ Delta: Gamma: Beta: Test B
                     loader,
                     alcs[0].Assemblies,
                     expectedCopyCount: 4,
-                    ("Delta", "1.0.0.0", testFixture.Delta1.Path),
-                    ("Gamma", "0.0.0.0", testFixture.Gamma.Path)
+                    ("Delta", "1.0.0.0", testFixture.Delta1),
+                    ("Gamma", "0.0.0.0", testFixture.Gamma)
                 );
 
                 VerifyAssemblies(
                     loader,
                     alcs[1].Assemblies,
                     expectedCopyCount: 4,
-                    ("Delta", "2.0.0.0", testFixture.Delta2.Path),
-                    ("Epsilon", "0.0.0.0", testFixture.Epsilon.Path));
+                    ("Delta", "2.0.0.0", testFixture.Delta2),
+                    ("Epsilon", "0.0.0.0", testFixture.Epsilon));
 
                 Assert.Equal(
     @"Delta: Gamma: Test G
@@ -730,15 +659,15 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_NoExactMatch(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                loader.AddDependencyLocation(testFixture.Epsilon.Path);
-                loader.AddDependencyLocation(testFixture.Delta3.Path);
+                loader.AddDependencyLocation(testFixture.Delta1);
+                loader.AddDependencyLocation(testFixture.Epsilon);
+                loader.AddDependencyLocation(testFixture.Delta3);
 
-                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon.Path);
+                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
@@ -757,8 +686,8 @@ Delta: Epsilon: Test E
                     VerifyDependencyAssemblies(
                         loader,
                         copyCount: 3,
-                        testFixture.Delta3.Path,
-                        testFixture.Epsilon.Path);
+                        testFixture.Delta3,
+                        testFixture.Epsilon);
                     Assert.Equal(
 @"Delta.3: Epsilon: Test E
 ",
@@ -768,14 +697,14 @@ Delta: Epsilon: Test E
                 {
                     // See limitation 1
                     // The Epsilon.dll has Delta.dll (v2) next to it in the directory. 
-                    Assert.Throws<InvalidOperationException>(() => loader.GetRealLoadPath(testFixture.Delta2.Path));
+                    Assert.Throws<InvalidOperationException>(() => loader.GetRealLoadPath(testFixture.Delta2));
 
                     // Fake the dependency so we can verify the rest of the load
-                    loader.AddDependencyLocation(testFixture.Delta2.Path);
+                    loader.AddDependencyLocation(testFixture.Delta2);
                     VerifyDependencyAssemblies(
                         loader,
-                        testFixture.Delta2.Path,
-                        testFixture.Epsilon.Path);
+                        testFixture.Delta2,
+                        testFixture.Epsilon);
 
                     Assert.Equal(
     @"Delta.2: Epsilon: Test E
@@ -789,15 +718,15 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_MultipleEqualMatches(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Delta2B.Path);
-                loader.AddDependencyLocation(testFixture.Delta2.Path);
-                loader.AddDependencyLocation(testFixture.Epsilon.Path);
+                loader.AddDependencyLocation(testFixture.Delta2B);
+                loader.AddDependencyLocation(testFixture.Delta2);
+                loader.AddDependencyLocation(testFixture.Epsilon);
 
-                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon.Path);
+                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
@@ -808,8 +737,8 @@ Delta: Epsilon: Test E
                     // context for who requested the load. Just have to go to best version.
                     VerifyDependencyAssemblies(
                         loader,
-                        testFixture.Delta2B.Path,
-                        testFixture.Epsilon.Path);
+                        testFixture.Delta2B,
+                        testFixture.Epsilon);
 
                     var actual = sb.ToString();
                     Assert.Equal(
@@ -823,8 +752,8 @@ Delta: Epsilon: Test E
                     // Delta2B and Delta2 have the same version, but we prefer Delta2 because it's in the same directory as Epsilon.
                     VerifyDependencyAssemblies(
                         loader,
-                        testFixture.Delta2.Path,
-                        testFixture.Epsilon.Path);
+                        testFixture.Delta2,
+                        testFixture.Epsilon);
 
                     var actual = sb.ToString();
                     Assert.Equal(
@@ -839,15 +768,15 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Delta2.Path);
-                loader.AddDependencyLocation(testFixture.Delta2B.Path);
+                loader.AddDependencyLocation(testFixture.Delta2);
+                loader.AddDependencyLocation(testFixture.Delta2B);
 
-                Assembly delta2 = loader.LoadFromPath(testFixture.Delta2.Path);
-                Assembly delta2B = loader.LoadFromPath(testFixture.Delta2B.Path);
+                Assembly delta2 = loader.LoadFromPath(testFixture.Delta2);
+                Assembly delta2B = loader.LoadFromPath(testFixture.Delta2B);
 
                 // 2B or not 2B? That is the question...that depends on whether we're on .NET Core or not.
 
@@ -855,8 +784,8 @@ Delta: Epsilon: Test E
 
                 // On Core, we're able to load both of these into separate AssemblyLoadContexts.
                 Assert.NotEqual(delta2B.Location, delta2.Location);
-                Assert.Equal(loader.GetRealLoadPath(testFixture.Delta2.Path), delta2.Location);
-                Assert.Equal(loader.GetRealLoadPath(testFixture.Delta2B.Path), delta2B.Location);
+                Assert.Equal(loader.GetRealLoadPath(testFixture.Delta2), delta2.Location);
+                Assert.Equal(loader.GetRealLoadPath(testFixture.Delta2B), delta2B.Location);
 
 #else
 
@@ -873,15 +802,15 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Delta2B.Path);
-                loader.AddDependencyLocation(testFixture.Delta3.Path);
-                loader.AddDependencyLocation(testFixture.Epsilon.Path);
+                loader.AddDependencyLocation(testFixture.Delta2B);
+                loader.AddDependencyLocation(testFixture.Delta3);
+                loader.AddDependencyLocation(testFixture.Epsilon);
 
-                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon.Path);
+                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
@@ -893,8 +822,8 @@ Delta: Epsilon: Test E
                     // so everything is a AppDomain.AssemblyResolve event and we get full control there.
                     VerifyDependencyAssemblies(
                         loader,
-                        testFixture.Delta2B.Path,
-                        testFixture.Epsilon.Path);
+                        testFixture.Delta2B,
+                        testFixture.Epsilon);
 
                     Assert.Equal(
     @"Delta.2B: Epsilon: Test E
@@ -904,14 +833,14 @@ Delta: Epsilon: Test E
                 else
                 {
                     // See limitation 2
-                    Assert.Throws<InvalidOperationException>(() => loader.GetRealLoadPath(testFixture.Delta2.Path));
+                    Assert.Throws<InvalidOperationException>(() => loader.GetRealLoadPath(testFixture.Delta2));
 
                     // Fake the dependency so we can verify the rest of the load
-                    loader.AddDependencyLocation(testFixture.Delta2.Path);
+                    loader.AddDependencyLocation(testFixture.Delta2);
                     VerifyDependencyAssemblies(
                         loader,
-                        testFixture.Delta2.Path,
-                        testFixture.Epsilon.Path);
+                        testFixture.Delta2,
+                        testFixture.Epsilon);
 
                     Assert.Equal(
                         @"Delta.2: Epsilon: Test E
@@ -925,7 +854,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_WorseMatchInSameDirectory(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -933,15 +862,15 @@ Delta: Epsilon: Test E
                 var tempDir = temp.CreateDirectory();
                 var tempDir1 = tempDir.CreateDirectory("a");
                 var tempDir2 = tempDir.CreateDirectory("b");
-                var epsilonFile = tempDir1.CreateFile("Epsilon.dll").CopyContentFrom(testFixture.Epsilon.Path);
-                var delta1File = tempDir1.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
-                var delta2File = tempDir2.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta2.Path);
+                var epsilonFile = tempDir1.CreateFile("Epsilon.dll").CopyContentFrom(testFixture.Epsilon).Path;
+                var delta1File = tempDir1.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+                var delta2File = tempDir2.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta2).Path;
 
-                loader.AddDependencyLocation(delta1File.Path);
-                loader.AddDependencyLocation(delta2File.Path);
-                loader.AddDependencyLocation(epsilonFile.Path);
+                loader.AddDependencyLocation(delta1File);
+                loader.AddDependencyLocation(delta2File);
+                loader.AddDependencyLocation(epsilonFile);
 
-                Assembly epsilon = loader.LoadFromPath(epsilonFile.Path);
+                Assembly epsilon = loader.LoadFromPath(epsilonFile);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
@@ -954,8 +883,8 @@ Delta: Epsilon: Test E
                     VerifyDependencyAssemblies(
                         loader,
                         copyCount: 3,
-                        delta2File.Path,
-                        epsilonFile.Path);
+                        delta2File,
+                        epsilonFile);
 
                     var actual = sb.ToString();
                     Assert.Equal(
@@ -968,8 +897,8 @@ Delta: Epsilon: Test E
                     // See limitation 2
                     VerifyDependencyAssemblies(
                         loader,
-                        delta1File.Path,
-                        epsilonFile.Path);
+                        delta1File,
+                        epsilonFile);
 
                     var actual = sb.ToString();
                     Assert.Equal(
@@ -984,22 +913,22 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_MultipleLoaders(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader1, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader1, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader1.AddDependencyLocation(testFixture.Gamma.Path);
-                loader1.AddDependencyLocation(testFixture.Delta1.Path);
+                loader1.AddDependencyLocation(testFixture.Gamma);
+                loader1.AddDependencyLocation(testFixture.Delta1);
 
                 var loader2 = new DefaultAnalyzerAssemblyLoader();
-                loader2.AddDependencyLocation(testFixture.Epsilon.Path);
-                loader2.AddDependencyLocation(testFixture.Delta2.Path);
+                loader2.AddDependencyLocation(testFixture.Epsilon);
+                loader2.AddDependencyLocation(testFixture.Delta2);
 
-                Assembly gamma = loader1.LoadFromPath(testFixture.Gamma.Path);
+                Assembly gamma = loader1.LoadFromPath(testFixture.Gamma);
                 var g = gamma.CreateInstance("Gamma.G")!;
                 g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
 
-                Assembly epsilon = loader2.LoadFromPath(testFixture.Epsilon.Path);
+                Assembly epsilon = loader2.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
@@ -1010,8 +939,8 @@ Delta: Epsilon: Test E
                 VerifyAssemblies(
                     loader1,
                     alcs1[0].Assemblies,
-                    ("Delta", "1.0.0.0", testFixture.Delta1.Path),
-                    ("Gamma", "0.0.0.0", testFixture.Gamma.Path));
+                    ("Delta", "1.0.0.0", testFixture.Delta1),
+                    ("Gamma", "0.0.0.0", testFixture.Gamma));
 
                 var alcs2 = loader2.GetDirectoryLoadContextsSnapshot();
                 Assert.Equal(1, alcs2.Length);
@@ -1019,8 +948,8 @@ Delta: Epsilon: Test E
                 VerifyAssemblies(
                     loader2,
                     alcs2[0].Assemblies,
-                    ("Delta", "2.0.0.0", testFixture.Delta2.Path),
-                    ("Epsilon", "0.0.0.0", testFixture.Epsilon.Path));
+                    ("Delta", "2.0.0.0", testFixture.Delta2),
+                    ("Epsilon", "0.0.0.0", testFixture.Epsilon));
 #endif
 
                 var actual = sb.ToString();
@@ -1047,19 +976,19 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_MissingVersion(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.Gamma.Path);
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                loader.AddDependencyLocation(testFixture.Epsilon.Path);
+                loader.AddDependencyLocation(testFixture.Gamma);
+                loader.AddDependencyLocation(testFixture.Delta1);
+                loader.AddDependencyLocation(testFixture.Epsilon);
 
-                Assembly gamma = loader.LoadFromPath(testFixture.Gamma.Path);
+                Assembly gamma = loader.LoadFromPath(testFixture.Gamma);
                 var g = gamma.CreateInstance("Gamma.G")!;
                 g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
 
-                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon.Path);
+                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 var eWrite = e.GetType().GetMethod("Write")!;
 
@@ -1076,7 +1005,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_UnifyToHighest(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var sb = new StringBuilder();
 
@@ -1085,15 +1014,15 @@ Delta: Epsilon: Test E
                 // this test is testing what happens if it's not present. A simple example for this scenario
                 // is an analyzer that depends on both Gamma and Epsilon; an analyzer package can't reasonably
                 // package both Delta v1 and Delta v2, so it'll only package the highest and things should work.
-                loader.AddDependencyLocation(testFixture.GammaReferencingPublicSigned.Path);
-                loader.AddDependencyLocation(testFixture.EpsilonReferencingPublicSigned.Path);
-                loader.AddDependencyLocation(testFixture.DeltaPublicSigned2.Path);
+                loader.AddDependencyLocation(testFixture.GammaReferencingPublicSigned);
+                loader.AddDependencyLocation(testFixture.EpsilonReferencingPublicSigned);
+                loader.AddDependencyLocation(testFixture.DeltaPublicSigned2);
 
-                var gamma = loader.LoadFromPath(testFixture.GammaReferencingPublicSigned.Path);
+                var gamma = loader.LoadFromPath(testFixture.GammaReferencingPublicSigned);
                 var g = gamma.CreateInstance("Gamma.G")!;
                 g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
 
-                var epsilon = loader.LoadFromPath(testFixture.EpsilonReferencingPublicSigned.Path);
+                var epsilon = loader.LoadFromPath(testFixture.EpsilonReferencingPublicSigned);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
@@ -1111,19 +1040,19 @@ Delta.2: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_CanLoadDifferentVersionsDirectly(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var sb = new StringBuilder();
 
                 // Ensure that no matter what, if we have two analyzers of different versions, we never unify them.
-                loader.AddDependencyLocation(testFixture.DeltaPublicSigned1.Path);
-                loader.AddDependencyLocation(testFixture.DeltaPublicSigned2.Path);
+                loader.AddDependencyLocation(testFixture.DeltaPublicSigned1);
+                loader.AddDependencyLocation(testFixture.DeltaPublicSigned2);
 
-                var delta1Assembly = loader.LoadFromPath(testFixture.DeltaPublicSigned1.Path);
+                var delta1Assembly = loader.LoadFromPath(testFixture.DeltaPublicSigned1);
                 var delta1Instance = delta1Assembly.CreateInstance("Delta.D")!;
                 delta1Instance.GetType().GetMethod("Write")!.Invoke(delta1Instance, new object[] { sb, "Test D1" });
 
-                var delta2Assembly = loader.LoadFromPath(testFixture.DeltaPublicSigned2.Path);
+                var delta2Assembly = loader.LoadFromPath(testFixture.DeltaPublicSigned2);
                 var delta2Instance = delta2Assembly.CreateInstance("Delta.D")!;
                 delta2Instance.GetType().GetMethod("Write")!.Invoke(delta2Instance, new object[] { sb, "Test D2" });
 
@@ -1141,14 +1070,14 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable.Path);
-                loader.AddDependencyLocation(testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+                loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable);
+                loader.AddDependencyLocation(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
 
-                Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+                Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
                 var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
 
                 if (ExecutionConditionUtil.IsCoreClr)
@@ -1168,14 +1097,14 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_02(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
-                loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable.Path);
-                loader.AddDependencyLocation(testFixture.AnalyzerReferencesSystemCollectionsImmutable2.Path);
+                loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable);
+                loader.AddDependencyLocation(testFixture.AnalyzerReferencesSystemCollectionsImmutable2);
 
-                Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable2.Path);
+                Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable2);
                 var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
                 analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
                 Assert.Equal(ExecutionConditionUtil.IsCoreClr ? "1" : "42", sb.ToString());
@@ -1186,18 +1115,18 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_CompilerDependencyDuplicated(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var assembly = typeof(ImmutableArray<int>).Assembly;
 
                 // Copy the dependency to a new location to simulate it being deployed by an 
                 // analyzer / generator
                 using var tempRoot = new TempRoot();
-                var destFile = tempRoot.CreateDirectory().CreateOrOpenFile($"{assembly.GetName().Name}.dll");
-                destFile.CopyContentFrom(assembly.Location);
-                loader.AddDependencyLocation(destFile.Path);
+                var destFile = tempRoot.CreateDirectory().CreateOrOpenFile($"{assembly.GetName().Name}.dll").Path;
+                File.Copy(assembly.Location, destFile, overwrite: true);
+                loader.AddDependencyLocation(destFile);
 
-                var copiedAssembly = loader.LoadFromPath(destFile.Path);
+                var copiedAssembly = loader.LoadFromPath(destFile);
                 Assert.Single(AppDomain.CurrentDomain.GetAssemblies().Where(x => x.FullName == assembly.FullName));
                 Assert.Same(copiedAssembly, assembly);
             });
@@ -1207,16 +1136,16 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_NativeDependency(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 const int INVALID_FILE_ATTRIBUTES = -1;
-                loader.AddDependencyLocation(testFixture.AnalyzerWithNativeDependency.Path);
+                loader.AddDependencyLocation(testFixture.AnalyzerWithNativeDependency);
 
-                Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerWithNativeDependency.Path);
+                Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerWithNativeDependency);
                 var analyzer = analyzerAssembly.CreateInstance("Class1")!;
-                var result = analyzer.GetType().GetMethod("GetFileAttributes")!.Invoke(analyzer, new[] { testFixture.AnalyzerWithNativeDependency.Path });
+                var result = analyzer.GetType().GetMethod("GetFileAttributes")!.Invoke(analyzer, new[] { testFixture.AnalyzerWithNativeDependency });
                 Assert.NotEqual(INVALID_FILE_ATTRIBUTES, result);
-                Assert.Equal(FileAttributes.Archive, (FileAttributes)result!);
+                Assert.Equal(FileAttributes.Archive | FileAttributes.ReadOnly, (FileAttributes)result!);
             });
         }
 
@@ -1224,20 +1153,21 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_DeleteAfterLoad1(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
-                StringBuilder sb = new StringBuilder();
-
-                loader.AddDependencyLocation(testFixture.Delta1.Path);
-                _ = loader.LoadFromPath(testFixture.Delta1.Path);
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var deltaCopy = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+                loader.AddDependencyLocation(deltaCopy);
+                _ = loader.LoadFromPath(deltaCopy);
 
                 if (loader is ShadowCopyAnalyzerAssemblyLoader || !ExecutionConditionUtil.IsWindows)
                 {
-                    File.Delete(testFixture.Delta1.Path);
+                    File.Delete(deltaCopy);
                 }
                 else
                 {
-                    Assert.Throws<UnauthorizedAccessException>(() => File.Delete(testFixture.Delta1.Path));
+                    Assert.Throws<UnauthorizedAccessException>(() => File.Delete(testFixture.Delta1));
                 }
             });
         }
@@ -1246,19 +1176,19 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_DeleteAfterLoad2(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
 
                 var tempDir = temp.CreateDirectory();
-                var deltaCopy = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
-                loader.AddDependencyLocation(deltaCopy.Path);
-                Assembly? delta = loader.LoadFromPath(deltaCopy.Path);
+                var deltaCopy = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+                loader.AddDependencyLocation(deltaCopy);
+                Assembly? delta = loader.LoadFromPath(deltaCopy);
 
                 if (loader is ShadowCopyAnalyzerAssemblyLoader || !ExecutionConditionUtil.IsWindows)
                 {
-                    File.Delete(deltaCopy.Path);
+                    File.Delete(deltaCopy);
                 }
 
                 // Ensure everything is functioning still 
@@ -1277,7 +1207,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_DeleteAfterLoad3(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -1287,14 +1217,14 @@ Delta.2: Test D2
                 var tempDir2 = tempDir.CreateDirectory("b");
                 var tempDir3 = tempDir.CreateDirectory("c");
 
-                var delta1File = tempDir1.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
-                var delta2File = tempDir2.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta2.Path);
-                var gammaFile = tempDir3.CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma.Path);
+                var delta1File = tempDir1.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+                var delta2File = tempDir2.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta2).Path;
+                var gammaFile = tempDir3.CreateFile("Gamma.dll").CopyContentFrom(testFixture.Gamma).Path;
 
-                loader.AddDependencyLocation(delta1File.Path);
-                loader.AddDependencyLocation(delta2File.Path);
-                loader.AddDependencyLocation(gammaFile.Path);
-                Assembly gamma = loader.LoadFromPath(gammaFile.Path);
+                loader.AddDependencyLocation(delta1File);
+                loader.AddDependencyLocation(delta2File);
+                loader.AddDependencyLocation(gammaFile);
+                Assembly gamma = loader.LoadFromPath(gammaFile);
 
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
@@ -1302,9 +1232,9 @@ Delta.2: Test D2
 
                 if (loader is ShadowCopyAnalyzerAssemblyLoader)
                 {
-                    File.Delete(delta1File.Path);
-                    File.Delete(delta2File.Path);
-                    File.Delete(gammaFile.Path);
+                    File.Delete(delta1File);
+                    File.Delete(delta2File);
+                    File.Delete(gammaFile);
                 }
 
                 var actual = sb.ToString();
@@ -1317,9 +1247,9 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_RepeatedLoads1(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
-                var path = testFixture.Delta1.Path;
+                var path = testFixture.Delta1;
                 loader.AddDependencyLocation(path);
                 var expected = loader.LoadFromPath(path);
 
@@ -1338,11 +1268,11 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_RepeatedLoads2(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            Run(shadowLoad, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
-                var tempFile = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1.Path);
+                var tempFile = tempDir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1);
                 var path = tempFile.Path;
                 loader.AddDependencyLocation(path);
                 var expected = loader.LoadFromPath(path);
@@ -1362,7 +1292,7 @@ Delta.2: Test D2
                 {
                     // Ensure that despite the on disk changes only one shadow copy occurred
                     Assert.Equal(1, shadowLoader.CopyCount);
-                    tempFile.CopyContentFrom(testFixture.Delta1.Path);
+                    tempFile.CopyContentFrom(testFixture.Delta1);
                 }
 
                 VerifyDependencyAssemblies(loader, path);
@@ -1375,27 +1305,28 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable(bool shadowLoad)
         {
-            Run(shadowLoad, static (DefaultAnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
-            {
-                // Create a separate ALC as the compiler context, load the compiler assembly and a modified version of S.C.I into it,
-                // then use that to load and run `AssemblyLoadingInNonDefaultContextHelper1` below. We expect the analyzer running in
-                // its own `DirectoryLoadContext` would use the bogus S.C.I loaded in the compiler load context instead of the real one
-                // in the default context.
-                var compilerContext = loader.CompilerLoadContext;
-                _ = compilerContext.LoadFromAssemblyPath(testFixture.UserSystemCollectionsImmutable.Path);
-                _ = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
+            Run(shadowLoad,
+                static (AssemblyLoadContext compilerContext, AssemblyLoadTestFixture testFixture) =>
+                {
+                    // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
+                    // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
+                    // in the host context.
+                    _ = compilerContext.LoadFromAssemblyPath(testFixture.UserSystemCollectionsImmutable);
+                    _ = compilerContext.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
+                },
+                static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+                {
+                    StringBuilder sb = new StringBuilder();
 
-                StringBuilder sb = new StringBuilder();
+                    loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable);
+                    loader.AddDependencyLocation(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
 
-                loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable.Path);
-                loader.AddDependencyLocation(testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+                    Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
+                    var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
+                    analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
 
-                Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
-                var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
-                analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
-
-                Assert.Equal("42", sb.ToString());
-            });
+                    Assert.Equal("42", sb.ToString());
+                });
         }
 #endif
     }
