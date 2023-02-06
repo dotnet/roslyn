@@ -1218,7 +1218,7 @@ class C { }
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
 
@@ -1410,7 +1410,7 @@ global using AAttribute = XAttribute;"))));
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
 
@@ -1452,7 +1452,7 @@ global using BAttribute = XAttribute;"))));
 
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
 
@@ -1553,7 +1553,7 @@ class D { }"))));
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
         Assert.Collection(runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
