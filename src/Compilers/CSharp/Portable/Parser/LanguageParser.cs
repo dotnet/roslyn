@@ -1410,13 +1410,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                    return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+                    return this.ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
 
                 case SyntaxKind.StructKeyword:
-                    return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+                    return this.ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
 
                 case SyntaxKind.InterfaceKeyword:
-                    return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+                    return this.ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
 
                 case SyntaxKind.DelegateKeyword:
                     return this.ParseDelegateDeclaration(attributes, modifiers);
@@ -1425,8 +1425,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseEnumDeclaration(attributes, modifiers);
 
                 case SyntaxKind.IdentifierToken:
-                    Debug.Assert(CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
-                    return ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+                    Debug.Assert(CurrentToken.ContextualKind is SyntaxKind.RecordKeyword
+                        or SyntaxKind.RoleKeyword);
+                    return ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.CurrentToken.Kind);
@@ -1435,10 +1436,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
 #nullable enable
 
-        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceOrRoleDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
+                this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.RoleKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -1678,6 +1679,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             name,
                             typeParameters,
                             paramList,
+                            baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.RoleKeyword:
+                        // role ...
+                        return syntaxFactory.RoleDeclaration(
+                            attributes,
+                            modifiers.ToList(),
+                            keyword,
+                            name,
+                            typeParameters,
                             baseList,
                             constraints,
                             openBrace,
@@ -2055,6 +2071,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
                         // older code that is not using C# 9 we conditionally parse based on langversion
                         return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    }
+                    if (CurrentToken.ContextualKind == SyntaxKind.RoleKeyword)
+                    {
+                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                        // does not support a feature, but in this case we are effectively making a language breaking
+                        // change to consider "role" a type declaration in all ambiguous cases. To avoid breaking
+                        // older code that is not using C# 11 we conditionally parse based on langversion
+                        return IsFeatureEnabled(MessageID.IDS_FeatureRoles);
                     }
                     return false;
 
